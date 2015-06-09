@@ -1,0 +1,5 @@
+config.php
+/config/app.php
+/data/*
+/logs/*
+/tmp/*
