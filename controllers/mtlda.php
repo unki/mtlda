@@ -3,6 +3,7 @@
 require_once BASE_PATH."/controllers/config.php";
 require_once BASE_PATH."/controllers/db.php";
 require_once BASE_PATH."/controllers/http_router.php";
+require_once BASE_PATH."/controllers/view.php";
 
 
 class MTLDA_Controller {
@@ -21,6 +22,17 @@ class MTLDA_Controller {
 
         $router = new MTLDA_HTTP_Router_Controller;
         $query = $router->parse($_SERVER['REQUEST_URI']);
+
+        if(!isset($query->view)) {
+            print "Error - parsing request URI hasn't unveiled what to view!";
+            exit(1);
+        }
+
+        $view = new MTLDA_View_Controller;
+        $controller = $view->get_controller_name($query->view);
+        print_r($controller);
+
+
     }
 }
 
