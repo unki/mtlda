@@ -1,8 +1,0 @@
-<?php
-
-$mysql_host = "localhost";
-$mysql_db = "db_mtlda";
-$mysql_user = "mtlda";
-$mysql_pass = "password28!";
-
-?>
