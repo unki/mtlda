@@ -1,5 +1,5 @@
 RewriteEngine On
-RewriteBase /mtlda
+RewriteBase /mtlda/
 
 RewriteRule ^(.*)/$ /$1 [L,R=301]
 
