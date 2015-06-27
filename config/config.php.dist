@@ -1,3 +1,6 @@
+[app]
+base_web_path = /mtlda
+
 [database]
 type = mysql
 host = localhost

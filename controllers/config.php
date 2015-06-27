@@ -42,6 +42,10 @@ class MTLDA_Config_Controller {
             exit(1);
         }
 
+        // remove trailing slash from base_web_path if any
+        if(isset($config_ary['app']) && isset($config_ary['app']['base_web_path']) && !empty($config_ary['app']['base_web_path']))
+            $config_ary['app']['base_web_path'] = rtrim($config_ary['app']['base_web_path'], '/');
+
         $config = $config_ary;
     }
 
