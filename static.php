@@ -17,13 +17,25 @@ function __autoload($class)
         exit(1);
     }
 
+    // remove leading 'MTLDA'
     array_shift($parts);
+
+    // lower-case the directory name
+    //$parts[0] = strtolower($parts[0]);
+
+    // remove *Controller from ControllerName
+    if (preg_match('/^(.*)Controller/', $parts[1])) {
+        $parts[1] = preg_replace('/^(.*)Controller/', '$1', $parts[1]);
+    }
+
+    // lower-case the filename
+    //$parts[1] = strtolower($parts[1]);
 
     $filename = BASE_PATH;
     $filename.= "/";
     $filename.= implode('/', $parts);
-    $filename = strtolower($filename);
     $filename.= '.php';
+    $filename = strtolower($filename);
 
     if (!file_exists($filename)) {
         print "Error - file ". $filename ." does not exist!";
@@ -36,3 +48,5 @@ function __autoload($class)
 
     require_once $filename;
 }
+
+// vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
