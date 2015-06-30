@@ -32,6 +32,11 @@ class MTLDA_Config_Controller {
             exit(1);
         }
 
+        if(!function_exists("parse_ini_file")) {
+            print "Error - this PHP installation does not provide required parse_ini_file() function!";
+            exit(1);
+        }
+
         if(($config_ary = parse_ini_file($this->config_fqpn, true)) === FALSE) {
             print "Error - parse_ini_file() function failed on ". $this->config_fqpn ." - please check syntax!";
             exit(1);
