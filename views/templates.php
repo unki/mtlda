@@ -1,6 +1,8 @@
 <?php
 
-namespace MTLDA\Controllers ;
+namespace MTLDA\Views ;
+
+use Smarty;
 
 class TemplatesController extends Smarty
 {
