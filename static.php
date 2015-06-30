@@ -2,7 +2,7 @@
 
 define('BASE_PATH', __DIR__);
 
-function __autoload($class)
+function autoload($class)
 {
     $class = str_replace("\\", "/", $class);
     $parts = explode('/', $class);
@@ -20,16 +20,13 @@ function __autoload($class)
     // remove leading 'MTLDA'
     array_shift($parts);
 
-    // lower-case the directory name
-    //$parts[0] = strtolower($parts[0]);
-
     // remove *Controller from ControllerName
-    if (preg_match('/^(.*)Controller/', $parts[1])) {
-        $parts[1] = preg_replace('/^(.*)Controller/', '$1', $parts[1]);
+    if (preg_match('/^(.*)Controller$/', $parts[1])) {
+        $parts[1] = preg_replace('/^(.*)Controller$/', '$1', $parts[1]);
     }
-
-    // lower-case the filename
-    //$parts[1] = strtolower($parts[1]);
+    if (preg_match('/^(.*)View$/', $parts[1])) {
+        $parts[1] = preg_replace('/^(.*)View$/', '$1', $parts[1]);
+    }
 
     $filename = BASE_PATH;
     $filename.= "/";

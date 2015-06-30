@@ -2,6 +2,8 @@
 
 require_once "static.php";
 
+spl_autoload_register("autoload");
+
 use MTLDA\Controllers as Controllers;
 
 $mtlda = new Controllers\mtlda;
