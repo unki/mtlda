@@ -2,8 +2,6 @@
 
 namespace MTLDA\Controllers;
 
-use MTLDA\Views;
-
 class ViewsController
 {
     private $page_map = array(
@@ -25,7 +23,7 @@ class ViewsController
                 continue;
             }
 
-            if (!class_exists($this->page_map[$entry])) {
+            if (!class_exists('MTLDA\\Views\\'.$this->page_map[$entry])) {
                 print "Error - view class ". $this->page_map[$entry] ." does not exist!";
                 exit(1);
             }
@@ -33,6 +31,12 @@ class ViewsController
             return $this->page_map[$entry];
 
         }
+    }
+
+    public function load($view)
+    {
+        $page = new $view;
+        $view->initialize();
     }
 }
 
