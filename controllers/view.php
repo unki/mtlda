@@ -7,8 +7,8 @@ use MTLDA\Views;
 class ViewsController
 {
     private $page_map = array(
-        '/^$/' => 'IndexView',
-        '/^index$/' => 'IndexView',
+        '/^$/' => 'MainView',
+        '/^index$/' => 'MainView',
         '/^queue$/' => 'QueueView',
     );
 
