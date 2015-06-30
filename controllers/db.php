@@ -1,33 +1,42 @@
 <?php
 
-class MTLDA_DB_Controller {
+namespace MTLDA\Controllers;
 
-    var $db;
-    var $db_cfg;
-    var $is_connected = FALSE;
+class DbController
+{
+    public $db;
+    private $db_cfg;
+    private $is_connected = false;
 
-    public function __construct() {
-
+    public function __construct()
+    {
         global $config;
 
-        if(!isset($config['database']) || !is_array($config['database']) || empty($config['database'])) {
+        $this->is_connected = false;
+
+        if (!isset($config['database']) || !is_array($config['database']) || empty($config['database'])) {
             print "Error - database configuration is missing or incomplete - please check configuration!";
             exit(1);
         }
 
         $db_param = $config['database'];
 
-        if(!isset($db_param['type'], $db_param['host'], $db_param['db_name'], $db_param['db_user'], $db_param['db_pass'])) {
+        if (!isset(
+            $db_param['type'],
+            $db_param['host'],
+            $db_param['db_name'],
+            $db_param['db_user'],
+            $db_param['db_pass'])) {
             print "Error - incomplete database configuration - please check configuration!";
             exit(1);
         }
 
         $this->db_cfg = $db_param;
-        $this->db_connect();
+        $this->connect();
 
     }
 
-    private function db_connect()
+    private function connect()
     {
         $options = array(
             'debug' => 2,
@@ -43,8 +52,8 @@ class MTLDA_DB_Controller {
                 break;
             case 'sqlite':
                 $dsn = "sqlite:".$this->db_cfg['host'];
-                $user = NULL;
-                $pass = NULL;
+                $user = null;
+                $pass = null;
                 break;
         }
 
@@ -52,45 +61,43 @@ class MTLDA_DB_Controller {
             $this->db = new PDO($dsn, $user, $pass);
             $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-        }
-        catch (PDOException $e) {
+        } catch (PDOException $e) {
             print "Error - unable to connect to database: ". $e->getMessage();
             exit(1);
         }
 
-        $this->db_set_connection_status(true);
+        $this->SetConnectionStatus(true);
 
     }
 
-    private function db_set_connection_status($status)
+    private function setConnectionStatus($status)
     {
         $this->is_connected = $status;
     }
 
-    private function db_get_connection_status()
+    private function getConnectionStatus()
     {
         return $this->is_connected;
     }
 
-    public function db_query($query = "", $mode = null)
+    public function query($query = "", $mode = null)
     {
-        if(!$this->db_get_connection_status())
-            $this->db_connect();
+        if (!$this->getConnectionStatus()) {
+            $this->connect();
+        }
 
-      /* for manipulating queries use exec instead of query. can save
-       * some resource because nothing has to be allocated for results.
-       */
-      if(preg_match('/^(update|insert)i/', $query)) {
-         $result = $this->db->exec($query);
-      }
-      else {
-         $result = $this->db->query($query);
-      }
+        /* for manipulating queries use exec instead of query. can save
+         * some resource because nothing has to be allocated for results.
+         */
+        if (preg_match('/^(update|insert)i/', $query)) {
+            $result = $this->db->exec($query);
+            return $result;
+        }
 
-      return $result;
+        $result = $this->db->query($query);
+        return $result;
 
-   } // db_query()
-
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
