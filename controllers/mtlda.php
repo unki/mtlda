@@ -37,10 +37,10 @@ class MTLDAController
             exit(1);
         }
 
-        $view = new ViewController;
-        $controller = $view->getViewName($query->view);
-        print_r($controller);
+        $views = new ViewsController;
+        $page_name = $views->getViewName($query->view);
 
+        $view = $views->load($page_name);
 
     }
 }
