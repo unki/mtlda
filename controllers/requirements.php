@@ -2,6 +2,8 @@
 
 namespace MTLDA\Controllers;
 
+use PDO;
+
 class RequirementsController
 {
     public function __construct()
