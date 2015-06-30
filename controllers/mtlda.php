@@ -1,10 +1,10 @@
 <?php
 
 require_once BASE_PATH."/controllers/config.php";
+require_once BASE_PATH."/controllers/requirements.php";
 require_once BASE_PATH."/controllers/db.php";
 require_once BASE_PATH."/controllers/http_router.php";
 require_once BASE_PATH."/controllers/view.php";
-
 
 class MTLDA_Controller {
 
@@ -13,6 +13,13 @@ class MTLDA_Controller {
         global $db, $query;
 
         $cfg = new MTLDA_Config_Controller;
+
+        $req = new MTLDA_Requirements_Controller;
+        if(!$req->check()) {
+            print "Error - not all MTLDA requirements are met. Please check!";
+            exit(1);
+        }
+
         $db = new MTLDA_DB_Controller;
 
         if(!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
