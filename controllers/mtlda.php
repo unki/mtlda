@@ -11,21 +11,20 @@ class MTLDA
         global $db, $query;
 
         $cfg = new ConfigController;
-
         $req = new RequirementsController;
+        $db = new DbController;
+        $router = new HttpRouterController;
+
         if (!$req->check()) {
             print "Error - not all MTLDA requirements are met. Please check!";
             exit(1);
         }
-
-        $db = new DbController;
 
         if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
             print "Error - \$_SERVER['REQUEST_URI'] is not set!";
             exit(1);
         }
 
-        $router = new HttpRouterController;
         $query = $router->parse($_SERVER['REQUEST_URI']);
 
         if (!isset($query->view)) {
