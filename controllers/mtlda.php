@@ -4,14 +4,11 @@ namespace MTLDA\Controllers;
 
 use MTLDA\Views;
 
-class MTLDAController
+class MTLDA
 {
     public function __construct()
     {
         global $db, $query;
-
-        require_once BASE_PATH."/controllers/config.php";
-        require_once BASE_PATH."/controllers/requirements.php";
 
         $cfg = new ConfigController;
 
@@ -21,7 +18,6 @@ class MTLDAController
             exit(1);
         }
 
-        require_once BASE_PATH."/views/templates.php";
         $db = new DbController;
 
         if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
