@@ -2,6 +2,8 @@
 
 namespace MTLDA\Controllers;
 
+use PDO;
+
 class DbController
 {
     public $db;
