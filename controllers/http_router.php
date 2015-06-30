@@ -2,6 +2,8 @@
 
 namespace MTLDA\Controllers;
 
+use stdClass;
+
 class HttpRouterController
 {
     public function parse($uri)
