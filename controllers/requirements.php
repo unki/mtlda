@@ -12,11 +12,6 @@ class RequirementsController
             print "Erorr - BASE_PATH is not defined!";
             exit(1);
         }
-
-        require_once BASE_PATH."/controllers/db.php";
-        require_once BASE_PATH."/controllers/requirements.php";
-        require_once BASE_PATH."/controllers/http_router.php";
-        require_once BASE_PATH."/controllers/view.php";
     }
 
     public function check()
