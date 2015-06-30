@@ -4,7 +4,7 @@ namespace MTLDA\Views ;
 
 use Smarty;
 
-class TemplatesController extends Smarty
+class ViewTemplate extends Smarty
 {
     public function __construct()
     {
