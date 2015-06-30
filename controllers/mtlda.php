@@ -2,6 +2,8 @@
 
 namespace MTLDA\Controllers;
 
+use MTLDA\Views;
+
 class MTLDAController
 {
     public function __construct()
@@ -11,23 +13,23 @@ class MTLDAController
         require_once BASE_PATH."/controllers/config.php";
         require_once BASE_PATH."/controllers/requirements.php";
 
-        $cfg = new MTLDA_Config_Controller;
+        $cfg = new ConfigController;
 
-        $req = new MTLDA_Requirements_Controller;
+        $req = new RequirementsController;
         if (!$req->check()) {
             print "Error - not all MTLDA requirements are met. Please check!";
             exit(1);
         }
 
-        require_once BASE_PATH."/controllers/templates.php";
-        $db = new MTLDA_DB_Controller;
+        require_once BASE_PATH."/views/templates.php";
+        $db = new DbController;
 
         if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
             print "Error - \$_SERVER['REQUEST_URI'] is not set!";
             exit(1);
         }
 
-        $router = new MTLDA_HTTP_Router_Controller;
+        $router = new HttpRouterController;
         $query = $router->parse($_SERVER['REQUEST_URI']);
 
         if (!isset($query->view)) {
@@ -35,8 +37,8 @@ class MTLDAController
             exit(1);
         }
 
-        $view = new MTLDA_View_Controller;
-        $controller = $view->get_controller_name($query->view);
+        $view = new ViewController;
+        $controller = $view->getViewName($query->view);
         print_r($controller);
 
 
