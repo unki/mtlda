@@ -35,8 +35,8 @@ class ViewsController
 
     public function load($view)
     {
+        $view = 'MTLDA\\Views\\'.$view;
         $page = new $view;
-        $view->initialize();
     }
 }
 
