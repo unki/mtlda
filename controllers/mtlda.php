@@ -1,28 +1,28 @@
 <?php
 
-require_once BASE_PATH."/controllers/config.php";
-require_once BASE_PATH."/controllers/requirements.php";
-require_once BASE_PATH."/controllers/db.php";
-require_once BASE_PATH."/controllers/http_router.php";
-require_once BASE_PATH."/controllers/view.php";
+namespace MTLDA\Controllers;
 
-class MTLDA_Controller {
-
+class MTLDAController
+{
     public function __construct()
     {
         global $db, $query;
 
+        require_once BASE_PATH."/controllers/config.php";
+        require_once BASE_PATH."/controllers/requirements.php";
+
         $cfg = new MTLDA_Config_Controller;
 
         $req = new MTLDA_Requirements_Controller;
-        if(!$req->check()) {
+        if (!$req->check()) {
             print "Error - not all MTLDA requirements are met. Please check!";
             exit(1);
         }
 
+        require_once BASE_PATH."/controllers/templates.php";
         $db = new MTLDA_DB_Controller;
 
-        if(!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
+        if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
             print "Error - \$_SERVER['REQUEST_URI'] is not set!";
             exit(1);
         }
@@ -30,7 +30,7 @@ class MTLDA_Controller {
         $router = new MTLDA_HTTP_Router_Controller;
         $query = $router->parse($_SERVER['REQUEST_URI']);
 
-        if(!isset($query->view)) {
+        if (!isset($query->view)) {
             print "Error - parsing request URI hasn't unveiled what to view!";
             exit(1);
         }
