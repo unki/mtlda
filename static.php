@@ -12,9 +12,9 @@ function autoload($class)
         exit(1);
     }
 
+    # only take care outloading of our namespace
     if ($parts[0] != "MTLDA") {
-        print "Error - are you trying to fooling me?";
-        exit(1);
+        return;
     }
 
     // remove leading 'MTLDA'
