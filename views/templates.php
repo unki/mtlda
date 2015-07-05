@@ -6,10 +6,10 @@ use Smarty;
 
 class Templates extends Smarty
 {
-    private $template_dir;
-    private $compile_dir;
-    private $config_dir;
-    private $cache_dir;
+    public $template_dir;
+    public $compile_dir;
+    public $config_dir;
+    public $cache_dir;
 
     public function __construct()
     {
@@ -45,6 +45,10 @@ class Templates extends Smarty
             print "Please check that permissions are set correctly to this directory.<br />\n";
             exit(1);
         }
+        $this->setTemplateDir($this->template_dir);
+        $this->setCompileDir($this->compile_dir);
+        $this->setConfigDir($this->config_dir);
+        $this->setCacheDir($this->cache_dir);
 
         if (isset($config['app']) && isset($config['app']['page_title'])) {
             $this->assign('page_title', $config['app']['page_title']);
@@ -99,17 +103,25 @@ class Templates extends Smarty
 
     }  // addTemplateName()
 
-    public function fetch($tpl_name)
-    {
+    public function fetch(
+        $template = null,
+        $cache_id = null,
+        $compile_id = null,
+        $parent = null,
+        $display = false,
+        $merge_tpl_vars = true,
+        $no_output_filter = false
+    ) {
         global $mtlda;
 
-        if (!file_exists($this->template_dir ."/". $tpl_name)) {
-            $mtlda->raiseError("Unable to find ". $tpl_name ." in ". $this->template_dir);
+        if (!file_exists($this->template_dir."/". $template)) {
+            $mtlda->raiseError("Unable to locate ". $template ." in directory ". $this->template_dir);
         }
 
-        parent::fetch($tpl_name);
+        // Now call parent method
+        return parent::fetch($template, $cache_id, $compile_id, $parent, $display, $merge_tpl_vars, $no_output_filter);
 
-    }
+    } // fetch()
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
