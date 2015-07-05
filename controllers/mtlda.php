@@ -6,6 +6,8 @@ use MTLDA\Views;
 
 class MTLDA
 {
+    private $verbosity_level = LOG_WARNING;
+
     public function __construct()
     {
         $GLOBALS['mtlda'] = &$this;
@@ -53,16 +55,82 @@ class MTLDA
         print "<br /><br />". $string ."<br /><br />\n";
 
         try {
-            throw new MtldaExceptionController;
-        } catch (MtldaExceptionController $e) {
+            throw new ExceptionController;
+        } catch (ExceptionController $e) {
             print "<br /><br />\n";
-            $this->_print($e, MSLOG_WARN);
+            $this->write($e, LOG_WARNING);
             die;
         }
 
         $this->last_error = $string;
 
     } // raiseError()
+
+    public function write($text, $loglevel = LOG_INFO, $override_output = null, $no_newline = null)
+    {
+        if (isset($this->cfg->logging)) {
+            $logtype = $this->cfg->logging;
+        }
+
+        if (!isset($this->cfg->logging)) {
+            $logtype = 'display';
+        }
+
+        if (isset($override_output)) {
+            $logtype = $override_output;
+        }
+
+        if ($this->getVerbosity() < $loglevel) {
+            return true;
+        }
+
+        switch($logtype) {
+            default:
+            case 'display':
+                print $text;
+                if (!$this->isCmdline()) {
+                    print "<br />";
+                } elseif (!isset($no_newline)) {
+                    print "\n";
+                }
+                break;
+            case 'errorlog':
+                error_log($text);
+                break;
+            case 'logfile':
+                error_log($text, 3, $this->cfg->log_file);
+                break;
+        }
+
+        return true;
+
+    } // write()
+
+    public function isCmdline()
+    {
+        if (php_sapi_name() == 'cli') {
+            return true;
+        }
+
+        return false;
+
+    } // isCmdline()
+
+    public function setVerbosity($level)
+    {
+        if (!in_array($level, array(0 => LOG_INFO, 1 => LOG_WARNING, 2 => LOG_DEBUG))) {
+            $this->raiseError("Unknown verbosity level ". $level);
+        }
+
+        $this->verbosity_level = $level;
+
+    } // setVerbosity()
+
+    public function getVerbosity()
+    {
+        return $this->verbosity_level;
+
+    } // getVerbosity()
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
