@@ -42,7 +42,7 @@ class QueueModel extends DefaultModel
 
         while ($row = $result->fetch()) {
             array_push($this->avail_items, $row->$idx_field);
-            array_push($this->items, $row);
+            $this->items[$row->$idx_field] = $row;
         }
 
     }

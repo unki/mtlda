@@ -1,0 +1,11 @@
+<table>
+ <tr>
+  <th>Idx</th>
+  <th>Filename</th>
+ </tr>
+{queue_list}
+ <tr>
+  <td>{$queue_idx}</td>
+  <td>{$queue_file_name}</td>
+ </tr>
+{/queue_list}
