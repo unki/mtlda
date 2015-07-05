@@ -8,7 +8,7 @@ class MainView extends Templates
     {
         parent::__construct();
 
-        print_r($this->fetch('main.tpl'));
+        print $this->fetch('main.tpl');
     }
 }
 
