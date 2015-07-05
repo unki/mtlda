@@ -2,7 +2,7 @@
 
 namespace MTLDA\Models ;
 
-class MtldaDefaultModel
+class DefaultModel
 {
     private $table_name;
     private $col_name;
