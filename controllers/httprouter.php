@@ -37,20 +37,18 @@ class HttpRouterController
         }
 
         $query->view = $parts[0];
+        $query->params = array();
 
         // no more information in URI, then we are done
         if (count($parts) == 1) {
             return $query;
         }
 
-        $query->params = array();
-
         for ($i = 1; $i < count($parts); $i++) {
             array_push($query->params, $parts[$i]);
         }
         
         return $query;
-
     }
 }
 
