@@ -38,6 +38,27 @@ class MTLDA
         $view = $views->load($page_name);
 
     }
+
+    public function raiseError($string)
+    {
+        if (defined('DB_NOERROR')) {
+            $this->last_error = $string;
+            return;
+        }
+
+        print "<br /><br />". $string ."<br /><br />\n";
+
+        try {
+            throw new MtldaExceptionController;
+        } catch (MtldaExceptionController $e) {
+            print "<br /><br />\n";
+            $this->_print($e, MSLOG_WARN);
+            die;
+        }
+
+        $this->last_error = $string;
+
+    } // raiseError()
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
