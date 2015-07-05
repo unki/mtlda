@@ -10,12 +10,12 @@ class MTLDA
 
     public function __construct()
     {
-        $GLOBALS['mtlda'] = &$this;
+        $GLOBALS['mtlda'] =& $this;
 
-        $GLOBALS['cfg'] = new ConfigController;
+        $GLOBALS['cfg'] =& new ConfigController;
         $req = new RequirementsController;
-        $GLOBALS['db'] = new DbController;
-        $GLOBALS['router'] = new HttpRouterController;
+        $GLOBALS['db'] =& new DbController;
+        $GLOBALS['router'] =& new HttpRouterController;
 
         global $cfg, $db, $router, $query;
 
