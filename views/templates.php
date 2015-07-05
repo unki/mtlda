@@ -12,6 +12,11 @@ class Templates extends Smarty
 
         parent::__construct();
 
+        // disable template caching during development
+        $this->setCaching(Smarty::CACHING_OFF);
+        $this->force_compile = true;
+        $this->caching = false;
+
         $this->template_dir = BASE_PATH .'/views/templates';
         $this->compile_dir  = BASE_PATH .'/cache/templates_c';
         $this->config_dir   = BASE_PATH .'/cache/smarty_config';
