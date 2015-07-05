@@ -8,12 +8,14 @@ class MTLDA
 {
     public function __construct()
     {
-        global $db, $query;
+        $GLOBALS['mtlda'] = &$this;
 
-        $cfg = new ConfigController;
+        $GLOBALS['cfg'] = new ConfigController;
         $req = new RequirementsController;
-        $db = new DbController;
-        $router = new HttpRouterController;
+        $GLOBALS['db'] = new DbController;
+        $GLOBALS['router'] = new HttpRouterController;
+
+        global $cfg, $db, $router, $query;
 
         if (!$req->check()) {
             print "Error - not all MTLDA requirements are met. Please check!";
@@ -25,7 +27,9 @@ class MTLDA
             exit(1);
         }
 
-        $query = $router->parse($_SERVER['REQUEST_URI']);
+        $GLOBALS['query'] = $router->parse($_SERVER['REQUEST_URI']);
+
+        global $query;
 
         if (!isset($query->view)) {
             print "Error - parsing request URI hasn't unveiled what to view!";
