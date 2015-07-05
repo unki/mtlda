@@ -6,6 +6,11 @@ use Smarty;
 
 class Templates extends Smarty
 {
+    private $template_dir;
+    private $compile_dir;
+    private $config_dir;
+    private $cache_dir;
+
     public function __construct()
     {
         global $config;
@@ -17,10 +22,10 @@ class Templates extends Smarty
         $this->force_compile = true;
         $this->caching = false;
 
-        $this->template_dir = BASE_PATH .'/views/templates';
-        $this->compile_dir  = BASE_PATH .'/cache/templates_c';
-        $this->config_dir   = BASE_PATH .'/cache/smarty_config';
-        $this->cache_dir    = BASE_PATH .'/cache/smarty_cache';
+        $this->template_dir = BASE_PATH.'/views/templates';
+        $this->compile_dir  = BASE_PATH.'/cache/templates_c';
+        $this->config_dir   = BASE_PATH.'/cache/smarty_config';
+        $this->cache_dir    = BASE_PATH.'/cache/smarty_cache';
 
         if (!file_exists($this->compile_dir) && !is_writeable(BASE_PATH .'/cache')) {
             print "Error - cache directory ". $BASE_PATH .'/cache' ." is not writeable
@@ -93,6 +98,18 @@ class Templates extends Smarty
             ." -->";
 
     }  // addTemplateName()
+
+    public function fetch($tpl_name)
+    {
+        global $mtlda;
+
+        if (!file_exists($this->template_dir ."/". $tpl_name)) {
+            $mtlda->raiseError("Unable to find ". $tpl_name ." in ". $this->template_dir);
+        }
+
+        parent::fetch($tpl_name);
+
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
