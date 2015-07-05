@@ -4,45 +4,30 @@ namespace MTLDA\Models ;
 
 class DefaultModel
 {
-    private $table_name;
-    private $col_name;
-    private $child_names;
-    private $ignore_child_on_clone;
-    private $fields;
+    public $table_name;
+    public $column_name;
+    public $child_names;
+    public $ignore_child_on_clone;
+    public $fields;
 
-    public function __construct($id, $init_data)
+    public function __construct($id)
     {
         global $mtlda;
 
-        if (!is_array($init_data)) {
-            $mtlda->raiseError('require array as second __construct() parameter');
-        }
-
-        if (!array_key_exists('table_name', $init_data)) {
+        if (!isset($this->table_name)) {
             $mtlda->raiseError('missing key table_name');
         }
 
-        if (!array_key_exists('col_name', $init_data)) {
+        if (!isset($this->column_name)) {
             $mtlda->raiseError('missing key col_name');
         }
 
-        if (!array_key_exists('fields', $init_data)) {
+        if (!isset($this->fields)) {
             $mtlda->raiseError('missing key fields');
         }
 
         if (!isset($id)) {
             $id = null;
-        }
-
-        $this->table_name = $init_data['table_name'];
-        $this->col_name = $init_data['col_name'];
-        $this->fields = $init_data['fields'];
-
-        if (array_key_exists('child_names', $init_data)) {
-            $this->child_names = $init_data['child_names'];
-        }
-        if (array_key_exists('ignore_child_on_clone', $init_data)) {
-            $this->ignore_child_on_clone = $init_data['ignore_child_on_clone'];
         }
 
         if (isset($id)) {
