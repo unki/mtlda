@@ -66,11 +66,19 @@ class Templates extends Smarty
 
     public function getUrl($params, &$smarty)
     {
+        global $config;
+
         if (!array_key_exists('page', $params)) {
             trigger_error("getUrl: missing 'page' parameter", E_USER_WARNING);
             $repeat = false;
             return;
         }
+
+        if (isset($config['app']) && isset($config['app']['base_web_path'])) {
+            return $config['app']['base_web_path'] ."/". $params['page'];
+        }
+
+        return '/'.$params['page'];
 
     } // get_url()
 
