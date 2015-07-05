@@ -49,6 +49,7 @@ class Templates extends Smarty
         }
 
         $this->registerPlugin("function", "get_url", array(&$this, "getUrl"), false);
+        $this->registerFilter("pre", array(&$this, "addTemplateName"));
     }
 
     public function getuid()
@@ -72,6 +73,18 @@ class Templates extends Smarty
         }
 
     } // get_url()
+
+    public function addTemplateName($tpl_source, $template)
+    {
+        return "<!-- BEGIN ".
+            $template->template_resource
+            ." -->\n".
+            $tpl_source
+            ."<!-- END ".
+            $template->template_resource
+            ." -->";
+
+    }  // addTemplateName()
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
