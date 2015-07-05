@@ -7,3 +7,4 @@ host = localhost
 db_name = db_mtlda
 db_user = mtlda
 db_pass = mtlda
+table_prefix = mtlda_

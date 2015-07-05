@@ -84,8 +84,18 @@ class DbController
 
     public function query($query = "", $mode = null)
     {
+        global $config;
+
         if (!$this->getConnectionStatus()) {
             $this->connect();
+        }
+
+        if (
+            isset($config['database']) &&
+            isset($config['database']['table_prefix']) &&
+            !empty($config['database']['table_prefix'])
+        ) {
+            $query = str_replace("TABLEPREFIX", $config['database']['table_prefix'], $query);
         }
 
         /* for manipulating queries use exec instead of query. can save
