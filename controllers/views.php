@@ -6,7 +6,7 @@ class ViewsController
 {
     private $page_map = array(
         '/^$/' => 'MainView',
-        '/^index$/' => 'MainView',
+        '/^main$/' => 'MainView',
         '/^queue$/' => 'QueueView',
     );
 
