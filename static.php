@@ -24,8 +24,13 @@ function autoload($class)
     if (preg_match('/^(.*)Controller$/', $parts[1])) {
         $parts[1] = preg_replace('/^(.*)Controller$/', '$1', $parts[1]);
     }
+    // remove *View from ViewName
     if (preg_match('/^(.*)View$/', $parts[1])) {
         $parts[1] = preg_replace('/^(.*)View$/', '$1', $parts[1]);
+    }
+    // remove *Model from ModelName
+    if (preg_match('/^(.*)Model$/', $parts[1])) {
+        $parts[1] = preg_replace('/^(.*)Model$/', '$1', $parts[1]);
     }
 
     $filename = BASE_PATH;
