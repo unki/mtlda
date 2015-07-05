@@ -13,9 +13,13 @@ class Templates extends Smarty
 
     public function __construct()
     {
-        global $config;
+        global $mtlda, $config;
 
         parent::__construct();
+
+        if (!isset($this->class_name)) {
+            $mtlda->raiseError("Class has not defined property 'class_name'. Something is wrong with it");
+        }
 
         // disable template caching during development
         $this->setCaching(Smarty::CACHING_OFF);
@@ -28,10 +32,11 @@ class Templates extends Smarty
         $this->cache_dir    = BASE_PATH.'/cache/smarty_cache';
 
         if (!file_exists($this->compile_dir) && !is_writeable(BASE_PATH .'/cache')) {
-            print "Error - cache directory ". $BASE_PATH .'/cache' ." is not writeable
-                for the current user (". $this->getuid() .").<br />\n";
-            print "Please check that permissions are set correctly to this directory.<br />\n";
-            exit(1);
+            $mtlda->raiseError(
+                "Cache directory ". $BASE_PATH .'/cache' ." is not writeable"
+                ."for user (". $this->getuid() .").<br />\n"
+                ."Please check that permissions are set correctly to this directory.<br />\n"
+            );
         }
 
         if (!file_exists($this->compile_dir) && !mkdir($this->compile_dir, 0700)) {
@@ -55,6 +60,12 @@ class Templates extends Smarty
         }
         if (isset($config['app']) && isset($config['app']['base_web_path'])) {
             $this->assign('web_path', $config['app']['base_web_path']);
+        }
+
+        if (!method_exists($this, $this->class_name ."List")) {
+            $mtlda->raiseError(
+                "Class ". $this->class_name ." does not have a mandatory method ". $this->class_name."List"
+            );
         }
 
         $this->registerPlugin("function", "get_url", array(&$this, "getUrl"), false);
@@ -119,9 +130,39 @@ class Templates extends Smarty
         }
 
         // Now call parent method
-        return parent::fetch($template, $cache_id, $compile_id, $parent, $display, $merge_tpl_vars, $no_output_filter);
+        return parent::fetch(
+            $template,
+            $cache_id,
+            $compile_id,
+            $parent,
+            $display,
+            $merge_tpl_vars,
+            $no_output_filter
+        );
 
     } // fetch()
+
+    public function show()
+    {
+        global $mtlda, $query;
+
+        if (!isset($query->params) || empty($query->params) || $query->params[0] == "list") {
+            return $this->showList();
+        } elseif (isset($query->params) && !empty($query->params) && $query->params[0] == "edit") {
+            return $this->showEdit();
+        }
+    }
+
+    public function showList()
+    {
+        $this->registerPlugin("block", $this->class_name ."_list", array(&$this, $this->class_name ."List"));
+        return $this->fetch($this->class_name ."_list.tpl");
+    }
+
+    public function showEdit()
+    {
+        return $this->fetch($this->class_name ."_edit.tpl");
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
