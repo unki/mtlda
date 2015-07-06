@@ -24,11 +24,11 @@ class DbController
         $db_param = $config['database'];
 
         if (!isset(
-            $db_param['type'],
-            $db_param['host'],
-            $db_param['db_name'],
-            $db_param['db_user'],
-            $db_param['db_pass'])) {
+                    $db_param['type'],
+                    $db_param['host'],
+                    $db_param['db_name'],
+                    $db_param['db_user'],
+                    $db_param['db_pass'])) {
             print "Error - incomplete database configuration - please check configuration!";
             exit(1);
         }
@@ -41,9 +41,9 @@ class DbController
     private function connect()
     {
         $options = array(
-            'debug' => 2,
-            'portability' => 'DB_PORTABILITY_ALL'
-        );
+                'debug' => 2,
+                'portability' => 'DB_PORTABILITY_ALL'
+                );
 
         switch($this->db_cfg['type']) {
             default:
@@ -90,13 +90,7 @@ class DbController
             $this->connect();
         }
 
-        if (
-            isset($config['database']) &&
-            isset($config['database']['table_prefix']) &&
-            !empty($config['database']['table_prefix'])
-        ) {
-            $query = str_replace("TABLEPREFIX", $config['database']['table_prefix'], $query);
-        }
+        $this->checkAndModifyTableName($query);
 
         /* for manipulating queries use exec instead of query. can save
          * some resource because nothing has to be allocated for results.
@@ -108,6 +102,124 @@ class DbController
 
         $result = $this->db->query($query);
         return $result;
+
+    }
+
+    public function prepare($query = "")
+    {
+        global $mtlda;
+
+        if (!$this->getConnectionStatus()) {
+            $mtlda->raiseError("Can't prepare query - we are not connected!");
+        }
+
+        $this->checkAndModifyTableName($query);
+
+        $this->db->prepare($query);
+
+        try {
+            $sth = $this->db->prepare($query);
+        } catch (PDOException $e) {
+            $mtlda->raiseError("Unable to prepare statement: ". $e->getMessage());
+        }
+
+        return $sth;
+
+    } // db_prepare()
+
+    public function execute($sth, $data = array())
+    {
+        global $mtlda;
+
+        if (!$this->getConnectionStatus()) {
+            $mtlda->raiseError("Can't prepare query - we are not connected!");
+        }
+
+        if (!is_object($sth)) {
+            return false;
+        }
+
+        if (get_class($sth) != "PDOStatement") {
+            return false;
+        }
+
+        try {
+            if (!empty($data)) {
+                $result = $sth->execute($data);
+            } else {
+                $result = $sth->execute();
+            }
+        } catch (PDOException $e) {
+            $mtlda->raiseError("Unable to execute statement: ". $e->getMessage());
+        }
+
+        return $result;
+
+    } // execute()
+
+    public function freeStatement($sth)
+    {
+        global $mtlda;
+
+        if (!is_object($sth)) {
+            return false;
+        }
+
+        if (get_class($sth) != "PDOStatement") {
+            return false;
+        }
+
+        try {
+            $sth->closeCursor();
+        } catch (Exception $e) {
+            $sth = null;
+        }
+
+        return true;
+
+    } // freeStatement()
+
+    public function fetchSingleRow($query = "", $mode = PDO::FETCH_OBJ)
+    {
+        global $mtlda;
+
+        if (!$this->getConnectionStatus()) {
+            $mtlda->raiseError("Can't fetch row - we are not connected!");
+        }
+
+        if (empty($query)) {
+            return false;
+        }
+
+        $this->checkAndModifyTableName($query);
+
+        $result = $this->db_query($query);
+
+        if ($result->rowCount() == 0) {
+            return false;
+        }
+
+        try {
+            $row = $result->fetch($mode);
+        } catch (PDOException $e) {
+            $mtlda->raiseError("Unable to query database: ". $e->getMessage());
+        }
+
+        return $row;
+
+    } // fetchSingleRow()
+
+    public function checkAndModifyTableName(&$query)
+    {
+        global $config;
+
+        if (
+                isset($config['database']) &&
+                isset($config['database']['table_prefix']) &&
+                !empty($config['database']['table_prefix'])
+           ) {
+            $query = str_replace("TABLEPREFIX", $config['database']['table_prefix'], $query);
+        }
 
     }
 }
