@@ -20,12 +20,12 @@ class MTLDA
         global $cfg, $db, $router, $query;
 
         if (!$req->check()) {
-            print "Error - not all MTLDA requirements are met. Please check!";
+            $this->raiseError("Error - not all MTLDA requirements are met. Please check!");
             exit(1);
         }
 
         if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
-            print "Error - \$_SERVER['REQUEST_URI'] is not set!";
+            $this->raiseError("Error - \$_SERVER['REQUEST_URI'] is not set!");
             exit(1);
         }
 
@@ -34,12 +34,14 @@ class MTLDA
         global $query;
 
         if (!isset($query->view)) {
-            print "Error - parsing request URI hasn't unveiled what to view!";
+            $this->raiseError("Error - parsing request URI hasn't unveiled what to view!");
             exit(1);
         }
 
         $views = new ViewsController;
-        $page_name = $views->getViewName($query->view);
+        if (!$page_name = $views->getViewName($query->view)) {
+            $this->raiseError("Unable to find a view for ". $query->view);
+        }
 
         $view = $views->load($page_name);
 
