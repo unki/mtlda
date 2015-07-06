@@ -10,6 +10,12 @@ class Templates extends Smarty
     public $compile_dir;
     public $config_dir;
     public $cache_dir;
+    public $supported_modes = array(
+        'list',
+        'edit',
+        'delete',
+        'add',
+    );
 
     public function __construct()
     {
@@ -86,19 +92,41 @@ class Templates extends Smarty
 
     public function getUrl($params, &$smarty)
     {
-        global $config;
+        global $mtlda, $config;
 
         if (!array_key_exists('page', $params)) {
-            trigger_error("getUrl: missing 'page' parameter", E_USER_WARNING);
+            $mtlda->raiseError("getUrl: missing 'page' parameter", E_USER_WARNING);
             $repeat = false;
             return;
         }
 
-        if (isset($config['app']) && isset($config['app']['base_web_path'])) {
-            return $config['app']['base_web_path'] ."/". $params['page'];
+        if (array_key_exists('mode', $params) && !in_array($params['mode'], $this->supported_modes)) {
+            $mtlda->raiseError("getUrl: value of parameter 'mode' ({$params['mode']}) isn't supported", E_USER_WARNING);
+            $repeat = false;
+            return;
         }
 
-        return '/'.$params['page'];
+        if (
+            isset($config['app']) &&
+            isset($config['app']['base_web_path']) &&
+            !empty($config['app']['base_web_path'])
+        ) {
+            $url = $config['app']['base_web_path'] ."/";
+        } else {
+            $url = "/";
+        }
+
+        $url.= $params['page'] ."/";
+
+        if (isset($params['mode']) && !empty($params['mode'])) {
+            $url.= $params['mode'] ."/";
+        }
+
+        if (array_key_exists('id', $params) && !empty($params['id'])) {
+            $url.= $params['id'];
+        }
+
+        return $url;
 
     } // get_url()
 
@@ -149,7 +177,19 @@ class Templates extends Smarty
         if (!isset($query->params) || empty($query->params) || $query->params[0] == "list") {
             return $this->showList();
         } elseif (isset($query->params) && !empty($query->params) && $query->params[0] == "edit") {
-            return $this->showEdit();
+            if (isset($query->params[1])) {
+                $id = $query->params[1];
+                if (preg_match("/^([0-9])\+([a-z0-9]+)$/", $id, $matches)) {
+                    $id = $matches[1];
+                    $hash = $matches[2];
+                } else {
+                    $hash = null;
+                }
+            } else {
+                $id = null;
+                $hash = null;
+            }
+            return $this->showEdit($id, $hash);
         }
     }
 
@@ -159,8 +199,9 @@ class Templates extends Smarty
         return $this->fetch($this->class_name ."_list.tpl");
     }
 
-    public function showEdit()
+    public function showEdit($id)
     {
+        $this->assign('item', $id);
         return $this->fetch($this->class_name ."_edit.tpl");
     }
 }
