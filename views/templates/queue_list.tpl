@@ -9,8 +9,8 @@
  </tr>
 {queue_list}
  <tr>
-  <td>{$item->queue_idx}</td>
-  <td>{$item->queue_file_name}</td>
+  <td><a href="{get_url page=queue mode=edit id=$item_safe_link}">{$item->queue_idx}</a></td>
+  <td><a href="{get_url page=queue mode=edit id=$item_safe_link}">{$item->queue_file_name}</a></td>
   <td>{$item->queue_file_hash}</td>
   <td>{$item->queue_file_size}</td>
   <td>{$item->queue_state}</td>
