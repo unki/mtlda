@@ -2,6 +2,8 @@
 
 namespace MTLDA\Models ;
 
+use \PDO;
+
 class DefaultModel
 {
     public $table_name;
@@ -19,7 +21,7 @@ class DefaultModel
         }
 
         if (!isset($this->column_name)) {
-            $mtlda->raiseError('missing key col_name');
+            $mtlda->raiseError('missing key column_name');
         }
 
         if (!isset($this->fields)) {
@@ -46,30 +48,32 @@ class DefaultModel
     {
         global $mtlda, $db;
 
-        $sth = $db->db_prepare("
-                SELECT
-                *
-                FROM
-                ". MYSQL_PREFIX . $this->table_name ."
-                WHERE
-                ". $this->col_name ."_idx LIKE ?
-                ", array('integer'));
+        $sth = $db->prepare(
+            "SELECT
+            *
+            FROM
+            TABLEPREFIX{$this->table_name}
+            WHERE
+            ". $this->column_name ."_idx LIKE ?
+            ",
+            array('integer')
+        );
 
-        $db->db_execute($sth, array(
+        $db->execute($sth, array(
                     $this->id,
                     ));
 
         if ($sth->rowCount() <= 0) {
-            $db->db_sth_free($sth);
+            $db->freeStatement($sth);
             $mtlda->raiseError("No object with id ". $this->id);
         }
 
         if (!$row = $sth->fetch(PDO::FETCH_ASSOC)) {
-            $db->db_sth_free($sth);
+            $db->freeStatement($sth);
             $mtlda->raiseError("Unable to fetch SQL result for object id ". $this->id);
         }
 
-        $db->db_sth_free($sth);
+        $db->freeStatement($sth);
 
         foreach ($row as $key => $value) {
             $this->$key = $value;
@@ -113,7 +117,7 @@ class DefaultModel
         if (!isset($this->table_name)) {
             return false;
         }
-        if (!isset($this->col_name)) {
+        if (!isset($this->column_name)) {
             return false;
         }
 
@@ -122,18 +126,18 @@ class DefaultModel
         }
 
         /* generic delete */
-        $sth = $db->db_prepare("
+        $sth = $db->prepare("
                 DELETE FROM
                 ". MYSQL_PREFIX . $this->table_name ."
                 WHERE
-                ". $this->col_name ."_idx LIKE ?
+                ". $this->column_name ."_idx LIKE ?
                 ");
 
-        $db->db_execute($sth, array(
+        $db->execute($sth, array(
                     $this->id
                     ));
 
-        $db->db_sth_free($sth);
+        $db->freeStatement($sth);
 
         if (method_exists($this, 'post_delete')) {
             $this->post_delete();
@@ -174,9 +178,9 @@ class DefaultModel
             $this->$field = $srcobj->$field;
         }
 
-        $idx = $this->col_name.'_idx';
-        $guid = $this->col_name.'_guid';
-        $name = $this->col_name.'_name';
+        $idx = $this->column_name.'_idx';
+        $guid = $this->column_name.'_guid';
+        $name = $this->column_name.'_name';
 
         $this->id = null;
         if (isset($this->$idx)) {
@@ -214,19 +218,19 @@ class DefaultModel
                 // the target-idx field in assign_targets_to_targets
                 // is atg_group_idx not atg_target_idx.
                 if ($this->table_name == "targets") {
-                    $this->col_name = "group";
+                    $this->column_name = "group";
                 }
 
-                $sth = $db->db_prepare("
+                $sth = $db->prepare("
                         SELECT
                         *
                         FROM
                         ". MYSQL_PREFIX ."assign_". $child_obj->table_name ."_to_". $this->table_name ."
                         WHERE
-                        ". $prefix ."_". $this->col_name ."_idx LIKE ?
+                        ". $prefix ."_". $this->column_name ."_idx LIKE ?
                         ");
 
-                $db->db_execute($sth, array(
+                $db->execute($sth, array(
                             $srcobj->id,
                             ));
 
@@ -257,7 +261,7 @@ class DefaultModel
                         ";
 
                     $row[$this->child_names[$child] .'_idx'] = 'NULL';
-                    $row[$this->child_names[$child] .'_'.$this->col_name.'_idx'] = $this->id;
+                    $row[$this->child_names[$child] .'_'.$this->column_name.'_idx'] = $this->id;
                     if (isset($row[$this->child_names[$child] .'_guid'])) {
                         $row[$this->child_names[$child] .'_guid'] = $mtlda->create_guid();
                     }
@@ -265,16 +269,16 @@ class DefaultModel
                     //print_r($query);
                     //print_r($row);
                     if (!isset($child_sth)) {
-                        $child_sth = $db->db_prepare($query);
+                        $child_sth = $db->prepare($query);
                     }
 
-                    $db->db_execute($child_sth, array_values($row));
+                    $db->execute($child_sth, array_values($row));
                 }
 
                 if (isset($child_sth)) {
-                    $db->db_sth_free($child_sth);
+                    $db->freeStatement($child_sth);
                 }
-                $db->db_sth_free($sth);
+                $db->freeStatement($sth);
 
             }
         }
@@ -359,22 +363,22 @@ class DefaultModel
         $sql = substr($sql, 0, strlen($sql)-2) .' ';
 
         if (!isset($this->id)) {
-            $idx_name = $this->col_name .'_idx';
+            $idx_name = $this->column_name .'_idx';
             $this->$idx_name = 'NULL';
         } else {
-            $sql.= 'WHERE '. $this->col_name .'_idx LIKE ?';
+            $sql.= 'WHERE '. $this->column_name .'_idx LIKE ?';
             $arr_values[] = $this->id;
         }
 
-        $sth = $db->db_prepare($sql, array_values($this->fields));
+        $sth = $db->prepare($sql, array_values($this->fields));
 
-        $db->db_execute($sth, $arr_values);
+        $db->execute($sth, $arr_values);
 
         if (!isset($this->id) || empty($this->id)) {
             $this->id = $db->db_getid();
         }
 
-        $db->db_sth_free($sth);
+        $db->freeStatement($sth);
 
         if (method_exists($this, 'post_save')) {
             $this->post_save();
@@ -397,7 +401,7 @@ class DefaultModel
         if (!isset($this->table_name)) {
             return false;
         }
-        if (!isset($this->col_name)) {
+        if (!isset($this->column_name)) {
             return false;
         }
         if (!in_array($to, array('off', 'on'))) {
@@ -410,21 +414,21 @@ class DefaultModel
             $new_status = 'N';
         }
 
-        $sth = $db->db_prepare("
+        $sth = $db->prepare("
                 UPDATE
                 ". MYSQL_PREFIX . $this->table_name ."
                 SET
-                ". $this->col_name ."_active = ?
+                ". $this->column_name ."_active = ?
                 WHERE
-                ". $this->col_name ."_idx LIKE ?
+                ". $this->column_name ."_idx LIKE ?
                 ");
 
-        $db->db_execute($sth, array(
+        $db->execute($sth, array(
                     $new_status,
                     $this->id
                     ));
 
-        $db->db_sth_free($sth);
+        $db->freeStatement($sth);
         return true;
 
     } // toggleStatus()
@@ -458,7 +462,7 @@ class DefaultModel
         if (!isset($this->table_name)) {
             return false;
         }
-        if (!isset($this->col_name)) {
+        if (!isset($this->column_name)) {
             return false;
         }
         if (!in_array($to, array('off', 'on'))) {
@@ -471,24 +475,24 @@ class DefaultModel
             $new_status = 'N';
         }
 
-        $sth = $db->db_prepare("
+        $sth = $db->prepare("
                 UPDATE
                 ". MYSQL_PREFIX ."assign_". $child_obj->table_name ."_to_". $this->table_name ."
                 SET
-                ". $prefix ."_". $child_obj->col_name ."_active = ?
+                ". $prefix ."_". $child_obj->column_name ."_active = ?
                 WHERE
-                ". $prefix ."_". $this->col_name ."_idx LIKE ?
+                ". $prefix ."_". $this->column_name ."_idx LIKE ?
                 AND
-                ". $prefix ."_". $child_obj->col_name ."_idx LIKE ?
+                ". $prefix ."_". $child_obj->column_name ."_idx LIKE ?
                 ");
 
-        $db->db_execute($sth, array(
+        $db->execute($sth, array(
                     $new_status,
                     $this->id,
                     $child_id
                     ));
 
-        $db->db_sth_free($sth);
+        $db->freeStatement($sth);
         return true;
 
     } // toggleChildStatus()
