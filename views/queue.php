@@ -36,8 +36,7 @@ class QueueView extends Templates
         $item_idx = $this->queue->avail_items[$index];
         $item =  $this->queue->items[$item_idx];
 
-        $smarty->assign('queue_idx', $item->queue_idx);
-        $smarty->assign('queue_file_name', $item->queue_file_name);
+        $smarty->assign("item", $item);
 
         $index++;
         $smarty->assign('smarty.IB.item_list.index', $index);

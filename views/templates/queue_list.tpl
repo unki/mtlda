@@ -5,7 +5,10 @@
  </tr>
 {queue_list}
  <tr>
-  <td>{$queue_idx}</td>
-  <td>{$queue_file_name}</td>
+  <td>{$item->queue_idx}</td>
+  <td>{$item->queue_file_name}</td>
+  <td>{$item->queue_file_hash}</td>
+  <td>{$item->queue_state}</td>
+  <td>{$item->queue_time}</td>
  </tr>
 {/queue_list}
