@@ -10,12 +10,13 @@ class Templates extends Smarty
     public $compile_dir;
     public $config_dir;
     public $cache_dir;
-    public $supported_modes = array(
-        'list',
-        'edit',
-        'delete',
-        'add',
-    );
+    public $supported_modes = array (
+            'list',
+            'edit',
+            'delete',
+            'add',
+            );
+    public $default_mode = "list";
 
     public function __construct()
     {
@@ -68,12 +69,6 @@ class Templates extends Smarty
             $this->assign('web_path', $config['app']['base_web_path']);
         }
 
-        if (!method_exists($this, $this->class_name ."List")) {
-            $mtlda->raiseError(
-                "Class ". $this->class_name ." does not have a mandatory method ". $this->class_name."List"
-            );
-        }
-
         $this->registerPlugin("function", "get_url", array(&$this, "getUrl"), false);
         $this->registerFilter("pre", array(&$this, "addTemplateName"));
     }
@@ -107,10 +102,10 @@ class Templates extends Smarty
         }
 
         if (
-            isset($config['app']) &&
-            isset($config['app']['base_web_path']) &&
-            !empty($config['app']['base_web_path'])
-        ) {
+                isset($config['app']) &&
+                isset($config['app']['base_web_path']) &&
+                !empty($config['app']['base_web_path'])
+           ) {
             $url = $config['app']['base_web_path'] ."/";
         } else {
             $url = "/";
@@ -174,22 +169,47 @@ class Templates extends Smarty
     {
         global $mtlda, $query;
 
-        if (!isset($query->params) || empty($query->params) || $query->params[0] == "list") {
+        if (((
+                        !isset($query->params) ||
+                        empty($query->params)) &&
+                    $this->default_mode == "list") ||
+                (isset($query) &&
+                 !empty($query->params) &&
+                 $query->params[0] == "list")) {
+
             return $this->showList();
+
         } elseif (isset($query->params) && !empty($query->params) && $query->params[0] == "edit") {
+
             if (isset($query->params[1])) {
+
                 $id = $query->params[1];
                 if (preg_match("/^([0-9])\+([a-z0-9]+)$/", $id, $matches)) {
+
                     $id = $matches[1];
                     $hash = $matches[2];
+
                 } else {
+
                     $hash = null;
+
                 }
             } else {
+
                 $id = null;
                 $hash = null;
+
             }
             return $this->showEdit($id, $hash);
+
+        } elseif ($this->default_mode == "show" && $this->templateExists($this->class_name .".tpl")) {
+
+            return $this->fetch($this->class_name .".tpl");
+
+        } else {
+
+            $mtlda->raiseError("All methods utilized but still don't know what to show!");
+
         }
     }
 
