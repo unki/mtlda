@@ -15,8 +15,6 @@ class QueueView extends Templates
         $this->queue = new Models\QueueModel;
 
         parent::__construct();
-
-        print $this->show();
     }
 
     public function showEdit($id, $hash)
