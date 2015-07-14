@@ -15,6 +15,7 @@
   <td>{$item->queue_file_size}</td>
   <td>{$item->queue_state}</td>
   <td>{$item->queue_time}</td>
+  <td><a href="{get_url page=queue mode=edit id=$item_safe_link}">Edit</a></td>
   <td><a href="{get_url page=queue mode=delete id=$item_safe_link}">Delete</a></td>
  </tr>
 {/queue_list}
