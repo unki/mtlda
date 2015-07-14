@@ -2,6 +2,8 @@
 
 namespace MTLDA\Controllers;
 
+use MTLDA\Views;
+
 class ViewsController
 {
     private $page_map = array(
@@ -9,6 +11,12 @@ class ViewsController
         '/^main$/' => 'MainView',
         '/^queue$/' => 'QueueView',
     );
+    private $page_skeleton;
+
+    public function __construct()
+    {
+        $this->page_skeleton = new Views\SkeletonView;
+    }
 
     public function getViewName($view)
     {
@@ -37,6 +45,12 @@ class ViewsController
     {
         $view = 'MTLDA\\Views\\'.$view;
         $page = new $view;
+
+        if ($content = $page->show()) {
+            $this->page_skeleton->assign('page_content', $content);
+        }
+
+        print $this->page_skeleton->show();
     }
 }
 
