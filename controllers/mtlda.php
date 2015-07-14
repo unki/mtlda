@@ -30,7 +30,6 @@ class MTLDA
         }
 
         $GLOBALS['query'] = $router->parse($_SERVER['REQUEST_URI']);
-
         global $query;
 
         if (!isset($query->view)) {
