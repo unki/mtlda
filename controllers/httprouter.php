@@ -50,6 +50,21 @@ class HttpRouterController
         
         return $query;
     }
+
+   /**
+    * return true if current request is a RPC call
+    *
+    * @return bool
+    */
+    public function isRpcCall()
+    {
+        if ($this->call_type == "rpc") {
+            return true;
+        }
+
+        return false;
+
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
