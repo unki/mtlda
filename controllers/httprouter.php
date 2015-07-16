@@ -79,8 +79,8 @@ class HttpRouterController
             $this->action = $_POST['action'];
             return true;
          /* queue-xxx.html ... */
-        } elseif (preg_match('/(.*)-([0-9]+)/', $this->view)) {
-            preg_match('/.*\/(.*)-([0-9]+)/', $this->view, $parts);
+        } elseif (preg_match('/(.*)-([0-9]+)/', $query->view)) {
+            preg_match('/.*\/(.*)-([0-9]+)/', $query->view, $parts);
 
             if (!$this->is_valid_action($parts[1])) {
                 $ms->throwError('Invalid action: '. $parts[1]);
@@ -92,8 +92,8 @@ class HttpRouterController
             $this->action = $parts[1];
             $this->id = $parts[2];
         /* main.html, ... */
-        } elseif (preg_match('/.*\/.*\.html$/', $this->view)) {
-            preg_match('/.*\/(.*)\.html$/', $this->view, $parts);
+        } elseif (preg_match('/.*\/.*\.html$/', $query->view)) {
+            preg_match('/.*\/(.*)\.html$/', $query->view, $parts);
             if (!$this->is_valid_action($parts[1])) {
                 $ms->throwError('Invalid action: '. $parts[1]);
             }
