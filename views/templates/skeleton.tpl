@@ -1,6 +1,6 @@
 <html>
  <head>
-  <title>{$page_title}</title>
+{include "header.tpl"}
  </head>
  <body>
   <div id="title">
