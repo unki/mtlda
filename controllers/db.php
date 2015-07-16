@@ -90,7 +90,9 @@ class DbController
             $this->connect();
         }
 
-        $this->checkAndModifyTableName($query);
+        if ($this->hasTablePrefix()) {
+            $this->insertTablePrefix($query);
+        }
 
         /* for manipulating queries use exec instead of query. can save
          * some resource because nothing has to be allocated for results.
@@ -113,7 +115,9 @@ class DbController
             $mtlda->raiseError("Can't prepare query - we are not connected!");
         }
 
-        $this->checkAndModifyTableName($query);
+        if ($this->hasTablePrefix()) {
+            $this->insertTablePrefix($query);
+        }
 
         $this->db->prepare($query);
 
@@ -191,7 +195,9 @@ class DbController
             return false;
         }
 
-        $this->checkAndModifyTableName($query);
+        if ($this->hasTablePrefix()) {
+            $this->insertTablePrefix($query);
+        }
 
         $result = $this->db_query($query);
 
@@ -209,7 +215,7 @@ class DbController
 
     } // fetchSingleRow()
 
-    public function checkAndModifyTableName(&$query)
+    public function hasTablePrefix()
     {
         global $config;
 
@@ -218,9 +224,16 @@ class DbController
                 isset($config['database']['table_prefix']) &&
                 !empty($config['database']['table_prefix'])
            ) {
-            $query = str_replace("TABLEPREFIX", $config['database']['table_prefix'], $query);
+            return true;
         }
 
+        return false;
+    }
+
+    public function insertTablePrefix(&$query)
+    {
+        global $config;
+        $query = str_replace("TABLEPREFIX", $config['database']['table_prefix'], $query);
     }
 }
 

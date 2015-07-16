@@ -37,6 +37,11 @@ class MTLDA
             exit(1);
         }
 
+        if ($router->isRpcCall()) {
+            $this->rpcHandler();
+            return;
+        }
+
         $views = new ViewsController;
         if (!$page_name = $views->getViewName($query->view)) {
             $this->raiseError("Unable to find a view for ". $query->view);
@@ -132,6 +137,23 @@ class MTLDA
         return $this->verbosity_level;
 
     } // getVerbosity()
+
+    private function rpcHandler()
+    {
+        $rpc = new RpcController;
+        $rpc->perform();
+    }
+
+    public function isValidId($id)
+    {
+        $id = (int) $id;
+
+        if (is_numeric($id)) {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:

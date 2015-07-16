@@ -6,16 +6,14 @@ use stdClass;
 
 class HttpRouterController
 {
-    private $call_type;
-    private $page_name;
-    private $action;
+    private $query;
 
     public function parse($uri)
     {
         global $mtlda, $config;
 
-        $query = new stdClass();
-        $query->uri = $uri;
+        $this->query = new stdClass();
+        $this->query->uri = $uri;
 
         // just to check if someone may fools us.
         if (substr_count($uri, '/') > 10) {
@@ -50,65 +48,71 @@ class HttpRouterController
             empty($uri) &&
             rtrim($_SERVER['REQUEST_URI'], '/') == $config['app']['base_web_path']
         ) {
-            $query->view = "main";
+            $this->query->view = "main";
         } else {
-            $query->view = $parts[0];
+            $this->query->view = $parts[0];
         }
-        $query->params = array();
+
+        if (isset($parts[1]) && $this->isValidAction($parts[1])) {
+            $this->query->mode = $parts[1];
+        }
+
+        $this->query->params = array();
 
         // no more information in URI, then we are done
         if (count($parts) <= 1) {
-            return $query;
+            return $this->query;
+        }
+
+        /* register further _GET parameters */
+        if (isset($_GET) && is_array($_GET) && !empty($_GET)) {
+            foreach ($_GET as $key => $value) {
+                $this->query->params[$key] = htmlentities($value, ENT_QUOTES);
+            }
         }
 
         for ($i = 1; $i < count($parts); $i++) {
-            array_push($query->params, $parts[$i]);
+            array_push($this->query->params, $parts[$i]);
         }
 
-        if ($this->page_name == 'RPC Call') {
+        if (isset($this->query->mode) && $this->query->mode == 'rpc.html') {
             if (!isset($_POST['type']) || !isset($_POST['action'])) {
                 return false;
             }
-            if (!is_string($_POST['type']) || !isset($_POST['action'])) {
+            if (!is_string($_POST['type']) || !is_string($_POST['action'])) {
                 return false;
             }
-            if ($_POST['type'] != "rpc") {
+            if ($_POST['type'] != "rpc" && $this->isValidRpcAction($_POST['action'])) {
                 return false;
             }
-            $this->call_type = "rpc";
-            $this->action = $_POST['action'];
-            return true;
+            $this->query->call_type = "rpc";
+            $this->query->action = $_POST['action'];
+            return $this->query;
          /* queue-xxx.html ... */
-        } elseif (preg_match('/(.*)-([0-9]+)/', $query->view)) {
-            preg_match('/.*\/(.*)-([0-9]+)/', $query->view, $parts);
+        } elseif (preg_match('/(.*)-([0-9]+)/', $this->query->view)) {
+            preg_match('/.*\/(.*)-([0-9]+)/', $this->query->view, $parts);
 
-            if (!$this->is_valid_action($parts[1])) {
-                $ms->throwError('Invalid action: '. $parts[1]);
+            if (!$this->isValidAction($parts[1])) {
+                $mtlda->raiseError('Invalid action: '. $parts[1]);
             }
-            if (!$this->is_valid_id($parts[2])) {
-                $ms->throwError('Invalid id: '. $parts[2]);
+            if (!$mtlda->isValidId($parts[2])) {
+                $mtlda->raiseError('Invalid id: '. $parts[2]);
             }
 
             $this->action = $parts[1];
             $this->id = $parts[2];
         /* main.html, ... */
-        } elseif (preg_match('/.*\/.*\.html$/', $query->view)) {
-            preg_match('/.*\/(.*)\.html$/', $query->view, $parts);
-            if (!$this->is_valid_action($parts[1])) {
-                $ms->throwError('Invalid action: '. $parts[1]);
+        } elseif (preg_match('/.*\/.*\.html$/', $this->query->view)) {
+            preg_match('/.*\/(.*)\.html$/', $this->query->view, $parts);
+            if (!$this->isValidAction($parts[1])) {
+                $mtlda->raiseError('Invalid action: '. $parts[1]);
             }
 
             $this->action = $parts[1];
         }
-        /* register further _GET parameters */
-        if (isset($_GET) && is_array($_GET) && !empty($_GET)) {
-            foreach ($_GET as $key => $value) {
-                $this->$key = htmlentities($value, ENT_QUOTES);
-            }
-        }
 
-        $this->call_type = "common";
-        return $query;
+        $this->query->call_type = "common";
+        return $this->query;
     }
 
     /**
@@ -118,7 +122,50 @@ class HttpRouterController
      */
     public function isRpcCall()
     {
-        if ($this->call_type == "rpc") {
+        if (isset($this->query->call_type) && $this->query->call_type == "rpc") {
+            return true;
+        }
+
+        return false;
+
+    }
+
+    private function isValidAction($action)
+    {
+        $valid_actions = array(
+                'overview',
+                'login',
+                'logout',
+                'show',
+                'list',
+                'new',
+                'edit',
+                'about',
+                'rpc.html',
+                );
+
+        if (in_array($action, $valid_actions)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isValidRpcAction($action)
+    {
+        $valid_actions = array(
+                'delete',
+                'toggle',
+                'clone',
+                'alter-position',
+                'get-content',
+                'get-sub-menu',
+                'set-host-profile',
+                'get-host-state',
+                'idle',
+                );
+
+        if (in_array($action, $valid_actions)) {
             return true;
         }
 

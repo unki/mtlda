@@ -128,7 +128,7 @@ class DefaultModel
         /* generic delete */
         $sth = $db->prepare("
                 DELETE FROM
-                ". MYSQL_PREFIX . $this->table_name ."
+                TABLEPREFIX". $this->table_name ."
                 WHERE
                 ". $this->column_name ."_idx LIKE ?
                 ");
@@ -225,7 +225,7 @@ class DefaultModel
                         SELECT
                         *
                         FROM
-                        ". MYSQL_PREFIX ."assign_". $child_obj->table_name ."_to_". $this->table_name ."
+                        TABLEPREFIXassign_". $child_obj->table_name ."_to_". $this->table_name ."
                         WHERE
                         ". $prefix ."_". $this->column_name ."_idx LIKE ?
                         ");
@@ -236,9 +236,7 @@ class DefaultModel
 
                 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
-                    $query = "INSERT INTO ".
-                        MYSQL_PREFIX
-                        ."assign_".
+                    $query = "INSERT INTO TABLEPREFIXassign_".
                         $child_obj->table_name
                         ."_to_".
                         $this->table_name ." (";
@@ -352,7 +350,7 @@ class DefaultModel
             $sql = 'UPDATE ';
         }
 
-        $sql.= MYSQL_PREFIX . $this->table_name .' SET ';
+        $sql.= "TABLEPREFIX". $this->table_name .' SET ';
 
         $arr_values = array();
 
@@ -416,7 +414,7 @@ class DefaultModel
 
         $sth = $db->prepare("
                 UPDATE
-                ". MYSQL_PREFIX . $this->table_name ."
+                TABLEPREFIX". $this->table_name ."
                 SET
                 ". $this->column_name ."_active = ?
                 WHERE
@@ -477,7 +475,7 @@ class DefaultModel
 
         $sth = $db->prepare("
                 UPDATE
-                ". MYSQL_PREFIX ."assign_". $child_obj->table_name ."_to_". $this->table_name ."
+                TABLEPREFIXassign_". $child_obj->table_name ."_to_". $this->table_name ."
                 SET
                 ". $prefix ."_". $child_obj->column_name ."_active = ?
                 WHERE
