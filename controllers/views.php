@@ -48,6 +48,8 @@ class ViewsController
 
         if ($content = $page->show()) {
             $this->page_skeleton->assign('page_content', $content);
+        } else {
+            $this->page_skeleton->assign('page_content', 'No content found to be displayed');
         }
 
         print $this->page_skeleton->show();
