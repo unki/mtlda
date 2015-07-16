@@ -3,6 +3,9 @@
   <title>{$page_title}</title>
  </head>
  <body>
+  <div id="title">
+   MTLDA - My Tiny Little Document Archive
+  </div>
   <div id="menu">
    {include "menu.tpl"}
   </div>
