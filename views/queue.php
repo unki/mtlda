@@ -43,7 +43,7 @@ class QueueView extends Templates
         $item =  $this->queue->items[$item_idx];
 
         $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", $item->queue_idx ."+". $item->queue_file_hash);
+        $smarty->assign("item_safe_link", $item->queue_idx ."+". $item->queue_guid);
 
         $index++;
         $smarty->assign('smarty.IB.item_list.index', $index);
