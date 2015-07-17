@@ -13,7 +13,7 @@ class ConfigController
         global $config;
 
         $this->config_path = BASE_PATH ."/config";
-        $this->config_file = "config.php";
+        $this->config_file = "config.ini";
 
         if (!file_exists($this->config_path)) {
             print "Error - configuration directory ". $this->config_path ." does not exist!";
@@ -25,7 +25,7 @@ class ConfigController
             exit(1);
         }
 
-        $this->config_fqpn = $this->config_path ."/config.php";
+        $this->config_fqpn = $this->config_path ."/". $this->config_file;
 
         if (!file_exists($this->config_fqpn)) {
             print "Error - configuration file ". $this->config_fqpn ." does not exist!";
