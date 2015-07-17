@@ -6,6 +6,9 @@ use MTLDA\Models;
 
 class IncomingController
 {
+    private $incoming_directory = "/home/unki/git/mtlda/data/incoming";
+    private $working_directory = "/home/unki/git/mtlda/data/working";
+
     public function __construct()
     {
 
@@ -16,7 +19,7 @@ class IncomingController
 
     } // _destruct()
 
-    private function cleanup()
+    public function cleanup()
     {
         global $db;
         global $sth;
@@ -35,31 +38,7 @@ class IncomingController
 
     public function handleQueue()
     {
-        $options = array(
-                'debug' => 2,
-                'portability' => 'DB_PORTABILITY_ALL'
-                );
-
-        global $mysql_db;
-        global $mysql_host;
-        global $mysql_user;
-        global $mysql_pass;
-
-        $dsn = "mysql:dbname=". $mysql_db .";host=". $mysql_host;
-
-        try {
-            $db = new PDO($dsn, $mysql_user, $mysql_pass, array(
-                        PDO::MYSQL_ATTR_LOCAL_INFILE => true,
-                        ));
-            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
-        } catch (PDOException $e) {
-            print "Error!: " . $e->getMessage() . "<br/>";
-            die();
-        }
-
-        $incoming_directory = "/home/unki/git/mtlda/data/incoming";
-        $working_directory = "/home/unki/git/mtlda/data/working";
+        global $db;
 
         $sth = $db->prepare("
                 INSERT INTO mtlda_queue (
@@ -77,15 +56,15 @@ class IncomingController
                         )
                 ");
 
-        if (( $incoming = opendir($incoming_directory)) === false) {
-            print "Error!: failed to access ". $incoming_directory;
+        if (( $incoming = opendir($this->incoming_directory)) === false) {
+            print "Error!: failed to access ". $this->incoming_directory;
             die();
         }
 
         while ($file = readdir($incoming)) {
 
-            $in_file = $incoming_directory ."/". $file;
-            $work_file = $working_directory ."/". $file;
+            $in_file = $this->incoming_directory ."/". $file;
+            $work_file = $this->working_directory ."/". $file;
 
             if (!file_exists($in_file)) {
                 continue;
@@ -133,4 +112,4 @@ class IncomingController
     }
 }
 
-// vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4 autoindent smartindent:
+// vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:

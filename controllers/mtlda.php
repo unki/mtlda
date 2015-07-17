@@ -8,21 +8,32 @@ class MTLDA
 {
     private $verbosity_level = LOG_WARNING;
 
-    public function __construct()
+    public function __construct($mode = null)
     {
         $GLOBALS['mtlda'] =& $this;
 
         $GLOBALS['cfg'] =& new ConfigController;
         $req = new RequirementsController;
         $GLOBALS['db'] =& new DbController;
-        $GLOBALS['router'] =& new HttpRouterController;
-
-        global $cfg, $db, $router, $query;
 
         if (!$req->check()) {
             $this->raiseError("Error - not all MTLDA requirements are met. Please check!");
             exit(1);
         }
+
+        if (isset($mode) and $mode == "queue_only") {
+            $incoming =& new IncomingController;
+            $incoming->handleQueue();
+            exit(0);
+        }
+
+    }
+
+    public function startup()
+    {
+        $GLOBALS['router'] =& new HttpRouterController;
+
+        global $cfg, $db, $router;
 
         if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
             $this->raiseError("Error - \$_SERVER['REQUEST_URI'] is not set!");
