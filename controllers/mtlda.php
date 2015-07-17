@@ -154,6 +154,28 @@ class MTLDA
 
         return false;
     }
+
+    public function isValidModel($model)
+    {
+        $valid_models = array(
+            'queueitem',
+        );
+
+        if (in_array($model, $valid_models)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isValidGuidSyntax($guid)
+    {
+        if (strlen($guid) == 64) {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
