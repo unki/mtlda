@@ -1,0 +1,11 @@
+[app]
+base_web_path = /mtlda/
+page_title="My Tiny Little Document Archive"
+
+[database]
+type = mysql
+host = localhost
+db_name = database-name
+db_user = username
+db_pass = password
+table_prefix = 'mtlda_'
