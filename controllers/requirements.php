@@ -57,12 +57,12 @@ class RequirementsController
         }
 
         ini_set('track_errors', 1);
-        /*@include_once 'Net/IPv4.php';
+        @include_once 'tcpdf/tcpdf.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
-            print "PEAR Net_IPv4 package is missing<br />\n";
+            print "TCPDF can not be found!<br />\n";
             $missing = true;
             unset($php_errormsg);
-        }*/
+        }
         /*@include_once 'Pager.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
             print "PEAR Pager package is missing<br />\n";
