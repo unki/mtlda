@@ -8,6 +8,7 @@ class QueueItemModel extends DefaultModel
     public $column_name = 'queue';
     public $fields = array(
             'queue_idx' => 'integer',
+            'queue_guid' => 'string',
             'queue_file_name' => 'string',
             'queue_file_hash' => 'string',
             'queue_file_size' => 'integer',
@@ -17,11 +18,11 @@ class QueueItemModel extends DefaultModel
     public $avail_items = array();
     public $items = array();
 
-    public function __construct($id, $hash)
+    public function __construct($id, $guid)
     {
         global $mtlda, $db;
 
-        // get $id from hash
+        // get $id from db
         $sth = $db->prepare(
             "SELECT
                 queue_idx
@@ -30,20 +31,20 @@ class QueueItemModel extends DefaultModel
             WHERE
                 queue_idx LIKE ?
             AND
-                queue_file_hash LIKE ?"
+                queue_guid LIKE ?"
         );
             
-        if (!$db->execute($sth, array($id, $hash))) {
+        if (!$db->execute($sth, array($id, $guid))) {
             $mtlda->raiseError("Failed to execute query");
         }
 
         if (!($row = $sth->fetch())) {
-            $mtlda->raiseError("Unable to find queue item with hash value {$hash}");
+            $mtlda->raiseError("Unable to find queue item with guid value {$guid}");
             return false;
         }
 
         if (!isset($row->queue_idx) || empty($row->queue_idx)) {
-            $mtlda->raiseError("Unable to find queue item with hash value {$hash}");
+            $mtlda->raiseError("Unable to find queue item with guid value {$guid}");
             return false;
         }
 
