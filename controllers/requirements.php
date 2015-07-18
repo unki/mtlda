@@ -63,6 +63,10 @@ class RequirementsController
             $missing = true;
             unset($php_errormsg);
         }
+        if (!class_exists('imagick')) {
+            print "imagick extension is missing<br />\n";
+            $missing = true;
+        }
         /*@include_once 'Pager.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
             print "PEAR Pager package is missing<br />\n";
