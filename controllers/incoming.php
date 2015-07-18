@@ -44,10 +44,12 @@ class IncomingController
                 INSERT INTO mtlda_queue (
                     queue_guid,
                     queue_file_name,
+                    queue_file_size,
                     queue_file_hash,
                     queue_state,
                     queue_time
                     ) VALUES (
+                        ?,
                         ?,
                         ?,
                         ?,
@@ -82,6 +84,10 @@ class IncomingController
                 continue;
             }
 
+            if (($size = filesize($in_file)) === false) {
+                continue;
+            }
+
             if (rename($in_file, $work_file) === false) {
                 print "rename() returned false!";
                 exit(1);
@@ -102,6 +108,7 @@ class IncomingController
             $sth->execute(array(
                         $guid,
                         $file,
+                        $size,
                         $hash,
                         'new',
                         time()
