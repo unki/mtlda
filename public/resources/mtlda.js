@@ -2,6 +2,9 @@ $(document).ready(function() {
    $("table td a.delete").click(function(){
       rpc_object_delete($(this));
    });
+   $("table td a.archive").click(function(){
+      rpc_object_archive($(this));
+   });
    /*$("table td a.clone").click(function(){
       obj_clone($(this));
    });
