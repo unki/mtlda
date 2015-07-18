@@ -8,30 +8,55 @@ class StorageController
 {
     private $data_path = "data/archive";
 
-    public function store($file, $hash = null)
+    public function archive(&$queueitem)
     {
         global $mtlda;
 
-        if (!file_exists($file)) {
-            $mtlda->raiseError("File ${file} does not exist!");
+        if (!$queueitem->verify()) {
+            $mtlda->raiseError("QueueItemModel::verify() returned false!");
             return false;
         }
 
-        if (!is_readable($file)) {
-            $mtlda->raiseError("File ${file} is not readable!");
+        if (!($guid = $queueitem->getGuid())) {
+            $mtlda->raiseError("QueueItemModel::getGuid() returned false!");
             return false;
         }
 
-        if (($file_hash = sha1_file($file)) === false) {
-            $mtlda->raiseError("Unable to calculate SHA1 hash of file ${file}!");
+        if (!$this->createDirectoryName($guid)) {
+            $mtlda->raiseError("StorageController::createDirectoryName() returned false!");
             return false;
         }
 
-        if (isset($hash) && $hash != $file_hash) {
-            $mtlda->raiseError("Hash value of ${file} does not match!");
+        return true;
+    }
+
+    public function createDirectoryName($guid)
+    {
+        global $mtlda;
+
+        $dir_name = "";
+
+        if (empty($guid)) {
+            $mtlda->raiseError("guid is empty!");
             return false;
         }
-            
+
+        for ($i = 0; $i < strlen($guid); $i+=2) {
+
+            $hash_part = substr($guid, $i, 2);
+            if (!$hash_part) {
+                $mtlda->raiseError("substr() returned false!");
+                return false;
+            }
+
+            $dir_name.= $hash_part.'/';
+        }
+
+        if (!isset($dir_name) || empty($dir_name)) {
+            return false;
+        }
+
+        return $dir_name;
     }
 }
 
