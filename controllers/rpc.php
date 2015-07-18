@@ -72,7 +72,7 @@ class RpcController
         $id = $_POST['id'];
 
         $parts = array();
-        if (preg_match('/(\w+)-([0-9]+)\+([a-z0-9]+)/', $id, $parts) === false) {
+        if (preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts) === false) {
             print "id in incorrect format!";
             return false;
         }
@@ -139,7 +139,7 @@ class RpcController
         $id = $_POST['id'];
 
         $parts = array();
-        if (preg_match('/(\w+)-([0-9]+)\+([a-z0-9]+)/', $id, $parts) === false) {
+        if (preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts) === false) {
             print "id in incorrect format!";
             return false;
         }

@@ -184,7 +184,7 @@ class Templates extends Smarty
             if (isset($query->params[1])) {
 
                 $id = $query->params[1];
-                if (preg_match("/^([0-9])\+([a-z0-9]+)$/", $id, $matches)) {
+                if (preg_match("/^([0-9])\-([a-z0-9]+)$/", $id, $matches)) {
 
                     $id = $matches[1];
                     $hash = $matches[2];
