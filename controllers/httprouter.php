@@ -155,6 +155,7 @@ class HttpRouterController
     {
         $valid_actions = array(
                 'delete',
+                'archive',
                 'toggle',
                 'clone',
                 'alter-position',
