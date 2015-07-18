@@ -17,6 +17,7 @@ class QueueItemModel extends DefaultModel
             );
     public $avail_items = array();
     public $items = array();
+    private $working_directory = "../data/working";
 
     public function __construct($id, $guid)
     {
@@ -33,7 +34,7 @@ class QueueItemModel extends DefaultModel
             AND
                 queue_guid LIKE ?"
         );
-            
+
         if (!$db->execute($sth, array($id, $guid))) {
             $mtlda->raiseError("Failed to execute query");
         }
@@ -73,6 +74,59 @@ class QueueItemModel extends DefaultModel
             $this->items[$row->$idx_field] = $row;
         }
 
+    }
+
+    public function verify()
+    {
+        global $mtlda;
+
+        if (!isset($this->working_directory)) {
+            $mtlda->raiseError("working_directory is not set!");
+            return false;
+        }
+
+        if (!isset($this->queue_file_name)) {
+            $mtlda->raiseError("queue_file_name is not set!");
+            return false;
+        }
+
+        if (!isset($this->queue_file_hash)) {
+            $mtlda->raiseError("queue_file_hash is not set!");
+            return false;
+        }
+
+        $fqpn = $this->working_directory .'/'. $this->queue_file_name;
+
+        if (!file_exists($fqpn)) {
+            $mtlda->raiseError("File {$fqpn} does not exist!");
+            return false;
+        }
+
+        if (!is_readable($fqpn)) {
+            $mtlda->raiseError("File {$fqpn} is not readable!");
+            return false;
+        }
+
+        if (($file_hash = sha1_file($fqpn)) === false) {
+            $mtlda->raiseError("Unable to calculate SHA1 hash of file {$fqpn}!");
+            return false;
+        }
+
+        if (isset($hash) && $hash != $file_hash) {
+            $mtlda->raiseError("Hash value of ${file} does not match!");
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getGuid()
+    {
+        if (!isset($this->queue_guid)) {
+            return false;
+        }
+
+        return $this->queue_guid;
     }
 }
 
