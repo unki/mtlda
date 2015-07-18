@@ -51,6 +51,18 @@ function rpc_object_archive(element, target, idx)
         return;
     }
 
+    obj_id = obj_id.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
+
+    var state = $("#"+obj_id+".state");
+    if(!state) {
+        alert('no state field for '+ id +' found');
+        return;
+    }
+
+    if(state.text() == 'new') {
+        state.text('Processing');
+    }
+
     $.ajax({
         type: "POST",
         url: "rpc.html",
@@ -62,12 +74,15 @@ function rpc_object_archive(element, target, idx)
         beforeSend: function() {
             // change row color to red
             element.parent().parent().animate({backgroundColor: "#fbc7c7" }, "fast");
+            state.text('Processing');
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
+            state.text('Failure');
         },
         success: function(data){
             if(data == "ok") {
+                state.text('Done');
                 element.parent().parent().animate({ opacity: "hide" }, "fast");
                 return;
             }
