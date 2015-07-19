@@ -59,16 +59,23 @@ class HttpRouterController
 
         $this->query->params = array();
 
-        // no more information in URI, then we are done
-        if (count($parts) <= 1) {
-            return $this->query;
-        }
-
         /* register further _GET parameters */
         if (isset($_GET) && is_array($_GET) && !empty($_GET)) {
             foreach ($_GET as $key => $value) {
                 $this->query->params[$key] = htmlentities($value, ENT_QUOTES);
             }
+        }
+
+        /* register further _POST parameters */
+        if (isset($_POST) && is_array($_POST) && !empty($_POST)) {
+            foreach ($_POST as $key => $value) {
+                $this->query->params[$key] = htmlentities($value, ENT_QUOTES);
+            }
+        }
+
+        // no more information in URI, then we are done
+        if (count($parts) <= 1) {
+            return $this->query;
         }
 
         for ($i = 1; $i < count($parts); $i++) {
