@@ -56,6 +56,11 @@ class MTLDA
             return;
         }
 
+        if ($router->isImageCall()) {
+            $this->imageHandler();
+            return;
+        }
+
         if (!$page_name = $views->getViewName($query->view)) {
             $this->raiseError("Unable to find a view for ". $query->view);
         }
@@ -157,6 +162,12 @@ class MTLDA
         $rpc->perform();
     }
 
+    private function imageHandler()
+    {
+        $image = new ImageController;
+        $image->perform();
+    }
+
     public function isValidId($id)
     {
         $id = (int) $id;
@@ -188,6 +199,28 @@ class MTLDA
         }
 
         return false;
+    }
+
+    public function parseId($id)
+    {
+        if (!isset($id) || empty($id)) {
+            return false;
+        }
+
+        $parts = array();
+
+        if (preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts) === false) {
+            return false;
+        }
+
+        if (!isset($parts) || empty($parts)) {
+            return false;
+        }
+
+        // remove the first element of the array
+        array_shift($parts);
+
+        return $parts;
     }
 }
 
