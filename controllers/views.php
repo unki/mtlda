@@ -41,18 +41,21 @@ class ViewsController
         }
     }
 
-    public function load($view)
+    public function load($view, $skeleton = true)
     {
         $view = 'MTLDA\\Views\\'.$view;
         $page = new $view;
 
-        if ($content = $page->show()) {
-            $this->page_skeleton->assign('page_content', $content);
+        if ($skeleton) {
+            if ($content = $page->show()) {
+                $this->page_skeleton->assign('page_content', $content);
+            } else {
+                $this->page_skeleton->assign('page_content', 'No content found to be displayed');
+            }
+            return $this->page_skeleton->show();
         } else {
-            $this->page_skeleton->assign('page_content', 'No content found to be displayed');
+            return $page->show();
         }
-
-        print $this->page_skeleton->show();
     }
 }
 
