@@ -95,7 +95,11 @@ class HttpRouterController
             $this->query->call_type = "rpc";
             $this->query->action = $_POST['action'];
             return $this->query;
-         /* queue-xxx.html ... */
+        /* /preview/{id} */
+        } elseif ($this->query->view == "preview") {
+            $this->query->call_type = "preview";
+            return $this->query;
+        /* queue-xxx.html ... */
         } elseif (preg_match('/(.*)-([0-9]+)/', $this->query->view)) {
             preg_match('/.*\/(.*)-([0-9]+)/', $this->query->view, $parts);
 
@@ -134,7 +138,15 @@ class HttpRouterController
         }
 
         return false;
+    }
 
+    public function isImageCall()
+    {
+        if (isset($this->query->call_type) && $this->query->call_type == "preview") {
+            return true;
+        }
+
+        return false;
     }
 
     private function isValidAction($action)
