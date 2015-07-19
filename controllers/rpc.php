@@ -36,7 +36,7 @@ class RpcController
                 $this->rpc_alter_position();
                 break;
             case 'get-content':
-                $this->rpc_get_content();
+                $this->rpcGetContent();
                 break;
             case 'get-sub-menu':
                 $this->rpc_get_sub_menu();
@@ -200,7 +200,7 @@ class RpcController
         return true;
     }
 
-    public function loadModel($object_name, $id = null, $guid = null)
+    private function loadModel($object_name, $id = null, $guid = null)
     {
         switch($object_name) {
             case 'queueitem':
@@ -212,6 +212,34 @@ class RpcController
             return $obj;
         }
 
+        return false;
+    }
+
+    private function rpcGetContent()
+    {
+        global $mtlda, $views;
+
+        $valid_content = array(
+                'preview',
+        );
+
+        if (!in_array($_POST['content'], $valid_content)) {
+            $mtlda->raiseError('unknown content requested: '. htmlentities($_POST['content'], ENT_QUOTES));
+            return false;
+        }
+
+        switch ($_POST['content']) {
+            case 'preview':
+                $content = $views->load('PreviewView', false);
+                break;
+        }
+
+        if (isset($content) && !empty($content)) {
+            print $content;
+            return true;
+        }
+
+        $mtlda->raiseError("No content found!");
         return false;
     }
 }
