@@ -12,6 +12,7 @@
   <div id="content">
   {$page_content}
   </div>
+  <div id="dialog"></div>
  </body>
 </html
 <!-- vim: set filetype=smarty expandtab softtabstop=1 tabstop=1 shiftwidth=1 -->
