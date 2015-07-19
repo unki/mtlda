@@ -7,45 +7,64 @@ function show_preview(element)
         return;
     }
 
-   $.ajax({
-      type: "POST",
-      url: "rpc.html",
-      data: ({
-         type      : 'rpc',
-         action    : 'get-content',
-         content   : 'preview',
-         model     : 'queueitem',
-         id        : obj_id
-      }),
-      error: function(XMLHttpRequest, textStatus, errorThrown) {
-         alert('Failed to contact server! ' + textStatus);
-      },
-      success: function(data) {
-         $('#dialog').html(data);
-         $('#dialog').dialog({
-            title:      'Preview',
-            modal:      true,
-            autoOpen:   false,
-            draggable:  false,
-            resizeable: false,
-            width:      500,
-            heigh:      500,
-            position:   {
-               my:      "center top+5%",
-               at:      "center top+5%",
-               of:      "#content"
-            },
-            buttons:    {
-               Ok: function() {
-                  $(this).dialog("close");
-               }
+    $.ajax({
+        type: "POST",
+        url: "rpc.html",
+        data: ({
+            type      : 'rpc',
+            action    : 'get-content',
+            content   : 'preview',
+            model     : 'queueitem',
+            id        : obj_id
+        }),
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+            alert('Failed to contact server! ' + textStatus);
+        },
+        success: function(data) {
+            $('#dialog').html(data);
+            $('#dialog').dialog({
+                title:      'Preview',
+                modal:      true,
+                autoOpen:   false,
+                draggable:  false,
+                resizeable: false,
+                width:      500,
+                heigh:      500,
+                position:   {
+                    my:      "center top+5%",
+                    at:      "center top+5%",
+                    of:      "#content"
+                },
+                buttons:    {
+                    Ok: function() {
+                        $(this).dialog("close");
+                    }
+                },
+                open: function() {
+                    var previewimg = $("#previewimg").attr("load");
+                    if(previewimg == undefined || previewimg == '') {
+                        alert('found no image to load:' + previewimg);
+                        return;
+                    }
+                    var preview = new Image;
+                    preview.src = previewimg;
+                    if(preview.complete) {
+                        $("#previewimg").attr('src', previewimg);
+                        preview.onload=function(){};
+                    } else{
+                        preview.onload = function() {
+                            $("#previewimg").attr('src', this.src);
+                            //    clear onLoad, IE behaves irratically with animated gifs otherwise
+                            preview.onload=function(){};
+                        }
+                    }
+                }
+            });
+            if(!$('#dialog').dialog('isOpen')) {
+                $('#dialog').dialog('open');
             }
-         });
-         if(!$('#dialog').dialog('isOpen')) {
-            $('#dialog').dialog('open');
-         }
-      }
-   });
+        }
+    });
 }
 
 $(document).ready(function() {
@@ -75,3 +94,5 @@ $(document).ready(function() {
    );
    //load_menu();
 });
+
+// vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:

@@ -27,8 +27,10 @@ class PreviewView extends Templates
         }
 
         $img_url = $config['app']['base_web_path'] .'/preview/'. $query->params['id'];
+        $img_load = $config['app']['base_web_path'] .'/resources/images/load.gif';
 
         $this->assign('img_url', $img_url);
+        $this->assign('img_load', $img_load);
 
         return $this->fetch("preview.tpl");
     }

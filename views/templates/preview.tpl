@@ -1,3 +1,3 @@
 Preview<br />
 <br />
-<img src="{$img_url}" />
+<img id="previewimg" load="{$img_url}" src="{$img_load}" />
