@@ -48,18 +48,20 @@ class MTLDA
             exit(1);
         }
 
+        $GLOBALS['views'] =& new ViewsController;
+        global $views;
+
         if ($router->isRpcCall()) {
             $this->rpcHandler();
             return;
         }
 
-        $views = new ViewsController;
         if (!$page_name = $views->getViewName($query->view)) {
             $this->raiseError("Unable to find a view for ". $query->view);
         }
 
-        $view = $views->load($page_name);
-
+        $page = $views->load($page_name);
+        print $page;
     }
 
     public function raiseError($string)
