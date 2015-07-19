@@ -58,17 +58,49 @@ class ImageController
         }
 
         if ($item == "queueitem") {
+
             $image = new Models\QueueItemModel($id, $guid);
             if (!$image) {
                 $mtlda->raiseError("Unable to load a QueueItemModel!");
                 return false;
             }
 
-            $im = new \imagick('../data/working/'. $image->queue_file_name .'[0]');
-            $im->setImageFormat('jpg');
+            $src = '../data/working/'. $image->queue_file_name;
+            if (!file_exists($src)) {
+                $mtlda->raiseError("Source does not exist!");
+                return false;
+            }
+
+            if (!is_readable($src)) {
+                $mtlda->raiseError("Source is not readable!");
+                return false;
+            }
+
+            try {
+                $im = new \Imagick('../data/working/'. $image->queue_file_name .'[0]');
+            } catch (ImagickException $e) {
+                $mtlda->raiseError("Unable to use imagick extension!");
+                return false;
+            }
+            if (method_exists($im, "setProgressMonitor")) {
+                $im->setProgressMonitor(array($this, "updateProgress"));
+            }
+            if (!$im->setImageFormat('jpg')) {
+                $mtlda->raiseError("Unable to set jpg image format!");
+                return false;
+            }
+            if (!$im->scaleImage(300, 300, true)) {
+                $mtlda->raiseError("Unable to scale image!");
+                return false;
+            }
             header('Content-Type: image/jpeg');
-            echo $im;
+            echo $im->getImageBlob();
         }
+    }
+
+    public function updateProgress()
+    {
+
     }
 }
 
