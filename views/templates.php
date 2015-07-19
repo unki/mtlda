@@ -209,7 +209,6 @@ class Templates extends Smarty
         } else {
 
             $mtlda->raiseError("All methods utilized but still don't know what to show!");
-
         }
     }
 
