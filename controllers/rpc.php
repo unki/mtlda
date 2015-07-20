@@ -15,7 +15,7 @@ class RpcController
         }
 
         if (!$router->isValidRpcAction($query->action)) {
-            print "Invalid RPC action";
+            print "Invalid RPC action: ". htmlentities($query->action, ENT_QUOTES);
             return false;
         }
 
@@ -26,7 +26,10 @@ class RpcController
             case 'archive':
                 $this->rpcArchiveObject();
                 break;
-            case 'toggle':
+            case 'find-prev-next':
+                $this->rpcFindPrevNextObject();
+                break;
+            /*case 'toggle':
                 $this->rpc_toggle_object_status();
                 break;
             case 'clone':
@@ -35,11 +38,11 @@ class RpcController
             case 'alter-position':
                 $this->rpc_alter_position();
                 break;
-            case 'get-content':
-                $this->rpcGetContent();
-                break;
             case 'get-sub-menu':
                 $this->rpc_get_sub_menu();
+                break;*/
+            case 'get-content':
+                $this->rpcGetContent();
                 break;
             case 'idle':
                 // just do nothing, for debugging
@@ -223,6 +226,11 @@ class RpcController
                 'preview',
         );
 
+        if (!isset($_POST['content'])) {
+            $mtlda->raiseError('No content requested!');
+            return false;
+        }
+
         if (!in_array($_POST['content'], $valid_content)) {
             $mtlda->raiseError('unknown content requested: '. htmlentities($_POST['content'], ENT_QUOTES));
             return false;
@@ -241,6 +249,85 @@ class RpcController
 
         $mtlda->raiseError("No content found!");
         return false;
+    }
+
+    private function rpcFindPrevNextObject()
+    {
+        global $mtlda, $views;
+
+        $valid_models = array(
+            'queueitem',
+        );
+
+        $valid_directions = array(
+            'next',
+            'prev',
+        );
+
+        if (!isset($_POST['model'])) {
+            $mtlda->raiseError('No model requested!');
+            return false;
+        }
+
+        if (!in_array($_POST['model'], $valid_models)) {
+            $mtlda->raiseError('unknown model requested: '. htmlentities($_POST['model'], ENT_QUOTES));
+            return false;
+        }
+
+        if (!isset($_POST['id'])) {
+            $mtlda->raiseError('id is not set!');
+            return false;
+        }
+
+        $id = $_POST['id'];
+
+        if (!$mtlda->isValidId($id)) {
+            $mtlda->raiseError('\$id is invalid');
+            return false;
+        }
+
+        if (!isset($_POST['direction'])) {
+            $mtlda->raiseError('direction is not set!');
+            return false;
+        }
+
+        if (!in_array($_POST['direction'], $valid_directions)) {
+            $mtlda->raiseError('invalid direction requested: '. htmlentities($_POST['direction'], ENT_QUOTES));
+            return false;
+        }
+
+        if (($id = $mtlda->parseId($id)) === false) {
+            $mtlda->raiseError('Unable to parse \$id');
+            return false;
+        }
+
+        switch ($id->model) {
+            case 'queueitem':
+                $model = new Models\QueueItemModel($id->id, $id->guid);
+                break;
+        }
+
+        if (!isset($model) || empty($model)) {
+            $mtlda->raiseError("Model not found: ". htmlentities($id->modek, ENT_QUOTES));
+            return false;
+        }
+
+        switch ($_POST['direction']) {
+            case 'prev':
+                $prev = $model->prev();
+                if ($prev) {
+                    print "queueitem-". $prev;
+                }
+                break;
+            case 'next':
+                $next = $model->next();
+                if ($next) {
+                    print "queueitem-". $next;
+                }
+                break;
+        }
+
+        return true;
     }
 }
 
