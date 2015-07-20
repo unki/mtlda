@@ -33,14 +33,14 @@ class Templates extends Smarty
         $this->force_compile = true;
         $this->caching = false;
 
-        $this->template_dir = BASE_PATH.'/views/templates';
-        $this->compile_dir  = BASE_PATH.'/cache/templates_c';
-        $this->config_dir   = BASE_PATH.'/cache/smarty_config';
-        $this->cache_dir    = BASE_PATH.'/cache/smarty_cache';
+        $this->template_dir = MTLDA_BASE.'/views/templates';
+        $this->compile_dir  = MTLDA_BASE.'/cache/templates_c';
+        $this->config_dir   = MTLDA_BASE.'/cache/smarty_config';
+        $this->cache_dir    = MTLDA_BASE.'/cache/smarty_cache';
 
-        if (!file_exists($this->compile_dir) && !is_writeable(BASE_PATH .'/cache')) {
+        if (!file_exists($this->compile_dir) && !is_writeable(MTLDA_BASE .'/cache')) {
             $mtlda->raiseError(
-                "Cache directory ". $BASE_PATH .'/cache' ." is not writeable"
+                "Cache directory ". $MTLDA_BASE .'/cache' ." is not writeable"
                 ."for user (". $this->getuid() .").<br />\n"
                 ."Please check that permissions are set correctly to this directory.<br />\n"
             );

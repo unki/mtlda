@@ -12,7 +12,7 @@ class ConfigController
     {
         global $config;
 
-        $this->config_path = BASE_PATH ."/config";
+        $this->config_path = MTLDA_BASE ."/config";
         $this->config_file = "config.ini";
 
         if (!file_exists($this->config_path)) {

@@ -1,6 +1,6 @@
 <?php
 
-define('BASE_PATH', __DIR__);
+define('MTLDA_BASE', __DIR__);
 
 function autoload($class)
 {
@@ -33,7 +33,7 @@ function autoload($class)
         $parts[1] = preg_replace('/^(.*)Model$/', '$1', $parts[1]);
     }
 
-    $filename = BASE_PATH;
+    $filename = MTLDA_BASE;
     $filename.= "/";
     $filename.= implode('/', $parts);
     $filename.= '.php';

@@ -6,7 +6,7 @@ use MTLDA\Models;
 
 class StorageController
 {
-    private $data_path = "data/archive";
+    private $data_path = MTLDA_BASE."/data/archive";
 
     public function archive(&$queueitem)
     {

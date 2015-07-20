@@ -8,8 +8,8 @@ class RequirementsController
 {
     public function __construct()
     {
-        if (!constant('BASE_PATH')) {
-            print "Erorr - BASE_PATH is not defined!";
+        if (!constant('MTLDA_BASE')) {
+            print "Erorr - MTLDA_BASE is not defined!";
             exit(1);
         }
     }

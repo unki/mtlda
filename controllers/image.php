@@ -56,7 +56,7 @@ class ImageController
                 return false;
             }
 
-            $src = '../data/working/'. $image->queue_file_name;
+            $src = MTLDA_BASE.'/data/working/'. $image->queue_file_name;
             if (!file_exists($src)) {
                 $mtlda->raiseError("Source does not exist!");
                 return false;
@@ -68,7 +68,7 @@ class ImageController
             }
 
             try {
-                $im = new \Imagick('../data/working/'. $image->queue_file_name .'[0]');
+                $im = new \Imagick(MTLDA_BASE.'/data/working/'. $image->queue_file_name .'[0]');
             } catch (ImagickException $e) {
                 $mtlda->raiseError("Unable to use imagick extension!");
                 return false;
