@@ -38,28 +38,19 @@ class ImageController
             return false;
         }
 
-        if (($id_parts = $mtlda->parseId($id)) === false) {
+        if (($id = $mtlda->parseId($id)) === false) {
             $mtlda->raiseError("unable to parse id!");
             return false;
         }
 
-        if (!isset($id_parts) || empty($id_parts) || count($id_parts) != 3) {
-            $mtlda->raiseError("incomplete id!");
-            return false;
-        }
-
-        $item = $id_parts[0];
-        $id = $id_parts[1];
-        $guid = $id_parts[2];
-
-        if (!$mtlda->isValidGuidSyntax($guid)) {
+        if (!$mtlda->isValidGuidSyntax($id->guid)) {
             $mtlda->raiseError("GUID syntax is invalid!");
             return false;
         }
 
-        if ($item == "queueitem") {
+        if ($id->model == "queueitem") {
 
-            $image = new Models\QueueItemModel($id, $guid);
+            $image = new Models\QueueItemModel($id->id, $id->guid);
             if (!$image) {
                 $mtlda->raiseError("Unable to load a QueueItemModel!");
                 return false;
