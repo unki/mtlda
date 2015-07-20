@@ -7,6 +7,11 @@ function show_preview(element)
         return;
     }
 
+    open_preview_dialog(obj_id);
+}
+
+function open_preview_dialog(obj_id)
+{
     $.ajax({
         type: "POST",
         url: "rpc.html",
@@ -94,5 +99,61 @@ $(document).ready(function() {
    );
    //load_menu();
 });
+
+function change_preview(direction)
+{
+    var dialog = $('#dialog');
+
+    if(!dialog.dialog('isOpen')) {
+        return false;
+    }
+
+    var img = $('#dialog img');
+
+    if(img == undefined || img == "") {
+        return false;
+    }
+
+    var imgid = img.attr('imgid');
+
+    if(!imgid) {
+        return false;
+    }
+
+    $.ajax({
+        type: "POST",
+        url: "rpc.html",
+        data: ({
+            type      : 'rpc',
+            action    : 'find-prev-next',
+            model     : 'queueitem',
+            id        : imgid,
+            direction : direction
+        }),
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+            alert('Failed to contact server! ' + textStatus);
+        },
+        success: function(obj_id) {
+            open_preview_dialog(obj_id);
+            var previewimg = $("#previewimg").attr("load");
+            if(previewimg == undefined || previewimg == '') {
+                alert('found no image to load:' + previewimg);
+                return;
+            }
+            var preview = new Image;
+            preview.src = previewimg;
+            if(preview.complete) {
+                $("#previewimg").attr('src', previewimg);
+                preview.onload=function(){};
+            } else{
+                preview.onload = function() {
+                    $("#previewimg").attr('src', this.src);
+                    //    clear onLoad, IE behaves irratically with animated gifs otherwise
+                    preview.onload=function(){};
+                }
+            }
+        }
+    });
+}
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
