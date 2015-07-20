@@ -213,14 +213,17 @@ class MTLDA
             return false;
         }
 
-        if (!isset($parts) || empty($parts)) {
+        if (!isset($parts) || empty($parts) || count($parts) != 4) {
             return false;
         }
 
-        // remove the first element of the array
-        array_shift($parts);
+        $id_obj = new \stdClass();
+        $id_obj->original_id = $parts[0];
+        $id_obj->model = $parts[1];
+        $id_obj->id = $parts[2];
+        $id_obj->guid = $parts[3];
 
-        return $parts;
+        return $id_obj;
     }
 }
 
