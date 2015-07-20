@@ -2,8 +2,6 @@
 
 namespace MTLDA\Controllers;
 
-use stdClass;
-
 class HttpRouterController
 {
     private $query;
@@ -12,7 +10,7 @@ class HttpRouterController
     {
         global $mtlda, $config;
 
-        $this->query = new stdClass();
+        $this->query = new \stdClass();
         $this->query->uri = $uri;
 
         // just to check if someone may fools us.
@@ -175,14 +173,16 @@ class HttpRouterController
         $valid_actions = array(
                 'delete',
                 'archive',
-                'toggle',
+                'find-prev-next',
+                'get-content',
+
+                /*'toggle',
                 'clone',
                 'alter-position',
-                'get-content',
                 'get-sub-menu',
                 'set-host-profile',
                 'get-host-state',
-                'idle',
+                'idle',*/
                 );
 
         if (in_array($action, $valid_actions)) {
