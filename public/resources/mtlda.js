@@ -29,7 +29,7 @@ function show_preview(element)
                 draggable:  false,
                 resizeable: false,
                 width:      500,
-                heigh:      500,
+                height:     450,
                 position:   {
                     my:      "center top+5%",
                     at:      "center top+5%",
