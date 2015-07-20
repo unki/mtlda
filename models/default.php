@@ -494,6 +494,92 @@ class DefaultModel
         return true;
 
     } // toggleChildStatus()
+
+    public function prev()
+    {
+        global $mtlda, $db;
+
+        $id = $this->column_name ."_idx";
+        $guid = $this->column_name ."_guid";
+
+        $result = $db->fetchSingleRow(
+            "
+                SELECT
+                    {$id},
+                    {$guid}
+                FROM
+                    TABLEPREFIX{$this->table_name}
+                WHERE
+                    {$id} = (
+                        SELECT
+                            MAX({$id})
+                        FROM
+                            TABLEPREFIX{$this->table_name}
+                        WHERE
+                            {$id} < {$this->id}
+                    )"
+        );
+
+        if (!isset($result)) {
+            $mtlda->raiseError("Unable to locate previous record!");
+            return false;
+        }
+
+        if (!isset($result->$id) || !isset($result->$guid)) {
+            $mtlda->raiseError("No previous record available!");
+            return false;
+        }
+
+        if (!is_numeric($result->$id) || !$mtlda->isValidGuidSyntax($result->$guid)) {
+            $mtlda->raiseError("Invalid previous record found: ". htmlentities($result->$id, ENT_QUOTES));
+            return false;
+        }
+
+        return $result->$id ."-". $result->$guid;
+    }
+
+    public function next()
+    {
+        global $mtlda, $db;
+
+        $id = $this->column_name ."_idx";
+        $guid = $this->column_name ."_guid";
+
+        $result = $db->fetchSingleRow(
+            "
+                SELECT
+                    {$id},
+                    {$guid}
+                FROM
+                    TABLEPREFIX{$this->table_name}
+                WHERE
+                    {$id} = (
+                        SELECT
+                            MIN({$id})
+                        FROM
+                            TABLEPREFIX{$this->table_name}
+                        WHERE
+                            {$id} > {$this->id}
+                    )"
+        );
+
+        if (!isset($result)) {
+            $mtlda->raiseError("Unable to locate next record!");
+            return false;
+        }
+
+        if (!isset($result->$id) || !isset($result->$guid)) {
+            $mtlda->raiseError("No next record available!");
+            return false;
+        }
+
+        if (!is_numeric($result->$id) || !$mtlda->isValidGuidSyntax($result->$guid)) {
+            $mtlda->raiseError("Invalid next record found: ". htmlentities($result->$id, ENT_QUOTES));
+            return false;
+        }
+
+        return $result->$id ."-". $result->$guid;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
