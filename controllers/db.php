@@ -82,7 +82,7 @@ class DbController
         return $this->is_connected;
     }
 
-    public function query($query = "", $mode = null)
+    public function query($query = "", $mode = PDO::FETCH_OBJ)
     {
         global $config;
 
@@ -102,7 +102,7 @@ class DbController
             return $result;
         }
 
-        $result = $this->db->query($query);
+        $result = $this->db->query($query, $mode);
         return $result;
 
     }
@@ -195,11 +195,9 @@ class DbController
             return false;
         }
 
-        if ($this->hasTablePrefix()) {
-            $this->insertTablePrefix($query);
+        if (($result = $this->query($query, $mode)) === false) {
+            return false;
         }
-
-        $result = $this->db_query($query);
 
         if ($result->rowCount() == 0) {
             return false;
