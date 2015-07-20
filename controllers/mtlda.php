@@ -225,6 +225,21 @@ class MTLDA
 
         return $id_obj;
     }
+
+    public function isImageCachingEnabled()
+    {
+        global $config;
+
+        if (!isset($config['app']) && !isset($config['app']['image_cache'])) {
+            return false;
+        }
+
+        if (!in_array($config['app']['image_cache'], array('yes','y','true','on','1'))) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:

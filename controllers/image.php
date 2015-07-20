@@ -67,6 +67,12 @@ class ImageController
                 return false;
             }
 
+            if ($this->isCachedImageAvailable($id->id, $id->guid, 'preview')) {
+                header('Content-Type: image/jpeg');
+                print $this->loadCachedImage($id->id, $id->guid, 'preview');
+                return true;
+            }
+
             try {
                 $im = new \Imagick(MTLDA_BASE.'/data/working/'. $image->queue_file_name .'[0]');
             } catch (ImagickException $e) {
@@ -84,13 +90,61 @@ class ImageController
                 $mtlda->raiseError("Unable to scale image!");
                 return false;
             }
+
             header('Content-Type: image/jpeg');
             echo $im->getImageBlob();
+
+            if ($mtlda->isImageCachingEnabled()) {
+                $this->saveImageToCache($id->id, $id->guid, 'preview', $im);
+            }
         }
     }
 
     public function updateProgress()
     {
+
+    }
+
+    private function isCachedImageAvailable($id, $guid, $prefix)
+    {
+        $file = MTLDA_BASE."/data/image_cache/{$prefix}_{$id}_{$guid}.jpg";
+
+        if (file_exists($file) && is_readable($file)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function loadCachedImage($id, $guid, $prefix)
+    {
+        global $mtlda;
+
+        $file = MTLDA_BASE."/data/image_cache/{$prefix}_{$id}_{$guid}.jpg";
+
+        if (($content = file_get_contents($file)) === false) {
+            $mtlda->raiseError("Unable to read file {$file}!");
+            return false;
+        }
+
+        return $content;
+    }
+
+    private function saveImageToCache($id, $guid, $prefix, &$im)
+    {
+        global $mtlda;
+
+        $file = MTLDA_BASE."/data/image_cache/{$prefix}_{$id}_{$guid}.jpg";
+
+        if (($fp = fopen($file, 'w')) === false) {
+            $mtlda->raiseError("Unable to write to {$file}");
+            return false;
+        }
+
+        if (fwrite($fp, $im->getImageBlob()) === false) {
+            $mtlda->raiseError("fwrite() returned unsuccessful");
+            return false;
+        }
 
     }
 }

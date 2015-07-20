@@ -1,6 +1,7 @@
 [app]
 base_web_path = /mtlda/
 page_title="My Tiny Little Document Archive"
+image_cache = 1
 
 [database]
 type = mysql
