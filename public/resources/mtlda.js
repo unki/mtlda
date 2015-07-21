@@ -33,7 +33,7 @@ function open_preview_dialog(obj_id)
                 autoOpen:   false,
                 draggable:  false,
                 resizeable: false,
-                width:      500,
+                width:      900,
                 height:     450,
                 position:   {
                     my:      "center top+5%",
@@ -46,7 +46,7 @@ function open_preview_dialog(obj_id)
                     }
                 },
                 open: function() {
-                    var previewimg = $("#previewimg").attr("load");
+                    var previewimg = $("#dialog img[name=previewimg]").attr("load");
                     if(previewimg == undefined || previewimg == '') {
                         alert('found no image to load:' + previewimg);
                         return;
@@ -54,11 +54,11 @@ function open_preview_dialog(obj_id)
                     var preview = new Image;
                     preview.src = previewimg;
                     if(preview.complete) {
-                        $("#previewimg").attr('src', previewimg);
+                        $("#dialog img[name=previewimg]").attr('src', previewimg);
                         preview.onload=function(){};
                     } else{
                         preview.onload = function() {
-                            $("#previewimg").attr('src', this.src);
+                            $("#dialog img[name=previewimg]").attr('src', this.src);
                             //    clear onLoad, IE behaves irratically with animated gifs otherwise
                             preview.onload=function(){};
                         }
@@ -108,7 +108,7 @@ function change_preview(direction)
         return false;
     }
 
-    var img = $('#dialog img');
+    var img = $('#dialog img[name=previewimg]');
 
     if(img == undefined || img == "") {
         return false;
@@ -135,7 +135,7 @@ function change_preview(direction)
         },
         success: function(obj_id) {
             open_preview_dialog(obj_id);
-            var previewimg = $("#previewimg").attr("load");
+            var previewimg = $("#dialog img[name=previewimg]").attr("load");
             if(previewimg == undefined || previewimg == '') {
                 alert('found no image to load:' + previewimg);
                 return;
@@ -143,17 +143,19 @@ function change_preview(direction)
             var preview = new Image;
             preview.src = previewimg;
             if(preview.complete) {
-                $("#previewimg").attr('src', previewimg);
+                $("#dialog img[name=previewimg]").attr('src', previewimg);
                 preview.onload=function(){};
             } else{
                 preview.onload = function() {
-                    $("#previewimg").attr('src', this.src);
+                    $("#dialog img[name=previewimg]").attr('src', this.src);
                     //    clear onLoad, IE behaves irratically with animated gifs otherwise
                     preview.onload=function(){};
                 }
             }
         }
     });
+
+    return true;
 }
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:

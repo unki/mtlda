@@ -66,11 +66,26 @@ class Templates extends Smarty
             $this->assign('page_title', $config['app']['page_title']);
         }
         if (isset($config['app']) && isset($config['app']['base_web_path'])) {
-            $this->assign('web_path', $config['app']['base_web_path']);
+            $base_path = $config['app']['base_web_path'];
+        } else {
+            $base_path = '';
         }
 
         $this->registerPlugin("function", "get_url", array(&$this, "getUrl"), false);
         $this->registerFilter("pre", array(&$this, "addTemplateName"));
+
+        $this->assign('web_path', $base_path);
+        $this->assign('image_arrow_left', $base_path .'/resources/images/arrow-circle-left-4x.png');
+        $this->assign('image_arrow_right', $base_path .'/resources/images/arrow-circle-right-4x.png');
+
+        $this->assign('document_left_top', $base_path .'/resources/images/left_top.png');
+        $this->assign('document_center_top', $base_path .'/resources/images/center_top.png');
+        $this->assign('document_right_top', $base_path .'/resources/images/right_top.png');
+        $this->assign('document_right_center', $base_path .'/resources/images/right_center.png');
+        $this->assign('document_right_bottom', $base_path .'/resources/images/right_bottom.png');
+        $this->assign('document_center_bottom', $base_path .'/resources/images/center_bottom.png');
+        $this->assign('document_left_bottom', $base_path .'/resources/images/left_bottom.png');
+        $this->assign('document_left_center', $base_path .'/resources/images/left_center.png');
     }
 
     public function getuid()
