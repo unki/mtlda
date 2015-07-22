@@ -187,7 +187,7 @@ class DefaultModel
             $this->$idx = null;
         }
         if (isset($this->$guid)) {
-            $this->$guid = $mtlda->create_guid();
+            $this->$guid = $mtlda->createGuid();
         }
         if (isset($this->$name)) {
             $this->$name = "Copy of ". $this->$name;
@@ -261,7 +261,7 @@ class DefaultModel
                     $row[$this->child_names[$child] .'_idx'] = 'NULL';
                     $row[$this->child_names[$child] .'_'.$this->column_name.'_idx'] = $this->id;
                     if (isset($row[$this->child_names[$child] .'_guid'])) {
-                        $row[$this->child_names[$child] .'_guid'] = $mtlda->create_guid();
+                        $row[$this->child_names[$child] .'_guid'] = $mtlda->createGuid();
                     }
 
                     //print_r($query);
@@ -342,6 +342,12 @@ class DefaultModel
             $this->pre_save();
         }
 
+        $guid = $this->column_name .'_guid';
+
+        if (isset($this->$guid) || empty($this->$guid)) {
+            $this->$guid = $mtlda->createGuid();
+        }
+
         /* new object */
         if (!isset($this->id)) {
             $sql = 'INSERT INTO ';
@@ -373,7 +379,7 @@ class DefaultModel
         $db->execute($sth, $arr_values);
 
         if (!isset($this->id) || empty($this->id)) {
-            $this->id = $db->db_getid();
+            $this->id = $db->getid();
         }
 
         $db->freeStatement($sth);

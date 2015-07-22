@@ -233,6 +233,27 @@ class DbController
         global $config;
         $query = str_replace("TABLEPREFIX", $config['database']['table_prefix'], $query);
     }
+
+    public function getid()
+    {
+        global $mtlda;
+
+        if (!$this->getConnectionStatus()) {
+            $mtlda->raiseError("Can't fetch row - we are not connected!");
+            return false;
+        }
+
+        try {
+            $lastid = $this->db->lastInsertId();
+        } catch (PDOException $e) {
+            $mtlda->raiseError("unable to detect last inserted row ID!");
+            return false;
+        }
+
+        /* Get the last primary key ID from execute query */
+        return $lastid;
+
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
