@@ -240,6 +240,26 @@ class MTLDA
 
         return true;
     }
+
+    public function createGuid()
+    {
+        if (function_exists("openssl_random_pseudo_bytes")) {
+
+            if (($guid = openssl_random_pseudo_bytes("32")) === false) {
+                $this->raiseError("openssl_random_pseudo_bytes() returned false!");
+                return false;
+            }
+
+            $guid = bin2hex($guid);
+
+        } else {
+
+            $guid = uniqid(rand(0, 32766), true);
+
+        }
+
+        return $guid;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
