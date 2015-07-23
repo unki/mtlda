@@ -27,7 +27,7 @@ class StorageController
     private $working_path = MTLDA_BASE."/data/working";
     private $nesting_depth = 5;
 
-    public function __construct(&$item)
+    public function __construct(&$item = null)
     {
         if (!isset($item) || empty($item)) {
             return true;
@@ -47,14 +47,14 @@ class StorageController
             return false;
         }
 
-        // retrieve QueueItemModel GUID
-        if (!($guid = $queue_item->getGuid())) {
-            $mtlda->raiseError("QueueItemModel::getGuid() returned false!");
+        // retrieve QueueItemModel file hash
+        if (!($hash = $queue_item->getFileHash())) {
+            $mtlda->raiseError("QueueItemModel::getFileHash() returned false!");
             return false;
         }
 
         // generate a hash-value based directory name
-        if (!($store_dir_name = $this->generateDirectoryName($guid))) {
+        if (!($store_dir_name = $this->generateDirectoryName($hash))) {
             $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
             return false;
         }
@@ -88,6 +88,9 @@ class StorageController
             $archive_item->$archive_field = $queue_item->$queue_field;
         }
 
+        $archive_item->archive_version = '1';
+        $archive_item->archive_derivation = '';
+
         // copy file from queue to data directory
         if (!$this->copyQueueItemFileToArchive($queue_item->queue_file_name, $store_dir_name)) {
             $mtlda->raiseError("StorageController::copyQueueItemFileToArchive() returned false!");
@@ -101,19 +104,9 @@ class StorageController
             return false;
         }
 
-        // delete file from queue directory, if that fails revert
-        // and delete archived file
-        if (!$this->deleteQueueItemFile($queue_item->queue_file_name)) {
-            $archive_item->delete();
-            $this->deleteArchiveItemFile($queue_item->queue_file_name, $store_dir_name);
-            $mtlda->raiseError("ArchiveItemModel::deleteQueueItemFile() returned false!");
-            return false;
-        }
-
         // delete QueueItemModel from database, if that fails revert
         if (!$queue_item->delete()) {
             $archive_item->delete();
-            $this->deleteArchiveItemFile($queue_item->queue_file_name, $store_dir_name);
             $mtlda->raiseError("ArchiveItemModel::delete() returned false!");
             return false;
         }
@@ -121,20 +114,20 @@ class StorageController
         return true;
     }
 
-    public function generateDirectoryName($guid)
+    public function generateDirectoryName($hash)
     {
         global $mtlda;
 
         $dir_name = "";
 
-        if (empty($guid)) {
-            $mtlda->raiseError("guid is empty!");
+        if (empty($hash)) {
+            $mtlda->raiseError("hash is empty!");
             return false;
         }
 
-        for ($i = 0; $i < strlen($guid); $i+=2) {
+        for ($i = 0; $i < strlen($hash); $i+=2) {
 
-            $hash_part = substr($guid, $i, 2);
+            $hash_part = substr($hash, $i, 2);
 
             if (!$hash_part) {
                 $mtlda->raiseError("substr() returned false!");
