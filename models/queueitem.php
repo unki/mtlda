@@ -148,6 +148,15 @@ class QueueItemModel extends DefaultModel
         return $this->queue_guid;
     }
 
+    public function getFileHash()
+    {
+        if (!isset($this->queue_file_hash)) {
+            return false;
+        }
+
+        return $this->queue_file_hash;
+    }
+
     public function preDelete()
     {
         global $mtlda;
