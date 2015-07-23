@@ -205,7 +205,7 @@ class StorageController
             return false;
         }
 
-        if (!rename($fqpn_src, $fqpn_dst)) {
+        if (!copy($fqpn_src, $fqpn_dst)) {
             $mtlda->raiseError("copyQueueItemFileToArchive(), rename() returned false!");
             return false;
         }
