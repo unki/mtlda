@@ -283,17 +283,27 @@ class StorageController
             return false;
         }
 
-        if (!($dir_name = $this->generateDirectoryName($this->item->$file_hash))) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+        if ($this->item->column_name == 'archive') {
+
+            if (!($dir_name = $this->generateDirectoryName($this->item->$file_hash))) {
+                $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+                return false;
+            }
+
+            if (!isset($dir_name) || empty($dir_name)) {
+                $mtlda->raiseError("StorageController::generateDirectoryName() returned nothing!");
+                return false;
+            }
+
+            $fqpn = $this->data_path .'/'. $dir_name .'/'. $this->item->$file_name;
+        } elseif ($this->item->column_name == 'queue') {
+
+            $fqpn = $this->working_path .'/'. $this->item->$file_name;
+
+        } else {
+            $mtlda->raiseError("Unsupported model ". $this->item->column_name);
             return false;
         }
-
-        if (!isset($dir_name) || empty($dir_name)) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned nothing!");
-            return false;
-        }
-
-        $fqpn = $this->data_path .'/'. $dir_name .'/'. $this->item->$file_name;
 
         if (!file_exists($fqpn)) {
             $mtlda->raiseError("StorageController::deleteItemFile(), {$fqpn} does not exist!");
