@@ -14,6 +14,4 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<a href="{get_url page=main}">Main</a>
-<a href="{get_url page=archive}">Archive</a>
-<a href="{get_url page=queue}">Queue</a>
+bla

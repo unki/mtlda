@@ -27,6 +27,7 @@ class ViewsController
         '/^$/' => 'MainView',
         '/^main$/' => 'MainView',
         '/^queue$/' => 'QueueView',
+        '/^archive$/' => 'ArchiveView',
     );
     private $page_skeleton;
 
