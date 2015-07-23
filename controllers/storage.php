@@ -27,6 +27,16 @@ class StorageController
     private $working_path = MTLDA_BASE."/data/working";
     private $nesting_depth = 5;
 
+    public function __construct(&$item)
+    {
+        if (!isset($item) || empty($item)) {
+            return true;
+        }
+
+        $this->item = $item;
+        return true;
+    }
+
     public function archive(&$queue_item)
     {
         global $mtlda;
@@ -240,6 +250,58 @@ class StorageController
 
         if (!unlink($fqpn_dst)) {
             $mtlda->raiseError("deleteArchiveItemFile(), unlink() returned false!");
+            return false;
+        }
+
+        return true;
+    }
+
+    public function deleteItemFile()
+    {
+        global $mtlda;
+
+        if (!isset($this->item) || empty($this->item)) {
+            $mtlda->raiseError("\$this->item is not set!");
+            return false;
+        }
+
+        if (!isset($this->item->column_name) || empty($this->item->column_name)) {
+            $mtlda->raiseError("\$this->item->column_name is not set!");
+            return false;
+        }
+
+        $file_name = $this->item->column_name .'_file_name';
+        $file_hash = $this->item->column_name .'_file_hash';
+
+        if (!isset($this->item->$file_name) || empty($this->item->$file_name)) {
+            $mtlda->raiseError("\$this->item->{$file_name} is not set!");
+            return false;
+        }
+
+        if (!isset($this->item->$file_hash) || empty($this->item->$file_hash)) {
+            $mtlda->raiseError("\$this->item->{$file_hash} is not set!");
+            return false;
+        }
+
+        if (!($dir_name = $this->generateDirectoryName($this->item->$file_hash))) {
+            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+            return false;
+        }
+
+        if (!isset($dir_name) || empty($dir_name)) {
+            $mtlda->raiseError("StorageController::generateDirectoryName() returned nothing!");
+            return false;
+        }
+
+        $fqpn = $this->data_path .'/'. $dir_name .'/'. $this->item->$file_name;
+
+        if (!file_exists($fqpn)) {
+            $mtlda->raiseError("StorageController::deleteItemFile(), {$fqpn} does not exist!");
+            return false;
+        }
+
+        if (!unlink($fqpn)) {
+            $mtlda->raiseError("StorageController::deleteItemFile(), unlink() returned false!");
             return false;
         }
 
