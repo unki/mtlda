@@ -32,14 +32,6 @@ class QueueModel extends DefaultModel
     public function __construct($id = null)
     {
         parent::__construct($id);
-        /*        parent::__construct($id, array(
-                  'table_name' => 'queue',
-                  'col_name' => 'queue',
-                  'fields' => array(
-                  'queue_idx' => 'integer',
-                  ),
-                  ));*/
-
         $this->load();
 
         return true;

@@ -60,7 +60,7 @@ class ArchiveView extends Templates
         $item =  $this->archive->items[$item_idx];
 
         $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", $item->archive_idx ."-". $item->archive_idx);
+        $smarty->assign("item_safe_link", $item->archive_idx ."-". $item->archive_guid);
 
         $index++;
         $smarty->assign('smarty.IB.item_list.index', $index);

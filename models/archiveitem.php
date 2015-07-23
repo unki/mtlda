@@ -19,6 +19,8 @@
 
 namespace MTLDA\Models ;
 
+use MTLDA\Controllers;
+
 class ArchiveItemModel extends DefaultModel
 {
     public $table_name = 'archive';
@@ -30,6 +32,8 @@ class ArchiveItemModel extends DefaultModel
             'archive_file_hash' => 'string',
             'archive_file_size' => 'integer',
             'archive_time' => 'integer',
+            'archive_version' => 'integer',
+            'archive_derivation' => 'integer',
             );
     public $avail_items = array();
     public $items = array();
@@ -148,6 +152,26 @@ class ArchiveItemModel extends DefaultModel
         }
 
         return $this->archive_guid;
+    }
+
+    public function preDelete()
+    {
+        global $mtlda;
+
+        // load StorageController
+        $storage = new Controllers\StorageController($this);
+
+        if (!$storage) {
+            $mtlda->raiseError("unable to load StorageController!");
+            return false;
+        }
+
+        if (!$storage->deleteItemFile()) {
+            $mtlda->raiseError("StorageController::deleteItemFile() returned false!");
+            return false;
+        }
+
+        return true;
     }
 }
 
