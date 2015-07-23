@@ -226,6 +226,9 @@ class RpcController
             case 'queueitem':
                 $obj = new Models\QueueItemModel($id, $guid);
                 break;
+            case 'archiveitem':
+                $obj = new Models\ArchiveItemModel($id, $guid);
+                break;
         }
 
         if (isset($obj)) {
