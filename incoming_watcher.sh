@@ -15,12 +15,11 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
 
-MTDLA_PATH=/home/unki/git/mtlda
+MTLDA_PATH=/home/unki/git/mtlda
 INCOM=/usr/bin/inoticoming
-INPATH=${MTDLA_PATH}/data/incoming
-INLOG=${MTDLA_PATH}/logs/incoming.log
-INCHECK=${MTDLA_PATH}/check_incoming.php
-PID_FILE=${MTDLA_PATH}/tmp/watcher.pid
+INPATH=${MTLDA_PATH}/data/incoming
+INLOG=${MTLDA_PATH}/logs/incoming.log
+PID_FILE=${MTLDA_PATH}/tmp/watcher.pid
 PHP_BIN=/usr/bin/php
 
 [ -x ${INCOM} ] || ( echo "unable to locate inoticoming at ${INCOM}! exiting."; exit 1 )
@@ -32,4 +31,4 @@ ${INCOM} \
    ${INPATH} \
    --stdout-to-log \
    --stderr-to-log \
-   ${PHP_BIN} ${INCHECK} \;
+   ${PHP_BIN} ${MTLDA_PATH}/main.php incoming \;
