@@ -19,6 +19,8 @@
 
 namespace MTLDA\Models ;
 
+use MTLDA\Controllers;
+
 class QueueItemModel extends DefaultModel
 {
     public $table_name = 'queue';
@@ -144,6 +146,26 @@ class QueueItemModel extends DefaultModel
         }
 
         return $this->queue_guid;
+    }
+
+    public function preDelete()
+    {
+        global $mtlda;
+
+        // load StorageController
+        $storage = new Controllers\StorageController($this);
+
+        if (!$storage) {
+            $mtlda->raiseError("unable to load StorageController!");
+            return false;
+        }
+
+        if (!$storage->deleteItemFile()) {
+            $mtlda->raiseError("StorageController::deleteItemFile() returned false!");
+            return false;
+        }
+
+        return true;
     }
 }
 
