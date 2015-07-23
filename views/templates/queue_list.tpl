@@ -18,7 +18,6 @@
  <tr>
   <th>Idx</th>
   <th>Filename</th>
-  <th>Hash</th>
   <th>Size</th>
   <th>State</th>
   <th>Time</th>
