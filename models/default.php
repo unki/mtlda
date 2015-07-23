@@ -123,7 +123,7 @@ class DefaultModel
      */
     public function delete()
     {
-        global $db;
+        global $mtlda, $db;
 
         if (!isset($this->id)) {
             return false;
@@ -138,8 +138,11 @@ class DefaultModel
             return false;
         }
 
-        if (method_exists($this, 'pre_delete')) {
-            $this->pre_delete();
+        if (method_exists($this, 'preDelete')) {
+            if (!$this->preDelete()) {
+                $mtlda->raiseError("preDelete() method returned false!");
+                return false;
+            }
         }
 
         /* generic delete */
@@ -156,8 +159,11 @@ class DefaultModel
 
         $db->freeStatement($sth);
 
-        if (method_exists($this, 'post_delete')) {
-            $this->post_delete();
+        if (method_exists($this, 'postDelete')) {
+            if (!$this->postDelete()) {
+                $mtlda->raiseError("postDelete() method returned false!");
+                return false;
+            }
         }
 
         return true;
@@ -181,8 +187,11 @@ class DefaultModel
             return false;
         }
 
-        if (method_exists($this, 'pre_clone')) {
-            $this->pre_clone();
+        if (method_exists($this, 'preClone')) {
+            if (!$this->preClone()) {
+                $mtlda->raiseError("preClone() method returned false!");
+                return false;
+            }
         }
 
         foreach (array_keys($srcobj->fields) as $field) {
@@ -298,8 +307,11 @@ class DefaultModel
             }
         }
 
-        if (method_exists($this, 'post_clone')) {
-            $this->post_clone();
+        if (method_exists($this, 'postClone')) {
+            if (!$this->postClone()) {
+                $mtlda->raiseError("postClone() method returned false!");
+                return false;
+            }
         }
 
         return true;
@@ -355,8 +367,11 @@ class DefaultModel
             $mtlda->raiseError("Fields array not set for class ". get_class($this));
         }
 
-        if (method_exists($this, 'pre_save')) {
-            $this->pre_save();
+        if (method_exists($this, 'preSave')) {
+            if (!$this->preSave()) {
+                $mtlda->raiseError("preSave() method returned false!");
+                return false;
+            }
         }
 
         $guid = $this->column_name .'_guid';
@@ -401,8 +416,11 @@ class DefaultModel
 
         $db->freeStatement($sth);
 
-        if (method_exists($this, 'post_save')) {
-            $this->post_save();
+        if (method_exists($this, 'postSave')) {
+            if (!$this->postSave()) {
+                $mtlda->raiseError("postSave() method returned false!");
+                return false;
+            }
         }
 
         return true;
