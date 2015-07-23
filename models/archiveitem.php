@@ -154,6 +154,15 @@ class ArchiveItemModel extends DefaultModel
         return $this->archive_guid;
     }
 
+    public function getFileHash()
+    {
+        if (!isset($this->archive_file_hash)) {
+            return false;
+        }
+
+        return $this->archive_file_hash;
+    }
+
     public function preDelete()
     {
         global $mtlda;
