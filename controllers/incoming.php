@@ -23,8 +23,8 @@ use MTLDA\Models;
 
 class IncomingController
 {
-    private $incoming_directory = "/home/unki/git/mtlda/data/incoming";
-    private $working_directory = "/home/unki/git/mtlda/data/working";
+    private $incoming_directory = MTLDA_BASE ."/data/incoming";
+    private $working_directory = MTLDA_BASE ."/data/working";
 
     public function __construct()
     {
