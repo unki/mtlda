@@ -200,6 +200,7 @@ class MTLDA
     {
         $valid_models = array(
             'queueitem',
+            'archiveitem',
         );
 
         if (in_array($model, $valid_models)) {
