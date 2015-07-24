@@ -28,7 +28,6 @@
   <td>{$item->archive_file_size}</td>
   <td>{$item->archive_time}</td>
   <td><a class="preview" title="archive" id="archiveitem-{$item_safe_link}">Preview</a></td>
-  <td><a class="archive" title="archive" id="archiveitem-{$item_safe_link}">Archive</a></td>
   <td><a href="{get_url page=archive mode=edit id=$item_safe_link}">Edit</a></td>
   <td><a class="delete" title="delete" id="archiveitem-{$item_safe_link}">Delete</a></td>
  </tr>
