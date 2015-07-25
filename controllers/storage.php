@@ -92,7 +92,7 @@ class StorageController
         // copy fields from QueueItemModel to ArchiveItemModel
         foreach (array_keys($queue_item->fields) as $queue_field) {
 
-            if (in_array($queue_field, array("queue_state", "queue_guid"))) {
+            if (in_array($queue_field, array("queue_idx", "queue_state", "queue_guid"))) {
                 continue;
             }
 
@@ -123,6 +123,29 @@ class StorageController
             return false;
         }
 
+        if ($config->isPdfSigningEnabled()) {
+
+            $signing_item = new models\ArchiveItemModel;
+            if (!($signing_item->createClone($archive_item))) {
+                $mtlda->raiseError(__TRAIT__ ." unable to clone ArchiveItemModel!");
+                return false;
+            }
+
+            $signing_item->archive_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->archive_file_name);
+            $signing_item->archive_version++;
+            $signing_item->archive_derivation = $archive_item->archive_idx;
+            $signing_item->save();
+
+            $src = $store_dir_name .'/'. $archive_item->archive_file_name;
+            $dst = $store_dir_name .'/'. $signing_item->archive_file_name;
+
+            if (!$this->copyArchiveItemFile($src, $dst)) {
+                $signing_item->delete();
+                $mtlda->raiseError("StorageController::copyArchiveItemFile() returned false!");
+                return false;
+            }
+
+        }
         return true;
     }
 
@@ -157,6 +180,9 @@ class StorageController
         if (!isset($dir_name) || empty($dir_name)) {
             return false;
         }
+
+        // remove trailing slash
+        $dir_name = rtrim($dir_name, '/');
 
         return $dir_name;
     }
@@ -219,6 +245,31 @@ class StorageController
 
         if (!copy($fqpn_src, $fqpn_dst)) {
             $mtlda->raiseError("copyQueueItemFileToArchive(), rename() returned false!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private function copyArchiveItemFile($src, $dst)
+    {
+        global $mtlda;
+
+        $fqpn_src = $this->data_path .'/'. $src;
+        $fqpn_dst = $this->data_path .'/'. $dst;
+
+        if (!file_exists($fqpn_src)) {
+            $mtlda->raiseError("copyArchiveItemFile(), {$fqpn_src} does not exist!");
+            return false;
+        }
+
+        if (file_exists($fqpn_dst)) {
+            $mtlda->raiseError("copyArchiveItemFile(), {$fqpn_dst} already exist!");
+            return false;
+        }
+
+        if (!copy($fqpn_src, $fqpn_dst)) {
+            $mtlda->raiseError("copyArchiveItemFile(), rename() returned false!");
             return false;
         }
 
