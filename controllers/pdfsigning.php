@@ -56,10 +56,41 @@ class PdfSigningController
         }
     }
 
-    public function signDocument()
+    public function signDocument($fqpn)
     {
-        // create new PDF document
-        $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+        global $mtlda;
+
+        if (!file_exists($fqpn)) {
+            $mtlda->raiseError("{$fqpn} does not exist!");
+            return false;
+        }
+
+        if (!is_readable($fqpn)) {
+            $mtlda->raiseError("{$fqpn} is not readable!");
+            return false;
+        }
+
+        $pdf = new \FPDI();
+        $page_count = $pdf->setSourceFile($fqpn);
+
+        for ($page_no = 1; $page_no <= $page_count; $page_no++) {
+
+            // import a page
+            $templateId = $pdf->importPage($page_no);
+            // get the size of the imported page
+            $size = $pdf->getTemplateSize($templateId);
+
+            // create a page (landscape or portrait depending on the imported page size)
+            if ($size['w'] > $size['h']) {
+                $pdf->AddPage('L', array($size['w'], $size['h']));
+            } else {
+                $pdf->AddPage('P', array($size['w'], $size['h']));
+            }
+
+            // use the imported page
+            $pdf->useTemplate($templateId);
+
+        }
 
         // set document information
         $pdf->SetCreator(PDF_CREATOR);
@@ -99,11 +130,11 @@ class PdfSigningController
 
         // set additional information
         $info = array(
-                'Name' => $this->pdf_cfg['author'],
-                'Location' => $this->pdf_cfg['location'],
-                'Reason' => $this->pdf_cfg['reason'],
-                'ContactInfo' => $this->pdf_cfg['contact'],
-                );
+            'Name' => $this->pdf_cfg['author'],
+            'Location' => $this->pdf_cfg['location'],
+            'Reason' => $this->pdf_cfg['reason'],
+            'ContactInfo' => $this->pdf_cfg['contact'],
+        );
 
         // set document signature
         $pdf->setSignature(
@@ -142,11 +173,8 @@ class PdfSigningController
         // ---------------------------------------------------------
 
         //Close and output PDF document
-        $pdf->Output('example_052.pdf', 'D');
-
-        //============================================================+
-        // END OF FILE
-        //============================================================+
+        $pdf->Output($fqpn, 'F');
+        return true;
 
     }
 }
