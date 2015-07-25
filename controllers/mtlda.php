@@ -78,6 +78,11 @@ class MTLDA
             return;
         }
 
+        if ($router->isDocumentCall()) {
+            $this->documentHandler();
+            return;
+        }
+
         if (!$page_name = $views->getViewName($query->view)) {
             $this->raiseError("Unable to find a view for ". $query->view);
         }
@@ -186,6 +191,12 @@ class MTLDA
     {
         $image = new ImageController;
         $image->perform();
+    }
+
+    private function documentHandler()
+    {
+        $document = new DocumentController;
+        $document->open();
     }
 
     public function isValidId($id)
