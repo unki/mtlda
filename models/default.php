@@ -392,8 +392,10 @@ class DefaultModel
         $arr_values = array();
 
         foreach (array_keys($this->fields) as $key) {
-            $sql.= $key ." = ?, ";
-            $arr_values[] = $this->$key;
+            if (isset($this->$key)) {
+                $sql.= $key ." = ?, ";
+                $arr_values[] = $this->$key;
+            }
         }
         $sql = substr($sql, 0, strlen($sql)-2) .' ';
 
@@ -405,8 +407,7 @@ class DefaultModel
             $arr_values[] = $this->id;
         }
 
-        $sth = $db->prepare($sql, array_values($this->fields));
-
+        $sth = $db->prepare($sql);
         $db->execute($sth, $arr_values);
 
         if (!isset($this->id) || empty($this->id)) {
