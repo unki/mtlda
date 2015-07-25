@@ -74,9 +74,15 @@ class RequirementsController
         }
 
         ini_set('track_errors', 1);
-        @include_once 'tcpdf/tcpdf.php';
+        @include_once MTLDA_BASE.'/extern/tcpdf/tcpdf.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
             $mtlda->write("TCPDF can not be found!");
+            $missing = true;
+            unset($php_errormsg);
+        }
+        @include_once MTLDA_BASE ."/extern/fpdi/fpdi.php";
+        if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
+            $mtlda->write("FPDI can not be found!");
             $missing = true;
             unset($php_errormsg);
         }
