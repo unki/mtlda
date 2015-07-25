@@ -36,7 +36,7 @@ class ArchiveView extends Templates
 
     public function showEdit($id, $hash)
     {
-        $item = new Models\ArchіveItemModel($id, $hash);
+        $item = new Models\ArchiveItemModel($id, $hash);
 
         parent::showEdit($item);
     }
