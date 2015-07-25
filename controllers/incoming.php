@@ -55,7 +55,7 @@ class IncomingController
 
     public function handleQueue()
     {
-        global $db;
+        global $mtlda, $db;
 
         $sth = $db->prepare("
                 INSERT INTO mtlda_queue (
@@ -85,54 +85,79 @@ class IncomingController
             $in_file = $this->incoming_directory ."/". $file;
             $work_file = $this->working_directory ."/". $file;
 
+            // ignore special files and if $file is empty
+            if (empty($file) || $file == '.' || $file == '..') {
+                continue;
+            }
+
+            // ignore file/directories starting with .
+            if (preg_match("/^\..*/", $file)) {
+                continue;
+            }
+
             if (!file_exists($in_file)) {
-                continue;
-            }
-
-            if (!is_file($in_file)) {
-                continue;
-            }
-
-            if (!is_readable($in_file)) {
-                continue;
-            }
-
-            if (($hash = sha1_file($in_file)) === false) {
-                continue;
-            }
-
-            if (($size = filesize($in_file)) === false) {
-                continue;
-            }
-
-            if (rename($in_file, $work_file) === false) {
-                print "rename() returned false!";
+                $mtdla->raiseError(__TRAIT__ ." file {$in_file} does not exist!");
                 exit(1);
             }
 
-            if (function_exists("openssl_random_pseudo_bytes")) {
-
-                if (($guid = openssl_random_pseudo_bytes("32")) === false) {
-                    print "openssl_random_pseudo_bytes() returned false!";
-                    exit(1);
-                }
-
-                $guid = bin2hex($guid);
-            } else {
-                $guid = uniqid(rand(0, 32766), true);
+            if (!is_file($in_file)) {
+                $mtlda->raiseError(__TRAIT__ ." {$in_file} is no file!");
+                exit(1);
             }
 
-            $sth->execute(array(
+            if (!is_readable($in_file)) {
+                $mtdla->raiseError(__TRAIT__ ." {$in_file} is not readable!");
+                exit(1);
+            }
+
+            if (($hash = sha1_file($in_file)) === false) {
+                $mtdla->raiseError(__TRAIT__ ." SHA1 value of {$in_file} can not be calculated!");
+                exit(1);
+            }
+
+            if (($size = filesize($in_file)) === false) {
+                $mtdla->raiseError(__TRAIT__ ." filesize of {$in_file} is not available!");
+                exit(1);
+            }
+
+            if (!($guid = $mtlda->createGuid())) {
+                $mtdla->raiseError(__TRAIT__ ." no valid GUID returned by createGuid()!");
+                exit(1);
+            }
+
+            /*$sth->execute(array(
                         $guid,
                         $file,
                         $size,
                         $hash,
                         'new',
                         time()
-                        ));
+                        ));*/
 
+            try {
+                $queueitem = new Models\QueueItemModel;
+            } catch (Exception $e) {
+                $mtlda->raiseError("Unable to load QueueItemModel");
+                exit(1);
+            }
+
+            $queueitem->queue_guid = $guid;
+            $queueitem->queue_file_name = $file;
+            $queueitem->queue_file_size = $size;
+            $queueitem->queue_file_hash = $hash;
+            $queueitem->queue_state = 'new';
+            $queueitem->queue_time = time();
+
+            if (!$queueitem->save()) {
+                $mtlda->raiseError(__TRAIT__ ." saving QueueItemModel failed!");
+                exit(1);
+            }
+
+            if (rename($in_file, $work_file) === false) {
+                $mtdla->raiseError(__TRAIT__ ." rename {$in_file} to {$work_file} failed!");
+                exit(1);
+            }
         }
-
     }
 }
 
