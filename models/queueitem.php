@@ -196,6 +196,18 @@ class QueueItemModel extends DefaultModel
 
         return true;
     }
+
+    public function preSave()
+    {
+        global $mtlda;
+
+        if (!$this->checkForDuplicates()) {
+            $mtlda->raiseError("Duplicated record detected!");
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
