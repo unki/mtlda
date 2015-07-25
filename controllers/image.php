@@ -84,9 +84,9 @@ class ImageController
                 return false;
             }
 
-            if ($this->isCachedImageAvailable($id->id, $id->guid, 'preview')) {
+            if ($this->isCachedImageAvailable($id->id, $id->guid, 'queueitem_preview')) {
                 header('Content-Type: image/jpeg');
-                print $this->loadCachedImage($id->id, $id->guid, 'preview');
+                print $this->loadCachedImage($id->id, $id->guid, 'queueitem_preview');
                 return true;
             }
 
