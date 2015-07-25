@@ -127,7 +127,7 @@ class RpcController
         $id = $parts[2];
         $guid = $parts[3];
 
-        if (!($obj = $this->loadModel($request_object, $id, $guid))) {
+        if (!($obj = $mtlda->loadModel($request_object, $id, $guid))) {
             print "unable to locate model for ". $request_object;
             return false;
         }
@@ -199,7 +199,7 @@ class RpcController
             return false;
         }
 
-        if (!($obj = $this->loadModel($request_object, $id, $guid))) {
+        if (!($obj = $mtlda->loadModel($request_object, $id, $guid))) {
             print "unable to locate model for ${request_object}!";
             return false;
         }
@@ -218,24 +218,6 @@ class RpcController
 
         print "ok";
         return true;
-    }
-
-    private function loadModel($object_name, $id = null, $guid = null)
-    {
-        switch($object_name) {
-            case 'queueitem':
-                $obj = new Models\QueueItemModel($id, $guid);
-                break;
-            case 'archiveitem':
-                $obj = new Models\ArchiveItemModel($id, $guid);
-                break;
-        }
-
-        if (isset($obj)) {
-            return $obj;
-        }
-
-        return false;
     }
 
     private function rpcGetContent()

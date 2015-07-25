@@ -266,6 +266,24 @@ class MTLDA
 
         return $guid;
     }
+
+    public function loadModel($object_name, $id = null, $guid = null)
+    {
+        switch($object_name) {
+            case 'queueitem':
+                $obj = new Models\QueueItemModel($id, $guid);
+                break;
+            case 'archiveitem':
+                $obj = new Models\ArchiveItemModel($id, $guid);
+                break;
+        }
+
+        if (isset($obj)) {
+            return $obj;
+        }
+
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
