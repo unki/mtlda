@@ -86,7 +86,7 @@ class MTLDA
         print $page;
     }
 
-    public function raiseError($string)
+    public function raiseError($string, $stop = false)
     {
         if (defined('DB_NOERROR')) {
             $this->last_error = $string;
@@ -100,6 +100,9 @@ class MTLDA
         } catch (ExceptionController $e) {
             print "<br /><br />\n";
             $this->write($e, LOG_WARNING);
+        }
+
+        if ($stop) {
             die;
         }
 
