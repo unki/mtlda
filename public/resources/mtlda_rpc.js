@@ -24,9 +24,9 @@ function rpc_object_delete(element, target, idx)
         return;
     }
 
-    if(!confirm("Are you sure you want to delete this object? There is NO undo!")) {
+    /*if(!confirm("Are you sure you want to delete this object? There is NO undo!")) {
         return false;
-    }
+    }*/
 
     $.ajax({
         type: "POST",
