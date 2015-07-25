@@ -14,4 +14,21 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-bla
+<table>
+ <tr>
+  <td>Filename:</td>
+  <td>{$item->archive_file_name}</td>
+ </tr>
+ <tr>
+  <td>Size:</td>
+  <td>{$item->archive_file_size}</td>
+ </tr>
+ <tr>
+  <td>Versions:</td>
+  <td>
+  {foreach $item_versions as $version}
+   <a href="{get_url page=archive mode=show id=$item_safe_link}">{$version.id}</a>
+  {/foreach}
+  </td>
+ </tr>
+</table>
