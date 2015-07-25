@@ -37,7 +37,8 @@ class ArchiveItemModel extends DefaultModel
             );
     public $avail_items = array();
     public $items = array();
-    private $working_directory = "../data/working";
+    private $working_directory = MTLDA_BASE."/data/working";
+    private $archive_directory = MTLDA_BASE."/data/archive";
 
     public function __construct($id = null, $guid = null)
     {
@@ -189,6 +190,53 @@ class ArchiveItemModel extends DefaultModel
 
         if ($this->isDuplicate()) {
             $mtlda->raiseError("Duplicated record detected!");
+            return false;
+        }
+
+        return true;
+    }
+
+    public function refresh($path)
+    {
+        global $mtlda;
+
+        $fqpn = $this->archive_directory .'/'. $path .'/'. $this->archive_file_name;
+
+        if (!file_exists($fqpn)) {
+            $mtlda->raiseError("File {$fqpn} does not exist!");
+            return false;
+        }
+
+        if (!is_readable($fqpn)) {
+            $mtlda->raiseError("File {$fqpn} is not readable!");
+            return false;
+        }
+
+        if (($hash = sha1_file($fqpn)) === false) {
+            $mtdla->raiseError(__TRAIT__ ." SHA1 value of {$fqpn} can not be calculated!");
+            return false;
+        }
+
+        if (empty($hash)) {
+            $mtlda->raiseError(__TRAIT__ ." sha1_file() returned an empty hash value!");
+            return false;
+        }
+
+        if (($size = filesize($fqpn)) === false) {
+            $mtdla->raiseError(__TRAIT__ ." filesize of {$fqpn} is not available!");
+            return false;
+        }
+
+        if (empty($size) || !is_numeric($size) || ($size <= 0)) {
+            $mtlda->raiseError(__TRAIT__ ." fizesize of {$fqpn} is invalid!");
+            return false;
+        }
+
+        $this->archive_file_size = $size;
+        $this->archive_file_hash = $hash;
+        $this->archive_time = time();
+
+        if (!$this->save()) {
             return false;
         }
 
