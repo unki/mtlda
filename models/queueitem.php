@@ -38,9 +38,29 @@ class QueueItemModel extends DefaultModel
     public $items = array();
     private $working_directory = "../data/working";
 
-    public function __construct($id, $guid)
+    public function __construct($id = null, $guid = null)
     {
         global $mtlda, $db;
+
+        if (
+            !isset($id) || !isset($guid) ||
+            empty($id) || empty($guid)
+        ) {
+
+            parent::__construct();
+            return true;
+
+        }
+
+        if (!$mtlda->isValidId($id)) {
+            $mtlda->raiseError("\$id is in an invalid format", true);
+            return false;
+        }
+
+        if (!$mtlda->isValidGuidSyntax($guid)) {
+            $mtlda->raiseError("\$guid is in an invalid format", true);
+            return false;
+        }
 
         // get $id from db
         $sth = $db->prepare(
