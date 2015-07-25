@@ -27,7 +27,8 @@
   <td>Versions:</td>
   <td>
   {foreach $item_versions as $version}
-   <a href="{get_url page=archive mode=show id=$item_safe_link}">{$version.id}</a>
+   {assign var='safe_link' value="archiveitem-`$version.id`-`$version.hash`"}
+   <a href="{get_url page=document mode=show id=$safe_link}">{$version.id}</a>
   {/foreach}
   </td>
  </tr>
