@@ -29,7 +29,7 @@ class DefaultModel
     public $ignore_child_on_clone;
     public $fields;
 
-    public function __construct($id)
+    public function __construct($id = null)
     {
         global $mtlda;
 
@@ -45,15 +45,14 @@ class DefaultModel
             $mtlda->raiseError('missing key fields');
         }
 
-        if (!isset($id)) {
-            $id = null;
-        }
-
         if (isset($id)) {
             $this->id = $id;
             $this->load();
-            return;
+            return true;
         }
+
+        $this->id = null;
+        return true;
 
     } // __construct()
 
