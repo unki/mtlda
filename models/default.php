@@ -621,6 +621,67 @@ class DefaultModel
 
         return $result->$id ."-". $result->$guid;
     }
+
+    public function checkForDuplicates()
+    {
+        global $mtlda, $db;
+
+        $idx = $this->column_name.'_idx';
+        $guid = $this->column_name.'_guid';
+        $hash = $this->column_name.'_file_hash';
+
+        $sql = "SELECT
+            {$this->column_name}_idx
+            FROM
+            TABLEPREFIX{$this->table_name}
+            WHERE
+        ";
+
+        if (
+            (
+                !isset($this->$idx) || empty($this->$idx)
+            ) && (
+                !isset($this->$guid) || empty($this->$guid)
+            ) && (
+                !isset($this->$hash) || empty($this->$hash)
+            )
+        ) {
+
+            $mtlda->raiseError(__TRAIT__ ." can't check for duplicates if neither \$idx, \$guid or \$hash is set!");
+            return false;
+        }
+
+        $arr_values = array();
+        if (isset($this->$idx) && !empty($this->idx)) {
+            $sql.= "
+                {$idx} LIKE ?
+            ";
+            $arr_values[] = $this->$idx;
+        }
+        if (isset($this->$guid) && !empty($this->guid)) {
+            $sql.= "
+                {$guid} LIKE ?
+            ";
+            $arr_values[] = $this->$guid;
+        }
+        if (isset($this->$hash) && !empty($this->$hash)) {
+            $sql.= "
+                {$hash} LIKE ?
+            ";
+            $arr_values[] = $this->$hash;
+        }
+
+        $sth = $db->prepare($sql);
+        $db->execute($sth, $arr_values);
+
+        if ($sth->rowCount() <= 0) {
+            $db->freeStatement($sth);
+            return true;
+        }
+
+        $db->freeStatement($sth);
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
