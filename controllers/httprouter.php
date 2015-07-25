@@ -111,6 +111,9 @@ class HttpRouterController
         } elseif ($this->query->view == "preview") {
             $this->query->call_type = "preview";
             return $this->query;
+        } elseif ($this->query->view == "document") {
+            $this->query->call_type = "document";
+            return $this->query;
         /* queue-xxx.html ... */
         } elseif (preg_match('/(.*)-([0-9]+)/', $this->query->view)) {
             preg_match('/.*\/(.*)-([0-9]+)/', $this->query->view, $parts);
@@ -155,6 +158,15 @@ class HttpRouterController
     public function isImageCall()
     {
         if (isset($this->query->call_type) && $this->query->call_type == "preview") {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isDocumentCall()
+    {
+        if (isset($this->query->call_type) && $this->query->call_type == "document") {
             return true;
         }
 
