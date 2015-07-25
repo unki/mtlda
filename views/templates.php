@@ -29,6 +29,7 @@ class Templates extends Smarty
     public $cache_dir;
     public $supported_modes = array (
             'list',
+            'show',
             'edit',
             'delete',
             'add',
@@ -192,49 +193,40 @@ class Templates extends Smarty
 
     public function show()
     {
-        global $mtlda, $query;
+        global $mtlda, $query, $router;
 
-        if (((
-                        !isset($query->params) ||
-                        empty($query->params)) &&
-                    $this->default_mode == "list") ||
-                (isset($query) &&
-                 !empty($query->params) &&
-                 $query->params[0] == "list")) {
-
-            return $this->showList();
-
-        } elseif (isset($query->params) && !empty($query->params) && $query->params[0] == "edit") {
-
-            if (isset($query->params[1])) {
-
-                $id = $query->params[1];
-                if (preg_match("/^([0-9])\-([a-z0-9]+)$/", $id, $matches)) {
-
-                    $id = $matches[1];
-                    $hash = $matches[2];
-
-                } else {
-
-                    $hash = null;
-
-                }
-            } else {
-
-                $id = null;
-                $hash = null;
-
-            }
-            return $this->showEdit($id, $hash);
-
-        } elseif ($this->default_mode == "show" && $this->templateExists($this->class_name .".tpl")) {
-
-            return $this->fetch($this->class_name .".tpl");
-
-        } else {
-
-            $mtlda->raiseError("All methods utilized but still don't know what to show!");
+        if (isset($query->params)) {
+            $params = $query->params;
         }
+
+        if ((!isset($params) || empty($params)) && $this->default_mode == "list") {
+            $mode = "list";
+        } elseif (isset($params) && !empty($params)) {
+            if ($params[0] == "list") {
+                $mode = "list";
+            } elseif ($params[0] == "edit") {
+                $mode = "edit";
+            } elseif ($params[0] == "show") {
+                $mode = "show";
+            }
+        } elseif ($this->default_mode == "show" && $this->templateExists($this->class_name .".tpl")) {
+            $mode = "show";
+        }
+
+        if ($mode == "list") {
+            return $this->showList();
+        } elseif ($mode == "edit") {
+
+            $item = $router->parseQueryParams();
+            return $this->showEdit($item['id'], $item['hash']);
+
+        } elseif ($mode == "show") {
+            $item = $router->parseQueryParams();
+            return $this->showItem($item['id'], $item['hash']);
+        }
+
+        $mtlda->raiseError("All methods utilized but still don't know what to show!");
+        return false;
     }
 
     public function showList()
@@ -247,6 +239,11 @@ class Templates extends Smarty
     {
         $this->assign('item', $id);
         return $this->fetch($this->class_name ."_edit.tpl");
+    }
+
+    public function showItem($id, $hash)
+    {
+        return $this->fetch($this->class_name ."_show.tpl");
     }
 }
 
