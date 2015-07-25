@@ -24,7 +24,7 @@ use MTLDA\Controllers;
 
 class StorageController
 {
-    private $data_path = MTLDA_BASE."/data/archive";
+    private $archive_path = MTLDA_BASE."/data/archive";
     private $working_path = MTLDA_BASE."/data/working";
     private $nesting_depth = 5;
 
@@ -123,29 +123,51 @@ class StorageController
             return false;
         }
 
-        if ($config->isPdfSigningEnabled()) {
-
-            $signing_item = new models\ArchiveItemModel;
-            if (!($signing_item->createClone($archive_item))) {
-                $mtlda->raiseError(__TRAIT__ ." unable to clone ArchiveItemModel!");
-                return false;
-            }
-
-            $signing_item->archive_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->archive_file_name);
-            $signing_item->archive_version++;
-            $signing_item->archive_derivation = $archive_item->archive_idx;
-            $signing_item->save();
-
-            $src = $store_dir_name .'/'. $archive_item->archive_file_name;
-            $dst = $store_dir_name .'/'. $signing_item->archive_file_name;
-
-            if (!$this->copyArchiveItemFile($src, $dst)) {
-                $signing_item->delete();
-                $mtlda->raiseError("StorageController::copyArchiveItemFile() returned false!");
-                return false;
-            }
-
+        // if no more actions are necessary, we are done
+        if (!$config->isPdfSigningEnabled()) {
+            return true;
         }
+
+        $signing_item = new models\ArchiveItemModel;
+        if (!($signing_item->createClone($archive_item))) {
+            $mtlda->raiseError(__TRAIT__ ." unable to clone ArchiveItemModel!");
+            return false;
+        }
+
+        $signing_item->archive_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->archive_file_name);
+        $signing_item->archive_version++;
+        $signing_item->archive_derivation = $archive_item->archive_idx;
+        $signing_item->save();
+
+        $src = $store_dir_name .'/'. $archive_item->archive_file_name;
+        $dst = $store_dir_name .'/'. $signing_item->archive_file_name;
+
+        if (!$this->copyArchiveItemFile($src, $dst)) {
+            $signing_item->delete();
+            $mtlda->raiseError("StorageController::copyArchiveItemFile() returned false!");
+            return false;
+        }
+
+        $fqpn_dst = $this->archive_path .'/'. $dst;
+
+        if (!$signer->signDocument($fqpn_dst)) {
+            $signing_item->delete();
+            $mtlda->raiseError("PdfSigningController::ѕignDocument() returned false!");
+            return $false;
+        }
+
+        if (!$signing_item->refresh($store_dir_name)) {
+            $signing_item->delete();
+            $mtlda->raiseError("refresh() returned false!");
+            return false;
+        }
+
+        if (!$signing_item->save()) {
+            $signing_item->delete();
+            $mtlda->raiseError("save() returned false!");
+            return false;
+        }
+
         return true;
     }
 
@@ -195,7 +217,7 @@ class StorageController
             return false;
         }
 
-        $fqpn = $this->data_path .'/'. $store_dir_name;
+        $fqpn = $this->archive_path .'/'. $store_dir_name;
 
         if (file_exists($fqpn) && is_dir($fqpn)) {
             return true;
@@ -219,7 +241,7 @@ class StorageController
         global $mtlda;
 
         $fqpn_src = $this->working_path .'/'. $file_name;
-        $fqpn_dst = $this->data_path .'/'. $dest_dir;
+        $fqpn_dst = $this->archive_path .'/'. $dest_dir;
 
         if (!file_exists($fqpn_src)) {
             $mtlda->raiseError("copyQueueItemFileToArchive(), {$fqpn_src} does not exist!");
@@ -255,8 +277,8 @@ class StorageController
     {
         global $mtlda;
 
-        $fqpn_src = $this->data_path .'/'. $src;
-        $fqpn_dst = $this->data_path .'/'. $dst;
+        $fqpn_src = $this->archive_path .'/'. $src;
+        $fqpn_dst = $this->archive_path .'/'. $dst;
 
         if (!file_exists($fqpn_src)) {
             $mtlda->raiseError("copyArchiveItemFile(), {$fqpn_src} does not exist!");
@@ -298,7 +320,7 @@ class StorageController
     {
         global $mtlda;
 
-        $fqpn_dst = $this->data_path .'/'. $dest_dir;
+        $fqpn_dst = $this->archive_path .'/'. $dest_dir;
 
         if (!file_exists($fqpn_dst)) {
             return true;
@@ -351,7 +373,7 @@ class StorageController
                 return false;
             }
 
-            $fqpn = $this->data_path .'/'. $dir_name .'/'. $this->item->$file_name;
+            $fqpn = $this->archive_path .'/'. $dir_name .'/'. $this->item->$file_name;
         } elseif ($this->item->column_name == 'queue') {
 
             $fqpn = $this->working_path .'/'. $this->item->$file_name;
