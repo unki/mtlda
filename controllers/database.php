@@ -166,11 +166,7 @@ class DatabaseController
         }
 
         try {
-            if (!empty($data)) {
-                $result = $sth->execute($data);
-            } else {
-                $result = $sth->execute();
-            }
+            $result = $sth->execute($data);
         } catch (PDOException $e) {
             $mtlda->raiseError("Unable to execute statement: ". $e->getMessage());
         }
