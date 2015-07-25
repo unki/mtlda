@@ -26,6 +26,7 @@ class ArchiveView extends Templates
     public $class_name = 'archive';
     public $item_name = 'ArchiveItem';
     public $archive;
+    private $item;
 
     public function __construct()
     {
@@ -34,11 +35,9 @@ class ArchiveView extends Templates
         parent::__construct();
     }
 
-    public function showEdit($id, $hash)
+    public function showEdit()
     {
-        $item = new Models\ArchiveItemModel($id, $hash);
-
-        parent::showEdit($item);
+        /* this model provides no edit function */
     }
 
     public function archiveList($params, $content, &$smarty, &$repeat)
@@ -67,6 +66,26 @@ class ArchiveView extends Templates
         $repeat = true;
 
         return $content;
+    }
+
+    public function showItem($id, $hash)
+    {
+        if ($this->item_name == "ArchiveItem") {
+            $obj = new Models\ArchiveItemModel($id, $hash);
+        }
+
+        if (!isset($obj) || empty($obj)) {
+            return false;
+        }
+
+        $this->item = $obj;
+
+        $descendants = $this->item->getDescendants();
+        $this->assign('item_versions', $descendants);
+        $this->assign('item', $this->item);
+        $this->assign("item_safe_link", $obj->archive_idx ."-". $obj->archive_guid);
+        return parent::showItem($id, $hash);
+
     }
 }
 
