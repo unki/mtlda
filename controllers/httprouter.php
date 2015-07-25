@@ -206,6 +206,26 @@ class HttpRouterController
         return false;
 
     }
+
+    public function parseQueryParams()
+    {
+        if (!isset($this->query->params) || !isset($this->query->params[1])) {
+            return array('id' => null, 'hash' => 'null');
+        }
+
+        $matches = array();
+
+        $id = $this->query->params[1];
+
+        if (!preg_match("/^([0-9])\-([a-z0-9]+)$/", $id, $matches)) {
+            return array('id' => null, 'hash' => 'null');
+        }
+
+        $id = $matches[1];
+        $hash = $matches[2];
+
+        return array('id' => $id, 'hash' => $hash);
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
