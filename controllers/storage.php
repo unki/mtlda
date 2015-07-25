@@ -20,6 +20,7 @@
 namespace MTLDA\Controllers;
 
 use MTLDA\Models;
+use MTLDA\Controllers;
 
 class StorageController
 {
@@ -39,7 +40,23 @@ class StorageController
 
     public function archive(&$queue_item)
     {
-        global $mtlda;
+        global $mtlda, $config;
+
+        if (
+            isset($config['app']['pdf_signing']) &&
+            !empty($config['app']['pdf_signing']) &&
+            $config['app']['pdf_signing']
+        ) {
+
+            try {
+                $signer = new Controllers\PdfSigningController;
+            } catch (Exception $e) {
+                $archive_item->delete();
+                $mtlda->raiseError("Failed to load PdfSigningController");
+                return false;
+            }
+        }
+
 
         // verify QueueItemModel is ok()
         if (!$queue_item->verify()) {

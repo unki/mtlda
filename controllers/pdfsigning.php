@@ -23,13 +23,55 @@ class PdfSigningController
 {
     public function __construct()
     {
+        global $mtlda, $config;
 
+        if (
+            !isset($config['app']['pdf_signing']) ||
+            empty($config['app']['pdf_signing']) ||
+            !$config['app']['pdf_signing']
+            ) {
+
+            $mtlda->raiseError("PdfSigningController, pdf_signing not enabled in config.ini!");
+            return false;
+        }
+
+        if (
+            !isset($config['pdf_signing']) ||
+            empty($config['pdf_signing']) ||
+            !$config['app']['pdf_signing']
+            ) {
+
+            $mtlda->raiseError("PdfSigningController, pdf_signing enabled but no valid [pdf_signing] section found!");
+            return false;
+        }
+
+        $fields = array(
+            'author',
+            'location',
+            'reason',
+            'contact',
+            'certificate',
+            'private_key',
+        );
+
+        foreach ($fields as $field) {
+
+            if (!isset($config['pdf_signing'][$field]) || empty($config['pdf_signing'][$field])) {
+                $mtlda->raiseError("PdfSigningController, {$field} not found in section [pdf_signing]!");
+                return false;
+            }
+
+        }
+    }
+
+    public function signDocument()
+    {
         // create new PDF document
         $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
         // set document information
         $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor('Andreas Unterkircher');
+        $pdf->SetAuthor($config['pdf_signing']['author']);
         $pdf->SetTitle('Test Title');
         $pdf->SetSubject('Test Subject');
         $pdf->SetKeywords('Test, Keywords');
@@ -63,21 +105,18 @@ class PdfSigningController
 
         // ---------------------------------------------------------
 
-        // set certificate file
-        $certificate = 'file://data/cert/tcpdf.crt';
-
         // set additional information
         $info = array(
-                'Name' => 'Andreas Unterkircher',
-                'Location' => 'Obersdorf',
-                'Reason' => 'Document Signing',
-                'ContactInfo' => 'http://www.unki.land',
+                'Name' => $config['pdf_signing']['author'],
+                'Location' => $config['pdf_signing']['location'],
+                'Reason' => $config['pdf_signing']['reason'],
+                'ContactInfo' => $config['pdf_signing']['contact'],
                 );
 
         // set document signature
         $pdf->setSignature(
-            "file:///home/unki/git/mtlda/ssl/unki_crt.pem",
-            "file:///home/unki/git/mtlda/ssl/unki_key.pem",
+            $config['pdf_signing']['certificate'],
+            $config['pdf_signing']['private_key'],
             '',
             '',
             1,
