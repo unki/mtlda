@@ -42,11 +42,7 @@ class StorageController
     {
         global $mtlda, $config;
 
-        if (
-            isset($config['app']['pdf_signing']) &&
-            !empty($config['app']['pdf_signing']) &&
-            $config['app']['pdf_signing']
-        ) {
+        if ($config->isPdfSigningEnabled()) {
 
             try {
                 $signer = new Controllers\PdfSigningController;
@@ -56,7 +52,6 @@ class StorageController
                 return false;
             }
         }
-
 
         // verify QueueItemModel is ok()
         if (!$queue_item->verify()) {

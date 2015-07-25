@@ -33,16 +33,16 @@ class RequirementsController
 
     public function check()
     {
-        global $config;
+        global $mtlda, $config;
 
         $missing = false;
 
-        if (!isset($config['database']) && !isset($config['database']['type'])) {
-            print "Error - incomplete configuration found, can not check requirements!";
+        if (!($dbtype = $config->getDatabaseType())) {
+            $mtlda->raiseError("Error - incomplete configuration found, can not check requirements!");
             exit(1);
         }
 
-        switch($config['database']['type']) {
+        switch ($dbtype) {
             case 'mysql':
                 $db_class_name = "mysqli";
                 $db_pdo_name = "mysql";
@@ -58,30 +58,30 @@ class RequirementsController
         }
 
         if (!$db_class_name) {
-            print "Error - unsupported database configuration, can not check requirements!";
+            $mtlda->write("Error - unsupported database configuration, can not check requirements!");
             $missing = true;
         }
 
         if (!class_exists($db_class_name)) {
-            print "PHP ". $config['database']['type'] ." extension is missing<br />\n";
+            $mtlda->write("PHP {$dbtype} extension is missing!");
             $missing = true;
         }
 
         // check for PDO database support support
         if ((array_search($db_pdo_name, PDO::getAvailableDrivers())) === false) {
-            print "PDO ". $db_pdo_name ." support not available<br />\n";
+            $mtlda->write("PDO {$db_pdo_name} support not available");
             $missing = true;
         }
 
         ini_set('track_errors', 1);
         @include_once 'tcpdf/tcpdf.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
-            print "TCPDF can not be found!<br />\n";
+            $mtlda->write("TCPDF can not be found!");
             $missing = true;
             unset($php_errormsg);
         }
         if (!class_exists('imagick')) {
-            print "imagick extension is missing<br />\n";
+            $mtlda->write("imagick extension is missing!");
             $missing = true;
         }
         /*@include_once 'Pager.php';
@@ -92,7 +92,7 @@ class RequirementsController
         }*/
         @include_once 'smarty3/Smarty.class.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
-            print "Smarty3 template engine is missing<br />\n";
+            $mtlda->write("Smarty3 template engine is missing!");
             $missing = true;
             unset($php_errormsg);
         }

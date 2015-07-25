@@ -41,7 +41,7 @@ class ImageController
 
     private function createPreviewImage()
     {
-        global $mtlda, $query;
+        global $mtlda, $config, $query;
 
         if (!isset($query->params) || !isset($query->params[0]) || empty($query->params[0])) {
             $mtlda->raiseError("\$query->params is not set!");
@@ -111,7 +111,7 @@ class ImageController
             header('Content-Type: image/jpeg');
             echo $im->getImageBlob();
 
-            if ($mtlda->isImageCachingEnabled()) {
+            if ($config->isImageCachingEnabled()) {
                 $this->saveImageToCache($id->id, $id->guid, 'preview', $im);
             }
         }

@@ -79,12 +79,10 @@ class Templates extends Smarty
         $this->setConfigDir($this->config_dir);
         $this->setCacheDir($this->cache_dir);
 
-        if (isset($config['app']) && isset($config['app']['page_title'])) {
-            $this->assign('page_title', $config['app']['page_title']);
+        if ($page_title = $config->getPageTitle()) {
+            $this->assign('page_title', $page_title);
         }
-        if (isset($config['app']) && isset($config['app']['base_web_path'])) {
-            $base_path = $config['app']['base_web_path'];
-        } else {
+        if (!($base_path = $config->getWebPath())) {
             $base_path = '';
         }
 
@@ -133,16 +131,11 @@ class Templates extends Smarty
             return;
         }
 
-        if (
-                isset($config['app']) &&
-                isset($config['app']['base_web_path']) &&
-                !empty($config['app']['base_web_path'])
-           ) {
-            $url = $config['app']['base_web_path'] ."/";
-        } else {
-            $url = "/";
+        if (!($url = $config->getWebPath())) {
+            $url = "";
         }
 
+        $url.= "/";
         $url.= $params['page'] ."/";
 
         if (isset($params['mode']) && !empty($params['mode'])) {

@@ -29,28 +29,29 @@ class DatabaseController
 
     public function __construct()
     {
-        global $config;
+        global $mtlda, $config;
 
         $this->is_connected = false;
 
-        if (!isset($config['database']) || !is_array($config['database']) || empty($config['database'])) {
-            print "Error - database configuration is missing or incomplete - please check configuration!";
-            exit(1);
+        if (!($dbconfig = $config->getDatabaseConfiguration())) {
+            $mtlda->raiseError(
+                "Error - database configuration is missing or incomplete"
+                ." - please check configuration!",
+                true
+            );
         }
 
-        $db_param = $config['database'];
-
         if (!isset(
-                    $db_param['type'],
-                    $db_param['host'],
-                    $db_param['db_name'],
-                    $db_param['db_user'],
-                    $db_param['db_pass'])) {
+                    $dbconfig['type'],
+                    $dbconfig['host'],
+                    $dbconfig['db_name'],
+                    $dbconfig['db_user'],
+                    $dbconfig['db_pass'])) {
             print "Error - incomplete database configuration - please check configuration!";
             exit(1);
         }
 
-        $this->db_cfg = $db_param;
+        $this->db_cfg = $dbconfig;
         $this->connect();
 
     }
@@ -235,9 +236,9 @@ class DatabaseController
         global $config;
 
         if (
-                isset($config['database']) &&
-                isset($config['database']['table_prefix']) &&
-                !empty($config['database']['table_prefix'])
+                isset($this->db_cfg['table_prefix']) &&
+                !empty($this->db_cfg['table_prefix']) &&
+                is_string($this->db_cfg['table_prefix'])
            ) {
             return true;
         }
@@ -248,7 +249,7 @@ class DatabaseController
     public function insertTablePrefix(&$query)
     {
         global $config;
-        $query = str_replace("TABLEPREFIX", $config['database']['table_prefix'], $query);
+        $query = str_replace("TABLEPREFIX", $this->db_cfg['table_prefix'], $query);
     }
 
     public function getid()

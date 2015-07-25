@@ -21,17 +21,13 @@ namespace MTLDA\Controllers;
 
 class ConfigController
 {
-    public $config_path;
-    public $config_file;
+    public $config_path = MTLDA_BASE ."/config";
+    public $config_file = "config.ini";
     public $config_fqpn;
+    private $config;
 
     public function __construct()
     {
-        global $config;
-
-        $this->config_path = MTLDA_BASE ."/config";
-        $this->config_file = "config.ini";
-
         if (!file_exists($this->config_path)) {
             print "Error - configuration directory ". $this->config_path ." does not exist!";
             exit(1);
@@ -64,20 +60,149 @@ class ConfigController
             exit(1);
         }
 
-        if (!is_array($config_ary) || empty($config_ary)) {
+        if (empty($config_ary) || !is_array($config_ary)) {
             print "Error - invalid configuration retrieved from ". $this->config_fqpn ." - please check syntax!";
+            exit(1);
+        }
+
+        if (!isset($config_ary['app']) || empty($config_ary['app']) || !array($config_ary['app'])) {
+            print "Mandatory config section [app] is not configured!";
             exit(1);
         }
 
         // remove trailing slash from base_web_path if any
         if (
-            isset($config_ary['app']) &&
             isset($config_ary['app']['base_web_path']) &&
             !empty($config_ary['app']['base_web_path'])) {
             $config_ary['app']['base_web_path'] = rtrim($config_ary['app']['base_web_path'], '/');
         }
 
-        $config = $config_ary;
+        $this->config = $config_ary;
+    }
+
+    public function isImageCachingEnabled()
+    {
+        if (!isset($this->config['app']['image_cache'])) {
+            return false;
+        }
+
+        if (empty($this->config['app']['image_cache'])) {
+            return false;
+        }
+
+        if (!$this->config['app']['image_cache']) {
+            return false;
+        }
+
+        if (!in_array($this->config['app']['image_cache'], array('yes','y','true','on','1'))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getDatabaseConfiguration()
+    {
+        if (
+            !isset($this->config['database']) ||
+            empty($this->config['database']) ||
+            !is_array($this->config['database'])
+        ) {
+
+            return false;
+
+        }
+
+        return $this->config['database'];
+    }
+
+    public function getPdfSigningConfiguration()
+    {
+        if (
+            !isset($this->config['pdf_signing']) ||
+            empty($this->config['pdf_signing']) ||
+            !is_array($this->config['pdf_signing'])
+        ) {
+
+            return false;
+
+        }
+
+        return $this->config['pdf_signing'];
+    }
+
+    public function getDatabaseType()
+    {
+        if ($dbconfig = $this->getDatabaseConfiguration()) {
+
+            if (isset($dbconfig['type']) && !empty($dbconfig['type']) && is_string($dbconfig['type'])) {
+                return $dbconfig['type'];
+            }
+
+        }
+
+        return false;
+    }
+
+    public function getWebPath()
+    {
+        if (
+            isset($this->config['app']['base_web_path']) &&
+            !empty($this->config['app']['base_web_path']) &&
+            is_string($this->config['app']['base_web_path'])
+        ) {
+            return $this->config['app']['base_web_path'];
+        }
+
+        return false;
+    }
+
+    public function getPageTitle()
+    {
+        if (
+            $this->config['app']['page_title'] &&
+            !empty($this->config['app']['page_title']) &&
+            is_string($this->config['app']['page_title'])
+        ) {
+
+            return $this->config['app']['page_title'];
+
+        }
+
+        return false;
+    }
+
+    public function isEnabled($value)
+    {
+
+        if (!in_array($value, array('yes','y','true','on','1'))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function isDisabled($value)
+    {
+
+        if (!in_array($value, array('no','n','false','off','0'))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function isPdfSigningEnabled()
+    {
+        if (
+            isset($this->config['app']['pdf_signing']) &&
+            !empty($this->config['app']['pdf_signing']) &&
+            $this->isEnabled($this->config['app']['pdf_signing'])
+        ) {
+            return true;
+        }
+
+        return false;
     }
 }
 

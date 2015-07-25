@@ -21,26 +21,18 @@ namespace MTLDA\Controllers;
 
 class PdfSigningController
 {
+    private $pdf_cfg;
+
     public function __construct()
     {
         global $mtlda, $config;
 
-        if (
-            !isset($config['app']['pdf_signing']) ||
-            empty($config['app']['pdf_signing']) ||
-            !$config['app']['pdf_signing']
-            ) {
-
+        if (!$config->isPdfSigningEnabled()) {
             $mtlda->raiseError("PdfSigningController, pdf_signing not enabled in config.ini!");
             return false;
         }
 
-        if (
-            !isset($config['pdf_signing']) ||
-            empty($config['pdf_signing']) ||
-            !$config['app']['pdf_signing']
-            ) {
-
+        if (!($this->pdf_cfg = $config->getPdfSigningConfiguration())) {
             $mtlda->raiseError("PdfSigningController, pdf_signing enabled but no valid [pdf_signing] section found!");
             return false;
         }
@@ -56,7 +48,7 @@ class PdfSigningController
 
         foreach ($fields as $field) {
 
-            if (!isset($config['pdf_signing'][$field]) || empty($config['pdf_signing'][$field])) {
+            if (!isset($this->pdf_cfg[$field]) || empty($this->pdf_cfg[$field])) {
                 $mtlda->raiseError("PdfSigningController, {$field} not found in section [pdf_signing]!");
                 return false;
             }
@@ -71,7 +63,7 @@ class PdfSigningController
 
         // set document information
         $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor($config['pdf_signing']['author']);
+        $pdf->SetAuthor($this->pdf_cfg['author']);
         $pdf->SetTitle('Test Title');
         $pdf->SetSubject('Test Subject');
         $pdf->SetKeywords('Test, Keywords');
@@ -107,16 +99,16 @@ class PdfSigningController
 
         // set additional information
         $info = array(
-                'Name' => $config['pdf_signing']['author'],
-                'Location' => $config['pdf_signing']['location'],
-                'Reason' => $config['pdf_signing']['reason'],
-                'ContactInfo' => $config['pdf_signing']['contact'],
+                'Name' => $this->pdf_cfg['author'],
+                'Location' => $this->pdf_cfg['location'],
+                'Reason' => $this->pdf_cfg['reason'],
+                'ContactInfo' => $this->pdf_cfg['contact'],
                 );
 
         // set document signature
         $pdf->setSignature(
-            $config['pdf_signing']['certificate'],
-            $config['pdf_signing']['private_key'],
+            $this->pdf_cfg['certificate'],
+            $this->pdf_cfg['private_key'],
             '',
             '',
             1,

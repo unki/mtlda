@@ -29,7 +29,7 @@ class MTLDA
     {
         $GLOBALS['mtlda'] =& $this;
 
-        $GLOBALS['cfg'] =& new ConfigController;
+        $GLOBALS['config'] =& new ConfigController;
         $req = new RequirementsController;
         $GLOBALS['db'] =& new DatabaseController;
 
@@ -50,7 +50,7 @@ class MTLDA
     {
         $GLOBALS['router'] =& new HttpRouterController;
 
-        global $cfg, $db, $router;
+        global $config, $db, $router;
 
         if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
             $this->raiseError("Error - \$_SERVER['REQUEST_URI'] is not set!");
@@ -112,11 +112,11 @@ class MTLDA
 
     public function write($text, $loglevel = LOG_INFO, $override_output = null, $no_newline = null)
     {
-        if (isset($this->cfg->logging)) {
-            $logtype = $this->cfg->logging;
+        if (isset($this->config->logging)) {
+            $logtype = $this->config->logging;
         }
 
-        if (!isset($this->cfg->logging)) {
+        if (!isset($this->config->logging)) {
             $logtype = 'display';
         }
 
@@ -142,7 +142,7 @@ class MTLDA
                 error_log($text);
                 break;
             case 'logfile':
-                error_log($text, 3, $this->cfg->log_file);
+                error_log($text, 3, $this->config->log_file);
                 break;
         }
 
@@ -245,21 +245,6 @@ class MTLDA
         $id_obj->guid = $parts[3];
 
         return $id_obj;
-    }
-
-    public function isImageCachingEnabled()
-    {
-        global $config;
-
-        if (!isset($config['app']) && !isset($config['app']['image_cache'])) {
-            return false;
-        }
-
-        if (!in_array($config['app']['image_cache'], array('yes','y','true','on','1'))) {
-            return false;
-        }
-
-        return true;
     }
 
     public function createGuid()

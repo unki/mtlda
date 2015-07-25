@@ -36,11 +36,8 @@ class HttpRouterController
             exit(1);
         }
 
-        if (
-                isset($config['app']) &&
-                isset($config['app']['base_web_path']) &&
-                !empty($config['app']['base_web_path'])) {
-            $uri = str_replace($config['app']['base_web_path'], "", $uri);
+        if ($webpath = $config->getWebPath()) {
+            $uri = str_replace($webpath, "", $uri);
         }
 
         // remove leading slashes if any
@@ -57,11 +54,11 @@ class HttpRouterController
         // remove empty array elements
         $parts = array_filter($parts);
 
-        /* for requests to the root page ($config['app']['base_web_path']), load MainView */
+        /* for requests to the root page (config item base_web_path), load MainView */
         if (
             !isset($parts[0]) &&
             empty($uri) &&
-            rtrim($_SERVER['REQUEST_URI'], '/') == $config['app']['base_web_path']
+            rtrim($_SERVER['REQUEST_URI'], '/') == $config->getWebPath()
         ) {
             $this->query->view = "main";
         } else {
