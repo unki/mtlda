@@ -28,6 +28,7 @@ class DefaultModel
     public $child_names;
     public $ignore_child_on_clone;
     public $fields;
+    public $id;
 
     public function __construct($id = null)
     {
@@ -51,7 +52,6 @@ class DefaultModel
             return true;
         }
 
-        $this->id = null;
         return true;
 
     } // __construct()
@@ -205,7 +205,6 @@ class DefaultModel
 
         $idx = $this->column_name.'_idx';
         $guid = $this->column_name.'_guid';
-        $name = $this->column_name.'_name';
 
         $this->id = null;
         if (isset($this->$idx)) {
@@ -214,16 +213,16 @@ class DefaultModel
         if (isset($this->$guid)) {
             $this->$guid = $mtlda->createGuid();
         }
-        if (isset($this->$name)) {
-            $this->$name = "Copy of ". $this->$name;
-        }
 
         $this->save();
 
         // if saving was successful, our new object should have an ID now
         if (!isset($this->id) || empty($this->id)) {
             $mtlda->raiseError("error on saving clone. no ID was returned");
+            return false;
         }
+
+        $this->$idx = $this->id;
 
         // now check for assigned childrens and duplicate those links too
         if (isset($this->child_names) && !isset($this->ignore_child_on_clone)) {
@@ -237,13 +236,6 @@ class DefaultModel
                 if (!($child_obj = $mtlda->load_class($child))) {
                     $mtlda->raiseError("unable to locate class for ". $child_obj);
                     return false;
-                }
-
-                // sadly an ugly hardcoded hack is required here as
-                // the target-idx field in assign_targets_to_targets
-                // is atg_group_idx not atg_target_idx.
-                if ($this->table_name == "targets") {
-                    $this->column_name = "group";
                 }
 
                 $sth = $db->prepare("
@@ -380,7 +372,7 @@ class DefaultModel
         }
 
         /* new object */
-        if (!isset($this->id)) {
+        if (!isset($this->id) || empty($this->id)) {
             $sql = 'INSERT INTO ';
             /* existing object */
         } else {
@@ -622,65 +614,78 @@ class DefaultModel
         return $result->$id ."-". $result->$guid;
     }
 
-    public function checkForDuplicates()
+    public function isDuplicate()
     {
         global $mtlda, $db;
 
+        // no need to check yet if $id isn't set
+        if (empty($this->id)) {
+            return false;
+        }
+
         $idx = $this->column_name.'_idx';
         $guid = $this->column_name.'_guid';
-        $hash = $this->column_name.'_file_hash';
-
-        $sql = "SELECT
-            {$this->column_name}_idx
-            FROM
-            TABLEPREFIX{$this->table_name}
-            WHERE
-        ";
 
         if (
             (
                 !isset($this->$idx) || empty($this->$idx)
             ) && (
                 !isset($this->$guid) || empty($this->$guid)
-            ) && (
-                !isset($this->$hash) || empty($this->$hash)
             )
         ) {
 
-            $mtlda->raiseError(__TRAIT__ ." can't check for duplicates if neither \$idx, \$guid or \$hash is set!");
+            $mtlda->raiseError(__TRAIT__ ." can't check for duplicates if neither \$idx or \$guid is set!");
             return false;
         }
 
         $arr_values = array();
+        $where_sql = '';
         if (isset($this->$idx) && !empty($this->idx)) {
-            $sql.= "
+            $where_sql.= "
                 {$idx} LIKE ?
             ";
             $arr_values[] = $this->$idx;
         }
         if (isset($this->$guid) && !empty($this->guid)) {
-            $sql.= "
+            if (!empty($where_sql)) {
+                $where_sql.= "
+                    AND
+                ";
+            }
+            $where_sql.= "
                 {$guid} LIKE ?
             ";
             $arr_values[] = $this->$guid;
         }
-        if (isset($this->$hash) && !empty($this->$hash)) {
-            $sql.= "
-                {$hash} LIKE ?
-            ";
-            $arr_values[] = $this->$hash;
+
+        if (
+            !isset($where_sql) ||
+            empty($where_sql) ||
+            !is_string($where_sql)
+        ) {
+            return false;
         }
+
+        $sql = "SELECT
+            {$idx}
+            FROM
+            TABLEPREFIX{$this->table_name}
+            WHERE
+                {$idx} <> {$this->id}
+            AND
+            {$where_sql}
+        ";
 
         $sth = $db->prepare($sql);
         $db->execute($sth, $arr_values);
 
         if ($sth->rowCount() <= 0) {
             $db->freeStatement($sth);
-            return true;
+            return false;
         }
 
         $db->freeStatement($sth);
-        return false;
+        return true;
     }
 }
 

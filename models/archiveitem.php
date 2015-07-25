@@ -187,7 +187,7 @@ class ArchiveItemModel extends DefaultModel
     {
         global $mtlda;
 
-        if (!$this->checkForDuplicates()) {
+        if ($this->isDuplicate()) {
             $mtlda->raiseError("Duplicated record detected!");
             return false;
         }
