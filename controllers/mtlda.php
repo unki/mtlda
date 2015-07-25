@@ -31,7 +31,7 @@ class MTLDA
 
         $GLOBALS['cfg'] =& new ConfigController;
         $req = new RequirementsController;
-        $GLOBALS['db'] =& new DbController;
+        $GLOBALS['db'] =& new DatabaseController;
 
         if (!$req->check()) {
             $this->raiseError("Error - not all MTLDA requirements are met. Please check!");
