@@ -43,17 +43,19 @@ class ArchiveModel extends DefaultModel
 
         $idx_field = $this->column_name ."_idx";
 
-        $result = $db->query("
-                SELECT
+        $result = $db->query(
+            "SELECT
                 *
-                FROM
-                TABLEPREFIX". $this->table_name);
+            FROM
+                TABLEPREFIX{$this->table_name}
+            WHERE
+                archive_version LIKE 1"
+        );
 
         while ($row = $result->fetch()) {
             array_push($this->avail_items, $row->$idx_field);
             $this->items[$row->$idx_field] = $row;
         }
-
     }
 }
 
