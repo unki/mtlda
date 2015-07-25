@@ -65,15 +65,14 @@ class ViewsController
         $page = new $view;
 
         if ($skeleton) {
-            if ($content = $page->show()) {
-                $this->page_skeleton->assign('page_content', $content);
-            } else {
-                $this->page_skeleton->assign('page_content', 'No content found to be displayed');
+            if (!($content = $page->show())) {
+                return false;
             }
+            $this->page_skeleton->assign('page_content', $content);
             return $this->page_skeleton->show();
-        } else {
-            return $page->show();
         }
+
+        return $page->show();
     }
 }
 
