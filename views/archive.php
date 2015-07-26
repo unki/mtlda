@@ -71,19 +71,17 @@ class ArchiveView extends Templates
     public function showItem($id, $hash)
     {
         if ($this->item_name == "ArchiveItem") {
-            $obj = new Models\ArchiveItemModel($id, $hash);
+            $this->item = new Models\ArchiveItemModel($id, $hash);
         }
 
-        if (!isset($obj) || empty($obj)) {
+        if (!isset($this->item) || empty($this->item)) {
             return false;
         }
-
-        $this->item = $obj;
 
         $descendants = $this->item->getDescendants();
         $this->assign('item_versions', $descendants);
         $this->assign('item', $this->item);
-        $this->assign("item_safe_link", $obj->archive_idx ."-". $obj->archive_guid);
+        $this->assign("item_safe_link", "archiveitem-". $this->item->archive_idx ."-". $this->item->archive_guid);
         return parent::showItem($id, $hash);
 
     }
