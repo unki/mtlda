@@ -33,15 +33,15 @@ class ImageController
         }
 
         if ($query->view == "preview") {
-            $this->createPreviewImage();
+            $this->requestPreviewImage();
         }
 
         return true;
     }
 
-    private function createPreviewImage()
+    private function requestPreviewImage()
     {
-        global $mtlda, $config, $query;
+        global $mtlda, $query;
 
         if (!isset($query->params) || !isset($query->params[0]) || empty($query->params[0])) {
             $mtlda->raiseError("\$query->params is not set!");
@@ -67,54 +67,86 @@ class ImageController
 
         if ($id->model == "queueitem") {
 
-            $image = new Models\QueueItemModel($id->id, $id->guid);
-            if (!$image) {
+            $item = new Models\QueueItemModel($id->id, $id->guid);
+            if (!$item) {
                 $mtlda->raiseError("Unable to load a QueueItemModel!");
                 return false;
             }
-
-            $src = MTLDA_BASE.'/data/working/'. $image->queue_file_name;
-            if (!file_exists($src)) {
-                $mtlda->raiseError("Source does not exist!");
-                return false;
-            }
-
-            if (!is_readable($src)) {
-                $mtlda->raiseError("Source is not readable!");
-                return false;
-            }
-
-            if ($this->isCachedImageAvailable($id->id, $id->guid, 'queueitem_preview')) {
-                header('Content-Type: image/jpeg');
-                print $this->loadCachedImage($id->id, $id->guid, 'queueitem_preview');
-                return true;
-            }
-
-            try {
-                $im = new \Imagick(MTLDA_BASE.'/data/working/'. $image->queue_file_name .'[0]');
-            } catch (ImagickException $e) {
-                $mtlda->raiseError("Unable to use imagick extension!");
-                return false;
-            }
-            if (method_exists($im, "setProgressMonitor")) {
-                $im->setProgressMonitor(array($this, "updateProgress"));
-            }
-            if (!$im->setImageFormat('jpg')) {
-                $mtlda->raiseError("Unable to set jpg image format!");
-                return false;
-            }
-            if (!$im->scaleImage(300, 300, true)) {
-                $mtlda->raiseError("Unable to scale image!");
-                return false;
-            }
-
-            header('Content-Type: image/jpeg');
-            echo $im->getImageBlob();
-
-            if ($config->isImageCachingEnabled()) {
-                $this->saveImageToCache($id->id, $id->guid, 'preview', $im);
-            }
         }
+
+        if (!($image = $this->createPreviewImage($item))) {
+            $mtlda->raiseError("createPreviewImage() returned false!");
+            return false;
+        }
+
+        header('Content-Type: image/jpeg');
+        print $image;
+        unset($image);
+
+        return true;
+    }
+
+    public function createPreviewImage(&$item)
+    {
+        global $mtlda, $config;
+
+        if (!isset($item) || empty($item)) {
+            $mtlda->raiseError("createPreviewImage() invalid parameter!");
+            return false;
+        }
+
+        if (!isset($item->queue_idx, $item->queue_guid, $item->queue_file_name)) {
+            $mtlda->raiseError("createPreviewImage() parameter incomplete!");
+            return false;
+        }
+
+        $src = MTLDA_BASE.'/data/working/'. $item->queue_file_name;
+
+        if (!file_exists($src)) {
+            $mtlda->raiseError("Source does not exist!");
+            return false;
+        }
+
+        if (!is_readable($src)) {
+            $mtlda->raiseError("Source is not readable!");
+            return false;
+        }
+
+        if ($this->isCachedImageAvailable($item->queue_idx, $item->queue_guid, 'queueitem_preview')) {
+            return $this->loadCachedImage($item->queue_idx, $item->queue_guid, 'queueitem_preview');
+        }
+
+        try {
+            $im = new \Imagick($src .'[0]');
+        } catch (ImagickException $e) {
+            $mtlda->raiseError("Unable to load imagick class!");
+            return false;
+        }
+
+        if (method_exists($im, "setProgressMonitor")) {
+            $im->setProgressMonitor(array($this, "updateProgress"));
+        }
+
+        if (!$im->setImageFormat('jpg')) {
+            $mtlda->raiseError("Unable to set jpg image format!");
+            return false;
+        }
+
+        if (!$im->scaleImage(300, 300, true)) {
+            $mtlda->raiseError("Unable to scale image!");
+            return false;
+        }
+
+        if ($config->isImageCachingEnabled()) {
+            $this->saveImageToCache($item->queue_idx, $item->queue_guid, 'preview', $im);
+        }
+
+        if (!($content = $im->getImageBlob())) {
+            $mtlda->raiseError("imagick returned nothing!");
+            return false;
+        }
+
+        return $content;
     }
 
     public function updateProgress()
@@ -162,7 +194,6 @@ class ImageController
             $mtlda->raiseError("fwrite() returned unsuccessful");
             return false;
         }
-
     }
 }
 
