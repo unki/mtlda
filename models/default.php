@@ -701,7 +701,8 @@ class DefaultModel
         $result = $db->query(
             "SELECT
                 {$this->column_name}_idx,
-                {$this->column_name}_file_hash
+                {$this->column_name}_guid,
+                {$this->column_name}_file_name
             FROM
                 TABLEPREFIX{$this->table_name}
             WHERE
@@ -713,10 +714,11 @@ class DefaultModel
         $descendant = array();
 
         $idx = $this->column_name.'_idx';
-        $hash = $this->column_name.'_file_hash';
+        $guid = $this->column_name.'_guid';
+        $filename = $this->column_name.'_file_name';
 
         while ($row = $result->fetch()) {
-            $descendant[] = array('id' => $row->$idx, 'hash' => $row->$hash);
+            $descendant[] = array('id' => $row->$idx, 'guid' => $row->$guid, 'file_name' => $row->$filename);
         }
 
         return $descendant;
