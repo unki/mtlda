@@ -45,24 +45,42 @@ class ArchiveItemModel extends DefaultModel
         global $mtlda, $db;
 
         // are we creating a new archive-item?
-        if (!isset($id) || !isset($guid) || empty($id) || empty($guid)) {
+        if (!isset($id) && !isset($guid)) {
             parent::__construct(null);
             return true;
         }
 
         // get $id from db
-        $sth = $db->prepare(
-            "SELECT
+        $sql = "
+            SELECT
                 archive_idx
             FROM
                 TABLEPREFIX{$this->table_name}
             WHERE
-                archive_idx LIKE ?
-            AND
-                archive_guid LIKE ?"
-        );
+        ";
 
-        if (!$db->execute($sth, array($id, $guid))) {
+        $arr_query = array();
+        if (isset($id)) {
+            $sql.= "
+                archive_idx LIKE ?
+            ";
+            $arr_query[] = $id;
+        }
+        if (isset($id) && isset($guid)) {
+            $sql.= "
+                AND
+            ";
+        }
+        if (isset($guid)) {
+            $sql.= "
+                archive_guid LIKE ?
+            ";
+            $arr_query[] = $guid;
+        };
+
+        $sth = $db->prepare($sql);
+
+        if (!$db->execute($sth, $arr_query)) {
             $mtlda->raiseError("Failed to execute query");
         }
 
