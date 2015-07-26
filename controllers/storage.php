@@ -395,6 +395,52 @@ class StorageController
 
         return true;
     }
+
+    public function retrieveFile(&$document, $hash, $from = 'archive')
+    {
+        global $mtlda;
+
+        if ($from == 'archive') {
+            $src = $this->archive_path;
+        } else {
+            $src = $this->working_path;
+        }
+
+        if (!($dir_name = $this->generateDirectoryName($hash))) {
+            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+            return false;
+        }
+
+        if (!isset($dir_name) || empty($dir_name)) {
+            $mtlda->raiseError("StorageController::generateDirectoryName() returned an empty directory string");
+            return false;
+        }
+
+        $src.= '/'. $dir_name .'/';
+
+        if ($from == 'archive') {
+            $src.= $document->archive_file_name;
+        } else {
+            $src.= $document->queue_file_name;
+        }
+
+        if (!file_exists($src)) {
+            $mtlda->raiseError("Source does not exist!");
+            return false;
+        }
+
+        if (!is_readable($src)) {
+            $mtlda->raiseError("Source is not readable!");
+            return false;
+        }
+
+        if (!($content = file_get_contents($src))) {
+            $mtlda->raiseError("file_get_contents() returned false!");
+            return false;
+        }
+
+        return $content;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
