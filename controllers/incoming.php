@@ -154,6 +154,7 @@ class IncomingController
             }
 
             if (rename($in_file, $work_file) === false) {
+                $queueitem->delete();
                 $mtdla->raiseError(__TRAIT__ ." rename {$in_file} to {$work_file} failed!");
                 exit(1);
             }
