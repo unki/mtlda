@@ -94,14 +94,15 @@ class Templates extends Smarty
         $this->assign('image_arrow_left', $base_path .'/resources/images/arrow-circle-left-4x.png');
         $this->assign('image_arrow_right', $base_path .'/resources/images/arrow-circle-right-4x.png');
 
-        $this->assign('document_left_top', $base_path .'/resources/images/left_top.png');
-        $this->assign('document_center_top', $base_path .'/resources/images/center_top.png');
-        $this->assign('document_right_top', $base_path .'/resources/images/right_top.png');
-        $this->assign('document_right_center', $base_path .'/resources/images/right_center.png');
-        $this->assign('document_right_bottom', $base_path .'/resources/images/right_bottom.png');
-        $this->assign('document_center_bottom', $base_path .'/resources/images/center_bottom.png');
-        $this->assign('document_left_bottom', $base_path .'/resources/images/left_bottom.png');
-        $this->assign('document_left_center', $base_path .'/resources/images/left_center.png');
+        $this->assign('document_top_left', $base_path .'/resources/images/top_left.png');
+        $this->assign('document_top_center', $base_path .'/resources/images/top_center.png');
+        $this->assign('document_top_right', $base_path .'/resources/images/top_right.png');
+        $this->assign('document_middle_left', $base_path .'/resources/images/middle_left.png');
+        $this->assign('document_middle_center', $base_path .'/resources/images/middle_center.png');
+        $this->assign('document_middle_right', $base_path .'/resources/images/middle_right.png');
+        $this->assign('document_bottom_left', $base_path .'/resources/images/bottom_left.png');
+        $this->assign('document_bottom_center', $base_path .'/resources/images/bottom_center.png');
+        $this->assign('document_bottom_right', $base_path .'/resources/images/bottom_right.png');
     }
 
     public function getuid()
@@ -209,20 +210,20 @@ class Templates extends Smarty
             } elseif ($params[0] == "show") {
                 $mode = "show";
             }
-        } elseif ($this->default_mode == "show" && $this->templateExists($this->class_name .".tpl")) {
+        } elseif ($this->default_mode == "show") {
             $mode = "show";
         }
 
-        if ($mode == "list") {
+        if ($mode == "list" && $this->templateExists($this->class_name ."_list.tpl")) {
             return $this->showList();
-        } elseif ($mode == "edit") {
-
+        } elseif ($mode == "edit" && $this->templateExists($this->class_name ."_edit.tpl")) {
             $item = $router->parseQueryParams();
             return $this->showEdit($item['id'], $item['hash']);
-
-        } elseif ($mode == "show") {
+        } elseif ($mode == "show" && $this->templateExists($this->class_name ."_show.tpl")) {
             $item = $router->parseQueryParams();
             return $this->showItem($item['id'], $item['hash']);
+        } elseif ($this->templateExists($this->class_name .".tpl")) {
+            return $this->fetch($this->class_name .".tpl");
         }
 
         $mtlda->raiseError("All methods utilized but still don't know what to show!");
