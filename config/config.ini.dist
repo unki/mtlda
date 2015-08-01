@@ -37,6 +37,7 @@ db_pass = password
 table_prefix = "mtlda_"
 
 [pdf_signing]
+sign_position = top-right
 author = "Andreas Unterkircher"
 location = "Obersdorf, Austria"
 reason = "Electronic Signature, Authenticity"
