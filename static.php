@@ -19,6 +19,16 @@
 
 define('MTLDA_BASE', __DIR__);
 
+define('SIGN_TOP_LEFT', 1);
+define('SIGN_TOP_CENTER', 2);
+define('SIGN_TOP_RIGHT', 3);
+define('SIGN_MIDDLE_LEFT', 4);
+define('SIGN_MIDDLE_CENTER', 5);
+define('SIGN_MIDDLE_RIGHT', 6);
+define('SIGN_BOTTOM_LEFT', 7);
+define('SIGN_BOTTOM_CENTER', 8);
+define('SIGN_BOTTOM_RIGHT', 9);
+
 function autoload($class)
 {
     $class = str_replace("\\", "/", $class);
