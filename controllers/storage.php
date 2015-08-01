@@ -129,6 +129,11 @@ class StorageController
             return true;
         }
 
+        // if auto-signing is not enabled, we are done here
+        if (!$config->isPdfAutoPdfSignOnImport()) {
+            return true;
+        }
+
         $signing_item = new models\ArchiveItemModel;
         if (!($signing_item->createClone($archive_item))) {
             $mtlda->raiseError(__TRAIT__ ." unable to clone ArchiveItemModel!");

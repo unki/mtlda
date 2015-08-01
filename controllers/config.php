@@ -261,6 +261,24 @@ class ConfigController
 
         return false;
     }
+
+    public function isPdfAutoPdfSignOnImport()
+    {
+        if (!$this->isPdfSigningEnabled()) {
+            return false;
+        }
+
+        if (
+            isset($this->config['pdf_signing']['auto_sign_on_import']) &&
+            !empty($this->config['pdf_signing']['auto_sign_on_import']) &&
+            $this->isEnabled($this->config['pdf_signing']['auto_sign_on_import'])
+        ) {
+            return true;
+        }
+
+        return false;
+
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
