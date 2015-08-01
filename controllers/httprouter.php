@@ -229,7 +229,7 @@ class HttpRouterController
 
         $id = $this->query->params[1];
 
-        if (!preg_match("/^([0-9])\-([a-z0-9]+)$/", $id, $matches)) {
+        if (!preg_match("/^([0-9]+)\-([a-z0-9]+)$/", $id, $matches)) {
             return array('id' => null, 'hash' => 'null');
         }
 
