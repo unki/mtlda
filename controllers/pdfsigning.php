@@ -19,6 +19,8 @@
 
 namespace MTLDA\Controllers;
 
+use MTLDA\Models;
+
 class PdfSigningController
 {
     private $pdf_cfg;
@@ -57,7 +59,7 @@ class PdfSigningController
         }
     }
 
-    public function signDocument($fqpn)
+    public function signDocument($fqpn, $icon_position)
     {
         global $mtlda;
 
@@ -91,6 +93,23 @@ class PdfSigningController
             // use the imported page
             $pdf->useTemplate($templateId);
 
+        }
+
+        if (!($signing_icon_position = $this->getSigningIconPosition($icon_position, $size['w'], $size['h']))) {
+            $mtlda->raiseError("getSigningIconPosition() returned false!");
+            return false;
+        }
+
+        if (
+            empty($signing_icon_position) ||
+            !is_array($signing_icon_position) ||
+            !isset($signing_icon_position['x-pos']) ||
+            empty($signing_icon_position['x-pos']) ||
+            !isset($signing_icon_position['y-pos']) ||
+            empty($signing_icon_position['y-pos'])
+        ) {
+            $mtlda->raiseError("getSigningIconPosition() returned invalid posіtions!");
+            return false;
         }
 
         // set document information
@@ -151,15 +170,28 @@ class PdfSigningController
         // *** set signature appearance ***
 
         // create content for signature (image and/or text)
-        $pdf->Image('/usr/share/doc/php-tcpdf/examples/images/tcpdf_signature.png', 180, 60, 15, 15, 'PNG');
+        // $pdf->Image(MTLDA_BASE.'public/resources/image/MTLDA_signed.png', 180, 60, 15, 15, 'PNG');
+        $pdf->Image(
+            MTLDA_BASE.'/public/resources/images/MTLDA_signed.png',
+            $signing_icon_position['x-pos'],
+            $signing_icon_position['y-pos'],
+            16 /* width */,
+            16 /* height */,
+            'PNG',
+            null,
+            null,
+            true /* resize */
+        );
 
         // define active area for signature appearance
-        $pdf->setSignatureAppearance(180, 60, 15, 15);
-
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-        // *** set an empty signature appearance ***
-        $pdf->addEmptySignatureAppearance(180, 80, 15, 15);
+        $pdf->setSignatureAppearance(
+            $signing_icon_position['x-pos'],
+            $signing_icon_position['y-pos'],
+            16,
+            16,
+            1,
+            "MTLDA Document Signature"
+        );
 
         // ---------------------------------------------------------
 
@@ -167,6 +199,78 @@ class PdfSigningController
         $pdf->Output($fqpn, 'F');
         return true;
 
+    }
+
+    private function getSigningIconPosition($icon_position, $page_width, $page_height)
+    {
+        global $mtlda;
+
+        if (empty($icon_position)) {
+            return false;
+        }
+
+        $known_positions = array(
+            SIGN_TOP_LEFT,
+            SIGN_TOP_CENTER,
+            SIGN_TOP_RIGHT,
+            SIGN_MIDDLE_LEFT,
+            SIGN_MIDDLE_CENTER,
+            SIGN_MIDDLE_RIGHT,
+            SIGN_BOTTOM_LEFT,
+            SIGN_BOTTOM_CENTER,
+            SIGN_BOTTOM_RIGHT
+        );
+
+        if (!in_array($icon_position, $known_positions)) {
+            return false;
+        }
+
+        switch ($icon_position) {
+            case SIGN_TOP_LEFT:
+                $x = 50;
+                $y = 10;
+                break;
+            case SIGN_TOP_CENTER:
+                $x = ($page_width/2)-8;
+                $y = 10;
+                break;
+            case SIGN_TOP_RIGHT:
+                $x = $page_width - 50;
+                $y = 10;
+                break;
+            case SIGN_MIDDLE_LEFT:
+                $x = 50;
+                $y = ($page_height/2)-8;
+                break;
+            case SIGN_MIDDLE_CENTER:
+                $x = ($page_width/2)-8;
+                $y = ($page_height/2)-8;
+                break;
+            case SIGN_MIDDLE_RIGHT:
+                $x = $page_width - 50;
+                $y = ($page_height/2)-8;
+                break;
+            case SIGN_BOTTOM_LEFT:
+                $x = 50;
+                $y = $page_height - 50;
+                break;
+            case SIGN_BOTTOM_CENTER:
+                $x = ($page_width/2)-8;
+                $y = $page_height - 50;
+                break;
+            case SIGN_BOTTOM_RIGHT:
+                $x = $page_width - 50;
+                $y = $page_height - 50;
+                break;
+            default:
+                $mtlda->raiseError("Unkown ѕigning icon position {$icon_position}");
+                return false;
+        }
+
+        return array(
+            'x-pos' => $x,
+            'y-pos' => $y
+        );
     }
 }
 
