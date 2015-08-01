@@ -44,6 +44,7 @@ class PdfSigningController
             'contact',
             'certificate',
             'private_key',
+            'sign_position',
         );
 
         foreach ($fields as $field) {
