@@ -31,6 +31,7 @@ class QueueItemModel extends DefaultModel
             'queue_file_name' => 'string',
             'queue_file_hash' => 'string',
             'queue_file_size' => 'integer',
+            'queue_signing_icon_position' => 'integer',
             'queue_state' => 'string',
             'queue_time' => 'integer',
             );
