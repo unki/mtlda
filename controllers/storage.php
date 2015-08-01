@@ -102,6 +102,7 @@ class StorageController
 
         $archive_item->archive_version = '1';
         $archive_item->archive_derivation = '';
+        $archive_item->archive_derivation_guid = '';
 
         // copy file from queue to data directory
         if (!$this->copyQueueItemFileToArchive($queue_item->queue_file_name, $store_dir_name)) {
