@@ -205,6 +205,7 @@ class DefaultModel
 
         $idx = $this->column_name.'_idx';
         $guid = $this->column_name.'_guid';
+        $pguid = $this->column_name.'_derivation_guid';
 
         $this->id = null;
         if (isset($this->$idx)) {
@@ -214,11 +215,16 @@ class DefaultModel
             $this->$guid = $mtlda->createGuid();
         }
 
+        // record the parent objects GUID
+        if (isset($srcobj->$guid) && !empty($srcobj->$guid)) {
+            $this->$pguid = $srcobj->$guid;
+        }
+
         $this->save();
 
         // if saving was successful, our new object should have an ID now
         if (!isset($this->id) || empty($this->id)) {
-            $mtlda->raiseError("error on saving clone. no ID was returned");
+            $mtlda->raiseError("error on saving clone. no ID was returned from database!");
             return false;
         }
 
