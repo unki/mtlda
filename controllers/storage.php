@@ -152,7 +152,7 @@ class StorageController
 
         $fqpn_dst = $this->archive_path .'/'. $dst;
 
-        if (!$signer->signDocument($fqpn_dst)) {
+        if (!$signer->signDocument($fqpn_dst, $signing_item->archive_signing_icon_position)) {
             $signing_item->delete();
             $mtlda->raiseError("PdfSigningController::ѕignDocument() returned false!");
             return $false;
