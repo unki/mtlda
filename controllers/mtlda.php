@@ -197,7 +197,7 @@ class MTLDA
     private function documentHandler()
     {
         $document = new DocumentController;
-        $document->open();
+        $document->perform();
     }
 
     public function isValidId($id)
