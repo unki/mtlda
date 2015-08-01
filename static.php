@@ -31,11 +31,13 @@ define('SIGN_BOTTOM_RIGHT', 9);
 
 function autoload($class)
 {
+    require_once "controllers/exception.php";
+
     $class = str_replace("\\", "/", $class);
     $parts = explode('/', $class);
 
     if (!is_array($parts) || empty($parts)) {
-        print "Error - failed to extract class names!";
+        error("failed to extract class names!");
         exit(1);
     }
 
@@ -67,15 +69,27 @@ function autoload($class)
     $filename = strtolower($filename);
 
     if (!file_exists($filename)) {
-        print "Error - file ". $filename ." does not exist!";
+        error("File ". $filename ." does not exist!");
         exit(1);
     }
     if (!is_readable($filename)) {
-        print "Error - file ". $filename ." is not readable!";
+        error("File ". $filename ." is not readable!");
         exit(1);
     }
 
     require_once $filename;
+}
+
+function error($string)
+{
+    print "<br /><br />". $string ."<br /><br />\n";
+
+    try {
+        throw new MTLDA\Controllers\ExceptionController;
+    } catch (ExceptionController $e) {
+        print "<br /><br />\n";
+        $this->write($e, LOG_WARNING);
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
