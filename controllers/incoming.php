@@ -55,7 +55,7 @@ class IncomingController
 
     public function handleQueue()
     {
-        global $mtlda, $db;
+        global $mtlda, $db, $config;
 
         $sth = $db->prepare("
                 INSERT INTO mtlda_queue (
@@ -147,6 +147,15 @@ class IncomingController
             $queueitem->queue_file_hash = $hash;
             $queueitem->queue_state = 'new';
             $queueitem->queue_time = time();
+
+            if ($config->isPdfSigningEnabled()) {
+                if ($pos = $config->getPdfSigningIconPosition()) {
+                    $queueitem->queue_signing_icon_position = $pos;
+                } else {
+                    $mtlda->raiseError(__TRAIT__ ." PDF-Signing is enabled but no signing-icon-position found!");
+                    exit(1);
+                }
+            }
 
             if (!$queueitem->save()) {
                 $mtlda->raiseError(__TRAIT__ ." saving QueueItemModel failed!");
