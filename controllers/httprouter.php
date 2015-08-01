@@ -229,14 +229,37 @@ class HttpRouterController
 
         $id = $this->query->params[1];
 
-        if (!preg_match("/^([0-9]+)\-([a-z0-9]+)$/", $id, $matches)) {
-            return array('id' => null, 'hash' => 'null');
+        if (preg_match("/^([0-9]+)\-([a-z0-9]+)$/", $id, $matches)) {
+
+            $id = $matches[1];
+            $hash = $matches[2];
+            return array('id' => $id, 'hash' => $hash);
+
         }
 
-        $id = $matches[1];
-        $hash = $matches[2];
+        return array('id' => null, 'hash' => 'null');
+    }
 
-        return array('id' => $id, 'hash' => $hash);
+    public function redirectTo($page, $mode, $id)
+    {
+        global $config;
+
+        $url = $config->getWebPath();
+
+        if (isset($page) && !empty($page)) {
+            $url.= '/'.$page;
+        }
+
+        if (isset($mode) && !empty($mode)) {
+            $url.= '/'.$mode;
+        }
+
+        if (isset($id) && !empty($id)) {
+            $url.= '/'.$id;
+        }
+
+        Header("Location: ". $url);
+        return true;
     }
 }
 
