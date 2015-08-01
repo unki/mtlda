@@ -20,6 +20,7 @@
 namespace MTLDA\Controllers;
 
 use MTLDA\Views;
+use MTLDA\Models;
 
 class MTLDA
 {
