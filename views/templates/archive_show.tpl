@@ -31,7 +31,14 @@
    {foreach $item_versions as $version}
     {assign var='safe_link' value="archiveitem-`$version.id`-`$version.guid`"}
     <a href="{get_url page=document mode=show id=$safe_link}">v{$version.id} - {$version.file_name}</a>
+    <br />
    {/foreach}
+  </td>
+ </tr>
+ <tr>
+  <td>Actions:</td>
+  <td>
+   <a href="{get_url page=document mode=sign id=$item_safe_link}">Sign Document</a>
   </td>
  </tr>
 </table>
