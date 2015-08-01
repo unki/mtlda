@@ -137,6 +137,7 @@ class StorageController
         $signing_item->archive_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->archive_file_name);
         $signing_item->archive_version++;
         $signing_item->archive_derivation = $archive_item->id;
+        $signing_item->archive_derivation_guid = $archive_item->archive_guid;
         $signing_item->save();
 
         $src = $store_dir_name .'/'. $archive_item->archive_file_name;
