@@ -28,30 +28,9 @@ class StorageController
     private $working_path = MTLDA_BASE."/data/working";
     private $nesting_depth = 5;
 
-    public function __construct(&$item = null)
-    {
-        if (!isset($item) || empty($item)) {
-            return true;
-        }
-
-        $this->item = $item;
-        return true;
-    }
-
     public function archive(&$queue_item)
     {
         global $mtlda, $config;
-
-        if ($config->isPdfSigningEnabled()) {
-
-            try {
-                $signer = new Controllers\PdfSigningController;
-            } catch (Exception $e) {
-                $archive_item->delete();
-                $mtlda->raiseError("Failed to load PdfSigningController");
-                return false;
-            }
-        }
 
         // verify QueueItemModel is ok()
         if (!$queue_item->verify()) {
@@ -134,19 +113,54 @@ class StorageController
             return true;
         }
 
+        if (!$this->sign($archive_item)) {
+            return false;
+        }
+
+        return true;
+
+    }
+
+    public function sign(&$src_item)
+    {
+        global $mtlda, $config;
+
+        if ($config->isPdfSigningEnabled()) {
+
+            try {
+                $signer = new Controllers\PdfSigningController;
+            } catch (Exception $e) {
+                $archive_item->delete();
+                $mtlda->raiseError("Failed to load PdfSigningController");
+                return false;
+            }
+        }
+
         $signing_item = new models\ArchiveItemModel;
-        if (!($signing_item->createClone($archive_item))) {
+        if (!($signing_item->createClone($src_item))) {
             $mtlda->raiseError(__TRAIT__ ." unable to clone ArchiveItemModel!");
+            return false;
+        }
+
+        // retrieve ArchiveItem file hash
+        if (!($hash = $src_item->getFileHash())) {
+            $mtlda->raiseError("ArchiveItemModel::getFileHash() returned false!");
+            return false;
+        }
+
+        // generate a hash-value based directory name
+        if (!($store_dir_name = $this->generateDirectoryName($hash))) {
+            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
             return false;
         }
 
         $signing_item->archive_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->archive_file_name);
         $signing_item->archive_version++;
-        $signing_item->archive_derivation = $archive_item->id;
-        $signing_item->archive_derivation_guid = $archive_item->archive_guid;
+        $signing_item->archive_derivation = $src_item->id;
+        $signing_item->archive_derivation_guid = $src_item->archive_guid;
         $signing_item->save();
 
-        $src = $store_dir_name .'/'. $archive_item->archive_file_name;
+        $src = $store_dir_name .'/'. $src_item->archive_file_name;
         $dst = $store_dir_name .'/'. $signing_item->archive_file_name;
 
         if (!$this->copyArchiveItemFile($src, $dst)) {
@@ -341,36 +355,36 @@ class StorageController
         return true;
     }
 
-    public function deleteItemFile()
+    public function deleteItemFile(&$item)
     {
         global $mtlda;
 
-        if (!isset($this->item) || empty($this->item)) {
-            $mtlda->raiseError("\$this->item is not set!");
+        if (!isset($item) || empty($item)) {
+            $mtlda->raiseError("\$item is not set!");
             return false;
         }
 
-        if (!isset($this->item->column_name) || empty($this->item->column_name)) {
-            $mtlda->raiseError("\$this->item->column_name is not set!");
+        if (!isset($item->column_name) || empty($item->column_name)) {
+            $mtlda->raiseError("\$item->column_name is not set!");
             return false;
         }
 
-        $file_name = $this->item->column_name .'_file_name';
-        $file_hash = $this->item->column_name .'_file_hash';
+        $file_name = $item->column_name .'_file_name';
+        $file_hash = $item->column_name .'_file_hash';
 
-        if (!isset($this->item->$file_name) || empty($this->item->$file_name)) {
-            $mtlda->raiseError("\$this->item->{$file_name} is not set!");
+        if (!isset($item->$file_name) || empty($item->$file_name)) {
+            $mtlda->raiseError("\$item->{$file_name} is not set!");
             return false;
         }
 
-        if (!isset($this->item->$file_hash) || empty($this->item->$file_hash)) {
-            $mtlda->raiseError("\$this->item->{$file_hash} is not set!");
+        if (!isset($item->$file_hash) || empty($item->$file_hash)) {
+            $mtlda->raiseError("\$item->{$file_hash} is not set!");
             return false;
         }
 
-        if ($this->item->column_name == 'archive') {
+        if ($item->column_name == 'archive') {
 
-            if (!($dir_name = $this->generateDirectoryName($this->item->$file_hash))) {
+            if (!($dir_name = $this->generateDirectoryName($item->$file_hash))) {
                 $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
                 return false;
             }
@@ -380,13 +394,13 @@ class StorageController
                 return false;
             }
 
-            $fqpn = $this->archive_path .'/'. $dir_name .'/'. $this->item->$file_name;
-        } elseif ($this->item->column_name == 'queue') {
+            $fqpn = $this->archive_path .'/'. $dir_name .'/'. $item->$file_name;
+        } elseif ($item->column_name == 'queue') {
 
-            $fqpn = $this->working_path .'/'. $this->item->$file_name;
+            $fqpn = $this->working_path .'/'. $item->$file_name;
 
         } else {
-            $mtlda->raiseError("Unsupported model ". $this->item->column_name);
+            $mtlda->raiseError("Unsupported model ". $item->column_name);
             return false;
         }
 
