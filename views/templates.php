@@ -215,15 +215,54 @@ class Templates extends Smarty
         }
 
         if ($mode == "list" && $this->templateExists($this->class_name ."_list.tpl")) {
+
             return $this->showList();
+
         } elseif ($mode == "edit" && $this->templateExists($this->class_name ."_edit.tpl")) {
-            $item = $router->parseQueryParams();
+
+            if (!$item = $router->parseQueryParams()) {
+                $mtlda->raiseError("HttpRouterController::parseQueryParams() returned false!");
+                return false;
+            }
+            if (
+                empty($item) ||
+                !is_array($item) ||
+                !isset($item['id']) ||
+                empty($item['id']) ||
+                !isset($item['hash']) ||
+                empty($item['hash']) ||
+                !$mtlda->isValidId($item['id']) ||
+                !$mtlda->isValidGuidSyntax($item['hash'])
+            ) {
+                $mtlda->raiseError("HttpRouterController::parseQueryParams() was unable to parse query parameters!");
+                return false;
+            }
             return $this->showEdit($item['id'], $item['hash']);
+
         } elseif ($mode == "show" && $this->templateExists($this->class_name ."_show.tpl")) {
-            $item = $router->parseQueryParams();
+
+            if (!$item = $router->parseQueryParams()) {
+                $mtlda->raiseError("HttpRouterController::parseQueryParams() returned false!");
+            }
+            if (
+                empty($item) ||
+                !is_array($item) ||
+                !isset($item['id']) ||
+                empty($item['id']) ||
+                !isset($item['hash']) ||
+                empty($item['hash']) ||
+                !$mtlda->isValidId($item['id']) ||
+                !$mtlda->isValidGuidSyntax($item['hash'])
+            ) {
+                $mtlda->raiseError("HttpRouterController::parseQueryParams() was unable to parse query parameters!");
+                return false;
+            }
             return $this->showItem($item['id'], $item['hash']);
+
         } elseif ($this->templateExists($this->class_name .".tpl")) {
+
             return $this->fetch($this->class_name .".tpl");
+
         }
 
         $mtlda->raiseError("All methods utilized but still don't know what to show!");
