@@ -40,28 +40,30 @@
    Signing options:
   </div>
   <div style="float: left; clear: left;">
-   <a><img src="{$document_left_top}" alt="left top document icon" /></a>
+   <a href="#" onclick="update_sign_position('top-left');"><img src="{$document_top_left}" alt="top left document icon" /></a>
   </div>
   <div style="float: left;">
-   <a><img src="{$document_center_top}" alt="center top document icon" /></a>
+   <a href="#" onclick="update_sign_position('top-center');"><img src="{$document_top_center}" alt="top center document icon" /></a>
   </div>
   <div style="float: left;">
-   <a><img src="{$document_right_top}" alt="right top document icon" /></a>
+   <a href="#" onclick="update_sign_position('top-right');"><img src="{$document_top_right}" alt="top right document icon" /></a>
   </div>
    <div style="float: left; clear: left;">
-   <a><img src="{$document_left_center}" alt="left center document icon" /></a>
+   <a href="#" onclick="update_sign_position('middle-left');"><img src="{$document_middle_left}" alt="middle left document icon" /></a>
   </div>
-  <div style="float: left; width: 32px;">&nbsp;</div>
   <div style="float: left;">
-   <a><img src="{$document_right_center}" alt="right center document icon" /></a>
+   <a href="#" onclick="update_sign_position('middle-center');"><img src="{$document_middle_center}" alt="middle center document icon" /></a>
+  </div>
+  <div style="float: left;">
+   <a href="#" onclick="update_sign_position('middle-right');"><img src="{$document_middle_right}" alt="middle right document icon" /></a>
   </div>
   <div style="float: left; clear: left;">
-   <a><img src="{$document_left_bottom}" alt="left bottom document icon" /></a>
+   <a href="#" onclick="update_sign_position('bottom-left');"><img src="{$document_bottom_left}" alt="bottom left document icon" /></a>
   </div>
   <div style="float: left;">
-   <a><img src="{$document_center_bottom}" alt="center bottom document icon" /></a>
+   <a href="#" onclick="update_sign_position('bottom-enter');"><img src="{$document_bottom_center}" alt="bottom center document icon" /></a>
   </div>
   <div style="float: left;">
-   <a><img src="{$document_right_bottom}" alt="right bottom document icon" /></a>
+   <a href="#" onclick="update_sign_position('bottom-right');"><img src="{$document_bottom_right}" alt="bottom right document icon" /></a>
   </div>
 </div>
