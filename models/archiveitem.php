@@ -189,14 +189,14 @@ class ArchiveItemModel extends DefaultModel
         global $mtlda;
 
         // load StorageController
-        $storage = new Controllers\StorageController($this);
+        $storage = new Controllers\StorageController;
 
         if (!$storage) {
             $mtlda->raiseError("unable to load StorageController!");
             return false;
         }
 
-        if (!$storage->deleteItemFile()) {
+        if (!$storage->deleteItemFile($this)) {
             $mtlda->raiseError("StorageController::deleteItemFile() returned false!");
             return false;
         }
