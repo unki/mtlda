@@ -143,7 +143,49 @@ class ConfigController
             return $default_pos;
         }
 
-        return $pdf_cfg['sign_position'];
+        switch ($pdf_cfg['sign_position']) {
+
+            case SIGN_TOP_LEFT:
+            case 'top-left':
+                return SIGN_TOP_LEFT;
+                break;
+            case SIGN_TOP_CENTER:
+            case 'top-center':
+                return SIGN_TOP_CENTER;
+                break;
+            case SIGN_TOP_RIGHT:
+            case 'top-right':
+                return SIGN_TOP_RIGHT;
+                break;
+
+            case SIGN_MIDDLE_LEFT:
+            case 'middle-left':
+                return SIGN_MIDDLE_LEFT;
+                break;
+            case SIGN_MIDDLE_CENTER:
+            case 'middle-center':
+                return SIGN_MIDDLE_CENTER;
+                break;
+            case SIGN_MIDDLE_RIGHT:
+            case 'middle-right':
+                return SIGN_MIDDLE_RIGHT;
+                break;
+
+            case SIGN_BOTTOM_LEFT:
+            case 'bottom-left':
+                return SIGN_BOTTOM_LEFT;
+                break;
+            case SIGN_BOTTOM_CENTER:
+            case 'bottom-center':
+                return SIGN_BOTTOM_CENTER;
+                break;
+            case SIGN_BOTTOM_RIGHT:
+            case 'bottom-right':
+                return SIGN_BOTTOM_RIGHT;
+                break;
+        }
+
+        return false;
     }
 
     public function getDatabaseType()
