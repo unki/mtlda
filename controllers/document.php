@@ -23,42 +23,70 @@ use MTLDA\Models;
 
 class DocumentController
 {
-    public function open()
+    public function perform()
     {
-        global $mtlda, $query;
+        global $mtlda, $query, $router;
 
         if (!isset($query->view) || empty($query->view)) {
             $mtlda->raiseError("\$query->view is not set!");
             return false;
         }
 
-        if ($query->view == "document") {
-            $this->loadDocument();
+        if ($query->view != "document") {
+            $mtlda->raiseError("\$query->view should be document but isn't so!");
+            return false;
+        }
+
+        if (!$params = $router->parseQueryParams()) {
+            $mtlda->raiseError("HttpRouterController::parseQueryParams() returned false!");
+            return false;
+        }
+
+        if (empty($params) || !is_array($params)) {
+            $mtlda->raiseError("HttpRouterController::parseQueryParams() return an invalid format!");
+            return false;
+        }
+
+        if (!isset($query->params[0]) || empty($query->params[0])) {
+            $mtlda->raiseError("Action is not set!");
+            return false;
+        }
+
+        if (!in_array($query->params[0], array('show','sign'))) {
+            $mtlda->raiseError("Invalid action!");
+            return false;
+        }
+
+        if (!isset($query->params[1]) || empty($query->params[1])) {
+            $mtlda->raiseError("Object id is not set!");
+            return false;
+        }
+
+        if (!$mtlda->isValidId($query->params[1])) {
+            $mtlda->raiseError("Object id is invalid!");
+            return false;
+        }
+
+        if (!($id = $mtlda->parseId($query->params[1]))) {
+            $mtlda->raiseError("Object id can not be parsed!");
+            return false;
+        }
+
+        if ($query->params[0] == "show") {
+            $this->loadDocument($id);
+        } elseif ($query->params[0] == "sign") {
+            $this->signDocument($id);
+        } else {
+            $mtlda->raiseError("Unknown action found!");
+            return false;
         }
 
         return true;
     }
 
-    private function loadDocument()
+    private function loadDocument($id)
     {
-        global $mtlda, $config, $query;
-
-        if (!isset($query->params) || !isset($query->params[0]) || empty($query->params[0])) {
-            $mtlda->raiseError("\$query->params is not set!");
-            return false;
-        }
-
-        $id = $query->params[1];
-
-        if (!$mtlda->isValidId($id)) {
-            $mtlda->raiseError("\$id is invalid!");
-            return false;
-        }
-
-        if (($id = $mtlda->parseId($id)) === false) {
-            $mtlda->raiseError("unable to parse id!");
-            return false;
-        }
+        global $mtlda;
 
         if (!$mtlda->isValidGuidSyntax($id->guid)) {
             $mtlda->raiseError("GUID syntax is invalid!");
@@ -66,11 +94,60 @@ class DocumentController
         }
 
         if ($id->model == "archiveitem") {
-            $this->loadArchiveDocument($id);
+            $content = $this->getArchiveDocumentContent($id);
+            if (!isset($content) || empty($content)) {
+                $mtlda->raiseError("No valid document content returned!");
+                return false;
+            }
+            header('Content-Type: application/pdf');
+            print $content;
+            return true;
         }
+
+        $mtlda->raiseError("Unsupported model requested");
+        return false;
     }
 
-    private function loadArchiveDocument(&$id)
+    private function signDocument($id)
+    {
+        global $mtlda, $router;
+
+        if (!$mtlda->isValidGuidSyntax($id->guid)) {
+            $mtlda->raiseError("GUID syntax is invalid!");
+            return false;
+        }
+
+        if ($id->model != "archiveitem") {
+            $mtlda->raiseError("Can only handle ArchiveItems!");
+            return false;
+        }
+
+        $document = new Models\ArchiveItemModel($id->id, $id->guid);
+        if (!$document) {
+            $mtlda->raiseError("Unable to load a ArchiveItemModel!");
+            return false;
+        }
+
+        $storage = new StorageController($document);
+
+        if (!$storage) {
+            $mtlda->raiseError("Unable to load StorageController!");
+            return false;
+        }
+
+        if (!$storage->sign($document)) {
+            $mtlda->raiseError("StorageController::sign() returned false!");
+            return false;
+        }
+
+        $router->redirectTo(
+            'archive',
+            'show',
+            $document->archive_idx ."-". $document->archive_guid
+        );
+    }
+
+    private function getArchiveDocumentContent(&$id)
     {
         global $mtlda;
 
@@ -104,9 +181,7 @@ class DocumentController
             }
         }
 
-        header('Content-Type: application/pdf');
-        echo $content;
-        return true;
+        return $content;
     }
 }
 
