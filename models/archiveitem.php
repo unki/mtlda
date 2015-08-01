@@ -31,9 +31,11 @@ class ArchiveItemModel extends DefaultModel
             'archive_file_name' => 'string',
             'archive_file_hash' => 'string',
             'archive_file_size' => 'integer',
+            'archive_signing_position' => 'integer',
             'archive_time' => 'integer',
             'archive_version' => 'integer',
             'archive_derivation' => 'integer',
+            'archive_derivation_guid' => 'string',
             );
     public $avail_items = array();
     public $items = array();
