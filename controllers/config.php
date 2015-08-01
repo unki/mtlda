@@ -131,6 +131,21 @@ class ConfigController
         return $this->config['pdf_signing'];
     }
 
+    public function getPdfSigningIconPosition()
+    {
+        $default_pos = SIGN_TOP_RIGHT;
+
+        if (!($pdf_cfg = $this->getPdfSigningConfiguration())) {
+            return $default_pos;
+        }
+
+        if (!isset($pdf_cfg['sign_position']) || empty($pdf_cfg['sign_position'])) {
+            return $default_pos;
+        }
+
+        return $pdf_cfg['sign_position'];
+    }
+
     public function getDatabaseType()
     {
         if ($dbconfig = $this->getDatabaseConfiguration()) {
