@@ -33,6 +33,7 @@ class Templates extends Smarty
             'edit',
             'delete',
             'add',
+            'sign',
             );
     public $default_mode = "list";
 
@@ -124,13 +125,13 @@ class Templates extends Smarty
         if (!array_key_exists('page', $params)) {
             $mtlda->raiseError("getUrl: missing 'page' parameter", E_USER_WARNING);
             $repeat = false;
-            return;
+            return false;
         }
 
         if (array_key_exists('mode', $params) && !in_array($params['mode'], $this->supported_modes)) {
             $mtlda->raiseError("getUrl: value of parameter 'mode' ({$params['mode']}) isn't supported", E_USER_WARNING);
             $repeat = false;
-            return;
+            return false;
         }
 
         if (!($url = $config->getWebPath())) {
