@@ -38,14 +38,8 @@ class StorageController
             return false;
         }
 
-        // retrieve QueueItemModel file hash
-        if (!($hash = $queue_item->getFileHash())) {
-            $mtlda->raiseError("QueueItemModel::getFileHash() returned false!");
-            return false;
-        }
-
         // generate a hash-value based directory name
-        if (!($store_dir_name = $this->generateDirectoryName($hash))) {
+        if (!($store_dir_name = $this->generateDirectoryName($queue_item->queue_guid))) {
             $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
             return false;
         }
@@ -63,7 +57,11 @@ class StorageController
 
         $archive_item = new Models\ArchiveItemModel;
 
-        if (!isset($queue_item->fields) || empty($queue_item->fields)) {
+        if (
+            !isset($queue_item->fields) ||
+            empty($queue_item->fields) ||
+            !is_array($queue_item->fields)
+        ) {
             $mtlda->raiseError("\$queue_item->fields not set!");
             return false;
         }
@@ -71,7 +69,8 @@ class StorageController
         // copy fields from QueueItemModel to ArchiveItemModel
         foreach (array_keys($queue_item->fields) as $queue_field) {
 
-            if (in_array($queue_field, array("queue_idx", "queue_state", "queue_guid"))) {
+            // fields we skip
+            if (in_array($queue_field, array("queue_idx", "queue_state"))) {
                 continue;
             }
 
@@ -91,12 +90,13 @@ class StorageController
 
         // safe ArchiveItemModel to database, if that fails revert
         if (!$archive_item->save()) {
-            $this->deleteArchiveItemFile($queue_item->queue_file_name, $store_dir_name);
+            $this->deleteItemFile($archive_item);
             $mtlda->raiseError("ArchiveItemModel::save() returned false!");
             return false;
         }
 
         // delete QueueItemModel from database, if that fails revert
+        // deleting the model will also remove the file
         if (!$queue_item->delete()) {
             $archive_item->delete();
             $mtlda->raiseError("ArchiveItemModel::delete() returned false!");
@@ -142,26 +142,34 @@ class StorageController
             return false;
         }
 
-        // retrieve ArchiveItem file hash
-        if (!($hash = $src_item->getFileHash())) {
-            $mtlda->raiseError("ArchiveItemModel::getFileHash() returned false!");
-            return false;
-        }
-
-        // generate a hash-value based directory name
-        if (!($store_dir_name = $this->generateDirectoryName($hash))) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
-            return false;
-        }
-
         $signing_item->archive_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->archive_file_name);
         $signing_item->archive_version++;
         $signing_item->archive_derivation = $src_item->id;
         $signing_item->archive_derivation_guid = $src_item->archive_guid;
         $signing_item->save();
 
-        $src = $store_dir_name .'/'. $src_item->archive_file_name;
-        $dst = $store_dir_name .'/'. $signing_item->archive_file_name;
+        // generate a hash-value based directory name
+        if (!($src_dir_name = $this->generateDirectoryName($src_item->archive_guid))) {
+            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+            $signing_item->delete();
+            return false;
+        }
+
+        if (!($dest_dir_name = $this->generateDirectoryName($signing_item->archive_guid))) {
+            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+            $signing_item->delete();
+            return false;
+        }
+
+        // create the target directory structure
+        if (!$this->createDirectoryStructure($dest_dir_name)) {
+            $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
+            $signing_item->delete();
+            return false;
+        }
+
+        $src = $src_dir_name  .'/'. $src_item->archive_file_name;
+        $dst = $dest_dir_name .'/'. $signing_item->archive_file_name;
 
         if (!$this->copyArchiveItemFile($src, $dst)) {
             $signing_item->delete();
@@ -177,7 +185,7 @@ class StorageController
             return $false;
         }
 
-        if (!$signing_item->refresh($store_dir_name)) {
+        if (!$signing_item->refresh($dest_dir_name)) {
             $signing_item->delete();
             $mtlda->raiseError("refresh() returned false!");
             return false;
@@ -287,7 +295,7 @@ class StorageController
         }
 
         if (!copy($fqpn_src, $fqpn_dst)) {
-            $mtlda->raiseError("copyQueueItemFileToArchive(), rename() returned false!");
+            $mtlda->raiseError("copyQueueItemFileToArchive(), copy() returned false!");
             return false;
         }
 
@@ -312,7 +320,7 @@ class StorageController
         }
 
         if (!copy($fqpn_src, $fqpn_dst)) {
-            $mtlda->raiseError("copyArchiveItemFile(), rename() returned false!");
+            $mtlda->raiseError("copyArchiveItemFile(), copy() returned false!");
             return false;
         }
 
@@ -337,7 +345,7 @@ class StorageController
         return true;
     }
 
-    private function deleteArchiveItemFile($file_name, $dest_dir)
+    private function deleteFile($file_name, $dest_dir)
     {
         global $mtlda;
 
@@ -348,7 +356,7 @@ class StorageController
         }
 
         if (!unlink($fqpn_dst)) {
-            $mtlda->raiseError("deleteArchiveItemFile(), unlink() returned false!");
+            $mtlda->raiseError(__TRAIT__ .", unlink() returned false!");
             return false;
         }
 
@@ -369,22 +377,22 @@ class StorageController
             return false;
         }
 
-        $file_name = $item->column_name .'_file_name';
-        $file_hash = $item->column_name .'_file_hash';
+        $file_name_field = $item->column_name .'_file_name';
+        $guid = $item->column_name .'_guid';
 
-        if (!isset($item->$file_name) || empty($item->$file_name)) {
-            $mtlda->raiseError("\$item->{$file_name} is not set!");
+        if (!isset($item->$file_name_field) || empty($item->$file_name_field)) {
+            $mtlda->raiseError("\$item->{$file_name_field} is not set!");
             return false;
         }
 
-        if (!isset($item->$file_hash) || empty($item->$file_hash)) {
-            $mtlda->raiseError("\$item->{$file_hash} is not set!");
+        if (!isset($item->$guid) || empty($item->$guid)) {
+            $mtlda->raiseError("\$item->{$guid} is not set!");
             return false;
         }
 
         if ($item->column_name == 'archive') {
 
-            if (!($dir_name = $this->generateDirectoryName($item->$file_hash))) {
+            if (!($dir_name = $this->generateDirectoryName($item->$guid))) {
                 $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
                 return false;
             }
@@ -394,10 +402,11 @@ class StorageController
                 return false;
             }
 
-            $fqpn = $this->archive_path .'/'. $dir_name .'/'. $item->$file_name;
+            $fqpn = $this->archive_path .'/'. $dir_name .'/'. $item->$file_name_field;
+
         } elseif ($item->column_name == 'queue') {
 
-            $fqpn = $this->working_path .'/'. $item->$file_name;
+            $fqpn = $this->working_path .'/'. $item->$file_name_field;
 
         } else {
             $mtlda->raiseError("Unsupported model ". $item->column_name);
@@ -417,9 +426,12 @@ class StorageController
         return true;
     }
 
-    public function retrieveFile(&$document, $hash, $from = 'archive')
+    public function retrieveFile(&$document, $from = 'archive')
     {
         global $mtlda;
+
+        $guid_field = "{$from}_guid";
+        $name_field = "{$from}_file_name";
 
         if ($from == 'archive') {
             $src = $this->archive_path;
@@ -427,7 +439,7 @@ class StorageController
             $src = $this->working_path;
         }
 
-        if (!($dir_name = $this->generateDirectoryName($hash))) {
+        if (!($dir_name = $this->generateDirectoryName($document->$guid_field))) {
             $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
             return false;
         }
@@ -437,13 +449,7 @@ class StorageController
             return false;
         }
 
-        $src.= '/'. $dir_name .'/';
-
-        if ($from == 'archive') {
-            $src.= $document->archive_file_name;
-        } else {
-            $src.= $document->queue_file_name;
-        }
+        $src.= "/{$dir_name}/{$document->$name_field}";
 
         if (!file_exists($src)) {
             $mtlda->raiseError("Source does not exist!");
@@ -460,7 +466,20 @@ class StorageController
             return false;
         }
 
-        return $content;
+        if (!is_string($content) || strlen($content) <= 0) {
+            $mtlda->raiseError("file_get_contents() returned an invalid file!");
+            return false;
+        }
+
+        if (!($hash = sha1($content))) {
+            $mtlda->raiseError("sha1() returned false!");
+            return false;
+        }
+
+        return array(
+            'hash' => $hash,
+            'content' => $content
+        );
     }
 }
 
