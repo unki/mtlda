@@ -93,23 +93,38 @@ class PdfSigningController
             // use the imported page
             $pdf->useTemplate($templateId);
 
-        }
+            if ($page_no == 1) {
 
-        if (!($signing_icon_position = $this->getSigningIconPosition($icon_position, $size['w'], $size['h']))) {
-            $mtlda->raiseError("getSigningIconPosition() returned false!");
-            return false;
-        }
+                if (!($signing_icon_position = $this->getSigningIconPosition($icon_position, $size['w'], $size['h']))) {
+                    $mtlda->raiseError("getSigningIconPosition() returned false!");
+                    return false;
+                }
 
-        if (
-            empty($signing_icon_position) ||
-            !is_array($signing_icon_position) ||
-            !isset($signing_icon_position['x-pos']) ||
-            empty($signing_icon_position['x-pos']) ||
-            !isset($signing_icon_position['y-pos']) ||
-            empty($signing_icon_position['y-pos'])
-        ) {
-            $mtlda->raiseError("getSigningIconPosition() returned invalid posіtions!");
-            return false;
+                if (
+                    empty($signing_icon_position) ||
+                    !is_array($signing_icon_position) ||
+                    !isset($signing_icon_position['x-pos']) ||
+                    empty($signing_icon_position['x-pos']) ||
+                    !isset($signing_icon_position['y-pos']) ||
+                    empty($signing_icon_position['y-pos'])
+                ) {
+                    $mtlda->raiseError("getSigningIconPosition() returned invalid posіtions!");
+                    return false;
+                }
+
+                $pdf->Image(
+                    MTLDA_BASE.'/public/resources/images/MTLDA_signed.png',
+                    $signing_icon_position['x-pos'],
+                    $signing_icon_position['y-pos'],
+                    16 /* width */,
+                    16 /* height */,
+                    'PNG',
+                    null,
+                    null,
+                    true /* resize */
+                );
+            }
+
         }
 
         // set document information
@@ -171,17 +186,6 @@ class PdfSigningController
 
         // create content for signature (image and/or text)
         // $pdf->Image(MTLDA_BASE.'public/resources/image/MTLDA_signed.png', 180, 60, 15, 15, 'PNG');
-        $pdf->Image(
-            MTLDA_BASE.'/public/resources/images/MTLDA_signed.png',
-            $signing_icon_position['x-pos'],
-            $signing_icon_position['y-pos'],
-            16 /* width */,
-            16 /* height */,
-            'PNG',
-            null,
-            null,
-            true /* resize */
-        );
 
         // define active area for signature appearance
         $pdf->setSignatureAppearance(
@@ -189,7 +193,7 @@ class PdfSigningController
             $signing_icon_position['y-pos'],
             16,
             16,
-            1,
+            1 /* page number */,
             "MTLDA Document Signature"
         );
 
