@@ -64,6 +64,13 @@ class DefaultModel
     {
         global $mtlda, $db;
 
+        if (method_exists($this, 'preLoad')) {
+            if (!$this->preLoad()) {
+                $mtlda->raiseError("preLoad() method returned false!");
+                return false;
+            }
+        }
+
         $sth = $db->prepare(
             "SELECT
             *
@@ -93,6 +100,13 @@ class DefaultModel
 
         foreach ($row as $key => $value) {
             $this->$key = $value;
+        }
+
+        if (method_exists($this, 'postLoad')) {
+            if (!$this->postLoad()) {
+                $mtlda->raiseError("postLoad() method returned false!");
+                return false;
+            }
         }
 
     } // load();
@@ -152,9 +166,12 @@ class DefaultModel
                 ". $this->column_name ."_idx LIKE ?
                 ");
 
-        $db->execute($sth, array(
-                    $this->id
-                    ));
+        $db->execute(
+            $sth,
+            array(
+                $this->id
+            )
+        );
 
         $db->freeStatement($sth);
 
@@ -373,7 +390,7 @@ class DefaultModel
 
         $guid = $this->column_name .'_guid';
 
-        if (isset($this->$guid) || empty($this->$guid)) {
+        if (!isset($this->$guid) || empty($this->$guid)) {
             $this->$guid = $mtlda->createGuid();
         }
 
