@@ -26,19 +26,15 @@
  <tr>
   <td>Versions:</td>
   <td>
-   <a href="{get_url page=document mode=show id=$item_safe_link}">v1 - Original Document</a>
+   <a href="{get_url page=document mode=show id=$item_safe_link}">v1 - Original imported document</a>
+   <a href="{get_url page=document mode=sign id=$item_safe_link}">Sign</a>
    <br />
    {foreach $item_versions as $version}
     {assign var='safe_link' value="archiveitem-`$version.id`-`$version.guid`"}
-    <a href="{get_url page=document mode=show id=$safe_link}">v{$version.id} - {$version.file_name}</a>
+    <a href="{get_url page=document mode=show id=$safe_link}">v{$version.id} - {$version.file_name}</a>&nbsp;
+    <a href="{get_url page=document mode=delete id=$safe_link}">Delete</a>
     <br />
    {/foreach}
-  </td>
- </tr>
- <tr>
-  <td>Actions:</td>
-  <td>
-   <a href="{get_url page=document mode=sign id=$item_safe_link}">Sign Document</a>
   </td>
  </tr>
 </table>
