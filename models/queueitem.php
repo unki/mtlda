@@ -97,25 +97,6 @@ class QueueItemModel extends DefaultModel
         return true;
     }
 
-    public function load()
-    {
-        global $db;
-
-        $idx_field = $this->column_name ."_idx";
-
-        $result = $db->query("
-                SELECT
-                *
-                FROM
-                TABLEPREFIX". $this->table_name);
-
-        while ($row = $result->fetch()) {
-            array_push($this->avail_items, $row->$idx_field);
-            $this->items[$row->$idx_field] = $row;
-        }
-
-    }
-
     public function verify()
     {
         global $mtlda;
