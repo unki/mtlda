@@ -52,7 +52,7 @@ class DocumentController
             return false;
         }
 
-        if (!in_array($query->params[0], array('show','sign'))) {
+        if (!in_array($query->params[0], array('show','sign', 'delete'))) {
             $mtlda->raiseError("Invalid action!");
             return false;
         }
@@ -76,6 +76,8 @@ class DocumentController
             $this->loadDocument($id);
         } elseif ($query->params[0] == "sign") {
             $this->signDocument($id);
+        } elseif ($query->params[0] == "delete") {
+            $this->deleteDocument($id);
         } else {
             $mtlda->raiseError("Unknown action found!");
             return false;
@@ -128,6 +130,11 @@ class DocumentController
             return false;
         }
 
+        if ($document->archive_version != 1) {
+            $mtlda->raiseError(__TRAIT__ ." can only sign the original imported document!");
+            return false;
+        }
+
         $storage = new StorageController($document);
 
         if (!$storage) {
@@ -145,6 +152,48 @@ class DocumentController
             'show',
             $document->archive_idx ."-". $document->archive_guid
         );
+    }
+
+    private function deleteDocument($id)
+    {
+        global $mtlda, $router;
+
+        if (!$mtlda->isValidGuidSyntax($id->guid)) {
+            $mtlda->raiseError("GUID syntax is invalid!");
+            return false;
+        }
+
+        if ($id->model != "archiveitem") {
+            $mtlda->raiseError("Can only handle ArchiveItems!");
+            return false;
+        }
+
+        $document = new Models\ArchiveItemModel($id->id, $id->guid);
+        if (!$document) {
+            $mtlda->raiseError("Unable to load a ArchiveItemModel!");
+            return false;
+        }
+
+        if ($document->archive_version == 1) {
+            $mtlda->raiseError(__TRAIT__ ." cannot delete the original imported document!");
+            return false;
+        }
+
+        $parent_idx = $document->archive_derivation;
+        $parent_guid = $document->archive_derivation_guid;
+
+        if (!$document->delete()) {
+            $mtlda->raiseError("ArchiveItemModel::delete() returned false!");
+            return false;
+        }
+
+        $router->redirectTo(
+            'archive',
+            'show',
+            $parent_idx ."-". $parent_guid
+        );
+
+        return true;
     }
 
     private function getArchiveDocumentContent(&$id)
@@ -169,19 +218,34 @@ class DocumentController
 
         $storage = new StorageController;
 
-        if (isset($descent) && !empty($descent)) {
-            if (!($content = $storage->retrieveFile($document, $descent->archive_file_hash))) {
-                $mtlda->raiseError("StorageController::retrieveFile() returned false");
-                return false;
-            }
-        } else {
-            if (!($content = $storage->retrieveFile($document, $document->archive_file_hash))) {
-                $mtlda->raiseError("StorageController::retrieveFile() returned false");
-                return false;
-            }
+        if (!($file = $storage->retrieveFile($document))) {
+            $mtlda->raiseError("StorageController::retrieveFile() returned false");
+            return false;
         }
 
-        return $content;
+        if (
+            !isset($file) ||
+            empty ($file) ||
+            !is_array($file) ||
+            !isset($file['hash'], $file['content']) ||
+            empty($file['hash']) ||
+            empty($file['content'])
+        ) {
+            $mtlda->raiseError("StorageController::retireveFile() returned an invalid file");
+            return false;
+        }
+
+        if (strlen($file['content']) != $document->archive_file_size) {
+            $mtlda->raiseError("File size of retrieved file does not match archive record!");
+            return false;
+        }
+
+        if ($file['hash'] != $document->archive_file_hash) {
+            $mtlda->raiseError("File hash of retrieved file does not match archive record!");
+            return false;
+        }
+
+        return $file['content'];
     }
 }
 
