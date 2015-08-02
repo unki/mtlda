@@ -39,6 +39,7 @@ class ArchiveItemModel extends DefaultModel
             );
     public $avail_items = array();
     public $items = array();
+    public $descendants = array();
     private $working_directory = MTLDA_BASE."/data/working";
     private $archive_directory = MTLDA_BASE."/data/archive";
 
@@ -46,7 +47,7 @@ class ArchiveItemModel extends DefaultModel
     {
         global $mtlda, $db;
 
-        // are we creating a new archive-item?
+        // are we creating a new item?
         if (!isset($id) && !isset($guid)) {
             parent::__construct(null);
             return true;
@@ -96,30 +97,52 @@ class ArchiveItemModel extends DefaultModel
             return false;
         }
 
-        parent::__construct($row->archive_idx);
-
         $db->freeStatement($sth);
+
+        parent::__construct($row->archive_idx);
 
         return true;
     }
 
-    public function load()
+    public function postLoad()
     {
         global $db;
 
         $idx_field = $this->column_name ."_idx";
+        $guid_field = $this->column_name ."_guid";
+        $version_field = $this->column_name ."_version";
 
-        $result = $db->query("
-                SELECT
-                *
-                FROM
-                TABLEPREFIX". $this->table_name);
-
-        while ($row = $result->fetch()) {
-            array_push($this->avail_items, $row->$idx_field);
-            $this->items[$row->$idx_field] = $row;
+        // check if there are descendants of this item available
+        if (!isset($this->$version_field) || $this->$version_field != 1) {
+            return true;
         }
 
+        $sth = $db->prepare(
+            "SELECT
+                    archive_idx,
+                    archive_guid
+            FROM
+                TABLEPREFIX{$this->table_name}
+            WHERE
+                archive_derivation LIKE ?
+                AND
+                archive_derivation_guid LIKE ?"
+        );
+
+        if (!$db->execute($sth, array($this->$idx_field, $this->$guid_field))) {
+            $mtlda->raiseError("Failed to execute query");
+            return false;
+        }
+
+        while ($row = $sth->fetch()) {
+            $this->descandants[] = array(
+                'idx' => $row->archive_idx,
+                'guid' => $row->archive_guid
+            );
+        }
+
+        $db->freeStatement($sth);
+        return true;
     }
 
     public function verify()
@@ -202,6 +225,39 @@ class ArchiveItemModel extends DefaultModel
         }
 
         return true;
+    }
+
+    public function postDelete()
+    {
+        global $mtld ;
+
+        if (!isset($this->descendants) && !is_array($this->descendants)) {
+            $mtlda->raiseError("descendants are not set!");
+            return false;
+        }
+
+        if (empty($this->descendants)) {
+            return true;
+        }
+
+        foreach ($this->descendants as $descendant) {
+
+            if (!isset($descendant['idx'], $descendant['guid'])) {
+                $mtlda->raiseError("descendant is invalid!");
+                return false;
+            }
+
+            $child = new ArchiveItemModel($descendant['idx'], $descendant['guid']);
+
+            if (!$child) {
+                $mtlda->raiseError("Unable to find archive item with guid value {$descendant['guid']}");
+                return false;
+            }
+
+            if (!$child->delete()) {
+                $mtlda->raiseError("descendant {$descendant['guid']} delete() returned false!");
+            }
+        }
     }
 
     public function preSave()
