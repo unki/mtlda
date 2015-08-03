@@ -97,48 +97,39 @@ class IncomingController
 
             if (!file_exists($in_file)) {
                 $mtdla->raiseError(__TRAIT__ ." file {$in_file} does not exist!");
-                exit(1);
+                return false;
             }
 
             if (!is_file($in_file)) {
                 $mtlda->raiseError(__TRAIT__ ." {$in_file} is no file!");
-                exit(1);
+                return false;
             }
 
             if (!is_readable($in_file)) {
                 $mtdla->raiseError(__TRAIT__ ." {$in_file} is not readable!");
-                exit(1);
+                return false;
             }
 
             if (($hash = sha1_file($in_file)) === false) {
                 $mtdla->raiseError(__TRAIT__ ." SHA1 value of {$in_file} can not be calculated!");
-                exit(1);
+                return false;
             }
 
             if (($size = filesize($in_file)) === false) {
                 $mtdla->raiseError(__TRAIT__ ." filesize of {$in_file} is not available!");
-                exit(1);
+                return false;
             }
 
             if (!($guid = $mtlda->createGuid())) {
                 $mtdla->raiseError(__TRAIT__ ." no valid GUID returned by createGuid()!");
-                exit(1);
+                return false;
             }
-
-            /*$sth->execute(array(
-                        $guid,
-                        $file,
-                        $size,
-                        $hash,
-                        'new',
-                        time()
-                        ));*/
 
             try {
                 $queueitem = new Models\QueueItemModel;
             } catch (Exception $e) {
                 $mtlda->raiseError("Unable to load QueueItemModel");
-                exit(1);
+                return false;
             }
 
             $queueitem->queue_guid = $guid;
@@ -153,21 +144,24 @@ class IncomingController
                     $queueitem->queue_signing_icon_position = $pos;
                 } else {
                     $mtlda->raiseError(__TRAIT__ ." PDF-Signing is enabled but no signing-icon-position found!");
-                    exit(1);
+                    return false;
                 }
             }
 
             if (!$queueitem->save()) {
+                $queueitem->delete();
                 $mtlda->raiseError(__TRAIT__ ." saving QueueItemModel failed!");
-                exit(1);
+                return false;
             }
 
             if (rename($in_file, $work_file) === false) {
                 $queueitem->delete();
                 $mtdla->raiseError(__TRAIT__ ." rename {$in_file} to {$work_file} failed!");
-                exit(1);
+                return false;
             }
         }
+
+        return true;
     }
 }
 

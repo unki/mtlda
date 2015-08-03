@@ -41,10 +41,12 @@ class MTLDA
 
         if (isset($mode) and $mode == "queue_only") {
             $incoming =& new IncomingController;
-            $incoming->handleQueue();
+            if (!$incoming->handleQueue()) {
+                $this->raiseError("IncomingController::handleQueue returned false!");
+                exit(1);
+            }
             exit(0);
         }
-
     }
 
     public function startup()
