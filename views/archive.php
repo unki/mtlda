@@ -79,6 +79,11 @@ class ArchiveView extends Templates
         }
 
         $descendants = $this->item->getDescendants();
+
+        if (!$descendants) {
+            $descendants = array();
+        }
+
         $this->assign('item_versions', $descendants);
         $this->assign('item', $this->item);
         $this->assign("item_safe_link", "archiveitem-". $this->item->archive_idx ."-". $this->item->archive_guid);
