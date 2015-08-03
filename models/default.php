@@ -82,9 +82,15 @@ class DefaultModel
             array('integer')
         );
 
-        $db->execute($sth, array(
-                    $this->id,
-                    ));
+        if (!$sth) {
+            $mtlda->raiseError("unable to prepare query");
+            return false;
+        }
+
+        if (!$db->execute($sth, array($this->id))) {
+            $mtlda->raiseError("unable to execute query");
+            return false;
+        }
 
         if ($sth->rowCount() <= 0) {
             $db->freeStatement($sth);
@@ -159,19 +165,22 @@ class DefaultModel
         }
 
         /* generic delete */
-        $sth = $db->prepare("
-                DELETE FROM
-                TABLEPREFIX". $this->table_name ."
-                WHERE
-                ". $this->column_name ."_idx LIKE ?
-                ");
-
-        $db->execute(
-            $sth,
-            array(
-                $this->id
-            )
+        $sth = $db->prepare(
+            "DELETE FROM
+                TABLEPREFIX{$this->table_name}
+            WHERE
+                {$this->column_name}_idx LIKE ?"
         );
+
+        if (!$sth) {
+            $mtlda->raiseError("unable to prepare query");
+            return false;
+        }
+
+        if (!$db->execute($sth, array($this->id))) {
+            $mtlda->raiseError("unable to execute query");
+            return false;
+        }
 
         $db->freeStatement($sth);
 
@@ -261,18 +270,24 @@ class DefaultModel
                     return false;
                 }
 
-                $sth = $db->prepare("
-                        SELECT
+                $sth = $db->prepare(
+                    "SELECT
                         *
-                        FROM
+                    FROM
                         TABLEPREFIXassign_". $child_obj->table_name ."_to_". $this->table_name ."
-                        WHERE
-                        ". $prefix ."_". $this->column_name ."_idx LIKE ?
-                        ");
+                    WHERE
+                        ". $prefix ."_". $this->column_name ."_idx LIKE ?"
+                );
 
-                $db->execute($sth, array(
-                            $srcobj->id,
-                            ));
+                if (!$sth) {
+                    $mtlda->raiseError("unable to prepare query");
+                    return false;
+                }
+
+                if (!$db->execute($sth, array($srcobj->id))) {
+                    $mtlda->raiseError("unable to execute query");
+                    return false;
+                }
 
                 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
@@ -422,8 +437,15 @@ class DefaultModel
             $arr_values[] = $this->id;
         }
 
-        $sth = $db->prepare($sql);
-        $db->execute($sth, $arr_values);
+        if (!($sth = $db->prepare($sql))) {
+            $mtlda->raiseError("unable to prepare query");
+            return false;
+        }
+
+        if (!$db->execute($sth, $arr_values)) {
+            $mtlda->raiseError("unable to execute query");
+            return false;
+        }
 
         if (!isset($this->id) || empty($this->id)) {
             $this->id = $db->getid();
@@ -477,10 +499,15 @@ class DefaultModel
                 ". $this->column_name ."_idx LIKE ?
                 ");
 
-        $db->execute($sth, array(
-                    $new_status,
-                    $this->id
-                    ));
+        if (!$sth) {
+            $mtlda->raiseError("unable to prepare query");
+            return false;
+        }
+
+        if (!$db->execute($sth, array($new_status, $this->id))) {
+            $mtlda->raiseError("unable to execute query");
+            return false;
+        }
 
         $db->freeStatement($sth);
         return true;
@@ -540,11 +567,19 @@ class DefaultModel
                 ". $prefix ."_". $child_obj->column_name ."_idx LIKE ?
                 ");
 
-        $db->execute($sth, array(
-                    $new_status,
-                    $this->id,
-                    $child_id
-                    ));
+        if (!$sth) {
+            $mtlda->raiseError("unable to prepare query");
+            return false;
+        }
+
+        if (!$db->execute($sth, array(
+            $new_status,
+            $this->id,
+            $child_id
+        ))) {
+            $mtlda->raiseError("unable to execute query");
+            return false;
+        }
 
         $db->freeStatement($sth);
         return true;
@@ -700,7 +735,16 @@ class DefaultModel
         ";
 
         $sth = $db->prepare($sql);
-        $db->execute($sth, $arr_values);
+
+        if (!$sth) {
+            $mtlda->raiseError("unable to prepare query");
+            return false;
+        }
+
+        if (!$db->execute($sth, $arr_values)) {
+            $mtlda->raiseError("unable to execute query");
+            return false;
+        }
 
         if ($sth->rowCount() <= 0) {
             $db->freeStatement($sth);
