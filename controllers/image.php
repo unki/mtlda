@@ -23,6 +23,10 @@ use MTLDA\Models;
 
 class ImageController
 {
+    private $archive_path = MTLDA_BASE."/data/archive";
+    private $working_path = MTLDA_BASE."/data/working";
+    private $image_cache  = MTLDA_BASE."/data/image_cache";
+
     public function perform()
     {
         global $mtlda, $query;
@@ -86,7 +90,7 @@ class ImageController
         return true;
     }
 
-    public function createPreviewImage(&$item)
+    public function createPreviewImage(&$item, $return_content = true)
     {
         global $mtlda, $config;
 
@@ -100,7 +104,7 @@ class ImageController
             return false;
         }
 
-        $src = MTLDA_BASE.'/data/working/'. $item->queue_file_name;
+        $src = $this->working_path .'/'. $item->queue_file_name;
 
         if (!file_exists($src)) {
             $mtlda->raiseError("Source does not exist!");
@@ -138,7 +142,7 @@ class ImageController
         }
 
         if ($config->isImageCachingEnabled()) {
-            $this->saveImageToCache($item->queue_idx, $item->queue_guid, 'preview', $im);
+            $this->saveImageToCache($item->queue_idx, $item->queue_guid, 'queueitem_preview', $im);
         }
 
         if (!($content = $im->getImageBlob())) {
@@ -146,7 +150,11 @@ class ImageController
             return false;
         }
 
-        return $content;
+        if ($return_content) {
+            return $content;
+        }
+
+        return true;
     }
 
     public function updateProgress()
@@ -156,7 +164,7 @@ class ImageController
 
     private function isCachedImageAvailable($id, $guid, $prefix)
     {
-        $file = MTLDA_BASE."/data/image_cache/{$prefix}_{$id}_{$guid}.jpg";
+        $file = "{$this->image_cache}/{$prefix}_{$id}_{$guid}.jpg";
 
         if (file_exists($file) && is_readable($file)) {
             return true;
@@ -169,7 +177,7 @@ class ImageController
     {
         global $mtlda;
 
-        $file = MTLDA_BASE."/data/image_cache/{$prefix}_{$id}_{$guid}.jpg";
+        $file = "{$this->image_cache}/{$prefix}_{$id}_{$guid}.jpg";
 
         if (($content = file_get_contents($file)) === false) {
             $mtlda->raiseError("Unable to read file {$file}!");
@@ -183,7 +191,7 @@ class ImageController
     {
         global $mtlda;
 
-        $file = MTLDA_BASE."/data/image_cache/{$prefix}_{$id}_{$guid}.jpg";
+        $file = "{$this->image_cache}/{$prefix}_{$id}_{$guid}.jpg";
 
         if (($fp = fopen($file, 'w')) === false) {
             $mtlda->raiseError("Unable to write to {$file}");
