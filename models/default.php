@@ -229,21 +229,21 @@ class DefaultModel
             $this->$field = $srcobj->$field;
         }
 
-        $idx = $this->column_name.'_idx';
-        $guid = $this->column_name.'_guid';
+        $idx_field = $this->column_name.'_idx';
+        $guid_field = $this->column_name.'_guid';
         $pguid = $this->column_name.'_derivation_guid';
 
         $this->id = null;
-        if (isset($this->$idx)) {
-            $this->$idx = null;
+        if (isset($this->$idx_field)) {
+            $this->$idx_field = null;
         }
-        if (isset($this->$guid)) {
-            $this->$guid = $mtlda->createGuid();
+        if (isset($this->$guid_field)) {
+            $this->$guid_field = $mtlda->createGuid();
         }
 
         // record the parent objects GUID
-        if (isset($srcobj->$guid) && !empty($srcobj->$guid)) {
-            $this->$pguid = $srcobj->$guid;
+        if (isset($srcobj->$guid_field) && !empty($srcobj->$guid_field)) {
+            $this->$pguid = $srcobj->$guid_field;
         }
 
         $this->save();
@@ -254,7 +254,7 @@ class DefaultModel
             return false;
         }
 
-        $this->$idx = $this->id;
+        $this->$idx_field = $this->id;
 
         // now check for assigned childrens and duplicate those links too
         if (isset($this->child_names) && !isset($this->ignore_child_on_clone)) {
@@ -403,10 +403,11 @@ class DefaultModel
             }
         }
 
-        $guid = $this->column_name .'_guid';
+        $guid_field = $this->column_name .'_guid';
+        $idx_field = $this->column_name .'_idx';
 
-        if (!isset($this->$guid) || empty($this->$guid)) {
-            $this->$guid = $mtlda->createGuid();
+        if (!isset($this->$guid_field) || empty($this->$guid_field)) {
+            $this->$guid_field = $mtlda->createGuid();
         }
 
         /* new object */
@@ -430,8 +431,7 @@ class DefaultModel
         $sql = substr($sql, 0, strlen($sql)-2) .' ';
 
         if (!isset($this->id)) {
-            $idx_name = $this->column_name .'_idx';
-            $this->$idx_name = 'NULL';
+            $this->$idx_field = 'NULL';
         } else {
             $sql.= 'WHERE '. $this->column_name .'_idx LIKE ?';
             $arr_values[] = $this->id;
@@ -449,6 +449,10 @@ class DefaultModel
 
         if (!isset($this->id) || empty($this->id)) {
             $this->id = $db->getid();
+        }
+
+        if (!isset($this->$idx_field) || empty($this->$idx_field) || $this->$idx_field == 'NULL') {
+            $this->$idx_field = $this->id;
         }
 
         $db->freeStatement($sth);
@@ -590,14 +594,14 @@ class DefaultModel
     {
         global $mtlda, $db;
 
-        $id = $this->column_name ."_idx";
-        $guid = $this->column_name ."_guid";
+        $idx_field = $this->column_name ."_idx";
+        $guid_field = $this->column_name ."_guid";
 
         $result = $db->fetchSingleRow(
             "
                 SELECT
                     {$id},
-                    {$guid}
+                    {$guid_field}
                 FROM
                     TABLEPREFIX{$this->table_name}
                 WHERE
@@ -616,31 +620,31 @@ class DefaultModel
             return false;
         }
 
-        if (!isset($result->$id) || !isset($result->$guid)) {
+        if (!isset($result->$idx_field) || !isset($result->$guid_field)) {
             $mtlda->raiseError("No previous record available!");
             return false;
         }
 
-        if (!is_numeric($result->$id) || !$mtlda->isValidGuidSyntax($result->$guid)) {
+        if (!is_numeric($result->$idx_field) || !$mtlda->isValidGuidSyntax($result->$guid_field)) {
             $mtlda->raiseError("Invalid previous record found: ". htmlentities($result->$id, ENT_QUOTES));
             return false;
         }
 
-        return $result->$id ."-". $result->$guid;
+        return $result->$id ."-". $result->$guid_field;
     }
 
     public function next()
     {
         global $mtlda, $db;
 
-        $id = $this->column_name ."_idx";
-        $guid = $this->column_name ."_guid";
+        $idx_field = $this->column_name ."_idx";
+        $guid_field = $this->column_name ."_guid";
 
         $result = $db->fetchSingleRow(
             "
                 SELECT
                     {$id},
-                    {$guid}
+                    {$guid_field}
                 FROM
                     TABLEPREFIX{$this->table_name}
                 WHERE
@@ -659,17 +663,17 @@ class DefaultModel
             return false;
         }
 
-        if (!isset($result->$id) || !isset($result->$guid)) {
+        if (!isset($result->$idx_field) || !isset($result->$guid_field)) {
             $mtlda->raiseError("No next record available!");
             return false;
         }
 
-        if (!is_numeric($result->$id) || !$mtlda->isValidGuidSyntax($result->$guid)) {
+        if (!is_numeric($result->$idx_field) || !$mtlda->isValidGuidSyntax($result->$guid_field)) {
             $mtlda->raiseError("Invalid next record found: ". htmlentities($result->$id, ENT_QUOTES));
             return false;
         }
 
-        return $result->$id ."-". $result->$guid;
+        return $result->$id ."-". $result->$guid_field;
     }
 
     public function isDuplicate()
@@ -681,39 +685,39 @@ class DefaultModel
             return false;
         }
 
-        $idx = $this->column_name.'_idx';
-        $guid = $this->column_name.'_guid';
+        $idx_field = $this->column_name.'_idx';
+        $guid_field = $this->column_name.'_guid';
 
         if (
             (
-                !isset($this->$idx) || empty($this->$idx)
+                !isset($this->$idx_field) || empty($this->$idx_field)
             ) && (
-                !isset($this->$guid) || empty($this->$guid)
+                !isset($this->$guid_field) || empty($this->$guid_field)
             )
         ) {
 
-            $mtlda->raiseError(__TRAIT__ ." can't check for duplicates if neither \$idx or \$guid is set!");
+            $mtlda->raiseError(__TRAIT__ ." can't check for duplicates if neither \$idx_field or \$guid_field is set!");
             return false;
         }
 
         $arr_values = array();
         $where_sql = '';
-        if (isset($this->$idx) && !empty($this->idx)) {
+        if (isset($this->$idx_field) && !empty($this->$idx_field)) {
             $where_sql.= "
-                {$idx} LIKE ?
+                {$idx_field} LIKE ?
             ";
-            $arr_values[] = $this->$idx;
+            $arr_values[] = $this->$idx_field;
         }
-        if (isset($this->$guid) && !empty($this->guid)) {
+        if (isset($this->$guid_field) && !empty($this->$guid_field)) {
             if (!empty($where_sql)) {
                 $where_sql.= "
                     AND
                 ";
             }
             $where_sql.= "
-                {$guid} LIKE ?
+                {$guid_field} LIKE ?
             ";
-            $arr_values[] = $this->$guid;
+            $arr_values[] = $this->$guid_field;
         }
 
         if (
@@ -725,11 +729,11 @@ class DefaultModel
         }
 
         $sql = "SELECT
-            {$idx}
+            {$idx_field}
             FROM
             TABLEPREFIX{$this->table_name}
             WHERE
-                {$idx} <> {$this->id}
+                {$idx_field} <> {$this->id}
             AND
             {$where_sql}
         ";
