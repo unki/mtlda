@@ -81,10 +81,14 @@ class ArchiveItemModel extends DefaultModel
             $arr_query[] = $guid;
         };
 
-        $sth = $db->prepare($sql);
+        if (!($sth = $db->prepare($sql))) {
+            $mtlda->raiseError("Failed to prepare query");
+            return false;
+        }
 
         if (!$db->execute($sth, $arr_query)) {
             $mtlda->raiseError("Failed to execute query");
+            return false;
         }
 
         if (!($row = $sth->fetch())) {
@@ -129,13 +133,18 @@ class ArchiveItemModel extends DefaultModel
                 archive_derivation_guid LIKE ?"
         );
 
+        if (!$sth) {
+            $mtlda->raiseError("Failed to prepare query");
+            return false;
+        }
+
         if (!$db->execute($sth, array($this->$idx_field, $this->$guid_field))) {
             $mtlda->raiseError("Failed to execute query");
             return false;
         }
 
         while ($row = $sth->fetch()) {
-            $this->descandants[] = array(
+            $this->descendants[] = array(
                 'idx' => $row->archive_idx,
                 'guid' => $row->archive_guid
             );
@@ -256,8 +265,11 @@ class ArchiveItemModel extends DefaultModel
 
             if (!$child->delete()) {
                 $mtlda->raiseError("descendant {$descendant['guid']} delete() returned false!");
+                return false;
             }
         }
+
+        return true;
     }
 
     public function preSave()
