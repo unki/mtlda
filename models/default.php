@@ -754,43 +754,6 @@ class DefaultModel
         $db->freeStatement($sth);
         return true;
     }
-
-    public function getDescendants()
-    {
-        $version = $this->column_name.'_version';
-
-        if ($this->$version != 1) {
-            return array();
-        }
-
-        global $db;
-
-        $result = $db->query(
-            "SELECT
-                {$this->column_name}_idx,
-                {$this->column_name}_guid,
-                {$this->column_name}_file_name
-            FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-                {$this->column_name}_derivation LIKE {$this->id}
-            ORDER BY
-                {$this->column_name}_version ASC"
-        );
-
-        $descendant = array();
-
-        $idx = $this->column_name.'_idx';
-        $guid = $this->column_name.'_guid';
-        $filename = $this->column_name.'_file_name';
-
-        while ($row = $result->fetch()) {
-            $descendant[] = array('id' => $row->$idx, 'guid' => $row->$guid, 'file_name' => $row->$filename);
-        }
-
-        return $descendant;
-
-    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
