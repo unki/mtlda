@@ -137,12 +137,11 @@ class DatabaseController
             $this->insertTablePrefix($query);
         }
 
-        $this->db->prepare($query);
-
         try {
             $sth = $this->db->prepare($query);
         } catch (PDOException $e) {
             $mtlda->raiseError("Unable to prepare statement: ". $e->getMessage());
+            return false;
         }
 
         return $sth;
@@ -169,6 +168,7 @@ class DatabaseController
             $result = $sth->execute($data);
         } catch (PDOException $e) {
             $mtlda->raiseError("Unable to execute statement: ". $e->getMessage());
+            return false;
         }
 
         return $result;
@@ -191,6 +191,7 @@ class DatabaseController
             $sth->closeCursor();
         } catch (Exception $e) {
             $sth = null;
+            return false;
         }
 
         return true;
@@ -221,6 +222,7 @@ class DatabaseController
             $row = $result->fetch($mode);
         } catch (PDOException $e) {
             $mtlda->raiseError("Unable to query database: ". $e->getMessage());
+            return false;
         }
 
         return $row;
