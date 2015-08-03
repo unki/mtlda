@@ -279,6 +279,31 @@ class ConfigController
         return false;
 
     }
+
+    public function isCreatePreviewImageOnImport()
+    {
+        if (!$this->isImageCachingEnabled()) {
+            return false;
+        }
+
+        if (!isset($this->config['app']['create_preview_on_import'])) {
+            return false;
+        }
+
+        if (empty($this->config['app']['create_preview_on_import'])) {
+            return false;
+        }
+
+        if (!$this->config['app']['create_preview_on_import']) {
+            return false;
+        }
+
+        if (!in_array($this->config['app']['create_preview_on_import'], array('yes','y','true','on','1'))) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:

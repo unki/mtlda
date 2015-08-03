@@ -19,6 +19,7 @@
 
 namespace MTLDA\Controllers;
 
+use MTLDA\Controllers;
 use MTLDA\Models;
 
 class IncomingController
@@ -78,6 +79,16 @@ class IncomingController
         if (( $incoming = opendir($this->incoming_directory)) === false) {
             print "Error!: failed to access ". $this->incoming_directory;
             die();
+        }
+
+        if ($config->isCreatePreviewImageOnImport()) {
+
+            try {
+                $imagectrl = new Controllers\ImageController;
+            } catch (Exception $e) {
+                $mtlda->raiseError("Unable to load ImageController");
+                return false;
+            }
         }
 
         while ($file = readdir($incoming)) {
@@ -140,6 +151,7 @@ class IncomingController
             $queueitem->queue_time = time();
 
             if ($config->isPdfSigningEnabled()) {
+
                 if ($pos = $config->getPdfSigningIconPosition()) {
                     $queueitem->queue_signing_icon_position = $pos;
                 } else {
@@ -158,6 +170,14 @@ class IncomingController
                 $queueitem->delete();
                 $mtdla->raiseError(__TRAIT__ ." rename {$in_file} to {$work_file} failed!");
                 return false;
+            }
+
+            if ($config->isCreatePreviewImageOnImport()) {
+                if (!$imagectrl->createPreviewImage($queueitem, false)) {
+                    $mtlda->raiseError("ImageController::savePreviewImage() returned false");
+                    $queueitem->delete();
+                    return false;
+                }
             }
         }
 

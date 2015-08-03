@@ -25,6 +25,8 @@ page_title = "My Tiny Little Document Archive"
 
 ; Image caching, 0 = disabled, 1 = enabled
 image_cache = 1
+; Create preview image during import, 0 = disabled, 1 = enabled
+create_preview_on_import = 0
 ; PDF Signing, 0 = disabled, 1 = enabled
 pdf_signing = 0
 
