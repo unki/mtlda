@@ -339,33 +339,25 @@ class ArchiveItemModel extends DefaultModel
             return array();
         }
 
-        global $db;
-
-        $result = $db->query(
-            "SELECT
-                {$this->column_name}_idx,
-                {$this->column_name}_guid,
-                {$this->column_name}_file_name
-            FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-                {$this->column_name}_derivation LIKE {$this->id}
-            ORDER BY
-                {$this->column_name}_version ASC"
-        );
-
-        $descendant = array();
-
-        $idx = $this->column_name.'_idx';
-        $guid = $this->column_name.'_guid';
-        $filename = $this->column_name.'_file_name';
-
-        while ($row = $result->fetch()) {
-            $descendant[] = array('id' => $row->$idx, 'guid' => $row->$guid, 'file_name' => $row->$filename);
+        if (!isset($this->descendants) || !is_array($this->descendants)) {
+            return false;
         }
 
-        return $descendant;
+        if (empty($this->descendants)) {
+            return array();
+        }
 
+        $ary_descendants = array();
+
+        foreach ($this->descendants as $descendant) {
+
+            $ary_descendants[] = new ArchiveItemModel(
+                $descendant['idx'],
+                $descendant['guid']
+            );
+        }
+
+        return $ary_descendants;
     }
 }
 
