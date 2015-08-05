@@ -30,9 +30,26 @@ class MTLDA
     {
         $GLOBALS['mtlda'] =& $this;
 
-        $GLOBALS['config'] =& new ConfigController;
-        $req = new RequirementsController;
-        $GLOBALS['db'] =& new DatabaseController;
+        try {
+            $GLOBALS['config'] =& new ConfigController;
+        } catch (Exception $e) {
+            $this->raiseError("Failed to load ConfigController");
+            return false;
+        }
+
+        try {
+            $req = new RequirementsController;
+        } catch (Exception $e) {
+            $this->raiseError("Failed to load RequirementsController");
+            return false;
+        }
+
+        try {
+            $GLOBALS['db'] =& new DatabaseController;
+        } catch (Exception $e) {
+            $this->raiseError("Failed to load DatabaseController");
+            return false;
+        }
 
         if (!$req->check()) {
             $this->raiseError("Error - not all MTLDA requirements are met. Please check!");
@@ -40,24 +57,37 @@ class MTLDA
         }
 
         if (isset($mode) and $mode == "queue_only") {
-            $incoming =& new IncomingController;
+
+            try {
+                $incoming =& new IncomingController;
+            } catch (Exception $e) {
+                $this->raiseError("Failed to load IncomingController");
+                return false;
+            }
+
             if (!$incoming->handleQueue()) {
                 $this->raiseError("IncomingController::handleQueue returned false!");
-                exit(1);
+                return false;
             }
-            exit(0);
         }
+
+        return true;
     }
 
     public function startup()
     {
-        $GLOBALS['router'] =& new HttpRouterController;
+        try {
+            $GLOBALS['router'] =& new HttpRouterController;
+        } catch (Exception $e) {
+            $this->raiseError("Failed to load HttpRouterController");
+            return false;
+        }
 
         global $config, $db, $router;
 
         if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
             $this->raiseError("Error - \$_SERVER['REQUEST_URI'] is not set!");
-            exit(1);
+            return false;
         }
 
         $GLOBALS['query'] = $router->parse($_SERVER['REQUEST_URI']);
@@ -65,33 +95,55 @@ class MTLDA
 
         if (!isset($query->view)) {
             $this->raiseError("Error - parsing request URI hasn't unveiled what to view!");
-            exit(1);
+            return false;
         }
 
-        $GLOBALS['views'] =& new ViewsController;
+        try {
+            $GLOBALS['views'] =& new ViewsController;
+        } catch (Exception $e) {
+            $this->raiseError("Failed to load ViewsController");
+            return false;
+        }
+
         global $views;
 
         if ($router->isRpcCall()) {
-            $this->rpcHandler();
-            return;
+
+            if (!$this->rpcHandler()) {
+                $this->raiseError("MTLDA::rpcHandler() returned false!");
+                return false;
+            }
+            return true;
+
+        } elseif ($router->isImageCall()) {
+
+            if (!$this->imageHandler()) {
+                $this->raiseError("MTLDA::imageHandler() returned false!");
+                return false;
+            }
+            return true;
+
+        } elseif ($router->isDocumentCall()) {
+
+            if (!$this->documentHandler()) {
+                $this->raiseError("MTLDA::documentHandler() returned false!");
+                return false;
+            }
+            return true;
+
+        } elseif ($page_name = $views->getViewName($query->view)) {
+
+            if (!$page = $views->load($page_name)) {
+                $this->raiseError("ViewController:load() returned false!");
+                return false;
+            }
+
+            print $page;
+            return true;
         }
 
-        if ($router->isImageCall()) {
-            $this->imageHandler();
-            return;
-        }
-
-        if ($router->isDocumentCall()) {
-            $this->documentHandler();
-            return;
-        }
-
-        if (!$page_name = $views->getViewName($query->view)) {
-            $this->raiseError("Unable to find a view for ". $query->view);
-        }
-
-        $page = $views->load($page_name);
-        print $page;
+        $this->raiseError("Unable to find a view for ". $query->view);
+        return false;
     }
 
     public function raiseError($string, $stop = false)
@@ -186,20 +238,53 @@ class MTLDA
 
     private function rpcHandler()
     {
-        $rpc = new RpcController;
-        $rpc->perform();
+        try {
+            $rpc = new RpcController;
+        } catch (Exception $e) {
+            $this->raiseError("Failed to load RpcController");
+            return false;
+        }
+
+        if (!$rpc->perform()) {
+            $this->raiseError("RpcController:perform() returned false!");
+            return false;
+        }
+
+        return true;
     }
 
     private function imageHandler()
     {
-        $image = new ImageController;
-        $image->perform();
+        try {
+            $image = new ImageController;
+        } catch (Exception $e) {
+            $this->raiseError("Failed to load ImageController");
+            return false;
+        }
+
+        if (!$image->perform()) {
+            $this->raiseError("ImageController:perform() returned false!");
+            return false;
+        }
+
+        return true;
     }
 
     private function documentHandler()
     {
-        $document = new DocumentController;
-        $document->perform();
+        try {
+            $document = new DocumentController;
+        } catch (Exception $e) {
+            $this->raiseError("Failed to load DocumentController");
+            return false;
+        }
+
+        if (!$document->perform()) {
+            $this->raiseError("DocumentController:perform() returned false!");
+            return false;
+        }
+
+        return true;
     }
 
     public function isValidId($id)
