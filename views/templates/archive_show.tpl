@@ -17,11 +17,11 @@
 <table>
  <tr>
   <td>Filename:</td>
-  <td>{$item->archive_file_name}</td>
+  <td>{$item->document_file_name}</td>
  </tr>
  <tr>
   <td>Size:</td>
-  <td>{$item->archive_file_size}</td>
+  <td>{$item->document_file_size}</td>
  </tr>
  <tr>
   <td>Versions:</td>
@@ -30,8 +30,8 @@
    <a href="{get_url page=document mode=sign id=$item_safe_link}">Sign</a>
    <br />
    {foreach $item_versions as $version}
-    {assign var='safe_link' value="archiveitem-`$version->archive_idx`-`$version->archive_guid`"}
-    <a href="{get_url page=document mode=show id=$safe_link}">v{$version->archive_version} - {$version->archive_file_name}</a>&nbsp;
+    {assign var='safe_link' value="document-`$version->document_idx`-`$version->document_guid`"}
+    <a href="{get_url page=document mode=show id=$safe_link}">v{$version->document_version} - {$version->document_file_name}</a>&nbsp;
     <a href="{get_url page=document mode=delete id=$safe_link}">Delete</a>
     <br />
    {/foreach}

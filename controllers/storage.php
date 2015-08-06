@@ -55,7 +55,7 @@ class StorageController
             return false;
         }
 
-        $archive_item = new Models\ArchiveItemModel;
+        $document = new Models\DocumentModel;
 
         if (
             !isset($queue_item->fields) ||
@@ -66,7 +66,7 @@ class StorageController
             return false;
         }
 
-        // copy fields from QueueItemModel to ArchiveItemModel
+        // copy fields from QueueItemModel to DocumentModel
         foreach (array_keys($queue_item->fields) as $queue_field) {
 
             // fields we skip
@@ -74,13 +74,13 @@ class StorageController
                 continue;
             }
 
-            $archive_field = str_replace("queue_", "archive_", $queue_field);
-            $archive_item->$archive_field = $queue_item->$queue_field;
+            $document_field = str_replace("queue_", "document_", $queue_field);
+            $document->$document_field = $queue_item->$queue_field;
         }
 
-        $archive_item->archive_version = '1';
-        $archive_item->archive_derivation = '';
-        $archive_item->archive_derivation_guid = '';
+        $document->document_version = '1';
+        $document->document_derivation = '';
+        $document->document_derivation_guid = '';
 
         // copy file from queue to data directory
         if (!$this->copyQueueItemFileToArchive($queue_item->queue_file_name, $store_dir_name)) {
@@ -88,18 +88,18 @@ class StorageController
             return false;
         }
 
-        // safe ArchiveItemModel to database, if that fails revert
-        if (!$archive_item->save()) {
-            $this->deleteItemFile($archive_item);
-            $mtlda->raiseError("ArchiveItemModel::save() returned false!");
+        // safe DocumentModel to database, if that fails revert
+        if (!$document->save()) {
+            $this->deleteItemFile($document);
+            $mtlda->raiseError("DocumentModel::save() returned false!");
             return false;
         }
 
         // delete QueueItemModel from database, if that fails revert
         // deleting the model will also remove the file
         if (!$queue_item->delete()) {
-            $archive_item->delete();
-            $mtlda->raiseError("ArchiveItemModel::delete() returned false!");
+            $document->delete();
+            $mtlda->raiseError("DocumentModel::delete() returned false!");
             return false;
         }
 
@@ -113,7 +113,7 @@ class StorageController
             return true;
         }
 
-        if (!$this->sign($archive_item)) {
+        if (!$this->sign($document)) {
             return false;
         }
 
@@ -130,32 +130,31 @@ class StorageController
             try {
                 $signer = new Controllers\PdfSigningController;
             } catch (Exception $e) {
-                $archive_item->delete();
                 $mtlda->raiseError("Failed to load PdfSigningController");
                 return false;
             }
         }
 
-        $signing_item = new models\ArchiveItemModel;
+        $signing_item = new models\DocumentModel;
         if (!($signing_item->createClone($src_item))) {
-            $mtlda->raiseError(__TRAIT__ ." unable to clone ArchiveItemModel!");
+            $mtlda->raiseError(__TRAIT__ ." unable to clone DocumentModel!");
             return false;
         }
 
-        $signing_item->archive_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->archive_file_name);
-        $signing_item->archive_version++;
-        $signing_item->archive_derivation = $src_item->id;
-        $signing_item->archive_derivation_guid = $src_item->archive_guid;
+        $signing_item->document_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->document_file_name);
+        $signing_item->document_version++;
+        $signing_item->document_derivation = $src_item->id;
+        $signing_item->document_derivation_guid = $src_item->document_guid;
         $signing_item->save();
 
         // generate a hash-value based directory name
-        if (!($src_dir_name = $this->generateDirectoryName($src_item->archive_guid))) {
+        if (!($src_dir_name = $this->generateDirectoryName($src_item->document_guid))) {
             $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
             $signing_item->delete();
             return false;
         }
 
-        if (!($dest_dir_name = $this->generateDirectoryName($signing_item->archive_guid))) {
+        if (!($dest_dir_name = $this->generateDirectoryName($signing_item->document_guid))) {
             $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
             $signing_item->delete();
             return false;
@@ -168,18 +167,18 @@ class StorageController
             return false;
         }
 
-        $src = $src_dir_name  .'/'. $src_item->archive_file_name;
-        $dst = $dest_dir_name .'/'. $signing_item->archive_file_name;
+        $src = $src_dir_name  .'/'. $src_item->document_file_name;
+        $dst = $dest_dir_name .'/'. $signing_item->document_file_name;
 
-        if (!$this->copyArchiveItemFile($src, $dst)) {
+        if (!$this->copyArchiveDocumentFile($src, $dst)) {
             $signing_item->delete();
-            $mtlda->raiseError("StorageController::copyArchiveItemFile() returned false!");
+            $mtlda->raiseError("StorageController::copyArchiveDocumentFile() returned false!");
             return false;
         }
 
         $fqpn_dst = $this->archive_path .'/'. $dst;
 
-        if (!$signer->signDocument($fqpn_dst, $signing_item->archive_signing_icon_position)) {
+        if (!$signer->signDocument($fqpn_dst, $signing_item->document_signing_icon_position)) {
             $signing_item->delete();
             $mtlda->raiseError("PdfSigningController::ѕignDocument() returned false!");
             return $false;
@@ -302,7 +301,7 @@ class StorageController
         return true;
     }
 
-    private function copyArchiveItemFile($src, $dst)
+    private function copyArchiveDocumentFile($src, $dst)
     {
         global $mtlda;
 
@@ -310,17 +309,17 @@ class StorageController
         $fqpn_dst = $this->archive_path .'/'. $dst;
 
         if (!file_exists($fqpn_src)) {
-            $mtlda->raiseError("copyArchiveItemFile(), {$fqpn_src} does not exist!");
+            $mtlda->raiseError("copyArchiveDocumentFile(), {$fqpn_src} does not exist!");
             return false;
         }
 
         if (file_exists($fqpn_dst)) {
-            $mtlda->raiseError("copyArchiveItemFile(), {$fqpn_dst} already exist!");
+            $mtlda->raiseError("copyArchiveDocumentFile(), {$fqpn_dst} already exist!");
             return false;
         }
 
         if (!copy($fqpn_src, $fqpn_dst)) {
-            $mtlda->raiseError("copyArchiveItemFile(), copy() returned false!");
+            $mtlda->raiseError("copyArchiveDocumentFile(), copy() returned false!");
             return false;
         }
 
@@ -390,7 +389,7 @@ class StorageController
             return false;
         }
 
-        if ($item->column_name == 'archive') {
+        if ($item->column_name == 'document') {
 
             if (!($dir_name = $this->generateDirectoryName($item->$guid))) {
                 $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
@@ -430,13 +429,15 @@ class StorageController
     {
         global $mtlda;
 
-        $guid_field = "{$from}_guid";
-        $name_field = "{$from}_file_name";
 
         if ($from == 'archive') {
             $src = $this->archive_path;
+            $guid_field = "document_guid";
+            $name_field = "document_file_name";
         } else {
             $src = $this->working_path;
+            $guid_field = "queue_guid";
+            $name_field = "queue_file_name";
         }
 
         if (!($dir_name = $this->generateDirectoryName($document->$guid_field))) {

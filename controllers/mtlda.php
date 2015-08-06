@@ -302,7 +302,7 @@ class MTLDA
     {
         $valid_models = array(
             'queueitem',
-            'archiveitem',
+            'document',
         );
 
         if (in_array($model, $valid_models)) {
@@ -372,8 +372,8 @@ class MTLDA
             case 'queueitem':
                 $obj = new Models\QueueItemModel($id, $guid);
                 break;
-            case 'archiveitem':
-                $obj = new Models\ArchiveItemModel($id, $guid);
+            case 'document':
+                $obj = new Models\DocumentModel($id, $guid);
                 break;
         }
 

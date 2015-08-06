@@ -21,21 +21,21 @@ namespace MTLDA\Models ;
 
 use MTLDA\Controllers;
 
-class ArchiveItemModel extends DefaultModel
+class DocumentModel extends DefaultModel
 {
     public $table_name = 'archive';
-    public $column_name = 'archive';
+    public $column_name = 'document';
     public $fields = array(
-            'archive_idx' => 'integer',
-            'archive_guid' => 'string',
-            'archive_file_name' => 'string',
-            'archive_file_hash' => 'string',
-            'archive_file_size' => 'integer',
-            'archive_signing_icon_position' => 'integer',
-            'archive_time' => 'integer',
-            'archive_version' => 'integer',
-            'archive_derivation' => 'integer',
-            'archive_derivation_guid' => 'string',
+            'document_idx' => 'integer',
+            'document_guid' => 'string',
+            'document_file_name' => 'string',
+            'document_file_hash' => 'string',
+            'document_file_size' => 'integer',
+            'document_signing_icon_position' => 'integer',
+            'document_time' => 'integer',
+            'document_version' => 'integer',
+            'document_derivation' => 'integer',
+            'document_derivation_guid' => 'string',
             );
     public $avail_items = array();
     public $items = array();
@@ -56,7 +56,7 @@ class ArchiveItemModel extends DefaultModel
         // get $id from db
         $sql = "
             SELECT
-                archive_idx
+                document_idx
             FROM
                 TABLEPREFIX{$this->table_name}
             WHERE
@@ -65,7 +65,7 @@ class ArchiveItemModel extends DefaultModel
         $arr_query = array();
         if (isset($id)) {
             $sql.= "
-                archive_idx LIKE ?
+                document_idx LIKE ?
             ";
             $arr_query[] = $id;
         }
@@ -76,7 +76,7 @@ class ArchiveItemModel extends DefaultModel
         }
         if (isset($guid)) {
             $sql.= "
-                archive_guid LIKE ?
+                document_guid LIKE ?
             ";
             $arr_query[] = $guid;
         };
@@ -96,14 +96,14 @@ class ArchiveItemModel extends DefaultModel
             return false;
         }
 
-        if (!isset($row->archive_idx) || empty($row->archive_idx)) {
+        if (!isset($row->document_idx) || empty($row->document_idx)) {
             $mtlda->raiseError("Unable to find archive item with guid value {$guid}");
             return false;
         }
 
         $db->freeStatement($sth);
 
-        parent::__construct($row->archive_idx);
+        parent::__construct($row->document_idx);
 
         return true;
     }
@@ -123,14 +123,14 @@ class ArchiveItemModel extends DefaultModel
 
         $sth = $db->prepare(
             "SELECT
-                    archive_idx,
-                    archive_guid
+                    document_idx,
+                    document_guid
             FROM
                 TABLEPREFIX{$this->table_name}
             WHERE
-                archive_derivation LIKE ?
+                document_derivation LIKE ?
                 AND
-                archive_derivation_guid LIKE ?"
+                document_derivation_guid LIKE ?"
         );
 
         if (!$sth) {
@@ -145,8 +145,8 @@ class ArchiveItemModel extends DefaultModel
 
         while ($row = $sth->fetch()) {
             $this->descendants[] = array(
-                'idx' => $row->archive_idx,
-                'guid' => $row->archive_guid
+                'idx' => $row->document_idx,
+                'guid' => $row->document_guid
             );
         }
 
@@ -163,17 +163,17 @@ class ArchiveItemModel extends DefaultModel
             return false;
         }
 
-        if (!isset($this->archive_file_name)) {
-            $mtlda->raiseError("archive_file_name is not set!");
+        if (!isset($this->document_file_name)) {
+            $mtlda->raiseError("document_file_name is not set!");
             return false;
         }
 
-        if (!isset($this->archive_file_hash)) {
-            $mtlda->raiseError("archive_file_hash is not set!");
+        if (!isset($this->document_file_hash)) {
+            $mtlda->raiseError("document_file_hash is not set!");
             return false;
         }
 
-        $fqpn = $this->working_directory .'/'. $this->archive_file_name;
+        $fqpn = $this->working_directory .'/'. $this->document_file_name;
 
         if (!file_exists($fqpn)) {
             $mtlda->raiseError("File {$fqpn} does not exist!");
@@ -200,20 +200,20 @@ class ArchiveItemModel extends DefaultModel
 
     public function getGuid()
     {
-        if (!isset($this->archive_guid)) {
+        if (!isset($this->document_guid)) {
             return false;
         }
 
-        return $this->archive_guid;
+        return $this->document_guid;
     }
 
     public function getFileHash()
     {
-        if (!isset($this->archive_file_hash)) {
+        if (!isset($this->document_file_hash)) {
             return false;
         }
 
-        return $this->archive_file_hash;
+        return $this->document_file_hash;
     }
 
     public function preDelete()
@@ -256,10 +256,10 @@ class ArchiveItemModel extends DefaultModel
                 return false;
             }
 
-            $child = new ArchiveItemModel($descendant['idx'], $descendant['guid']);
+            $child = new DocumentModel($descendant['idx'], $descendant['guid']);
 
             if (!$child) {
-                $mtlda->raiseError("Unable to find archive item with guid value {$descendant['guid']}");
+                $mtlda->raiseError("Unable to find document with guid value {$descendant['guid']}");
                 return false;
             }
 
@@ -288,7 +288,7 @@ class ArchiveItemModel extends DefaultModel
     {
         global $mtlda;
 
-        $fqpn = $this->archive_directory .'/'. $path .'/'. $this->archive_file_name;
+        $fqpn = $this->archive_directory .'/'. $path .'/'. $this->document_file_name;
 
         if (!file_exists($fqpn)) {
             $mtlda->raiseError("File {$fqpn} does not exist!");
@@ -320,9 +320,9 @@ class ArchiveItemModel extends DefaultModel
             return false;
         }
 
-        $this->archive_file_size = $size;
-        $this->archive_file_hash = $hash;
-        $this->archive_time = time();
+        $this->document_file_size = $size;
+        $this->document_file_hash = $hash;
+        $this->document_time = time();
 
         if (!$this->save()) {
             return false;
@@ -351,7 +351,7 @@ class ArchiveItemModel extends DefaultModel
 
         foreach ($this->descendants as $descendant) {
 
-            $ary_descendants[] = new ArchiveItemModel(
+            $ary_descendants[] = new DocumentModel(
                 $descendant['idx'],
                 $descendant['guid']
             );

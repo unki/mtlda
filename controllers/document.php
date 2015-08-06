@@ -95,7 +95,7 @@ class DocumentController
             return false;
         }
 
-        if ($id->model == "archiveitem") {
+        if ($id->model == "document") {
             $content = $this->getArchiveDocumentContent($id);
             if (!isset($content) || empty($content)) {
                 $mtlda->raiseError("No valid document content returned!");
@@ -119,18 +119,18 @@ class DocumentController
             return false;
         }
 
-        if ($id->model != "archiveitem") {
-            $mtlda->raiseError("Can only handle ArchiveItems!");
+        if ($id->model != "document") {
+            $mtlda->raiseError("Can only handle Documents!");
             return false;
         }
 
-        $document = new Models\ArchiveItemModel($id->id, $id->guid);
+        $document = new Models\DocumentModel($id->id, $id->guid);
         if (!$document) {
-            $mtlda->raiseError("Unable to load a ArchiveItemModel!");
+            $mtlda->raiseError("Unable to load a DocumentModel!");
             return false;
         }
 
-        if ($document->archive_version != 1) {
+        if ($document->document_version != 1) {
             $mtlda->raiseError(__TRAIT__ ." can only sign the original imported document!");
             return false;
         }
@@ -150,7 +150,7 @@ class DocumentController
         $router->redirectTo(
             'archive',
             'show',
-            $document->archive_idx ."-". $document->archive_guid
+            $document->document_idx ."-". $document->document_guid
         );
     }
 
@@ -163,27 +163,27 @@ class DocumentController
             return false;
         }
 
-        if ($id->model != "archiveitem") {
-            $mtlda->raiseError("Can only handle ArchiveItems!");
+        if ($id->model != "document") {
+            $mtlda->raiseError("Can only handle Documents!");
             return false;
         }
 
-        $document = new Models\ArchiveItemModel($id->id, $id->guid);
+        $document = new Models\DocumentModel($id->id, $id->guid);
         if (!$document) {
-            $mtlda->raiseError("Unable to load a ArchiveItemModel!");
+            $mtlda->raiseError("Unable to load a DocumentModel!");
             return false;
         }
 
-        if ($document->archive_version == 1) {
+        if ($document->document_version == 1) {
             $mtlda->raiseError(__TRAIT__ ." cannot delete the original imported document!");
             return false;
         }
 
-        $parent_idx = $document->archive_derivation;
-        $parent_guid = $document->archive_derivation_guid;
+        $parent_idx = $document->document_derivation;
+        $parent_guid = $document->document_derivation_guid;
 
         if (!$document->delete()) {
-            $mtlda->raiseError("ArchiveItemModel::delete() returned false!");
+            $mtlda->raiseError("DocumentModel::delete() returned false!");
             return false;
         }
 
@@ -200,18 +200,18 @@ class DocumentController
     {
         global $mtlda;
 
-        $document = new Models\ArchiveItemModel($id->id, $id->guid);
+        $document = new Models\DocumentModel($id->id, $id->guid);
 
         if (!$document) {
-            $mtlda->raiseError("Unable to load a ArchiveItemModel!");
+            $mtlda->raiseError("Unable to load a DocumentModel!");
             return false;
         }
 
-        if ($document->archive_version != 1 && $document->archive_derivation != 0) {
+        if ($document->document_version != 1 && $document->document_derivation != 0) {
 
-            $descent = new Models\ArchiveItemModel($document->archive_derivation);
+            $descent = new Models\DocumentModel($document->document_derivation);
             if (!$descent) {
-                $mtlda->raiseError("Unable to load parent ArchiveItemModel!");
+                $mtlda->raiseError("Unable to load parent DocumentModel!");
                 return false;
             }
         }
@@ -235,12 +235,12 @@ class DocumentController
             return false;
         }
 
-        if (strlen($file['content']) != $document->archive_file_size) {
+        if (strlen($file['content']) != $document->document_file_size) {
             $mtlda->raiseError("File size of retrieved file does not match archive record!");
             return false;
         }
 
-        if ($file['hash'] != $document->archive_file_hash) {
+        if ($file['hash'] != $document->document_file_hash) {
             $mtlda->raiseError("File hash of retrieved file does not match archive record!");
             return false;
         }

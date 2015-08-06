@@ -24,7 +24,7 @@ use MTLDA\Models;
 class ArchiveView extends Templates
 {
     public $class_name = 'archive';
-    public $item_name = 'ArchiveItem';
+    public $item_name = 'Document';
     public $archive;
     private $item;
 
@@ -59,7 +59,7 @@ class ArchiveView extends Templates
         $item =  $this->archive->items[$item_idx];
 
         $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", $item->archive_idx ."-". $item->archive_guid);
+        $smarty->assign("item_safe_link", $item->document_idx ."-". $item->document_guid);
 
         $index++;
         $smarty->assign('smarty.IB.item_list.index', $index);
@@ -70,8 +70,8 @@ class ArchiveView extends Templates
 
     public function showItem($id, $hash)
     {
-        if ($this->item_name == "ArchiveItem") {
-            $this->item = new Models\ArchiveItemModel($id, $hash);
+        if ($this->item_name == "Document") {
+            $this->item = new Models\DocumentModel($id, $hash);
         }
 
         if (!isset($this->item) || empty($this->item)) {
@@ -86,7 +86,7 @@ class ArchiveView extends Templates
 
         $this->assign('item_versions', $descendants);
         $this->assign('item', $this->item);
-        $this->assign("item_safe_link", "archiveitem-". $this->item->archive_idx ."-". $this->item->archive_guid);
+        $this->assign("item_safe_link", "document-". $this->item->document_idx ."-". $this->item->document_guid);
         return parent::showItem($id, $hash);
 
     }

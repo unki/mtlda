@@ -22,9 +22,9 @@ namespace MTLDA\Models ;
 class ArchiveModel extends DefaultModel
 {
     public $table_name = 'archive';
-    public $column_name = 'archive';
+    public $column_name = 'document';
     public $fields = array(
-            'archive_idx' => 'integer',
+            'document_idx' => 'integer',
             );
     public $avail_items = array();
     public $items = array();
@@ -49,7 +49,7 @@ class ArchiveModel extends DefaultModel
             FROM
                 TABLEPREFIX{$this->table_name}
             WHERE
-                archive_version LIKE 1"
+                document_version LIKE 1"
         );
 
         while ($row = $result->fetch()) {
