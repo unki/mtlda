@@ -26,6 +26,19 @@ CREATE TABLE `mtlda_archive` (
   PRIMARY KEY (`document_idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `mtlda_audit`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `mtlda_audit` (
+  `audit_idx` int(11) NOT NULL AUTO_INCREMENT,
+  `audit_guid` varchar(255) DEFAULT NULL,
+  `audit_type` varchar(255) DEFAULT NULL,
+  `audit_scene` varchar(255) DEFAULT NULL,
+  `audit_message` text,
+  `audit_time` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`audit_idx`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `mtlda_queue`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
