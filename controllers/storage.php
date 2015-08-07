@@ -30,11 +30,23 @@ class StorageController
 
     public function archive(&$queue_item)
     {
-        global $mtlda, $config;
+        global $mtlda, $config, $audit;
 
         // verify QueueItemModel is ok()
         if (!$queue_item->verify()) {
             $mtlda->raiseError("QueueItemModel::verify() returned false!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                "archiving requested",
+                "archive",
+                "storage",
+                $queue_item->queue_guid
+            );
+        } catch (Exception $e) {
+            $mtlda->raiseError("AuditController::log() returned false!");
             return false;
         }
 
@@ -52,6 +64,18 @@ class StorageController
         // create the target directory structure
         if (!$this->createDirectoryStructure($store_dir_name)) {
             $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                "using {$store_dir_name} as destination",
+                "archive",
+                "storage",
+                $queue_item->queue_guid
+            );
+        } catch (Exception $e) {
+            $mtlda->raiseError("AuditController::log() returned false!");
             return false;
         }
 
@@ -103,6 +127,18 @@ class StorageController
             return false;
         }
 
+        try {
+            $audit->log(
+                "archiving success",
+                "archive",
+                "storage",
+                $document->document_guid
+            );
+        } catch (Exception $e) {
+            $mtlda->raiseError("AuditController::log() returned false!");
+            return false;
+        }
+
         // if no more actions are necessary, we are done
         if (!$config->isPdfSigningEnabled()) {
             return true;
@@ -123,21 +159,37 @@ class StorageController
 
     public function sign(&$src_item)
     {
-        global $mtlda, $config;
+        global $mtlda, $config, $audit;
 
-        if ($config->isPdfSigningEnabled()) {
+        if (!$config->isPdfSigningEnabled()) {
+            $mtlda->raiseError("ConfigController::isPdfSigningEnabled() returns false!");
+            return false;
+        }
 
-            try {
-                $signer = new Controllers\PdfSigningController;
-            } catch (Exception $e) {
-                $mtlda->raiseError("Failed to load PdfSigningController");
-                return false;
-            }
+        try {
+            $signer = new Controllers\PdfSigningController;
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load PdfSigningController");
+            return false;
         }
 
         $signing_item = new models\DocumentModel;
+
         if (!($signing_item->createClone($src_item))) {
             $mtlda->raiseError(__TRAIT__ ." unable to clone DocumentModel!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                __METHOD__,
+                "read",
+                "archive",
+                $src_item->document_guid
+            );
+        } catch (Exception $e) {
+            $signing_item->delete();
+            $mtlda->raiseError("AuditController::log() raised an exception!");
             return false;
         }
 
@@ -178,7 +230,7 @@ class StorageController
 
         $fqpn_dst = $this->archive_path .'/'. $dst;
 
-        if (!$signer->signDocument($fqpn_dst, $signing_item->document_signing_icon_position)) {
+        if (!$signer->signDocument($fqpn_dst, $signing_item)) {
             $signing_item->delete();
             $mtlda->raiseError("PdfSigningController::ѕignDocument() returned false!");
             return $false;
@@ -193,6 +245,19 @@ class StorageController
         if (!$signing_item->save()) {
             $signing_item->delete();
             $mtlda->raiseError("save() returned false!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                $src_item->document_guid,
+                "signed",
+                "archive",
+                $signing_item->document_guid
+            );
+        } catch (Exception $e) {
+            $signing_item->delete();
+            $mtlda->raiseError("AuditController::log() raised an exception!");
             return false;
         }
 
@@ -364,7 +429,7 @@ class StorageController
 
     public function deleteItemFile(&$item)
     {
-        global $mtlda;
+        global $mtlda, $audit;
 
         if (!isset($item) || empty($item)) {
             $mtlda->raiseError("\$item is not set!");
@@ -402,10 +467,14 @@ class StorageController
             }
 
             $fqpn = $this->archive_path .'/'. $dir_name .'/'. $item->$file_name_field;
+            $guid = $item->document_guid;
+            $file_name = $item->document_file_name;
 
         } elseif ($item->column_name == 'queue') {
 
             $fqpn = $this->working_path .'/'. $item->$file_name_field;
+            $guid = $item->queue_guid;
+            $file_name = $item->queue_file_name;
 
         } else {
             $mtlda->raiseError("Unsupported model ". $item->column_name);
@@ -419,6 +488,18 @@ class StorageController
 
         if (!unlink($fqpn)) {
             $mtlda->raiseError("StorageController::deleteItemFile(), unlink() returned false!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                $file_name,
+                "delete",
+                "storage",
+                $guid
+            );
+        } catch (Exception $e) {
+            $mtlda->raiseError("AuditController::log() returned false!");
             return false;
         }
 
