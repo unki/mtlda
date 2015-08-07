@@ -19,7 +19,7 @@ CREATE TABLE `mtlda_archive` (
   `document_file_hash` varchar(255) DEFAULT NULL,
   `document_file_size` int(11) DEFAULT NULL,
   `document_signing_icon_position` int(11) DEFAULT NULL,
-  `document_time` int(11) DEFAULT NULL,
+  `document_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   `document_version` varchar(255) DEFAULT NULL,
   `document_derivation` int(11) DEFAULT NULL,
   `document_derivation_guid` varchar(255) DEFAULT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE `mtlda_audit` (
   `audit_type` varchar(255) DEFAULT NULL,
   `audit_scene` varchar(255) DEFAULT NULL,
   `audit_message` text,
-  `audit_time` timestamp NULL DEFAULT NULL,
+  `audit_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`audit_idx`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -50,7 +50,7 @@ CREATE TABLE `mtlda_queue` (
   `queue_file_size` int(11) DEFAULT NULL,
   `queue_signing_icon_position` int(11) DEFAULT NULL,
   `queue_state` varchar(255) DEFAULT NULL,
-  `queue_time` int(11) DEFAULT NULL,
+  `queue_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`queue_idx`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
