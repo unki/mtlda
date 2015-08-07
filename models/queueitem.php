@@ -179,12 +179,65 @@ class QueueItemModel extends DefaultModel
         return true;
     }
 
+    public function postDelete()
+    {
+        global $mtlda, $audit;
+
+        try {
+            $audit->log(
+                $this->queue_file_name,
+                "deleted",
+                "queue",
+                $this->queue_guid
+            );
+        } catch (Exception $e) {
+            $mtlda->raiseError("AuditController::log() returned false!");
+            return false;
+        }
+
+        return true;
+    }
+
     public function preSave()
     {
         global $mtlda;
 
         if ($this->isDuplicate()) {
             $mtlda->raiseError("Duplicated record detected!");
+            return false;
+        }
+
+        return true;
+    }
+
+    public function postSave()
+    {
+        global $audit;
+
+        $json_str = json_encode(
+            array(
+                'file_name' => $this->queue_file_name,
+                'file_size' => $this->queue_file_size,
+                'file_hash' => $this->queue_file_hash,
+                'state' => $this->queue_state,
+            )
+        );
+
+        if (!$json_str) {
+            $mtlda->raiseError("json_encode() returned false!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                $json_str,
+                "saving",
+                "queue",
+                $this->queue_guid
+            );
+        } catch (Exception $e) {
+            $queueitem->delete();
+            $mtlda->raiseError("AuditController:log() returned false!");
             return false;
         }
 
