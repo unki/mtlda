@@ -23,9 +23,16 @@ class HttpRouterController
 {
     private $query;
 
-    public function parse($uri)
+    public function __construct()
     {
         global $mtlda, $config;
+
+        if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
+            $mtlda->raiseError("Error - \$_SERVER['REQUEST_URI'] is not set!");
+            return false;
+        }
+
+        $uri = $_SERVER['REQUEST_URI'];
 
         $this->query = new \stdClass();
         $this->query->uri = $uri;
@@ -138,6 +145,16 @@ class HttpRouterController
         }
 
         $this->query->call_type = "common";
+
+        return true;
+    }
+
+    public function getQuery()
+    {
+        if (!isset($this->query) || empty($this->query) || !is_object($this->query)) {
+            return false;
+        }
+
         return $this->query;
     }
 
