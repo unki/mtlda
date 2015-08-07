@@ -44,16 +44,16 @@ class MTLDA
             return false;
         }
 
+        if (!$req->check()) {
+            $this->raiseError("Error - not all MTLDA requirements are met. Please check!");
+            exit(1);
+        }
+
         try {
             $GLOBALS['db'] =& new DatabaseController;
         } catch (Exception $e) {
             $this->raiseError("Failed to load DatabaseController");
             return false;
-        }
-
-        if (!$req->check()) {
-            $this->raiseError("Error - not all MTLDA requirements are met. Please check!");
-            exit(1);
         }
 
         if (isset($mode) and $mode == "queue_only") {
