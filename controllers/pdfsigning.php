@@ -59,9 +59,9 @@ class PdfSigningController
         }
     }
 
-    public function signDocument($fqpn, $icon_position)
+    public function signDocument($fqpn, &$src_item)
     {
-        global $mtlda;
+        global $mtlda, $audit;
 
         if (!file_exists($fqpn)) {
             $mtlda->raiseError("{$fqpn} does not exist!");
@@ -70,6 +70,24 @@ class PdfSigningController
 
         if (!is_readable($fqpn)) {
             $mtlda->raiseError("{$fqpn} is not readable!");
+            return false;
+        }
+
+        if (!isset($src_item->document_signing_icon_position) || empty($src_item->document_signing_icon_position)) {
+            $mtlda->raiseError("document_signing_icon is not set!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                "signing request",
+                "request",
+                "signing",
+                $src_item->document_guid
+            );
+        } catch (Exception $e) {
+            $signing_item->delete();
+            $mtlda->raiseError("AuditController::log() raised an exception!");
             return false;
         }
 
@@ -95,7 +113,13 @@ class PdfSigningController
 
             if ($page_no == 1) {
 
-                if (!($signing_icon_position = $this->getSigningIconPosition($icon_position, $size['w'], $size['h']))) {
+                $signing_icon_position = $this->getSigningIconPosition(
+                    $src_item->document_signing_icon_position,
+                    $size['w'],
+                    $size['h']
+                );
+
+                if (!$signing_icon_position) {
                     $mtlda->raiseError("getSigningIconPosition() returned false!");
                     return false;
                 }
