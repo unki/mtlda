@@ -76,6 +76,7 @@ class ImageController
                 $mtlda->raiseError("Unable to load a QueueItemModel!");
                 return false;
             }
+
         }
 
         if (!($image = $this->createPreviewImage($item))) {
@@ -92,7 +93,7 @@ class ImageController
 
     public function createPreviewImage(&$item, $return_content = true)
     {
-        global $mtlda, $config;
+        global $mtlda, $config, $audit;
 
         if (!isset($item) || empty($item)) {
             $mtlda->raiseError("createPreviewImage() invalid parameter!");
@@ -118,6 +119,18 @@ class ImageController
 
         if ($this->isCachedImageAvailable($item->queue_idx, $item->queue_guid, 'queueitem_preview')) {
             return $this->loadCachedImage($item->queue_idx, $item->queue_guid, 'queueitem_preview');
+        }
+
+        try {
+            $audit->log(
+                __METHOD__,
+                "read",
+                "queue",
+                $item->getGuid()
+            );
+        } catch (Exception $e) {
+            $mtlda->raiseError("AuditController::log() raised an exception!");
+            return false;
         }
 
         try {
