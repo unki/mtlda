@@ -19,9 +19,48 @@
 
 namespace MTLDA\Controllers;
 
+use MTLDA\Models;
+
 class AuditController
 {
+    public function log($message, $entry_type, $scene, $guid = null)
+    {
+        global $mtlda;
 
+        try {
+            $entry = new Models\AuditEntryModel;
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load AuditEntryModel");
+            return false;
+        }
+
+        if (!$entry->setMessage($message)) {
+            $mtlda->raiseError("AuditEntryModel::setMessage() returned false!");
+            return false;
+        }
+
+        if (!empty($guid) && !$entry->setGuid($guid)) {
+            $mtlda->raiseError("AuditEntryModel::setGuid() returned false!");
+            return false;
+        }
+
+        if (!$entry->setEntryType($entry_type)) {
+            $mtlda->raiseError("AuditEntryModel::setEntryType() returned false!");
+            return false;
+        }
+
+        if (!$entry->setScene($scene)) {
+            $mtlda->raiseError("AuditEntryModel::setScene() returned false!");
+            return false;
+        }
+
+        if (!$entry->save()) {
+            $mtlda->raiseError("AuditEntryModel::save() returned false!");
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
