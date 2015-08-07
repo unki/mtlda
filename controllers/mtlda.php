@@ -50,6 +50,13 @@ class MTLDA
         }
 
         try {
+            $GLOBALS['audit'] = new AuditController;
+        } catch (Exception $e) {
+            $this->raiseError("Failed to load AuditController");
+            return false;
+        }
+
+        try {
             $GLOBALS['db'] =& new DatabaseController;
         } catch (Exception $e) {
             $this->raiseError("Failed to load DatabaseController");
