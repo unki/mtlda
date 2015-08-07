@@ -238,7 +238,7 @@ class DocumentModel extends DefaultModel
 
     public function postDelete()
     {
-        global $mtld ;
+        global $mtlda, $audit;
 
         if (!isset($this->descendants) && !is_array($this->descendants)) {
             $mtlda->raiseError("descendants are not set!");
@@ -267,6 +267,18 @@ class DocumentModel extends DefaultModel
                 $mtlda->raiseError("descendant {$descendant['guid']} delete() returned false!");
                 return false;
             }
+        }
+
+        try {
+            $audit->log(
+                $this->document_file_name,
+                "deleted",
+                "archive",
+                $this->document_guid
+            );
+        } catch (Exception $e) {
+            $mtlda->raiseError("AuditController::log() returned false!");
+            return false;
         }
 
         return true;
@@ -358,6 +370,47 @@ class DocumentModel extends DefaultModel
         }
 
         return $ary_descendants;
+    }
+
+    public function postSave()
+    {
+        global $mtlda, $audit;
+
+        $json_ary = array(
+            'file_name' => $this->document_file_name,
+            'file_size' => $this->document_file_size,
+            'file_hash' => $this->document_file_hash,
+        );
+
+        if (
+            isset($this->document_derivation_guid) &&
+            !empty($this->document_derivation_guid) &&
+            $mtlda->isValidGuidSyntax($this->document_derivation_guid)
+        ) {
+            $json_ary['derivation_guid'] = $this->document_derivation_guid;
+        }
+
+        $json_str = json_encode($json_ary);
+
+        if (!$json_str) {
+            $mtlda->raiseError("json_encode() returned false!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                $json_str,
+                "saving",
+                "archive",
+                $this->document_guid
+            );
+        } catch (Exception $e) {
+            $queueitem->delete();
+            $mtlda->raiseError("AuditController:log() returned false!");
+            return false;
+        }
+
+        return true;
     }
 }
 
