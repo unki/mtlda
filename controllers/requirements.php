@@ -37,9 +37,14 @@ class RequirementsController
 
         $missing = false;
 
+        if (!(function_exists("microtime"))) {
+            $mtlda->raiseError("Error - microtime() function does not exist!");
+            return false;
+        }
+
         if (!($dbtype = $config->getDatabaseType())) {
             $mtlda->raiseError("Error - incomplete configuration found, can not check requirements!");
-            exit(1);
+            return false;
         }
 
         switch ($dbtype) {
