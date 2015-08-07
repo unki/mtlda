@@ -23,6 +23,8 @@ use PDO;
 
 class DatabaseController
 {
+    const SCHEMA_VERSION = 1;
+
     public $db;
     private $db_cfg;
     private $is_connected = false;
@@ -269,6 +271,70 @@ class DatabaseController
         /* Get the last primary key ID from execute query */
         return $lastid;
 
+    }
+
+    public function checkTableExists($table_name)
+    {
+        global $mtlda;
+
+        if (!$this->getConnectionStatus()) {
+            $mtlda->raiseError("Can't check table - we are not connected!");
+            return false;
+        }
+
+        $result = $this->query("SHOW TABLES");
+
+        if (!$result) {
+            return false;
+        }
+
+        $tables_in = "Tables_in_{$this->db_cfg['db_name']}";
+
+        while ($row = $result->fetch()) {
+            if ($row->$tables_in == $table_name) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getDatabaseSchemaVersion()
+    {
+        global $mtlda;
+
+        if (!$this->getConnectionStatus()) {
+            $mtlda->raiseError("Can't check table - we are not connected!");
+            return false;
+        }
+
+        if (!$this->checkTableExists("TABLEPREFIXmeta")) {
+            return false;
+        }
+
+        $result = $this->fetchSingleRow(
+            "SELECT
+                meta_value
+            FROM
+                TABLEPREFIXmeta
+            WHERE
+                meta_key LIKE 'schema version'"
+        );
+
+        if (
+            isset($result->meta_value) ||
+            empty($result->meta_value) ||
+            !is_numeric($result->meta_value)
+        ) {
+            return 0;
+        }
+
+        return $result->meta_value;
+    }
+
+    public function getSoftwareSchemaVersion()
+    {
+        return $this::SCHEMA_VERSION;
     }
 }
 
