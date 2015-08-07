@@ -24,6 +24,8 @@ use MTLDA\Models;
 
 class MTLDA
 {
+    const VERSION = "0.1";
+
     private $verbosity_level = LOG_WARNING;
 
     public function __construct($mode = null)
@@ -63,6 +65,26 @@ class MTLDA
             return false;
         }
 
+        if (!$this->isCmdline()) {
+            try {
+                $GLOBALS['router'] =& new HttpRouterController;
+                global $router;
+            } catch (Exception $e) {
+                $this->raiseError("Failed to load HttpRouterController");
+                return false;
+            }
+            $GLOBALS['query'] = $router->getQuery();
+            global $query;
+        }
+
+        if (isset($query) && isset($query->view) && $query->view == "install") {
+            $mode = "install";
+        }
+
+        if ($mode != "install" && $this->checkUpgrade()) {
+            return false;
+        }
+
         if (isset($mode) and $mode == "queue_only") {
 
             try {
@@ -76,29 +98,27 @@ class MTLDA
                 $this->raiseError("IncomingController::handleQueue returned false!");
                 return false;
             }
-        }
+        } elseif (isset($mode) and $mode == "install") {
 
+            try {
+                $installer =& new InstallerController;
+            } catch (Exception $e) {
+                $this->raiseError("Failed to load InstallController");
+                return false;
+            }
+
+            if (!$installer->setup()) {
+                exit(1);
+            }
+
+            exit(0);
+        }
         return true;
     }
 
     public function startup()
     {
-        try {
-            $GLOBALS['router'] =& new HttpRouterController;
-        } catch (Exception $e) {
-            $this->raiseError("Failed to load HttpRouterController");
-            return false;
-        }
-
-        global $config, $db, $router;
-
-        if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
-            $this->raiseError("Error - \$_SERVER['REQUEST_URI'] is not set!");
-            return false;
-        }
-
-        $GLOBALS['query'] = $router->parse($_SERVER['REQUEST_URI']);
-        global $query;
+        global $config, $db, $router, $query;
 
         if (!isset($query->view)) {
             $this->raiseError("Error - parsing request URI hasn't unveiled what to view!");
@@ -386,6 +406,34 @@ class MTLDA
 
         if (isset($obj)) {
             return $obj;
+        }
+
+        return false;
+    }
+
+    public function checkUpgrade()
+    {
+        global $db, $config;
+
+        if (!$db->checkTableExists("TABLEPREFIXmeta")) {
+            $this->raiseError(
+                "You are missing meta table in database! "
+                ."You may run <a href=\"{$config->getWebPath()}/install\">"
+                ."Installer</a> to fix this.",
+                true
+            );
+            return true;
+        }
+
+        if ($db->getDatabaseSchemaVersion() < $db::SCHEMA_VERSION) {
+            $this->raiseError(
+                "The local schema version ({$db->getDatabaseSchemaVersion()}) is lower"
+                ."than the programs schema version (". $db::SCHEMA_VERSION ."). "
+                ."You may run <a href=\"{$config->getWebPath()}/install\">Installer</a>"
+                ." again to upgrade.",
+                true
+            );
+            return true;
         }
 
         return false;
