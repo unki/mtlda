@@ -56,7 +56,7 @@ class IncomingController
 
     public function handleQueue()
     {
-        global $mtlda, $db, $config;
+        global $mtlda, $db, $config, $audit;
 
         $sth = $db->prepare("
                 INSERT INTO mtlda_queue (
@@ -121,6 +121,17 @@ class IncomingController
                 return false;
             }
 
+            try {
+                $audit->log(
+                    "{$in_file}",
+                    "new",
+                    "queue"
+                );
+            } catch (Exception $e) {
+                $mtlda->raiseError("AuditController::log() raised an exception!");
+                return false;
+            }
+
             if (($hash = sha1_file($in_file)) === false) {
                 $mtdla->raiseError(__TRAIT__ ." SHA1 value of {$in_file} can not be calculated!");
                 return false;
@@ -169,6 +180,34 @@ class IncomingController
             if (rename($in_file, $work_file) === false) {
                 $queueitem->delete();
                 $mtdla->raiseError(__TRAIT__ ." rename {$in_file} to {$work_file} failed!");
+                return false;
+            }
+
+            $json_str = json_encode(
+                array(
+                    'file_name' => $file,
+                    'file_size' => $size,
+                    'file_hash' => $hash,
+                    'state' => 'state'
+                )
+            );
+
+            if (!$json_str) {
+                $queueitem->delete();
+                $mtlda->raiseError("json_encode() returned false!");
+                return false;
+            }
+
+            try {
+                $audit->log(
+                    $json_str,
+                    "import",
+                    "queue",
+                    $guid
+                );
+            } catch (Exception $e) {
+                $queueitem->delete();
+                $mtlda->raiseError("AuditController:log() returned false!");
                 return false;
             }
 
