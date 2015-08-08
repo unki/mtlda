@@ -17,3 +17,4 @@
 <a href="{get_url page=main}">Main</a>
 <a href="{get_url page=archive}">Archive</a>
 <a href="{get_url page=queue}">Queue</a>
+<a href="{get_url page=upload}">Upload</a>
