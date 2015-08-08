@@ -32,47 +32,25 @@ class MTLDA
     {
         $GLOBALS['mtlda'] =& $this;
 
-        try {
-            $GLOBALS['config'] =& new ConfigController;
-        } catch (Exception $e) {
-            $this->raiseError("Failed to load ConfigController");
-            return false;
-        }
+        $this->loadController("Config", "config");
+        $this->loadController("Requirements", "requirements");
 
-        try {
-            $req = new RequirementsController;
-        } catch (Exception $e) {
-            $this->raiseError("Failed to load RequirementsController");
-            return false;
-        }
+        global $requirements;
 
-        if (!$req->check()) {
+        if (!$requirements->check()) {
             $this->raiseError("Error - not all MTLDA requirements are met. Please check!");
             exit(1);
         }
 
-        try {
-            $GLOBALS['audit'] = new AuditController;
-        } catch (Exception $e) {
-            $this->raiseError("Failed to load AuditController");
-            return false;
-        }
+        // no longer needed
+        unset($requirements);
 
-        try {
-            $GLOBALS['db'] =& new DatabaseController;
-        } catch (Exception $e) {
-            $this->raiseError("Failed to load DatabaseController");
-            return false;
-        }
+        $this->loadController("Audit", "audit");
+        $this->loadController("Database", "db");
 
         if (!$this->isCmdline()) {
-            try {
-                $GLOBALS['router'] =& new HttpRouterController;
-                global $router;
-            } catch (Exception $e) {
-                $this->raiseError("Failed to load HttpRouterController");
-                return false;
-            }
+            $this->loadController("HttpRouter", "router");
+            global $router;
             $GLOBALS['query'] = $router->getQuery();
             global $query;
         }
@@ -87,32 +65,27 @@ class MTLDA
 
         if (isset($mode) and $mode == "queue_only") {
 
-            try {
-                $incoming =& new IncomingController;
-            } catch (Exception $e) {
-                $this->raiseError("Failed to load IncomingController");
-                return false;
-            }
+            $this->loadController("Incoming", "incoming");
 
             if (!$incoming->handleQueue()) {
                 $this->raiseError("IncomingController::handleQueue returned false!");
                 return false;
             }
+
+            unset($incoming);
+
         } elseif (isset($mode) and $mode == "install") {
 
-            try {
-                $installer =& new InstallerController;
-            } catch (Exception $e) {
-                $this->raiseError("Failed to load InstallController");
-                return false;
-            }
+            $this->loadController("Installer", "installer");
 
             if (!$installer->setup()) {
                 exit(1);
             }
 
+            unset($installer);
             exit(0);
         }
+
         return true;
     }
 
@@ -125,12 +98,7 @@ class MTLDA
             return false;
         }
 
-        try {
-            $GLOBALS['views'] =& new ViewsController;
-        } catch (Exception $e) {
-            $this->raiseError("Failed to load ViewsController");
-            return false;
-        }
+        $this->loadController("Views", "views");
 
         global $views;
 
@@ -263,52 +231,43 @@ class MTLDA
 
     private function rpcHandler()
     {
-        try {
-            $rpc = new RpcController;
-        } catch (Exception $e) {
-            $this->raiseError("Failed to load RpcController");
-            return false;
-        }
+        $this->loadController("Rpc", "rpc");
+        global $rpc;
 
         if (!$rpc->perform()) {
             $this->raiseError("RpcController:perform() returned false!");
             return false;
         }
 
+        unset($rpc);
         return true;
     }
 
     private function imageHandler()
     {
-        try {
-            $image = new ImageController;
-        } catch (Exception $e) {
-            $this->raiseError("Failed to load ImageController");
-            return false;
-        }
+        $this->loadController("Image", "image");
+        global $image;
 
         if (!$image->perform()) {
             $this->raiseError("ImageController:perform() returned false!");
             return false;
         }
 
+        unset($image);
         return true;
     }
 
     private function documentHandler()
     {
-        try {
-            $document = new DocumentController;
-        } catch (Exception $e) {
-            $this->raiseError("Failed to load DocumentController");
-            return false;
-        }
+        $this->loadController("Document", "document");
+        global $document;
 
         if (!$document->perform()) {
             $this->raiseError("DocumentController:perform() returned false!");
             return false;
         }
 
+        unset($document);
         return true;
     }
 
@@ -435,6 +394,30 @@ class MTLDA
         }
 
         return false;
+    }
+
+    private function loadController($controller, $global_name)
+    {
+        if (empty($controller)) {
+            $this->raiseError("\$controller must not be empty!", true);
+            return false;
+        }
+
+        if (isset($GLOBALS[$global_name]) && !empty($GLOBALS[$global_name])) {
+            return true;
+        }
+
+        $controller = $controller.'Controller';
+
+        try {
+            $controller = 'MTLDA\\Controllers\\'.$controller;
+            $GLOBALS[$global_name] =& new $controller;
+        } catch (Exception $e) {
+            $this->raiseError("Failed to load {$controller_name}", true);
+            return false;
+        }
+
+        return true;
     }
 }
 
