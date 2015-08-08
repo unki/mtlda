@@ -127,6 +127,14 @@ class MTLDA
             }
             return true;
 
+        } elseif ($router->isUploadCall()) {
+
+            if (!$this->uploadHandler()) {
+                $this->raiseError("MTLDA::uploadHandler() returned false!");
+                return false;
+            }
+            return true;
+
         } elseif ($page_name = $views->getViewName($query->view)) {
 
             if (!$page = $views->load($page_name)) {
@@ -236,7 +244,7 @@ class MTLDA
         global $rpc;
 
         if (!$rpc->perform()) {
-            $this->raiseError("RpcController:perform() returned false!");
+            $this->raiseError("RpcController::perform() returned false!");
             return false;
         }
 
@@ -250,7 +258,7 @@ class MTLDA
         global $image;
 
         if (!$image->perform()) {
-            $this->raiseError("ImageController:perform() returned false!");
+            $this->raiseError("ImageController::perform() returned false!");
             return false;
         }
 
@@ -264,11 +272,25 @@ class MTLDA
         global $document;
 
         if (!$document->perform()) {
-            $this->raiseError("DocumentController:perform() returned false!");
+            $this->raiseError("DocumentController::perform() returned false!");
             return false;
         }
 
         unset($document);
+        return true;
+    }
+
+    private function uploadHandler()
+    {
+        $this->loadController("Upload", "upload");
+        global $upload;
+
+        if (!$upload->perform()) {
+            $this->raiseError("UploadController::perform() returned false!");
+            return false;
+        }
+
+        unset($upload);
         return true;
     }
 
