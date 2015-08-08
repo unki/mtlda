@@ -335,11 +335,11 @@ class DatabaseController
             FROM
                 TABLEPREFIXmeta
             WHERE
-                meta_key LIKE 'schema version'"
+                meta_key LIKE 'schema_version'"
         );
 
         if (
-            isset($result->meta_value) ||
+            !isset($result->meta_value) ||
             empty($result->meta_value) ||
             !is_numeric($result->meta_value)
         ) {
