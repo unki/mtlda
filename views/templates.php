@@ -34,6 +34,7 @@ class Templates extends Smarty
             'delete',
             'add',
             'sign',
+            'upload',
             );
     public $default_mode = "list";
 
