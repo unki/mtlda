@@ -63,36 +63,36 @@ class RequirementsController
         }
 
         if (!$db_class_name) {
-            $mtlda->write("Error - unsupported database configuration, can not check requirements!");
+            $mtlda->write("Error - unsupported database configuration, can not check requirements!", LOG_ERR);
             $missing = true;
         }
 
         if (!class_exists($db_class_name)) {
-            $mtlda->write("PHP {$dbtype} extension is missing!");
+            $mtlda->write("PHP {$dbtype} extension is missing!", LOG_ERR);
             $missing = true;
         }
 
         // check for PDO database support support
         if ((array_search($db_pdo_name, PDO::getAvailableDrivers())) === false) {
-            $mtlda->write("PDO {$db_pdo_name} support not available");
+            $mtlda->write("PDO {$db_pdo_name} support not available", LOG_ERR);
             $missing = true;
         }
 
         ini_set('track_errors', 1);
         @include_once MTLDA_BASE.'/extern/tcpdf/tcpdf.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
-            $mtlda->write("TCPDF can not be found!");
+            $mtlda->write("TCPDF can not be found!", LOG_ERR);
             $missing = true;
             unset($php_errormsg);
         }
         @include_once MTLDA_BASE ."/extern/fpdi/fpdi.php";
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
-            $mtlda->write("FPDI can not be found!");
+            $mtlda->write("FPDI can not be found!", LOG_ERR);
             $missing = true;
             unset($php_errormsg);
         }
         if (!class_exists('imagick')) {
-            $mtlda->write("imagick extension is missing!");
+            $mtlda->write("imagick extension is missing!", LOG_ERR);
             $missing = true;
         }
         /*@include_once 'Pager.php';
@@ -103,19 +103,18 @@ class RequirementsController
         }*/
         @include_once 'smarty3/Smarty.class.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
-            $mtlda->write("Smarty3 template engine is missing!");
+            $mtlda->write("Smarty3 template engine is missing!", LOG_ERR);
             $missing = true;
             unset($php_errormsg);
         }
 
         ini_restore('track_errors');
 
-        if (!empty($missing)) {
-            return false;
+        if (empty($missing)) {
+            return true;
         }
 
-        return true;
-
+        return false;
     }
 }
 
