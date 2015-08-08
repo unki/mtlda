@@ -77,6 +77,7 @@ class MTLDA
         } elseif (isset($mode) and $mode == "install") {
 
             $this->loadController("Installer", "installer");
+            global $installer;
 
             if (!$installer->setup()) {
                 exit(1);
