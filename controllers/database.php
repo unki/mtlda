@@ -21,7 +21,7 @@ namespace MTLDA\Controllers;
 
 use PDO;
 
-class DatabaseController
+class DatabaseController extends DefaultController
 {
     const SCHEMA_VERSION = 1;
 

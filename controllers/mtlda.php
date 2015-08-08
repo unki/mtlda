@@ -22,7 +22,7 @@ namespace MTLDA\Controllers;
 use MTLDA\Views;
 use MTLDA\Models;
 
-class MTLDA
+class MTLDA extends DefaultController
 {
     const VERSION = "0.1";
 

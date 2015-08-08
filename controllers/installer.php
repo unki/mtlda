@@ -19,7 +19,7 @@
 
 namespace MTLDA\Controllers;
 
-class InstallerController
+class InstallerController extends DefaultController
 {
     private $schema_version_before;
 

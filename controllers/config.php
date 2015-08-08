@@ -19,9 +19,8 @@
 
 namespace MTLDA\Controllers;
 
-class ConfigController
+class ConfigController extends DefaultController
 {
-    private $config_path = MTLDA_BASE ."/config";
     private $config_file_local = "config.ini";
     private $config_file_dist = "config.ini.dist";
     private $config;
@@ -30,16 +29,16 @@ class ConfigController
     {
         global $mtlda;
 
-        if (!file_exists($this->config_path)) {
+        if (!file_exists($this::CONFIG_DIRECTORY)) {
             $mtlda->raiseError(
-                "Error - configuration directory {$this->config_path} does not exist!"
+                "Error - configuration directory ". $this::CONFIG_DIRECTORY ." does not exist!"
             );
             return false;
         }
 
-        if (!is_executable($this->config_path)) {
+        if (!is_executable($this::CONFIG_DIRECTORY)) {
             $mtlda->raiseError(
-                "Error - unable to enter config directory {$this->config_path} - please check permissions!"
+                "Error - unable to enter config directory ". $this::CONFIG_DIRECTORY ." - please check permissions!"
             );
             return false;
         }
@@ -54,7 +53,7 @@ class ConfigController
         foreach (array('dist', 'local') as $config) {
 
             $config_file = "config_file_{$config}";
-            $config_fqpn = $this->config_path ."/". $this->$config_file;
+            $config_fqpn = $this::CONFIG_DIRECTORY ."/". $this->$config_file;
 
             // missing config.ini is ok
             if ($config == 'local' && !file_exists($config_fqpn)) {

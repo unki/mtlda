@@ -21,7 +21,7 @@ namespace MTLDA\Controllers;
 
 use MTLDA\Models;
 
-class AuditController
+class AuditController extends DefaultController
 {
     public function log($message, $entry_type, $scene, $guid = null)
     {

@@ -21,7 +21,7 @@ namespace MTLDA\Controllers;
 
 use MTLDA\Models;
 
-class PdfSigningController
+class PdfSigningController extends DefaultController
 {
     private $pdf_cfg;
 

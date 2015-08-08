@@ -21,7 +21,7 @@ namespace MTLDA\Controllers;
 
 use MTLDA\Models;
 
-class UploadController
+class UploadController extends DefaultController
 {
     public function __construct()
     {
@@ -47,6 +47,16 @@ class UploadController
                 return false;
             }
         }
+
+        $mtlda->loadController("Incoming", "incoming");
+        global $incoming;
+
+        if (!$incoming->handleQueue()) {
+            $this->raiseError("IncomingController::handleQueue returned false!");
+            return false;
+        }
+
+        unset($incoming);
 
         print "ok";
         return true;

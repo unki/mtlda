@@ -21,11 +21,14 @@ namespace MTLDA\Controllers;
 
 use MTLDA\Models;
 
-class ImageController
+class ImageController extends DefaultController
 {
-    private $archive_path = MTLDA_BASE."/data/archive";
-    private $working_path = MTLDA_BASE."/data/working";
-    private $image_cache  = MTLDA_BASE."/cache/image_cache";
+    private $image_cache;
+
+    public function __construct()
+    {
+        $this->image_cache = $this::CACHE_DIRECTORY ."/image_cache";
+    }
 
     public function perform()
     {
@@ -105,7 +108,7 @@ class ImageController
             return false;
         }
 
-        $src = $this->working_path .'/'. $item->queue_file_name;
+        $src = $this::WORKING_DIRECTORY .'/'. $item->queue_file_name;
 
         if (!file_exists($src)) {
             $mtlda->raiseError("Source does not exist!");

@@ -22,10 +22,8 @@ namespace MTLDA\Controllers;
 use MTLDA\Models;
 use MTLDA\Controllers;
 
-class StorageController
+class StorageController extends DefaultController
 {
-    private $archive_path = MTLDA_BASE."/data/archive";
-    private $working_path = MTLDA_BASE."/data/working";
     private $nesting_depth = 5;
 
     public function archive(&$queue_item)
@@ -228,7 +226,7 @@ class StorageController
             return false;
         }
 
-        $fqpn_dst = $this->archive_path .'/'. $dst;
+        $fqpn_dst = $this::ARCHIVE_DIRECTORY .'/'. $dst;
 
         if (!$signer->signDocument($fqpn_dst, $signing_item)) {
             $signing_item->delete();
@@ -310,7 +308,7 @@ class StorageController
             return false;
         }
 
-        $fqpn = $this->archive_path .'/'. $store_dir_name;
+        $fqpn = $this::ARCHIVE_DIRECTORY .'/'. $store_dir_name;
 
         if (file_exists($fqpn) && is_dir($fqpn)) {
             return true;
@@ -333,8 +331,8 @@ class StorageController
     {
         global $mtlda;
 
-        $fqpn_src = $this->working_path .'/'. $file_name;
-        $fqpn_dst = $this->archive_path .'/'. $dest_dir;
+        $fqpn_src = $this::WORKING_DIRECTORY .'/'. $file_name;
+        $fqpn_dst = $this::ARCHIVE_DIRECTORY .'/'. $dest_dir;
 
         if (!file_exists($fqpn_src)) {
             $mtlda->raiseError("copyQueueItemFileToArchive(), {$fqpn_src} does not exist!");
@@ -370,8 +368,8 @@ class StorageController
     {
         global $mtlda;
 
-        $fqpn_src = $this->archive_path .'/'. $src;
-        $fqpn_dst = $this->archive_path .'/'. $dst;
+        $fqpn_src = $this::ARCHIVE_DIRECTORY .'/'. $src;
+        $fqpn_dst = $this::ARCHIVE_DIRECTORY .'/'. $dst;
 
         if (!file_exists($fqpn_src)) {
             $mtlda->raiseError("copyArchiveDocumentFile(), {$fqpn_src} does not exist!");
@@ -395,7 +393,7 @@ class StorageController
     {
         global $mtlda;
 
-        $fqpn_src = $this->working_path .'/'. $file_name;
+        $fqpn_src = $this::WORKING_DIRECTORY .'/'. $file_name;
 
         if (!file_exists($fqpn_src)) {
             return true;
@@ -413,7 +411,7 @@ class StorageController
     {
         global $mtlda;
 
-        $fqpn_dst = $this->archive_path .'/'. $dest_dir;
+        $fqpn_dst = $this::ARCHIVE_DIRECTORY .'/'. $dest_dir;
 
         if (!file_exists($fqpn_dst)) {
             return true;
@@ -466,13 +464,13 @@ class StorageController
                 return false;
             }
 
-            $fqpn = $this->archive_path .'/'. $dir_name .'/'. $item->$file_name_field;
+            $fqpn = $this::ARCHIVE_DIRECTORY .'/'. $dir_name .'/'. $item->$file_name_field;
             $guid = $item->document_guid;
             $file_name = $item->document_file_name;
 
         } elseif ($item->column_name == 'queue') {
 
-            $fqpn = $this->working_path .'/'. $item->$file_name_field;
+            $fqpn = $this::WORKING_DIRECTORY .'/'. $item->$file_name_field;
             $guid = $item->queue_guid;
             $file_name = $item->queue_file_name;
 
@@ -512,11 +510,11 @@ class StorageController
 
 
         if ($from == 'archive') {
-            $src = $this->archive_path;
+            $src = $this::ARCHIVE_DIRECTORY;
             $guid_field = "document_guid";
             $name_field = "document_file_name";
         } else {
-            $src = $this->working_path;
+            $src = $this::WORKING_DIRECTORY;
             $guid_field = "queue_guid";
             $name_field = "queue_file_name";
         }

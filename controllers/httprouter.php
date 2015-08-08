@@ -19,7 +19,7 @@
 
 namespace MTLDA\Controllers;
 
-class HttpRouterController
+class HttpRouterController extends DefaultController
 {
     private $query;
 

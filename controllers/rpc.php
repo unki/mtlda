@@ -21,7 +21,7 @@ namespace MTLDA\Controllers;
 
 use MTLDA\Models;
 
-class RpcController
+class RpcController extends DefaultController
 {
     public function perform()
     {

@@ -21,7 +21,7 @@ namespace MTLDA\Controllers;
 
 use MTLDA\Models;
 
-class DocumentController
+class DocumentController extends DefaultController
 {
     public function perform()
     {

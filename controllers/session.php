@@ -19,7 +19,7 @@
 
 namespace MTLDA\Controllers;
 
-class SessionController
+class SessionController extends DefaultController
 {
     public function __construct()
     {

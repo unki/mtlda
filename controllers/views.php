@@ -21,7 +21,7 @@ namespace MTLDA\Controllers;
 
 use MTLDA\Views;
 
-class ViewsController
+class ViewsController extends DefaultController
 {
     private $page_map = array(
         '/^$/' => 'MainView',
