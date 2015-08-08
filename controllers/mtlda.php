@@ -421,7 +421,7 @@ class MTLDA extends DefaultController
         return false;
     }
 
-    private function loadController($controller, $global_name)
+    public function loadController($controller, $global_name)
     {
         if (empty($controller)) {
             $this->raiseError("\$controller must not be empty!", true);
@@ -447,6 +447,51 @@ class MTLDA extends DefaultController
         }
 
         return true;
+    }
+
+    public function getProcessUserId()
+    {
+        if ($uid = posix_getuid()) {
+            return $uid;
+        }
+
+        return false;
+    }
+
+    public function getProcessGroupId()
+    {
+        if ($gid = posix_getgid()) {
+            return $gid;
+        }
+
+        return false;
+    }
+
+    public function getProcessUserName()
+    {
+        if (!$uid = $this->getProcessUserId()) {
+            return false;
+        }
+
+        if ($user = posix_getpwuid($uid)) {
+            return $user['name'];
+        }
+
+        return false;
+
+    }
+
+    public function getProcessGroupName()
+    {
+        if (!$uid = $this->getProcessGroupId()) {
+            return false;
+        }
+
+        if ($group = posix_getgrgid($uid)) {
+            return $group['name'];
+        }
+
+        return false;
     }
 }
 
