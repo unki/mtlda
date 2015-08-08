@@ -33,7 +33,30 @@ class RequirementsController extends DefaultController
 
     public function check()
     {
-        global $mtlda, $config;
+        $missing = false;
+
+        if (!$this->checkPhp()) {
+            $missing = true;
+        }
+
+        if (!$this->checkDatabaseSupport()) {
+            $missing = true;
+        }
+
+        if (!$this->checkExternalLibraries()) {
+            $missing = true;
+        }
+
+        if (!$this->checkDirectoryPermissions()) {
+            $missing = true;
+        }
+
+        return $missing;
+    }
+
+    public function checkPhp()
+    {
+        global $mtlda;
 
         $missing = false;
 
@@ -41,6 +64,15 @@ class RequirementsController extends DefaultController
             $mtlda->raiseError("Error - microtime() function does not exist!");
             return false;
         }
+
+        return true;
+    }
+
+    public function checkDatabaseSupport()
+    {
+        global $mtlda, $config;
+
+        $missing = false;
 
         if (!($dbtype = $config->getDatabaseType())) {
             $mtlda->raiseError("Error - incomplete configuration found, can not check requirements!");
@@ -78,6 +110,15 @@ class RequirementsController extends DefaultController
             $missing = true;
         }
 
+        return $missing;
+    }
+
+    public function checkExternalLibraries()
+    {
+        global $mtlda;
+
+        $missing = false;
+
         ini_set('track_errors', 1);
         @include_once MTLDA_BASE.'/extern/tcpdf/tcpdf.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
@@ -90,10 +131,6 @@ class RequirementsController extends DefaultController
             $mtlda->write("FPDI can not be found!", LOG_ERR);
             $missing = true;
             unset($php_errormsg);
-        }
-        if (!class_exists('imagick')) {
-            $mtlda->write("imagick extension is missing!", LOG_ERR);
-            $missing = true;
         }
         /*@include_once 'Pager.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
@@ -110,11 +147,59 @@ class RequirementsController extends DefaultController
 
         ini_restore('track_errors');
 
-        if (empty($missing)) {
-            return true;
+        if (!class_exists('imagick')) {
+            $mtlda->write("imagick extension is missing!", LOG_ERR);
+            $missing = true;
         }
 
-        return false;
+        return $missing;
+    }
+
+    public function checkDirectoryPermissions()
+    {
+        global $mtlda;
+        $missing = false;
+
+        if (!$uid = $mtlda->getProcessUserId()) {
+            $mtlda->raiseError("MTLDA::getProcessUserId() returned false!");
+            return false;
+        }
+
+        if (!$gid = $mtlda->getProcessGroupId()) {
+            $mtlda->raiseError("MTLDA::getProcessGroupId() returned false!");
+            return false;
+        }
+
+        $directories = array(
+            $this::CONFIG_DIRECTORY => 'r',
+            $this::CACHE_DIRECTORY => 'w',
+            $this::ARCHIVE_DIRECTORY => 'w',
+            $this::INCOMING_DIRECTORY => 'w',
+            $this::WORKING_DIRECTORY => 'w',
+        );
+
+        foreach ($directories as $dir => $perm) {
+
+            if (!file_exists($dir)) {
+                $mtlda->write("{$dir} does not exist!", LOG_ERR);
+                $missing = true;
+                continue;
+            }
+
+            if (!is_readable($dir)) {
+                $mtlda->write("{$dir} is not readable for {$uid}:{$gid}!", LOG_ERR);
+                $missing = true;
+                continue;
+            }
+
+            if ($perm == 'w' && !is_writeable($dir)) {
+                $mtlda->write("{$dir} is not writeable for {$uid}:{$gid}!", LOG_ERR);
+                $missing = true;
+                continue;
+            }
+        }
+
+        return $missing;
     }
 }
 
