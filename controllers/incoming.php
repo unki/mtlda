@@ -159,7 +159,7 @@ class IncomingController
             $queueitem->queue_file_size = $size;
             $queueitem->queue_file_hash = $hash;
             $queueitem->queue_state = 'new';
-            $queueitem->queue_time = time();
+            $queueitem->queue_time = microtime();
 
             if ($config->isPdfSigningEnabled()) {
 
