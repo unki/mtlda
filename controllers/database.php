@@ -104,8 +104,6 @@ class DatabaseController
 
     public function query($query = "", $mode = PDO::FETCH_OBJ)
     {
-        global $config;
-
         if (!$this->getConnectionStatus()) {
             $this->connect();
         }
@@ -117,14 +115,18 @@ class DatabaseController
         /* for manipulating queries use exec instead of query. can save
          * some resource because nothing has to be allocated for results.
          */
-        if (preg_match('/^(update|insert)i/', $query)) {
-            $result = $this->db->exec($query);
+        if (preg_match('/^(update|insert|create|replace)/i', $query)) {
+            if (($result = $this->db->exec($query)) === false) {
+                return false;
+            }
             return $result;
         }
 
-        $result = $this->db->query($query, $mode);
-        return $result;
+        if (($result = $this->db->query($query, $mode)) === false) {
+            return false;
+        }
 
+        return $result;
     }
 
     public function prepare($query = "")
@@ -233,8 +235,6 @@ class DatabaseController
 
     public function hasTablePrefix()
     {
-        global $config;
-
         if (
                 isset($this->db_cfg['table_prefix']) &&
                 !empty($this->db_cfg['table_prefix']) &&
@@ -252,7 +252,7 @@ class DatabaseController
             return false;
         }
 
-        if (isset($this->db_cfg['table_prefix']) || empty($this->db_cfg['table_prefix'])) {
+        if (!isset($this->db_cfg['table_prefix']) || empty($this->db_cfg['table_prefix'])) {
             return false;
         }
 
@@ -261,7 +261,6 @@ class DatabaseController
 
     public function insertTablePrefix(&$query)
     {
-        global $config;
         $query = str_replace("TABLEPREFIX", $this->getTablePrefix(), $query);
     }
 
