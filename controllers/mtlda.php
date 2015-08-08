@@ -201,13 +201,11 @@ class MTLDA
     {
         if (isset($this->config->logging)) {
             $logtype = $this->config->logging;
-        }
-
-        if (!isset($this->config->logging)) {
+        } else {
             $logtype = 'display';
         }
 
-        if (isset($override_output)) {
+        if (isset($override_output) || !empty($override_output)) {
             $logtype = $override_output;
         }
 
