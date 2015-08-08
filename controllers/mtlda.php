@@ -99,8 +99,9 @@ class MTLDA
         }
 
         $this->loadController("Views", "views");
-
         global $views;
+
+        $this->loadController("Session", "session");
 
         if ($router->isRpcCall()) {
 
