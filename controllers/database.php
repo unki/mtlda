@@ -246,10 +246,23 @@ class DatabaseController
         return false;
     }
 
+    public function getTablePrefix()
+    {
+        if (!isset($this->db_cfg) || empty($this->db_cfg)) {
+            return false;
+        }
+
+        if (isset($this->db_cfg['table_prefix']) || empty($this->db_cfg['table_prefix'])) {
+            return false;
+        }
+
+        return $this->db_cfg['table_prefix'];
+    }
+
     public function insertTablePrefix(&$query)
     {
         global $config;
-        $query = str_replace("TABLEPREFIX", $this->db_cfg['table_prefix'], $query);
+        $query = str_replace("TABLEPREFIX", $this->getTablePrefix(), $query);
     }
 
     public function getid()
@@ -286,6 +299,11 @@ class DatabaseController
 
         if (!$result) {
             return false;
+        }
+
+        if ($this->hasTablePrefix()) {
+            $table_name = str_replace("TABLEPREFIX", $this->getTablePrefix(), $table_name);
+            $this->insertTablePrefix($query);
         }
 
         $tables_in = "Tables_in_{$this->db_cfg['db_name']}";
