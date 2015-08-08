@@ -71,11 +71,24 @@ class HttpRouterController
         } elseif (isset($parts[0]) && !empty($parts[0])) {
             $this->query->view = $parts[0];
         } else {
-            $mtlda->raiseError("Something is wrong here. "
+            $mtlda->raiseError(
+                "Something is wrong here. "
                 ."Check if base_web_path is correctly defined in your configuration."
             );
             return false;
         }
+
+        if (!isset($_SERVER['REQUEST_METHOD']) || empty($_SERVER['REQUEST_METHOD'])) {
+            $mtlda->raiseError("\$_SERVER['REQUEST_METHOD'] is not set!");
+            return false;
+        }
+
+        if (!$this->isValidRequestMethod($_SERVER['REQUEST_METHOD'])) {
+            $mtlda->raiseError("unspported request method {$_SERVER['REQUEST_METHOD']}");
+            return false;
+        }
+
+        $this->query->method = $_SERVER['REQUEST_METHOD'];
 
         if (isset($parts[1]) && $this->isValidAction($parts[1])) {
             $this->query->mode = $parts[1];
@@ -195,6 +208,20 @@ class HttpRouterController
         return false;
     }
 
+    public function isUploadCall()
+    {
+        if (
+            isset($this->query->method) &&
+            $this->query->method == 'POST' &&
+            isset($this->query->view) &&
+            $this->query->view == 'upload'
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
     private function isValidAction($action)
     {
         $valid_actions = array(
@@ -282,6 +309,20 @@ class HttpRouterController
 
         Header("Location: ". $url);
         return true;
+    }
+
+    private function isValidRequestMethod($method)
+    {
+        $valid_methods = array(
+            'GET',
+            'POST',
+        );
+
+        if (in_array($method, $valid_methods)) {
+            return true;
+        }
+
+        return false;
     }
 }
 
