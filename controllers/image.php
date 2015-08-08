@@ -25,7 +25,7 @@ class ImageController
 {
     private $archive_path = MTLDA_BASE."/data/archive";
     private $working_path = MTLDA_BASE."/data/working";
-    private $image_cache  = MTLDA_BASE."/data/image_cache";
+    private $image_cache  = MTLDA_BASE."/cache/image_cache";
 
     public function perform()
     {
