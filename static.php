@@ -29,6 +29,19 @@ define('SIGN_BOTTOM_LEFT', 7);
 define('SIGN_BOTTOM_CENTER', 8);
 define('SIGN_BOTTOM_RIGHT', 9);
 
+if (!constant('LOG_ERR')) {
+    define('LOG_ERR', 1);
+}
+if (!constant('LOG_WARNING')) {
+    define('LOG_WARNING', 2);
+}
+if (!constant('LOG_INFO')) {
+    define('LOG_INFO', 3);
+}
+if (!constant('LOG_DEBUG')) {
+    define('LOG_DEBUG', 4);
+}
+
 function autoload($class)
 {
     require_once "controllers/exception.php";
