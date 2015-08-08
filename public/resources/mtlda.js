@@ -175,4 +175,26 @@ function change_preview(direction)
     return true;
 }
 
+Dropzone.options.upload = {
+    paramName: "file", // The name that will be used to transfer the file
+    addRemoveLinks: true,
+    acceptedFiles: 'application/pdf,.pdf',
+    error: function(file, errorMessage) {
+        if (errorMessage == "") {
+            return;
+        }
+        window.alert("Server reported: " + errorMessage);
+    },
+    success: function(file, successMessage) {
+        if (successMessage == "ok") {
+            return;
+        }
+        if (successMessage == "") {
+            window.alert("An unknown error occured!");
+            return;
+        }
+        window.alert(successMessage);
+    }
+};
+
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
