@@ -104,7 +104,7 @@ class ConfigController
             if (!isset($this->config)) {
                 $this->config = $config_ary;
             } else {
-                if (!($this->config = array_replace($this->config, $config_ary))) {
+                if (!($this->config = array_replace_recursive($this->config, $config_ary))) {
                     $mtlda->raiseError("Failed to merge {$this->config_file_local} with {$this->config_file_dist}.");
                     return false;
                 }
@@ -251,7 +251,7 @@ class ConfigController
     public function getPageTitle()
     {
         if (
-            $this->config['app']['page_title'] &&
+            isset($this->config['app']['page_title']) &&
             !empty($this->config['app']['page_title']) &&
             is_string($this->config['app']['page_title'])
         ) {
