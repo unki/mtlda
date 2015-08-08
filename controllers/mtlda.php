@@ -66,6 +66,7 @@ class MTLDA
         if (isset($mode) and $mode == "queue_only") {
 
             $this->loadController("Incoming", "incoming");
+            global $incoming;
 
             if (!$incoming->handleQueue()) {
                 $this->raiseError("IncomingController::handleQueue returned false!");
