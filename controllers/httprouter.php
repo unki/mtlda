@@ -68,8 +68,13 @@ class HttpRouterController
             rtrim($_SERVER['REQUEST_URI'], '/') == $config->getWebPath()
         ) {
             $this->query->view = "main";
-        } else {
+        } elseif (isset($parts[0]) && !empty($parts[0])) {
             $this->query->view = $parts[0];
+        } else {
+            $mtlda->raiseError("Something is wrong here. "
+                ."Check if base_web_path is correctly defined in your configuration."
+            );
+            return false;
         }
 
         if (isset($parts[1]) && $this->isValidAction($parts[1])) {
