@@ -59,7 +59,7 @@ class Templates extends Smarty
 
         if (!file_exists($this->compile_dir) && !is_writeable(MTLDA_BASE .'/cache')) {
             $mtlda->raiseError(
-                "Cache directory ". $MTLDA_BASE .'/cache' ." is not writeable"
+                "Cache directory ". MTLDA_BASE .'/cache' ." is not writeable"
                 ."for user (". $this->getuid() .").<br />\n"
                 ."Please check that permissions are set correctly to this directory.<br />\n"
             );
