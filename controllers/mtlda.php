@@ -430,10 +430,14 @@ class MTLDA
             return true;
         }
 
-        $controller = $controller.'Controller';
+        $controller = 'MTLDA\\Controllers\\'.$controller.'Controller';
+
+        if (!class_exists($controller, true)) {
+            $this->raiseError("{$controller} class is not available!", true);
+            return false;
+        }
 
         try {
-            $controller = 'MTLDA\\Controllers\\'.$controller;
             $GLOBALS[$global_name] =& new $controller;
         } catch (Exception $e) {
             $this->raiseError("Failed to load {$controller_name}", true);
