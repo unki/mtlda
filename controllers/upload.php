@@ -38,10 +38,47 @@ class UploadController extends DefaultController
         global $mtlda;
 
         if (!isset($_FILES) || empty($_FILES) || !is_array($_FILES)) {
-            return true;
+            $mtlda->raiseError("\$_FILES is empty");
+            return false;
         }
 
-        foreach ($_FILES as $file) {
+        if (
+            !isset($_FILES['mtlda_upload']) ||
+            empty($_FILES['mtlda_upload'] ||
+            !is_array($_FILES['mtlda_upload']))
+        ) {
+            $mtlda->raiseError("\$_FILES['mtlda_upload'] is empty");
+            return false;
+        }
+
+        $upload = $_FILES['mtlda_upload'];
+
+        if (empty($upload['name']) || !is_array($upload['name'])) {
+            $mtlda->raiseError("noramally 'name' should be an array!");
+            return false;
+        }
+
+        foreach (array_keys($upload['name']) as $file_id) {
+
+            if (!isset(
+                $upload['name'][$file_id],
+                $upload['type'][$file_id],
+                $upload['tmp_name'][$file_id],
+                $upload['error'][$file_id],
+                $upload['size'][$file_id]
+            )) {
+                $mtlda->raiseError("\$upload[{$file_id}] is incomplete!");
+                return false;
+            }
+
+            $file = array(
+                'name'      => $upload['name'][$file_id],
+                'type'      => $upload['type'][$file_id],
+                'tmp_name'  => $upload['tmp_name'][$file_id],
+                'error'     => $upload['error'][$file_id],
+                'size'      => $upload['size'][$file_id]
+            );
+
             if (!$this->handleUploadedFile($file)) {
                 $mtlda->raiseError("UploadController::handleUploadedFile() returned false!");
                 return false;
@@ -117,6 +154,11 @@ class UploadController extends DefaultController
 
         if (file_exists($dest)) {
             $mtlda->raiseError("There is already a file in the queue with the same name!");
+            return false;
+        }
+
+        if (!is_uploaded_file($file['tmp_name'])) {
+            $mtlda->raiseError("Strangly is_uploaded_file() reports that {$file['tmp_name']} is not an uploaded file!");
             return false;
         }
 
