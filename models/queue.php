@@ -65,7 +65,7 @@ class QueueModel extends DefaultModel
 
     public function flush()
     {
-        global $mtlda, $db;
+        global $mtlda, $db, $audit;
 
         // delete each QueueItemModel
         foreach ($this->items as $item) {
@@ -104,6 +104,17 @@ class QueueModel extends DefaultModel
 
         if ($result === false) {
             $mtlda->raiseError("failed to truncate '{$this->table_name}' table!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                "flushing",
+                "flushed",
+                "queue"
+            );
+        } catch (Exception $e) {
+            $mtlda->raiseError("AuditController::log() returned false!");
             return false;
         }
 
