@@ -176,24 +176,32 @@ function change_preview(direction)
 }
 
 Dropzone.options.upload = {
-    paramName: "file", // The name that will be used to transfer the file
+    paramName: 'mtlda_upload',
     addRemoveLinks: true,
     acceptedFiles: 'application/pdf,.pdf',
+    uploadMultiple: true,
     error: function(file, errorMessage) {
-        if (errorMessage == "") {
+        if (errorMessage == '') {
+            window.alert('An unknown error occured!');
             return;
         }
-        window.alert("Server reported: " + errorMessage);
+        window.alert('Server reported: ' + errorMessage);
     },
     success: function(file, successMessage) {
-        if (successMessage == "ok") {
+        if (successMessage == 'ok') {
+            $('#transferlist').append(file.name +'<br />');
             return;
-        }
-        if (successMessage == "") {
-            window.alert("An unknown error occured!");
+        } else if (successMessage == '') {
+            window.alert('An unknown error occured!');
             return;
         }
         window.alert(successMessage);
+    },
+    totaluploadprogress: function(progress, transfered) {
+        $('#progress').html(Math.round(progress) + '% ' + Math.round(transfered/1024) + ' bytes');
+    },
+    queuecomplete: function() {
+        $('#progress').html('finished');
     }
 };
 
