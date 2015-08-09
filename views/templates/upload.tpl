@@ -14,8 +14,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<form action="{get_url page=upload id=$upload_token}" class="dropzone" id="upload">
+<div id="transferlist" style="width: 30%; float: left;">
+ Transfer List:<br />
+</div>
+<div id="dropzoe" style="width: 70%; float: left;">
+ <form action="{get_url page=upload id=$upload_token}" class="dropzone" id="upload">
   <div class="fallback">
     <input name="file" type="file" multiple />
   </div>
-</form>
+ </form>
+</div>
+<div id="progress" style="width: 100%; text-align: right;"></div>
