@@ -190,6 +190,7 @@ Dropzone.options.upload = {
     success: function(file, successMessage) {
         if (successMessage == 'ok') {
             $('#transferlist').append(file.name +'<br />');
+            this.removeFile(file);
             return;
         } else if (successMessage == '') {
             window.alert('An unknown error occured!');
