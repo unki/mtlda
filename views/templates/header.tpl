@@ -22,8 +22,8 @@
   <link type="text/css" href="{$web_path}/resources/jquery-ui/jquery-ui-themes-1.11.4/themes/smoothness/jquery-ui.css" rel="Stylesheet" />
   <script type="text/javascript" src="{$web_path}/resources/jquery-ui/jquery-ui-1.11.4/jquery-ui.js"></script>
   <!-- dropzone -->
-  <link type="text/css" href="{$web_path}/resources/dropzone/dropzone.min.css" rel="Stylesheet" />
-  <script type="text/javascript" src="{$web_path}/resources/dropzone/dropzone.min.js"></script>
+  <link type="text/css" href="{$web_path}/resources/dropzone/dropzone.css" rel="Stylesheet" />
+  <script type="text/javascript" src="{$web_path}/resources/dropzone/dropzone.js"></script>
   <!-- MTLDA JavaScript -->
   <script type="text/javascript" src="{$web_path}/resources/mtlda.js"></script>
   <script type="text/javascript" src="{$web_path}/resources/mtlda_rpc.js"></script>
