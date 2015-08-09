@@ -349,6 +349,37 @@ class DatabaseController extends DefaultController
         return $result->meta_value;
     }
 
+    public function setDatabaseSchemaVersion($version = null)
+    {
+        global $mtlda;
+
+        if (!isset($version) || empty($version)) {
+            $version = $this->getSoftwareSchemaVersion();
+        }
+
+        if (!$this->checkTableExists("TABLEPREFIXmeta")) {
+            $mtlda->raiseError("Can not set schema version when 'meta' table does not exist!");
+            return false;
+        }
+
+        $result = $this->query(
+            "REPLACE INTO TABLEPREFIXmeta (
+            meta_key,
+            meta_value
+                ) VALUES (
+                    'schema_version',
+                    '{$version}'
+                    )"
+        );
+
+        if (!$result) {
+            $mtlda->raiseError("Unable to set schema_version in meta table!");
+            return false;
+        }
+
+        return true;
+    }
+
     public function getSoftwareSchemaVersion()
     {
         return $this::SCHEMA_VERSION;

@@ -143,40 +143,20 @@ class InstallerController extends DefaultController
                 return false;
             }
 
-            if (!$this->setDatabaseSchemaVersion()) {
+            if (!$db->setDatabaseSchemaVersion()) {
                 $mtlda->raiseError("Failed to set schema verison!");
                 return false;
             }
         }
 
-        return true;
-    }
-
-    private function setDatabaseSchemaVersion($version = null)
-    {
-        global $mtlda, $db;
-
-        if (!isset($version) || empty($version)) {
-            $version = $db->getSoftwareSchemaVersion();
-        }
-
-        $result = $db->query(
-            "REPLACE INTO TABLEPREFIXmeta (
-            meta_key,
-            meta_value
-                ) VALUES (
-                    'schema_version',
-                    '{$version}'
-                    )"
-        );
-
-        if ($result === false) {
-            $mtlda->raiseError("Unable to set schema_version in meta table!");
-            return false;
+        if (!$db->getDatabaseSchemaVersion()) {
+            if (!$db->setDatabaseSchemaVersion()) {
+                $mtlda->raiseError("DatabaseController:setDatabaseSchemaVersion() returned false!");
+                return false;
+            }
         }
 
         return true;
-
     }
 
     private function upgradeDatabaseSchema()
