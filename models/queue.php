@@ -43,17 +43,71 @@ class QueueModel extends DefaultModel
 
         $idx_field = $this->column_name ."_idx";
 
-        $result = $db->query("
-                SELECT
-                *
-                FROM
-                TABLEPREFIX". $this->table_name);
+        $result = $db->query(
+            "SELECT
+            *
+            FROM
+            TABLEPREFIX{$this->table_name}"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError("failed to fetch queue!");
+            return false;
+        }
 
         while ($row = $result->fetch()) {
             array_push($this->avail_items, $row->$idx_field);
             $this->items[$row->$idx_field] = $row;
         }
 
+        return true;
+    }
+
+    public function flush()
+    {
+        global $mtlda, $db;
+
+        // delete each QueueItemModel
+        foreach ($this->items as $item) {
+
+            if (
+                !isset($item->queue_idx) ||
+                empty($item->queue_idx) ||
+                !isset($item->queue_guid) ||
+                empty($item->queue_guid)
+            ) {
+                $mtlda->raiseError("invalid \$item found!");
+                return false;
+            }
+
+            $queueitem = $mtlda->loadModel("queueitem", $item->queue_idx, $item->queue_guid);
+
+            if (!$queueitem) {
+                $mtlda->raiseError(
+                    "Error loading QueueItemModel idx:{$item->queue_idx} guid:{$item->queue_guid}!"
+                );
+                return false;
+            }
+
+            if (!$queueitem->delete()) {
+                $mtlda->raiseError(
+                    "Error deleting QueueItemModel idx:{$item->queue_idx} guid:{$item->queue_guid}!"
+                );
+                return false;
+            }
+        }
+
+        // finally truncate the table
+        $result = $db->query(
+            "TRUNCATE TABLE TABLEPREFIX{$this->table_name}"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError("failed to truncate '{$this->table_name}' table!");
+            return false;
+        }
+
+        return true;
     }
 }
 
