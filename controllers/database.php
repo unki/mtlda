@@ -115,7 +115,7 @@ class DatabaseController extends DefaultController
         /* for manipulating queries use exec instead of query. can save
          * some resource because nothing has to be allocated for results.
          */
-        if (preg_match('/^(update|insert|create|replace)/i', $query)) {
+        if (preg_match('/^(update|insert|create|replace|truncate|delete)/i', $query)) {
             if (($result = $this->db->exec($query)) === false) {
                 return false;
             }
