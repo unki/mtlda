@@ -21,7 +21,7 @@
   <th>Size</th>
   <th>State</th>
   <th>Time</th>
-  <td colspan="4" style="text-align: right;"><a class="delete" title="deleteall" id="allitems">Flush queue</a></th>
+  <td colspan="4" style="text-align: right;"><a class="delete" title="deleteall" id="queueitem-flush">Flush queue</a></th>
  </tr>
 {queue_list}
  <tr>
