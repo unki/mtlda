@@ -14,6 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
+<div id="page_title">Upload</div>
 <div id="transferlist" style="width: 30%; float: left;">
  Transfer List:<br />
 </div>
