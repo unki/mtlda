@@ -180,6 +180,21 @@ Dropzone.options.upload = {
     addRemoveLinks: true,
     acceptedFiles: 'application/pdf,.pdf',
     uploadMultiple: true,
+    dictDefaultMessage: 'drag\'n\'drop files here<br />or click to select',
+    autoProcessQueue: false,
+    init: function() {
+        var dropzone = this;
+        $('#submitbtn').click(function() {
+            dropzone.processQueue();
+        });
+    },
+    processing: function(file) {
+        $('#progress').show();
+    },
+    queuecomplete: function(file) {
+        $('#progress').html('');
+        $('#progress').hide();
+    },
     error: function(file, errorMessage) {
         if (errorMessage == '') {
             window.alert('An unknown error occured!');
@@ -199,11 +214,8 @@ Dropzone.options.upload = {
         window.alert(successMessage);
     },
     totaluploadprogress: function(progress, transfered) {
-        $('#progress').html(Math.round(progress) + '% ' + Math.round(transfered/1024) + ' bytes');
+        $('#progress').html('Progress:&nbsp;'+Math.round(progress) + '% ' + Math.round(transfered/1024) + ' bytes');
     },
-    queuecomplete: function() {
-        $('#progress').html('finished');
-    }
 };
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:

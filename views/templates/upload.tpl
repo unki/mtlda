@@ -15,14 +15,13 @@
  * GNU Affero General Public License for more details.
 *}
 <div id="page_title">Upload</div>
-<div id="transferlist" style="width: 30%; float: left;">
- Transfer List:<br />
-</div>
-<div id="dropzoe" style="width: 70%; float: left;">
+<div id="dropzone" style="float: left; display: block;">
  <form action="{get_url page=upload id=$upload_token}" class="dropzone" id="upload">
-  <div class="fallback">
-    <input name="file" type="file" multiple />
-  </div>
+  <div class="fallback"><input name="file" type="file" multiple /></div>
  </form>
 </div>
-<div id="progress" style="width: 100%; text-align: right;"></div>
+<input type="button" id="submitbtn" value="Upload" />
+<div id="transferlist" style="clear: left;">
+ Transfer List:<br />
+</div>
+<div id="progress">Progress:</div>
