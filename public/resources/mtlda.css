@@ -30,4 +30,8 @@
     padding-bottom: 10px;
 }
 
+#progress {
+    display:        none;
+}
+
 // vim: set filetype=css expandtab softtabstop=4 tabstop=4 shiftwidth=4:
