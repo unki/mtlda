@@ -19,14 +19,14 @@
 {include "header.tpl"}
  </head>
  <body>
-  <div id="title">
-   MTLDA - My Tiny Little Document Archive
-  </div>
-  <div id="menu">
-   {include "menu.tpl"}
+  <div id="head">
+   <div id="title">MTLDA</div>
+   <div id="menu">
+{include "menu.tpl"}
+   </div>
   </div>
   <div id="content">
-  {$page_content}
+{$page_content}
   </div>
   <div id="dialog"></div>
  </body>
