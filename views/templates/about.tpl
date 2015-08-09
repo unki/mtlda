@@ -14,8 +14,19 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<a href="{get_url page=main}">Main</a>
-<a href="{get_url page=archive}">Archive</a>
-<a href="{get_url page=queue}">Queue</a>
-<a href="{get_url page=upload}">Upload</a>
-<a href="{get_url page=about}">About</a>
+<div id="page_title">About</div>
+<pre>
+MTLDA - My Tiny Little Document Archive
+(c) 2015 Andreas Unterkircher <unki@netshadow.net>
+</pre>
+<br />
+<a href="https://oss.netshadow.net/redmine/projects/mtlda" target="_blank">https://oss.netshadow.net/redmine/projects/mtlda</a>
+<br />
+MTLDA Version: {$mtlda_version}
+<br />
+MTLDA Database Schema: {$mtlda_schema_version}
+<br /><br />
+Credits:<br />
+<a href="http://www.jquery.com" target="_blank">jQuery</a>,&nbsp;
+<a href="http://www.jqueryui.com" target="_blank">jQuery UI</a>,&nbsp;
+<a href="http://www.dropzonejs.com" target="_blank">DropzoneJS</a>

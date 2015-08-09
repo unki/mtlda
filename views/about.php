@@ -1,4 +1,6 @@
-{*
+<?php
+
+/**
  * This file is part of MTLDA.
  *
  * MTLDA, a web-based document archive.
@@ -13,9 +15,26 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
-*}
-<a href="{get_url page=main}">Main</a>
-<a href="{get_url page=archive}">Archive</a>
-<a href="{get_url page=queue}">Queue</a>
-<a href="{get_url page=upload}">Upload</a>
-<a href="{get_url page=about}">About</a>
+ */
+
+namespace MTLDA\Views;
+
+use MTLDA\Controllers;
+
+class AboutView extends Templates
+{
+    public $default_mode = 'show';
+    public $class_name = 'about';
+
+    public function show()
+    {
+        global $db;
+
+        $this->assign("mtlda_version", Controllers\MTLDA::VERSION);
+        $this->assign("mtlda_schema_version", $db->getDatabaseSchemaVersion());
+
+        return $this->fetch("about.tpl");
+    }
+}
+
+// vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
