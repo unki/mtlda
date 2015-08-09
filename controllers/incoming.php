@@ -156,7 +156,7 @@ class IncomingController extends DefaultController
             $queueitem->queue_file_size = $size;
             $queueitem->queue_file_hash = $hash;
             $queueitem->queue_state = 'new';
-            $queueitem->queue_time = microtime();
+            $queueitem->queue_time = microtime(true);
 
             if ($config->isPdfSigningEnabled()) {
 
