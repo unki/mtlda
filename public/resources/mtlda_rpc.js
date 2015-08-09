@@ -15,7 +15,7 @@
  * GNU Affero General Public License for more details.
  */
 
-function rpc_object_delete(element, target, idx)
+function rpc_object_delete(element)
 {
     var del_id = element.attr("id");
 
@@ -24,7 +24,7 @@ function rpc_object_delete(element, target, idx)
         return;
     }
 
-    if(del_id == 'allitems') {
+    if(del_id.match(/-flush$/)) {
         if(!(answer = prompt("This will delete all items from Queue! Are you sure?\nThere is NO undo! Type 'yes' if you want to continue.", 'no'))) {
             return false;
         }
@@ -50,6 +50,11 @@ function rpc_object_delete(element, target, idx)
         },
         success: function(data){
             if(data == "ok") {
+                // on flushing, reload the page
+                if(del_id.match(/-flush$/)) {
+                    location.reload();
+                    return;
+                }
                 element.parent().parent().animate({ opacity: "hide" }, "fast");
                 return;
             }
@@ -64,7 +69,7 @@ function rpc_object_delete(element, target, idx)
 
 } // rpc_object_delete()
 
-function rpc_object_archive(element, target, idx)
+function rpc_object_archive(element)
 {
     var obj_id = element.attr("id");
 
