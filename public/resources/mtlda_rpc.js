@@ -24,9 +24,14 @@ function rpc_object_delete(element, target, idx)
         return;
     }
 
-    /*if(!confirm("Are you sure you want to delete this object? There is NO undo!")) {
-        return false;
-    }*/
+    if(del_id == 'allitems') {
+        if(!(answer = prompt("This will delete all items from Queue! Are you sure?\nThere is NO undo! Type 'yes' if you want to continue.", 'no'))) {
+            return false;
+        }
+        if(answer != 'yes') {
+            return false;
+        }
+    }
 
     $.ajax({
         type: "POST",
