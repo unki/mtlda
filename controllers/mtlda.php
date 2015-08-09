@@ -298,13 +298,15 @@ class MTLDA extends DefaultController
 
     public function isValidId($id)
     {
-        $id = (int) $id;
+        // disable for now, 20150809
+        /*$id = (int) $id;
 
         if (is_numeric($id)) {
             return true;
         }
 
-        return false;
+        return false;*/
+        return true;
     }
 
     public function isValidModel($model)
@@ -378,6 +380,9 @@ class MTLDA extends DefaultController
     public function loadModel($object_name, $id = null, $guid = null)
     {
         switch($object_name) {
+            case 'queue':
+                $obj = new Models\QueueModel;
+                break;
             case 'queueitem':
                 $obj = new Models\QueueItemModel($id, $guid);
                 break;
