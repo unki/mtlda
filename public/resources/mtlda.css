@@ -1,0 +1,33 @@
+#head {
+    display:        block;
+    height:         30px;
+    padding-bottom: 10px;
+}
+
+#title {
+    position:       absolute;
+    width:          70px;
+    float:          left;
+}
+
+#menu {
+    position:       relative;
+    left:           70px;
+    clear:          left;
+}
+
+#content {
+    padding-top:    10px;
+}
+
+#archive10,#queue10 {
+    float:          left;
+    width:          50%;
+}
+
+#page_title {
+    font-weight:    bold;
+    padding-bottom: 10px;
+}
+
+// vim: set filetype=css expandtab softtabstop=4 tabstop=4 shiftwidth=4:

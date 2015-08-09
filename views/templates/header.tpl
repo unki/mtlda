@@ -27,3 +27,5 @@
   <!-- MTLDA JavaScript -->
   <script type="text/javascript" src="{$web_path}/resources/mtlda.js"></script>
   <script type="text/javascript" src="{$web_path}/resources/mtlda_rpc.js"></script>
+  <!-- MTLDA CSS -->
+  <link type="text/css" href="{$web_path}/resources/mtlda.css" rel="Stylesheet" />
