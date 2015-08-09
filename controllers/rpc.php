@@ -25,14 +25,14 @@ class RpcController extends DefaultController
 {
     public function perform()
     {
-        global $router, $query;
+        global $mtlda, $router, $query;
 
         if (!isset($query->action)) {
-            print "No action specified!";
+            $mtlda->raiseError("No action specified!");
         }
 
         if (!$router->isValidRpcAction($query->action)) {
-            print "Invalid RPC action: ". htmlentities($query->action, ENT_QUOTES);
+            $mtlda->raiseError("Invalid RPC action: ". htmlentities($query->action, ENT_QUOTES));
             return false;
         }
 
@@ -66,7 +66,7 @@ class RpcController extends DefaultController
                 print "ok";
                 break;
             default:
-                print "Unknown RPC action\n";
+                $mtlda->raiseError("Unknown RPC action\n");
                 return false;
                 break;
         }
@@ -80,20 +80,47 @@ class RpcController extends DefaultController
         global $mtlda, $query;
 
         if (!isset($_POST['id'])) {
-            print "id is missing!";
+            $mtlda->raiseError("id is missing!");
             return false;
         }
 
         if (!$mtlda->isValidId($_POST['id'])) {
-            print "id looks invalid!";
+            $mtlda->raiseError("id looks invalid!");
             return false;
         }
 
         $id = $_POST['id'];
 
+        /* for flushing queue */
+        if (preg_match('/(\w+)-flush$/', $id, $parts)) {
+
+            if (
+                !isset($parts) ||
+                !is_array($parts) ||
+                !isset($parts[1]) ||
+                $parts[1] != "queueitem"
+            ) {
+                $mtlda->raiseError("flushing only supported for queueitems!");
+                return false;
+            }
+
+            if (!($queue = $mtlda->loadModel('queue'))) {
+                $mtlda->raiseError("unable to locate model for QueueModel!");
+                return false;
+            }
+
+            if (!$queue->flush()) {
+                $mtlda->raiseError("QueueModel::flush() returned false!");
+                return false;
+            }
+
+            print "ok";
+            return true;
+        }
+
         $parts = array();
-        if (preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts) === false) {
-            print "id in incorrect format!";
+        if (!preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts)) {
+            $mtlda->raiseError("id in incorrect format!");
             return false;
         }
 
@@ -104,22 +131,22 @@ class RpcController extends DefaultController
          * [3] = guid
          */
         if (!array($parts) || empty($parts) || count($parts) != 4) {
-            print "id does not contain all required information!";
+            $mtlda->raiseError("id does not contain all required information!");
             return false;
         }
 
         if (!isset($parts[1]) || !$mtlda->isValidModel($parts[1])) {
-            print "id contains an invalid model!";
+            $mtlda->raiseError("id contains an invalid model!");
             return false;
         }
 
         if (!isset($parts[2]) || !is_numeric($parts[2])) {
-            print "id contains an invalid idx!";
+            $mtlda->raiseError("id contains an invalid idx!");
             return false;
         }
 
         if (!isset($parts[3]) || !$mtlda->isValidGuidSyntax($parts[3])) {
-            print "id contains an invalid guid!";
+            $mtlda->raiseError("id contains an invalid guid!");
             return false;
         }
 
@@ -128,7 +155,7 @@ class RpcController extends DefaultController
         $guid = $parts[3];
 
         if (!($obj = $mtlda->loadModel($request_object, $id, $guid))) {
-            print "unable to locate model for ". $request_object;
+            $mtlda->raiseError("unable to locate model for {$request_object}!");
             return false;
         }
 
@@ -137,7 +164,7 @@ class RpcController extends DefaultController
             return true;
         }
 
-        print "unknown error";
+        $mtlda->raiseError("unknown error!");
         return false;
 
     }
@@ -147,20 +174,20 @@ class RpcController extends DefaultController
         global $mtlda, $query;
 
         if (!isset($_POST['id'])) {
-            print "id is missing!";
+            $mtlda->raiseError("id is missing!");
             return false;
         }
 
         if (!$mtlda->isValidId($_POST['id'])) {
-            print "id looks invalid!";
+            $mtlda->raiseError("id looks invalid!");
             return false;
         }
 
         $id = $_POST['id'];
 
         $parts = array();
-        if (preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts) === false) {
-            print "id in incorrect format!";
+        if (!preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts)) {
+            $mtlda->raiseError("id in incorrect format!");
             return false;
         }
 
@@ -171,22 +198,22 @@ class RpcController extends DefaultController
          * [3] = guid
          */
         if (!array($parts) || empty($parts) || count($parts) != 4) {
-            print "id does not contain all required information!";
+            $mtlda->raiseError("id does not contain all required information!");
             return false;
         }
 
         if (!isset($parts[1]) || !$mtlda->isValidModel($parts[1])) {
-            print "id contains an invalid model!";
+            $mtlda->raiseError("id contains an invalid model!");
             return false;
         }
 
         if (!isset($parts[2]) || !is_numeric($parts[2])) {
-            print "id contains an invalid idx!";
+            $mtlda->raiseError("id contains an invalid idx!");
             return false;
         }
 
         if (!isset($parts[3]) || !$mtlda->isValidGuidSyntax($parts[3])) {
-            print "id contains an invalid guid!";
+            $mtlda->raiseError("id contains an invalid guid!");
             return false;
         }
 
@@ -195,24 +222,24 @@ class RpcController extends DefaultController
         $guid = $parts[3];
 
         if ($request_object != "queueitem") {
-            print "archive function can only be used for Queue items!";
+            $mtlda->raiseError("archive function can only be used for Queue items!");
             return false;
         }
 
         if (!($obj = $mtlda->loadModel($request_object, $id, $guid))) {
-            print "unable to locate model for ${request_object}!";
+            $mtlda->raiseError("unable to locate model for ${request_object}!");
             return false;
         }
 
         $storage = new StorageController;
 
         if (!$storage) {
-            print "unable to load StorageController!";
+            $mtlda->raiseError("unable to load StorageController!");
             return false;
         }
 
         if (!$storage->archive($obj)) {
-            print "StorageController::archive() exited with an error!";
+            $mtlda->raiseError("StorageController::archive() exited with an error!");
             return false;
         }
 
