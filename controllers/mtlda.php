@@ -175,7 +175,7 @@ class MTLDA extends DefaultController
 
     } // raiseError()
 
-    public function write($text, $loglevel = LOG_INFO, $override_output = null, $no_newline = null)
+    public function write($logtext, $loglevel = LOG_INFO, $override_output = null, $no_newline = null)
     {
         if (isset($this->config->logging)) {
             $logtype = $this->config->logging;
@@ -187,14 +187,14 @@ class MTLDA extends DefaultController
             $logtype = $override_output;
         }
 
-        if ($this->getVerbosity() < $loglevel) {
+        if ($loglevel > $this->getVerbosity()) {
             return true;
         }
 
         switch($logtype) {
             default:
             case 'display':
-                print $text;
+                print $logtext;
                 if (!$this->isCmdline()) {
                     print "<br />";
                 } elseif (!isset($no_newline)) {
@@ -202,10 +202,10 @@ class MTLDA extends DefaultController
                 }
                 break;
             case 'errorlog':
-                error_log($text);
+                error_log($logtext);
                 break;
             case 'logfile':
-                error_log($text, 3, $this->config->log_file);
+                error_log($logtext, 3, $this->config->log_file);
                 break;
         }
 
@@ -225,11 +225,11 @@ class MTLDA extends DefaultController
 
     public function setVerbosity($level)
     {
-        if (!in_array($level, array(0 => LOG_INFO, 1 => LOG_WARNING, 2 => LOG_DEBUG))) {
+        /*if (!in_array($level, array(0 => LOG_INFO, 1 => LOG_WARNING, 2 => LOG_DEBUG))) {
             $this->raiseError("Unknown verbosity level ". $level);
         }
 
-        $this->verbosity_level = $level;
+        $this->verbosity_level = $level;*/
 
     } // setVerbosity()
 
