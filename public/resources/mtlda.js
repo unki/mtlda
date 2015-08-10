@@ -182,6 +182,7 @@ Dropzone.options.upload = {
     uploadMultiple: true,
     dictDefaultMessage: 'drag\'n\'drop files here<br />or click to select',
     autoProcessQueue: false,
+    createImageThumbnails: false,
     init: function() {
         var dropzone = this;
         $('#submitbtn').click(function() {
