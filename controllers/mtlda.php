@@ -38,8 +38,7 @@ class MTLDA extends DefaultController
         global $requirements;
 
         if (!$requirements->check()) {
-            $this->raiseError("Error - not all MTLDA requirements are met. Please check!");
-            exit(1);
+            $this->raiseError("Error - not all MTLDA requirements are met. Please check!", true);
         }
 
         // no longer needed

@@ -51,7 +51,11 @@ class RequirementsController extends DefaultController
             $missing = true;
         }
 
-        return $missing;
+        if ($missing) {
+            return false;
+        }
+
+        return true;
     }
 
     public function checkPhp()
@@ -110,7 +114,11 @@ class RequirementsController extends DefaultController
             $missing = true;
         }
 
-        return $missing;
+        if ($missing) {
+            return false;
+        }
+
+        return true;
     }
 
     public function checkExternalLibraries()
@@ -152,7 +160,11 @@ class RequirementsController extends DefaultController
             $missing = true;
         }
 
-        return $missing;
+        if ($missing) {
+            return false;
+        }
+
+        return true;
     }
 
     public function checkDirectoryPermissions()
@@ -199,7 +211,11 @@ class RequirementsController extends DefaultController
             }
         }
 
-        return $missing;
+        if ($missing) {
+            return false;
+        }
+
+        return true;
     }
 }
 
