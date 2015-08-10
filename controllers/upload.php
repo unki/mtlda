@@ -151,9 +151,15 @@ class UploadController extends DefaultController
         }
 
         $dest = $this::INCOMING_DIRECTORY .'/'. $file['name'];
+        $dest_queue = $this::WORKING_DIRECTORY .'/'. $file['name'];
 
         if (file_exists($dest)) {
-            $mtlda->raiseError("There is already a file in the queue with the same name!");
+            $mtlda->raiseError("A file with the name {$file['name']} is already present in the incoming directory!");
+            return false;
+        }
+
+        if (file_exists($dest_queue)) {
+            $mtlda->raiseError("An item with the name {$file['name']} is already queued!");
             return false;
         }
 
