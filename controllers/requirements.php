@@ -190,21 +190,31 @@ class RequirementsController extends DefaultController
             $this::WORKING_DIRECTORY => 'w',
         );
 
+        if (!file_exists($this::DATA_DIRECTORY)) {
+            $mtlda->raiseError($this::DATA_DIRECTORY ." does not exist!");
+            return false;
+        }
+
+        if (!is_writeable($this::DATA_DIRECTORY)) {
+            $mtlda->raiseError($this::DATA_DIRECTORY ." is not readable for {$uid}:{$gid}!");
+            return false;
+        }
+
         foreach ($directories as $dir => $perm) {
 
-            if (!file_exists($dir)) {
-                $mtlda->write("{$dir} does not exist!", LOG_ERR);
+            if (!file_exists($dir) && !mkdir($dir, 0700)) {
+                $mtlda->write("failed to create {$dir} directory!", LOG_ERR);
                 $missing = true;
                 continue;
             }
 
-            if (!is_readable($dir)) {
+            if (file_exists($dir) && !is_readable($dir)) {
                 $mtlda->write("{$dir} is not readable for {$uid}:{$gid}!", LOG_ERR);
                 $missing = true;
                 continue;
             }
 
-            if ($perm == 'w' && !is_writeable($dir)) {
+            if (file_exists($dir) && $perm == 'w' && !is_writeable($dir)) {
                 $mtlda->write("{$dir} is not writeable for {$uid}:{$gid}!", LOG_ERR);
                 $missing = true;
                 continue;
