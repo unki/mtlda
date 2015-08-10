@@ -384,6 +384,33 @@ class DatabaseController extends DefaultController
     {
         return $this::SCHEMA_VERSION;
     }
+
+    public function truncateDatabaseTables()
+    {
+        global $mtlda;
+
+        if (($this->query("TRUNCATE TABLEPREFIXmeta")) === false) {
+            $mtlda->raiseError("failed to truncate 'meta' table!");
+            return false;
+        }
+
+        if (($this->query("TRUNCATE TABLEPREFIXaudit")) === false) {
+            $mtlda->raiseError("failed to truncate 'audit' table!");
+            return false;
+        }
+
+        if (($this->query("TRUNCATE TABLEPREFIXqueue")) === false) {
+            $mtlda->raiseError("failed to truncate 'queue' table!");
+            return false;
+        }
+
+        if (($this->query("TRUNCATE TABLEPREFIXarchive")) === false) {
+            $mtlda->raiseError("failed to truncate 'archive' table!");
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
