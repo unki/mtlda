@@ -23,9 +23,10 @@ class DefaultController
 {
     const CONFIG_DIRECTORY = MTLDA_BASE ."/config";
     const CACHE_DIRECTORY = MTLDA_BASE ."/cache";
-    const ARCHIVE_DIRECTORY = MTLDA_BASE."/data/archive";
-    const INCOMING_DIRECTORY = MTLDA_BASE ."/data/incoming";
-    const WORKING_DIRECTORY = MTLDA_BASE ."/data/working";
+    const DATA_DIRECTORY = MTLDA_BASE ."/data";
+    const ARCHIVE_DIRECTORY = self::DATA_DIRECTORY ."/archive";
+    const INCOMING_DIRECTORY = self::DATA_DIRECTORY ."/incoming";
+    const WORKING_DIRECTORY = self::DATA_DIRECTORY ."/working";
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
