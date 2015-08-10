@@ -561,6 +561,127 @@ class StorageController extends DefaultController
             'content' => $content
         );
     }
+
+    public function flushArchive()
+    {
+        global $mtlda;
+
+        if (!file_exists($this::ARCHIVE_DIRECTORY)) {
+            $mtlda->raiseError($this::ARCHIVE_DIRECTORY ." does not exist!");
+            return false;
+        }
+
+        if (!is_dir($this::ARCHIVE_DIRECTORY)) {
+            $mtlda->raiseError($this::ARCHIVE_DIRECTORY ." is not a directory!");
+            return false;
+        }
+
+        if (!$this->unlinkDirectory($this::ARCHIVE_DIRECTORY)) {
+            $mtlda->raiseError("StorageController::unlinkDirectory() returned false!");
+            return false;
+        }
+
+        return true;
+    }
+
+    public function flushQueue()
+    {
+        global $mtlda;
+
+        if (!file_exists($this::WORKING_DIRECTORY)) {
+            $mtlda->raiseError($this::WORKING_DIRECTORY ." does not exist!");
+            return false;
+        }
+
+        if (!is_dir($this::WORKING_DIRECTORY)) {
+            $mtlda->raiseError($this::WORKING_DIRECTORY ." is not a directory!");
+            return false;
+        }
+
+        if (!$this->unlinkDirectory($this::WORKING_DIRECTORY)) {
+            $mtlda->raiseError("StorageController::unlinkDirectory() returned false!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private function unlinkDirectory($dir)
+    {
+        global $mtlda;
+
+        if (($files = scandir($dir)) === false) {
+            $mtlda->raiseError("scandir on {$dir} returned false!");
+            return false;
+        }
+
+        // filter our '.' and '..'
+        $files = array_diff(scandir($dir), array('.','..'));
+
+        foreach ($files as $file) {
+
+            if (($fqfn = realpath($dir .'/'. $file)) === false) {
+                $mtlda->raiseError("realpath() on ". $dir .'/'. $file ." returned false!");
+                return false;
+            }
+
+            if (!$this->isBelowDataDirectory(dirname($fqfn))) {
+                $mtlda->raiseError("will only handle requested within ". $this::DATA_DIRECTORY ."!");
+                return false;
+            }
+
+            if (is_dir($fqfn)) {
+                if (!$this->unlinkDirectory($fqfn)) {
+                    return false;
+                }
+            } else {
+                if (!unlink($fqfn)) {
+                    $mtlda->raiseError("unlink() on {$fqfn} returned false!");
+                    return false;
+                }
+            }
+        }
+
+        if (!rmdir($dir)) {
+            $mtlda->raiseError("rmdir() on {$dir} returned false!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private function isBelowDataDirectory($dir)
+    {
+        global $mtlda;
+
+        if (empty($dir)) {
+            $mtlda->raiseError("\$dir can not be empty!");
+            return false;
+        }
+
+        $dir = strtolower(realpath($dir));
+        $dir_top = strtolower(realpath($this::DATA_DIRECTORY));
+
+        $dir_top_reg = preg_quote($dir_top, '/');
+
+        // check if $dir is within $dir_top
+        if (!preg_match('/^'. preg_quote($dir_top, '/') .'/', $dir)) {
+            return false;
+        }
+
+        if ($dir == $dir_top) {
+            return true;
+        }
+
+        $cnt_dir = count(explode('/', $dir));
+        $cnt_dir_top = count(explode('/', $dir_top));
+
+        if ($cnt_dir > $cnt_dir_top) {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
