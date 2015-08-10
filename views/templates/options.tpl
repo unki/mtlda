@@ -14,9 +14,5 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<a href="{get_url page=main}">Main</a>
-<a href="{get_url page=archive}">Archive</a>
-<a href="{get_url page=queue}">Queue</a>
-<a href="{get_url page=upload}">Upload</a>
-<a href="{get_url page=options}">Options</a>
-<a href="{get_url page=about}">About</a>
+<div id="page_title">Options</div>
+<a href="{get_url page=options mode=truncate}">Reset data</a>

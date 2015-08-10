@@ -30,6 +30,7 @@ class ViewsController extends DefaultController
         '/^archive$/' => 'ArchiveView',
         '/^upload$/' => 'UploadView',
         '/^about$/' => 'AboutView',
+        '/^options$/' => 'OptionsView',
     );
     private $page_skeleton;
 
