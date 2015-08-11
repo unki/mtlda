@@ -405,6 +405,7 @@ class DefaultModel
 
         $guid_field = $this->column_name .'_guid';
         $idx_field = $this->column_name .'_idx';
+        $time_field = $this->column_name .'_time';
 
         if (!isset($this->$guid_field) || empty($this->$guid_field)) {
             $this->$guid_field = $mtlda->createGuid();
@@ -413,7 +414,7 @@ class DefaultModel
         /* new object */
         if (!isset($this->id) || empty($this->id)) {
             $sql = 'INSERT INTO ';
-            /* existing object */
+        /* existing object */
         } else {
             $sql = 'UPDATE ';
         }
@@ -423,10 +424,17 @@ class DefaultModel
         $arr_values = array();
 
         foreach (array_keys($this->fields) as $key) {
-            if (isset($this->$key)) {
-                $sql.= $key ." = ?, ";
-                $arr_values[] = $this->$key;
+
+            if (!isset($this->$key)) {
+                continue;
             }
+
+            if ($key == $time_field) {
+                $sql.= $key ." = FROM_UNIXTIME(?), ";
+            } else {
+                $sql.= $key ." = ?, ";
+            }
+            $arr_values[] = $this->$key;
         }
         $sql = substr($sql, 0, strlen($sql)-2) .' ';
 
