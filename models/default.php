@@ -35,21 +35,29 @@ class DefaultModel
         global $mtlda;
 
         if (!isset($this->table_name)) {
-            $mtlda->raiseError('missing key table_name');
+            $mtlda->raiseError(__TRAIT__ .', missing key table_name', true);
+            return false;
         }
 
         if (!isset($this->column_name)) {
-            $mtlda->raiseError('missing key column_name');
+            $mtlda->raiseError(__TRAIT__ .', missing key column_name', true);
+            return false;
         }
 
         if (!isset($this->fields)) {
-            $mtlda->raiseError('missing key fields');
+            $mtlda->raiseError(__TRAIT__ .', missing key fields', true);
+            return false;
         }
 
-        if (isset($id)) {
-            $this->id = $id;
-            $this->load();
+        if (!isset($id) || empty($id)) {
             return true;
+        }
+
+        $this->id = $id;
+
+        if (!$this->load()) {
+            $mtlda->raiseError(__CLASS__ ."::load() returned false!", true);
+            return false;
         }
 
         return true;
@@ -65,8 +73,9 @@ class DefaultModel
         global $mtlda, $db;
 
         if (method_exists($this, 'preLoad')) {
+
             if (!$this->preLoad()) {
-                $mtlda->raiseError("preLoad() method returned false!");
+                $mtlda->raiseError(__CLASS__ ."::preLoad() method returned false!");
                 return false;
             }
         }
@@ -77,29 +86,29 @@ class DefaultModel
             FROM
             TABLEPREFIX{$this->table_name}
             WHERE
-            ". $this->column_name ."_idx LIKE ?
+            {$this->column_name}_idx LIKE ?
             ",
             array('integer')
         );
 
         if (!$sth) {
-            $mtlda->raiseError("unable to prepare query");
+            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, array($this->id))) {
-            $mtlda->raiseError("unable to execute query");
+            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
             return false;
         }
 
         if ($sth->rowCount() <= 0) {
             $db->freeStatement($sth);
-            $mtlda->raiseError("No object with id ". $this->id);
+            $mtlda->raiseError(__TRAIT__ .", No object with id {$this->id}");
         }
 
         if (!$row = $sth->fetch(PDO::FETCH_ASSOC)) {
             $db->freeStatement($sth);
-            $mtlda->raiseError("Unable to fetch SQL result for object id ". $this->id);
+            $mtlda->raiseError(__TRAIT__ .", unable to fetch SQL result for object id ". $this->id);
         }
 
         $db->freeStatement($sth);
@@ -110,10 +119,12 @@ class DefaultModel
 
         if (method_exists($this, 'postLoad')) {
             if (!$this->postLoad()) {
-                $mtlda->raiseError("postLoad() method returned false!");
+                $mtlda->raiseError(__CLASS__ ."::postLoad() method returned false!");
                 return false;
             }
         }
+
+        return true;
 
     } // load();
 
@@ -159,7 +170,7 @@ class DefaultModel
 
         if (method_exists($this, 'preDelete')) {
             if (!$this->preDelete()) {
-                $mtlda->raiseError("preDelete() method returned false!");
+                $mtlda->raiseError(__CLASS__ ."::preDelete() method returned false!");
                 return false;
             }
         }
@@ -173,12 +184,12 @@ class DefaultModel
         );
 
         if (!$sth) {
-            $mtlda->raiseError("unable to prepare query");
+            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, array($this->id))) {
-            $mtlda->raiseError("unable to execute query");
+            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
             return false;
         }
 
@@ -186,7 +197,7 @@ class DefaultModel
 
         if (method_exists($this, 'postDelete')) {
             if (!$this->postDelete()) {
-                $mtlda->raiseError("postDelete() method returned false!");
+                $mtlda->raiseError(__CLASS__ .", postDelete() method returned false!");
                 return false;
             }
         }
@@ -214,7 +225,7 @@ class DefaultModel
 
         if (method_exists($this, 'preClone')) {
             if (!$this->preClone()) {
-                $mtlda->raiseError("preClone() method returned false!");
+                $mtlda->raiseError(__CLASS__ ."::preClone() method returned false!");
                 return false;
             }
         }
@@ -250,7 +261,7 @@ class DefaultModel
 
         // if saving was successful, our new object should have an ID now
         if (!isset($this->id) || empty($this->id)) {
-            $mtlda->raiseError("error on saving clone. no ID was returned from database!");
+            $mtlda->raiseError(__TRAIT__ .", error on saving clone. no ID was returned from database!");
             return false;
         }
 
@@ -266,7 +277,7 @@ class DefaultModel
 
                 // initate an empty child object
                 if (!($child_obj = $mtlda->load_class($child))) {
-                    $mtlda->raiseError("unable to locate class for ". $child_obj);
+                    $mtlda->raiseError(__TRAIT__ .", unable to locate class for {$child_obj}");
                     return false;
                 }
 
@@ -274,27 +285,25 @@ class DefaultModel
                     "SELECT
                         *
                     FROM
-                        TABLEPREFIXassign_". $child_obj->table_name ."_to_". $this->table_name ."
+                        TABLEPREFIXassign_{$child_obj->table_name}_to_{$this->table_name}
                     WHERE
-                        ". $prefix ."_". $this->column_name ."_idx LIKE ?"
+                        {$prefix}_{$this->column_name}_idx LIKE ?"
                 );
 
                 if (!$sth) {
-                    $mtlda->raiseError("unable to prepare query");
+                    $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
                     return false;
                 }
 
                 if (!$db->execute($sth, array($srcobj->id))) {
-                    $mtlda->raiseError("unable to execute query");
+                    $mtlda->raiseError(__TRAIT__ .", unable to execute query");
                     return false;
                 }
 
                 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
 
-                    $query = "INSERT INTO TABLEPREFIXassign_".
-                        $child_obj->table_name
-                        ."_to_".
-                        $this->table_name ." (";
+                    $query = "INSERT INTO TABLEPREFIXassign_
+                        {$child_obj->table_name}_to_{$this->table_name} (";
 
                     $values = "";
 
@@ -338,7 +347,7 @@ class DefaultModel
 
         if (method_exists($this, 'postClone')) {
             if (!$this->postClone()) {
-                $mtlda->raiseError("postClone() method returned false!");
+                $mtlda->raiseError(__CLASS__ ."::postClone() method returned false!");
                 return false;
             }
         }
@@ -377,11 +386,11 @@ class DefaultModel
         global $mtlda;
 
         if (!isset($this->fields) || empty($this->fields)) {
-            $mtlda->raiseError("Fields array not set for class ". get_class($this));
+            $mtlda->raiseError(__TRAIT__ .", fields array not set for class ". get_class($this));
         }
 
         if (!array_key_exists($name, $this->fields) && $name != 'id') {
-            $mtlda->raiseError("Unknown key in ". get_class($this) ."::__set(): ". $name);
+            $mtlda->raiseError(__TRAIT__ .", unknown key in ". get_class($this) ."::__set(): {$name}");
         }
 
         $this->$name = $value;
@@ -393,12 +402,12 @@ class DefaultModel
         global $mtlda, $db;
 
         if (!isset($this->fields) || empty($this->fields)) {
-            $mtlda->raiseError("Fields array not set for class ". get_class($this));
+            $mtlda->raiseError(__TRAIT__ .", fields array not set for class ". get_class($this));
         }
 
         if (method_exists($this, 'preSave')) {
             if (!$this->preSave()) {
-                $mtlda->raiseError("preSave() method returned false!");
+                $mtlda->raiseError(__CLASS__ ."preSave() method returned false!");
                 return false;
             }
         }
@@ -419,7 +428,7 @@ class DefaultModel
             $sql = 'UPDATE ';
         }
 
-        $sql.= "TABLEPREFIX". $this->table_name .' SET ';
+        $sql.= "TABLEPREFIX{$this->table_name} SET ";
 
         $arr_values = array();
 
@@ -441,17 +450,17 @@ class DefaultModel
         if (!isset($this->id)) {
             $this->$idx_field = 'NULL';
         } else {
-            $sql.= 'WHERE '. $this->column_name .'_idx LIKE ?';
+            $sql.= "WHERE {$this->column_name}_idx LIKE ?";
             $arr_values[] = $this->id;
         }
 
         if (!($sth = $db->prepare($sql))) {
-            $mtlda->raiseError("unable to prepare query");
+            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, $arr_values)) {
-            $mtlda->raiseError("unable to execute query");
+            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
             return false;
         }
 
@@ -467,7 +476,7 @@ class DefaultModel
 
         if (method_exists($this, 'postSave')) {
             if (!$this->postSave()) {
-                $mtlda->raiseError("postSave() method returned false!");
+                $mtlda->raiseError(__CLASS__ ."::postSave() method returned false!");
                 return false;
             }
         }
@@ -502,22 +511,22 @@ class DefaultModel
             $new_status = 'N';
         }
 
-        $sth = $db->prepare("
-                UPDATE
-                TABLEPREFIX". $this->table_name ."
+        $sth = $db->prepare(
+            "UPDATE
+                TABLEPREFIX{$this->table_name}
                 SET
-                ". $this->column_name ."_active = ?
+                {$this->column_name}_active = ?
                 WHERE
-                ". $this->column_name ."_idx LIKE ?
-                ");
+                {$this->column_name}_idx LIKE ?"
+        );
 
         if (!$sth) {
-            $mtlda->raiseError("unable to prepare query");
+            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, array($new_status, $this->id))) {
-            $mtlda->raiseError("unable to execute query");
+            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
             return false;
         }
 
@@ -531,18 +540,18 @@ class DefaultModel
         global $db, $mtlda;
 
         if (!isset($this->child_names)) {
-            $mtlda->raiseError("This object has no childs at all!");
+            $mtlda->raiseError(__TRAIT__ .", this object has no childs at all!");
             return false;
         }
         if (!isset($this->child_names[$child_obj])) {
-            $mtlda->raiseError("Requested child is not known to this object!");
+            $mtlda->raiseError(__TRAIT__ .", requested child is not known to this object!");
             return false;
         }
 
         $prefix = $this->child_names[$child_obj];
 
         if (!($child_obj = $mtlda->load_class($child_obj, $child_id))) {
-            $mtlda->raiseError("unable to locate class for ". $child_obj);
+            $mtlda->raiseError(__TRAIT__ .", unable to locate class for {$child_obj}");
             return false;
         }
 
@@ -568,19 +577,19 @@ class DefaultModel
             $new_status = 'N';
         }
 
-        $sth = $db->prepare("
-                UPDATE
-                TABLEPREFIXassign_". $child_obj->table_name ."_to_". $this->table_name ."
+        $sth = $db->prepare(
+            "UPDATE
+                TABLEPREFIXassign_{$child_obj->table_name}_to_{$this->table_name}
                 SET
-                ". $prefix ."_". $child_obj->column_name ."_active = ?
+                {$prefix}_{$child_obj->column_name}_active = ?
                 WHERE
-                ". $prefix ."_". $this->column_name ."_idx LIKE ?
+                {$prefix}_{$this->column_name}_idx LIKE ?
                 AND
-                ". $prefix ."_". $child_obj->column_name ."_idx LIKE ?
-                ");
+                {$prefix}_{$child_obj->column_name}_idx LIKE ?"
+        );
 
         if (!$sth) {
-            $mtlda->raiseError("unable to prepare query");
+            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
             return false;
         }
 
@@ -589,7 +598,7 @@ class DefaultModel
             $this->id,
             $child_id
         ))) {
-            $mtlda->raiseError("unable to execute query");
+            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
             return false;
         }
 
@@ -624,17 +633,17 @@ class DefaultModel
         );
 
         if (!isset($result)) {
-            $mtlda->raiseError("Unable to locate previous record!");
+            $mtlda->raiseError(__TRAIT__ .", unable to locate previous record!");
             return false;
         }
 
         if (!isset($result->$idx_field) || !isset($result->$guid_field)) {
-            $mtlda->raiseError("No previous record available!");
+            $mtlda->raiseError(__TRAIT__ .", no previous record available!");
             return false;
         }
 
         if (!is_numeric($result->$idx_field) || !$mtlda->isValidGuidSyntax($result->$guid_field)) {
-            $mtlda->raiseError("Invalid previous record found: ". htmlentities($result->$id, ENT_QUOTES));
+            $mtlda->raiseError(__TRAIT__ .", Invalid previous record found: ". htmlentities($result->$id, ENT_QUOTES));
             return false;
         }
 
@@ -667,17 +676,17 @@ class DefaultModel
         );
 
         if (!isset($result)) {
-            $mtlda->raiseError("Unable to locate next record!");
+            $mtlda->raiseError(__TRAIT__ .", unable to locate next record!");
             return false;
         }
 
         if (!isset($result->$idx_field) || !isset($result->$guid_field)) {
-            $mtlda->raiseError("No next record available!");
+            $mtlda->raiseError(__TRAIT__ .", no next record available!");
             return false;
         }
 
         if (!is_numeric($result->$idx_field) || !$mtlda->isValidGuidSyntax($result->$guid_field)) {
-            $mtlda->raiseError("Invalid next record found: ". htmlentities($result->$id, ENT_QUOTES));
+            $mtlda->raiseError(__TRAIT__ .", invalid next record found: ". htmlentities($result->$id, ENT_QUOTES));
             return false;
         }
 
@@ -749,12 +758,12 @@ class DefaultModel
         $sth = $db->prepare($sql);
 
         if (!$sth) {
-            $mtlda->raiseError("unable to prepare query");
+            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, $arr_values)) {
-            $mtlda->raiseError("unable to execute query");
+            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
             return false;
         }
 
