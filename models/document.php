@@ -32,7 +32,7 @@ class DocumentModel extends DefaultModel
             'document_file_hash' => 'string',
             'document_file_size' => 'integer',
             'document_signing_icon_position' => 'integer',
-            'document_time' => 'integer',
+            'document_time' => 'timestamp',
             'document_version' => 'integer',
             'document_derivation' => 'integer',
             'document_derivation_guid' => 'string',
