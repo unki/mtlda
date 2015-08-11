@@ -36,25 +36,7 @@ class ImportController extends DefaultController
 
     public function handleQueue()
     {
-        global $mtlda, $db, $config, $audit;
-
-        $sth = $db->prepare("
-                INSERT INTO mtlda_queue (
-                    queue_guid,
-                    queue_file_name,
-                    queue_file_size,
-                    queue_file_hash,
-                    queue_state,
-                    queue_time
-                    ) VALUES (
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?,
-                        ?
-                        )
-                ");
+        global $mtlda, $config, $audit;
 
         if (( $importdir = opendir($this::INCOMING_DIRECTORY)) === false) {
             print "Error!: failed to access ". $this::INCOMING_DIRECTORY;
