@@ -85,15 +85,15 @@ class UploadController extends DefaultController
             }
         }
 
-        $mtlda->loadController("Incoming", "incoming");
-        global $incoming;
+        $mtlda->loadController("Import", "import");
+        global $import;
 
-        if (!$incoming->handleQueue()) {
-            $this->raiseError("IncomingController::handleQueue returned false!");
+        if (!$import->handleQueue()) {
+            $this->raiseError("ImportController::handleQueue returned false!");
             return false;
         }
 
-        unset($incoming);
+        unset($import);
 
         print "ok";
         return true;
@@ -154,7 +154,7 @@ class UploadController extends DefaultController
         $dest_queue = $this::WORKING_DIRECTORY .'/'. $file['name'];
 
         if (file_exists($dest)) {
-            $mtlda->raiseError("A file with the name {$file['name']} is already present in the incoming directory!");
+            $mtlda->raiseError("A file with the name {$file['name']} is already present in the queue directory!");
             return false;
         }
 
@@ -169,7 +169,7 @@ class UploadController extends DefaultController
         }
 
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
-            $mtlda->raiseError("Moving {$file['tmp_name']} to {$this->incoming_directory} failed!");
+            $mtlda->raiseError("Moving {$file['tmp_name']} to ". $this::INCOMING_DIRECTORY ." failed!");
             return false;
         }
 

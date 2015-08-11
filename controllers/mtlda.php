@@ -64,15 +64,15 @@ class MTLDA extends DefaultController
 
         if (isset($mode) and $mode == "queue_only") {
 
-            $this->loadController("Incoming", "incoming");
-            global $incoming;
+            $this->loadController("Import", "import");
+            global $import;
 
-            if (!$incoming->handleQueue()) {
-                $this->raiseError("IncomingController::handleQueue returned false!");
+            if (!$import->handleQueue()) {
+                $this->raiseError("ImportController::handleQueue returned false!");
                 return false;
             }
 
-            unset($incoming);
+            unset($import);
 
         } elseif (isset($mode) and $mode == "install") {
 

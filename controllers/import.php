@@ -22,7 +22,7 @@ namespace MTLDA\Controllers;
 use MTLDA\Controllers;
 use MTLDA\Models;
 
-class IncomingController extends DefaultController
+class ImportController extends DefaultController
 {
     public function __construct()
     {
@@ -73,7 +73,7 @@ class IncomingController extends DefaultController
                         )
                 ");
 
-        if (( $incoming = opendir($this::INCOMING_DIRECTORY)) === false) {
+        if (( $importdir = opendir($this::INCOMING_DIRECTORY)) === false) {
             print "Error!: failed to access ". $this::INCOMING_DIRECTORY;
             die();
         }
@@ -88,7 +88,7 @@ class IncomingController extends DefaultController
             }
         }
 
-        while ($file = readdir($incoming)) {
+        while ($file = readdir($importdir)) {
 
             $in_file = $this::INCOMING_DIRECTORY ."/". $file;
             $work_file = $this::WORKING_DIRECTORY ."/". $file;
