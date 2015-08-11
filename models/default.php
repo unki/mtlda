@@ -72,6 +72,10 @@ class DefaultModel
     {
         global $mtlda, $db;
 
+        if (!isset($this->fields) || empty($this->fields)) {
+            $mtlda->raiseError(__TRAIT__ .", fields array not set for class ". get_class($this));
+        }
+
         if (method_exists($this, 'preLoad')) {
 
             if (!$this->preLoad()) {
@@ -80,16 +84,26 @@ class DefaultModel
             }
         }
 
-        $sth = $db->prepare(
-            "SELECT
-            *
-            FROM
+        $sql = "SELECT ";
+
+        $time_field = $this->column_name .'_time';
+
+        foreach (array_keys($this->fields) as $key) {
+
+            if ($key == $time_field) {
+                $sql.= "UNIX_TIMESTAMP({$key}) as {$key}, ";
+            } else {
+                $sql.= "${key}, ";
+            }
+        }
+        $sql = substr($sql, 0, strlen($sql)-2) .' ';
+
+        $sql.= "FROM
             TABLEPREFIX{$this->table_name}
             WHERE
-            {$this->column_name}_idx LIKE ?
-            ",
-            array('integer')
-        );
+            {$this->column_name}_idx LIKE ?";
+
+        $sth = $db->prepare($sql, array('integer'));
 
         if (!$sth) {
             $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
