@@ -34,23 +34,6 @@ class ImportController extends DefaultController
 
     } // _destruct()
 
-    public function cleanup()
-    {
-        global $db;
-        global $sth;
-
-        try {
-            if ($sth) {
-                $sth->closeCursor();
-            }
-        } catch (Exception $e) {
-            $sth = null;
-        }
-
-        $db = null;
-
-    } // cleanup()
-
     public function handleQueue()
     {
         global $mtlda, $db, $config, $audit;
