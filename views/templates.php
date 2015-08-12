@@ -217,6 +217,11 @@ class Templates extends Smarty
             $mode = "show";
         }
 
+        if (!isset($mode)) {
+            $mtlda->raiseError("\$mode not set - do not know how to proceed!");
+            return false;
+        }
+
         if ($mode == "list" && $this->templateExists($this->class_name ."_list.tpl")) {
 
             return $this->showList();
