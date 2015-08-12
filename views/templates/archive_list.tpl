@@ -28,7 +28,6 @@
   <td><a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_file_name}</a></td>
   <td>{$item->document_file_size}</td>
   <td>{$item->document_time}</td>
-  <td><a class="preview" title="archive" id="document-{$item_safe_link}">Preview</a></td>
   <td><a href="{get_url page=archive mode=show id=$item_safe_link}">Show</a></td>
   <td><a class="delete" title="delete" id="document-{$item_safe_link}">Delete</a></td>
  </tr>
