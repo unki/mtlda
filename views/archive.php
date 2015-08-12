@@ -58,8 +58,19 @@ class ArchiveView extends Templates
         $item_idx = $this->archive->avail_items[$index];
         $item =  $this->archive->items[$item_idx];
 
+        if (
+            isset($item->document_latest_version) &&
+            !empty($item->document_latest_version) &&
+            is_array($item->document_latest_version)
+        ) {
+            $latest = $item->document_latest_version;
+            $smarty->assign("document_safe_link", "document-{$latest['idx']}-{$latest['guid']}");
+            unset($latest);
+        } else {
+            $smarty->assign("document_safe_link", "document-{$item->document_idx}-{$item->document_guid}");
+        }
         $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", $item->document_idx ."-". $item->document_guid);
+        $smarty->assign("item_safe_link", "{$item->document_idx}-{$item->document_guid}");
 
         $index++;
         $smarty->assign('smarty.IB.item_list.index', $index);
@@ -88,7 +99,6 @@ class ArchiveView extends Templates
         $this->assign('item', $this->item);
         $this->assign("item_safe_link", "document-". $this->item->document_idx ."-". $this->item->document_guid);
         return parent::showItem($id, $hash);
-
     }
 }
 
