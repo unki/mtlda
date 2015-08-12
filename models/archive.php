@@ -39,9 +39,11 @@ class ArchiveModel extends DefaultModel
 
     public function load()
     {
-        global $db;
+        global $mtlda, $db;
 
         $idx_field = $this->column_name ."_idx";
+        $guid_field = $this->column_name ."_guid";
+        $latest_version_field = $this->column_name ."_latest_version";
 
         $result = $db->query(
             "SELECT
@@ -52,10 +54,54 @@ class ArchiveModel extends DefaultModel
                 document_version LIKE 1"
         );
 
+        if (!$result) {
+            $mtlda->raiseError("Failed to load archive list.");
+            return false;
+        }
+
         while ($row = $result->fetch()) {
+            $latest_document = $this->getLatestDocumentVersion(
+                $row->$idx_field,
+                $row->$guid_field
+            );
+
+            if (!empty($latest_document) && is_array($latest_document)) {
+                $row->$latest_version_field = $latest_document;
+            }
             array_push($this->avail_items, $row->$idx_field);
             $this->items[$row->$idx_field] = $row;
         }
+    }
+
+    private function getLatestDocumentVersion($idx, $guid)
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "SELECT
+                document_idx,
+                document_guid
+            FROM
+                TABLEPREFIX{$this->table_name}
+            WHERE
+                document_derivation LIKE '{$idx}'
+            AND
+                document_derivation_guid LIKE '{$guid}'
+            ORDER BY
+                document_version DESC
+            LIMIT 0,1"
+        );
+
+        if (!$result) {
+            $this->mtlda->raiseError("Failed to retrive latest document version");
+            return false;
+        }
+
+        if (!$row = $result->fetch()) {
+            return true;
+        }
+
+        return array('idx' => $row->document_idx, 'guid' => $row->document_guid);
     }
 }
 
