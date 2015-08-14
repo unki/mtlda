@@ -25,7 +25,7 @@ class DatabaseController extends DefaultController
 {
     const SCHEMA_VERSION = 1;
 
-    public $db;
+    private $db;
     private $db_cfg;
     private $is_connected = false;
 
@@ -48,18 +48,31 @@ class DatabaseController extends DefaultController
                     $dbconfig['host'],
                     $dbconfig['db_name'],
                     $dbconfig['db_user'],
-                    $dbconfig['db_pass'])) {
+                    $dbconfig['db_pass'])
+           ) {
             print "Error - incomplete database configuration - please check configuration!";
             exit(1);
         }
 
         $this->db_cfg = $dbconfig;
-        $this->connect();
 
+        if (!$this->connect()) {
+            $mtlda->raiseError(__CLASS__ ."::connect() returned false!");
+            return false;
+        }
+
+        if (!$this->checkDatabaseSoftwareVersion()) {
+            $mtlda->raiseError(__CLASS__ ."::checkDatabaseSoftwareVersion() returned false!");
+            return false;
+        }
+
+        return true;
     }
 
     private function connect()
     {
+        global $mtlda;
+
         $options = array(
                 'debug' => 2,
                 'portability' => 'DB_PORTABILITY_ALL'
@@ -84,12 +97,12 @@ class DatabaseController extends DefaultController
             $this->db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->db->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_OBJ);
         } catch (PDOException $e) {
-            print "Error - unable to connect to database: ". $e->getMessage();
-            exit(1);
+            $mtlda->raiseError("Error - unable to connect to database: ". $e->getMessage(), true);
+            return false;
         }
 
         $this->SetConnectionStatus(true);
-
+        return true;
     }
 
     private function setConnectionStatus($status)
@@ -339,10 +352,10 @@ class DatabaseController extends DefaultController
         );
 
         if (
-            !isset($result->meta_value) ||
-            empty($result->meta_value) ||
-            !is_numeric($result->meta_value)
-        ) {
+                !isset($result->meta_value) ||
+                empty($result->meta_value) ||
+                !is_numeric($result->meta_value)
+           ) {
             return 0;
         }
 
@@ -364,12 +377,12 @@ class DatabaseController extends DefaultController
 
         $result = $this->query(
             "REPLACE INTO TABLEPREFIXmeta (
-            meta_key,
-            meta_value
-                ) VALUES (
-                    'schema_version',
-                    '{$version}'
-                    )"
+                meta_key,
+                meta_value
+            ) VALUES (
+                'schema_version',
+                '{$version}'
+            )"
         );
 
         if (!$result) {
@@ -406,6 +419,34 @@ class DatabaseController extends DefaultController
 
         if (($this->query("TRUNCATE TABLEPREFIXarchive")) === false) {
             $mtlda->raiseError("failed to truncate 'archive' table!");
+            return false;
+        }
+
+        return true;
+    }
+
+    public function checkDatabaseSoftwareVersion()
+    {
+        global $mtlda;
+
+        if (!$version = $this->db->getAttribute(PDO::ATTR_SERVER_VERSION)) {
+            $mtlda->raiseError("Failed to detect database software version!");
+            return false;
+        }
+
+        if (!isset($version) || empty($version)) {
+            $mtlda->raiseError("Unable to fetch version information from database!");
+            return false;
+        }
+
+        // extract the pure version without extra build specifics
+        if (($version = preg_replace("/^(\d+)\.(\d+)\.(\d+).*$/", '${1}.${2}.${3}', $version)) === false) {
+            $mtlda->raiseError("Failed to parse version string (${version})!");
+            return false;
+        }
+
+        if (strtolower($this->db_cfg['type']) == "mysql" && version_compare($version, "5.6.4", "<")) {
+            $mtlda->raiseError("MySQL server version 5.6.4 or later is required (found {$version})!");
             return false;
         }
 
