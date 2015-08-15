@@ -311,8 +311,10 @@ class MTLDA extends DefaultController
     public function isValidModel($model)
     {
         $valid_models = array(
+            'queue',
             'queueitem',
             'document',
+            'keyword',
         );
 
         if (in_array($model, $valid_models)) {
@@ -387,6 +389,9 @@ class MTLDA extends DefaultController
                 break;
             case 'document':
                 $obj = new Models\DocumentModel($id, $guid);
+                break;
+            case 'keyword':
+                $obj = new Models\KeywordModel($id, $guid);
                 break;
         }
 
