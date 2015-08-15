@@ -248,6 +248,7 @@ class HttpRouterController extends DefaultController
         $valid_actions = array(
                 'delete',
                 'archive',
+                'update',
                 'find-prev-next',
                 'get-content',
 
