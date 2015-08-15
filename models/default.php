@@ -50,6 +50,7 @@ class DefaultModel
         }
 
         if (!isset($id) || empty($id)) {
+            $this->initFields();
             return true;
         }
 
@@ -373,7 +374,7 @@ class DefaultModel
     /**
      * init fields
      */
-    public function initFields($override)
+    public function initFields($override = null)
     {
         global $mtlda, $db;
 
@@ -384,7 +385,12 @@ class DefaultModel
         foreach (array_keys($this->fields) as $field) {
 
             // check for a matching key in clone's fields array
-            if (in_array($field, array_keys($override))) {
+            if (
+                isset($override) &&
+                !empty($override) &&
+                is_array($override) &&
+                in_array($field, array_keys($override))
+            ) {
                 $this->$field = $override[$field];
                 continue;
             }
