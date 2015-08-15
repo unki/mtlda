@@ -29,6 +29,7 @@ class ViewsController extends DefaultController
         '/^queue$/' => 'QueueView',
         '/^archive$/' => 'ArchiveView',
         '/^upload$/' => 'UploadView',
+        '/^keywords$/' => 'KeywordsView',
         '/^about$/' => 'AboutView',
         '/^options$/' => 'OptionsView',
     );
