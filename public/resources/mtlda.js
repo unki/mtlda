@@ -101,7 +101,9 @@ $(document).ready(function() {
     $("table tr td a.preview").click(function(){
         show_preview($(this));
     });
-
+    $("form button, input[type='button']").click(function(){
+        rpc_object_update($(this));
+    });
    /*$("table td a.clone").click(function(){
       obj_clone($(this));
    });
