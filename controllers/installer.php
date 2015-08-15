@@ -149,6 +149,48 @@ class InstallerController extends DefaultController
             }
         }
 
+        if (!$db->checkTableExists("TABLEPREFIXkeywords")) {
+
+            $table_sql = "CREATE TABLE `TABLEPREFIXkeywords` (
+                `keyword_idx` int(11) NOT NULL auto_increment,
+                `keyword_name` varchar(255) default NULL,
+                `keyword_guid` varchar(255) default NULL,
+                PRIMARY KEY  (`keyword_idx`)
+                )
+                ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+
+            if ($db->query($table_sql) === false) {
+                $mtlda->raiseError("Failed to create 'meta' table");
+                return false;
+            }
+
+            if (!$db->setDatabaseSchemaVersion()) {
+                $mtlda->raiseError("Failed to set schema verison!");
+                return false;
+            }
+        }
+
+        if (!$db->checkTableExists("TABLEPREFIXassign_keywords_to_document")) {
+
+            $table_sql = "CREATE TABLE `TABLEPREFIXassign_keywords_to_document` (
+                `akd_idx` int(11) NOT NULL auto_increment,
+                `akd_archive_idx` int(11) NOT NULL,
+                `akd_keyword_idx` int(11) NOT NULL,
+                PRIMARY KEY  (`akd_idx`)
+                )
+                ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+
+            if ($db->query($table_sql) === false) {
+                $mtlda->raiseError("Failed to create 'meta' table");
+                return false;
+            }
+
+            if (!$db->setDatabaseSchemaVersion()) {
+                $mtlda->raiseError("Failed to set schema verison!");
+                return false;
+            }
+        }
+
         if (!$db->getDatabaseSchemaVersion()) {
             if (!$db->setDatabaseSchemaVersion()) {
                 $mtlda->raiseError("DatabaseController:setDatabaseSchemaVersion() returned false!");
@@ -161,7 +203,6 @@ class InstallerController extends DefaultController
 
     private function upgradeDatabaseSchema()
     {
-
 
         return true;
     }
