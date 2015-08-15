@@ -43,6 +43,9 @@ class RpcController extends DefaultController
             case 'archive':
                 $this->rpcArchiveObject();
                 break;
+            case 'update':
+                $this->rpcUpdateObject();
+                break;
             case 'find-prev-next':
                 $this->rpcFindPrevNextObject();
                 break;
@@ -72,7 +75,6 @@ class RpcController extends DefaultController
         }
 
         return true;
-
     }
 
     private function rpcDeleteObject()
@@ -357,6 +359,107 @@ class RpcController extends DefaultController
         }
 
         return true;
+    }
+
+    private function rpcUpdateObject()
+    {
+        global $mtlda, $query;
+
+        $valid_update_ids = array(
+            'keyword',
+        );
+
+        if (!isset($_POST['object'])) {
+            $mtlda->raiseError("object is missing!");
+            return false;
+        }
+
+        if (!($parts = preg_match("/^(\w)_(\w)$/", $_POST['object']))) {
+            $mtlda->raiseError("object looks invalid!");
+            return false;
+        }
+
+        $object = $_POST['object'];
+
+        if (!in_array($id, $valid_update_ids)) {
+            $mtlda->raiseError("id {$id} is not allowed to be updated!");
+            return false;
+        }
+
+        if (!$mtlda->isValidModel($id)) {
+            $mtlda->raiseError("id contains an invalid model!");
+            return false;
+        }
+
+        if (!($obj = $mtlda->loadModel($id))) {
+            $mtlda->raiseError("unable to locate model for {$id}!");
+            return false;
+        }
+
+        if (!isset($_POST['name']) || empty($_POST['name'])) {
+            $mtlda->raiseError("name is missing!");
+            return false;
+        }
+
+        $name = htmlentities($_POST['name'], ENT_QUOTES);
+
+        if (!isset($_POST['value']) || empty($_POST['value'])) {
+            $mtlda->raiseError("value is missing!");
+            return false;
+        }
+
+        $value = htmlentities($_POST['value'], ENT_QUOTES);
+
+        if (preg_match("/.*_new$/", $_POST['name'])) {
+            print_r($_POST);
+            return true;
+        }
+        $id = $_POST['id'];
+
+        $parts = array();
+        if (!preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts)) {
+            $mtlda->raiseError("id in incorrect format!");
+            return false;
+        }
+
+        /* $parts() should now contain
+         * [0] = original id
+         * [1] = object (queueitem, etc.)
+         * [2] = queue_idx
+         * [3] = guid
+         */
+        if (!array($parts) || empty($parts) || count($parts) != 4) {
+            $mtlda->raiseError("id does not contain all required information!");
+            return false;
+        }
+
+        if (!isset($parts[2]) || !is_numeric($parts[2])) {
+            $mtlda->raiseError("id contains an invalid idx!");
+            return false;
+        }
+
+        if (!isset($parts[3]) || !$mtlda->isValidGuidSyntax($parts[3])) {
+            $mtlda->raiseError("id contains an invalid guid!");
+            return false;
+        }
+
+        $request_object = $parts[1];
+        $id = $parts[2];
+        $guid = $parts[3];
+
+        if (!($obj = $mtlda->loadModel($request_object, $id, $guid))) {
+            $mtlda->raiseError("unable to locate model for {$request_object}!");
+            return false;
+        }
+
+        if ($obj->save()) {
+            print "ok";
+            return true;
+        }
+
+        $mtlda->raiseError("unknown error!");
+        return false;
+
     }
 }
 
