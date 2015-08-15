@@ -124,4 +124,66 @@ function rpc_object_archive(element)
 
 } // rpc_archive_object()
 
+function rpc_object_update(element)
+{
+    var target = element.attr("target");
+
+    if(target == undefined || target == "") {
+        alert('no attribute "target" found!');
+        return false;
+    }
+
+    if(!(parts = $target.match(/^(.+)\[([a-zA-Z0-9+])\]/))) {
+        alert('dont know what to do!');
+        return false;
+    }
+
+    if(!(input_field = $('input[name="+target+"]'))) {
+        alert("unable to find input field: "+ input_field_name[0]);
+        return false;
+    }
+
+    if(!(value = input_field.val())) {
+        return false;
+    }
+    value = value.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
+
+    if(!(obj = input_field.attr('action'))) {
+        return false;
+    }
+    obj = obj.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
+
+    $.ajax({
+        type: "POST",
+        url: "rpc.html",
+        data: ({
+            type : 'rpc',
+            action : 'update',
+            object : obj,
+            name : input_field_name[0],
+            value : value
+        }),
+        beforeSend: function() {
+            // change row color to red
+            element.parent().parent().animate({backgroundColor: "#fbc7c7" }, "fast");
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+            alert('Failed to contact server! ' + textStatus);
+        },
+        success: function(data){
+            if(data == "ok") {
+                state.text('Done');
+                element.parent().parent().animate({ opacity: "hide" }, "fast");
+                return;
+            }
+            // change row color back to white
+            element.parent().parent().animate({backgroundColor: "#ffffff" }, "fast");
+            alert('Server returned: ' + data + ', length ' + data.length);
+            return;
+        }
+    });
+
+    return true;
+}
+
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
