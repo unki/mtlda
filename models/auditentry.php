@@ -81,11 +81,11 @@ class AuditEntryModel extends DefaultModel
         }
 
         if (!($row = $sth->fetch())) {
-            $mtlda->raiseError("Unable to find archive item with guid value {$guid}");
+            $mtlda->raiseError("Unable to find audit entry with guid value {$guid}");
             return false;
         }
 
-        if (!isset($row->archive_idx) || empty($row->archive_idx)) {
+        if (!isset($row->audit_idx) || empty($row->audit_idx)) {
             $mtlda->raiseError("Unable to find audit entry with guid value {$guid}");
             return false;
         }
