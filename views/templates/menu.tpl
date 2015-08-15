@@ -20,6 +20,7 @@
  </div>
  <a href="{get_url page=main}" class="item {get_menu_state page=main}">Main</a>
  <a href="{get_url page=archive}" class="item {get_menu_state page=archive}">Archive</a>
+ <a href="{get_url page=keywords}" class="item {get_menu_state page=keywords}">Keywords</a>
  <a href="{get_url page=queue}" class="item {get_menu_state page=queue}">Queue</a>
  <a href="{get_url page=upload}" class="item {get_menu_state page=upload}">Upload</a>
  <a href="{get_url page=options}" class="item {get_menu_state page=options}">Options</a>
