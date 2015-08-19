@@ -15,13 +15,17 @@
  * GNU Affero General Public License for more details.
 *}
 <div id="page_title">Archive</div>
-<table>
- <tr>
-  <th>Idx</th>
-  <th>Filename</th>
-  <th>Size</th>
-  <th>Time</th>
- </tr>
+<table class="ui celled table">
+ <thead>
+  <tr>
+   <th>Idx</th>
+   <th>Filename</th>
+   <th>Size</th>
+   <th>Time</th>
+   <th colspan="2">Actions</th>
+  </tr>
+ </thead>
+ <tbody>
 {archive_list}
  <tr>
   <td><a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_idx}</a></td>
@@ -32,3 +36,19 @@
   <td><a class="delete" title="delete" id="document-{$item_safe_link}">Delete</a></td>
  </tr>
 {/archive_list}
+ </tbody>
+ <tfoot>
+  <tr>
+   <th colspan="6">
+    <div class="ui right floated pagination menu">
+     <a class="icon item"><i class="left chevron icon"></i></a>
+     <a class="item">1</a>
+     <a class="item">2</a>
+     <a class="item">3</a>
+     <a class="item">4</a>
+     <a class="icon item"><i class="right chevron icon"></i></a>
+    </div>
+   </th>
+  </tr>
+ </tfoot>
+</table>
