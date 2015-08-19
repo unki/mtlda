@@ -15,14 +15,18 @@
  * GNU Affero General Public License for more details.
 *}
 <div id="page_title">Queue</div>
-<table>
- <tr>
-  <th>Idx</th>
-  <th>Filename</th>
-  <th>Size</th>
-  <th>State</th>
-  <th>Time</th>
-  <td colspan="4" style="text-align: right;"><a class="delete" title="deleteall" id="queueitem-flush">Flush queue</a></th>
+<table class="ui celled table">
+ <thead>
+  <tr>
+   <th>Idx</th>
+   <th>Filename</th>
+   <th>Size</th>
+   <th>State</th>
+   <th>Time</th>
+   <th colspan="4">Actions</th>
+  </tr>
+ </thead>
+ <tbody>
  </tr>
 {queue_list}
  <tr>
@@ -37,3 +41,20 @@
   <td><a class="delete" title="delete" id="queueitem-{$item_safe_link}">Delete</a></td>
  </tr>
 {/queue_list}
+ </tbody>
+ <tfoot>
+  <tr>
+   <th colspan="9">
+    <div class="ui left floated"><a class="delete" title="deleteall" id="queueitem-flush">Flush queue</a></div>
+    <div class="ui right floated pagination menu">
+     <a class="icon item"><i class="left chevron icon"></i></a>
+     <a class="item">1</a>
+     <a class="item">2</a>
+     <a class="item">3</a>
+     <a class="item">4</a>
+     <a class="icon item"><i class="right chevron icon"></i></a>
+    </div>
+   </th>
+  </tr>
+ </tfoot>
+</table>
