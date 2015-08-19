@@ -24,6 +24,9 @@
   <!-- dropzone -->
   <link type="text/css" href="{$web_path}/resources/dropzone/dropzone.css" rel="Stylesheet" />
   <script type="text/javascript" src="{$web_path}/resources/dropzone/dropzone.js"></script>
+  <!-- semantic ui -->
+  <link rel="stylesheet" type="text/css" href="{$web_path}/resources/semantic/semantic.min.css">
+  <script src="{$web_path}/resources/semantic/semantic.min.js"></script>
   <!-- MTLDA JavaScript -->
   <script type="text/javascript" src="{$web_path}/resources/mtlda.js"></script>
   <script type="text/javascript" src="{$web_path}/resources/mtlda_rpc.js"></script>
