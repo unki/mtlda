@@ -34,4 +34,8 @@
     display:        none;
 }
 
+.main.container {
+    margin-top: 7em;
+}
+
 // vim: set filetype=css expandtab softtabstop=4 tabstop=4 shiftwidth=4:
