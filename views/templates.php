@@ -92,7 +92,6 @@ class Templates extends Smarty
 
         $this->registerPlugin("function", "get_url", array(&$this, "getUrl"), false);
         $this->registerPlugin("function", "get_menu_state", array(&$this, "getMenuState"), false);
-        $this->registerFilter("pre", array(&$this, "addTemplateName"));
 
         $this->assign('web_path', $base_path);
         $this->assign('image_arrow_left', $base_path .'/resources/images/arrow-circle-left-4x.png');
@@ -155,18 +154,6 @@ class Templates extends Smarty
         return $url;
 
     } // get_url()
-
-    public function addTemplateName($tpl_source, $template)
-    {
-        return "<!-- BEGIN ".
-            $template->template_resource
-            ." -->\n".
-            $tpl_source
-            ."<!-- END ".
-            $template->template_resource
-            ." -->";
-
-    }  // addTemplateName()
 
     public function fetch(
         $template = null,
