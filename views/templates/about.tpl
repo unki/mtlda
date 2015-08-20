@@ -17,7 +17,7 @@
 <div id="page_title">About</div>
 <pre>
 MTLDA - My Tiny Little Document Archive
-(c) 2015 Andreas Unterkircher <unki@netshadow.net>
+(c) 2015 Andreas Unterkircher &lt;unki@netshadow.net&gt;
 </pre>
 <br />
 <a href="https://oss.netshadow.net/redmine/projects/mtlda" target="_blank">https://oss.netshadow.net/redmine/projects/mtlda</a>
@@ -27,8 +27,10 @@ MTLDA Version: {$mtlda_version}
 MTLDA Database Schema: {$mtlda_schema_version}
 <br /><br />
 Your MTLDA installation bundles further software and libraries:<br />
+<ul>
 <li>jQuery,&nbsp;<a href="http://www.jquery.com" target="_blank">http://www.jquery.com</a>,
 <li>jQuery&nbsp;UI,&nbsp;<a href="http://www.jqueryui.com" target="_blank">http://www.jquery.ui.com</a>,
 <li>DropzoneJS,&nbsp;<a href="http://www.dropzonejs.com" target="_blank">http://www.dropzonejs.com</a>,
 <li>TCPDF,&nbsp;<a href="http://www.tcpdf.org" target="_blank">http://www.tcpdf.org</a>,
 <li>FPDI,&nbsp;<a href="http://www.setasign.com/products/fpdi/about/" target="_blank">http://www.setasign.com</a>
+</ul>
