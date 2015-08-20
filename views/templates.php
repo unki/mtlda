@@ -91,6 +91,7 @@ class Templates extends Smarty
         }
 
         $this->registerPlugin("function", "get_url", array(&$this, "getUrl"), false);
+        $this->registerPlugin("function", "get_menu_state", array(&$this, "getMenuState"), false);
         $this->registerFilter("pre", array(&$this, "addTemplateName"));
 
         $this->assign('web_path', $base_path);
@@ -292,6 +293,23 @@ class Templates extends Smarty
     public function showItem($id, $hash)
     {
         return $this->fetch($this->class_name ."_show.tpl");
+    }
+
+    public function getMenuState($params, &$smarty)
+    {
+        global $query;
+
+        if (!array_key_exists('page', $params)) {
+            $mtlda->raiseError("getUrl: missing 'page' parameter", E_USER_WARNING);
+            $repeat = false;
+            return false;
+        }
+
+        if ($params['page'] == $query->view) {
+            return "active";
+        }
+
+        return null;
     }
 }
 
