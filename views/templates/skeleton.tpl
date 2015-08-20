@@ -1,3 +1,5 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 {*
  * This file is part of MTLDA.
  *
@@ -14,21 +16,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
+
+<!DOCTYPE html>
 <html>
- <head>
+<head>
 {include "header.tpl"}
- </head>
- <body>
-  <div id="head">
-   <div id="title">MTLDA</div>
-   <div id="menu">
+</head>
+<body>
 {include "menu.tpl"}
-   </div>
-  </div>
-  <div id="content">
+  <div class="ui main text container">
 {$page_content}
   </div>
-  <div id="dialog"></div>
+{include "footer.tpl"}
  </body>
-</html
-<!-- vim: set filetype=smarty expandtab softtabstop=1 tabstop=1 shiftwidth=1 -->
+</html>
