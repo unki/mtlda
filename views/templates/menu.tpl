@@ -14,18 +14,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-
 <div class="ui teal inverted fixed menu">
- <div class="header item">
+ <div class="header brand item">
   <i class="gamepad icon"></i>MTLDA
  </div>
- <a href="{get_url page=main}" class="item active">Main</a>
- <a href="{get_url page=archive}" class="item">Archive</a>
- <a href="{get_url page=queue}" class="item">Queue</a>
- <a href="{get_url page=upload}" class="item">Upload</a>
- <a href="{get_url page=options}" class="item">Options</a>
- <a href="{get_url page=about}" class="item">About</a>
- <div class="right menu">
+ <a href="{get_url page=main}" class="item {get_menu_state page=main}">Main</a>
+ <a href="{get_url page=archive}" class="item {get_menu_state page=archive}">Archive</a>
+ <a href="{get_url page=queue}" class="item {get_menu_state page=queue}">Queue</a>
+ <a href="{get_url page=upload}" class="item {get_menu_state page=upload}">Upload</a>
+ <a href="{get_url page=options}" class="item {get_menu_state page=options}">Options</a>
+ <a href="{get_url page=about}" class="item {get_menu_state page=about}">About</a>
+ <div class="right menu container">
   <div class="item">
    <a href="logout.html" class="item">Logout</a>
   </div>
