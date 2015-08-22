@@ -24,7 +24,7 @@
 </head>
 <body>
 {include "menu.tpl"}
-  <div class="ui main text container">
+  <div class="ui main container">
 {$page_content}
   </div>
 {include "footer.tpl"}
