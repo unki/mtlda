@@ -184,6 +184,105 @@ class ImportController extends DefaultController
 
         return true;
     }
+
+    public function flush()
+    {
+        global $mtlda;
+
+        if (!file_exists($this::INCOMING_DIRECTORY)) {
+            $mtlda->raiseError($this::INCOMING_DIRECTORY ." does not exist!");
+            return false;
+        }
+
+        if (!is_dir($this::INCOMING_DIRECTORY)) {
+            $mtlda->raiseError($this::INCOMING_DIRECTORY ." is not a directory!");
+            return false;
+        }
+
+        if (!$this->unlinkDirectory($this::INCOMING_DIRECTORY)) {
+            $mtlda->raiseError(__CLASS__ ."::unlinkDirectory() returned false!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private function unlinkDirectory($dir)
+    {
+        global $mtlda;
+
+        if (($files = scandir($dir)) === false) {
+            $mtlda->raiseError("scandir on {$dir} returned false!");
+            return false;
+        }
+
+        // filter our '.' and '..'
+        $files = array_diff(scandir($dir), array('.','..'));
+
+        foreach ($files as $file) {
+
+            if (($fqfn = realpath($dir .'/'. $file)) === false) {
+                $mtlda->raiseError("realpath() on ". $dir .'/'. $file ." returned false!");
+                return false;
+            }
+
+            if (!$this->isBelowIncomingDirectory(dirname($fqfn))) {
+                $mtlda->raiseError("will only handle requested within ". $this::INCOMING_DIRECTORY ."!");
+                return false;
+            }
+
+            if (is_dir($fqfn)) {
+                if (!$this->unlinkDirectory($fqfn)) {
+                    return false;
+                }
+            } else {
+                if (!unlink($fqfn)) {
+                    $mtlda->raiseError("unlink() on {$fqfn} returned false!");
+                    return false;
+                }
+            }
+        }
+
+        if (!rmdir($dir)) {
+            $mtlda->raiseError("rmdir() on {$dir} returned false!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private function isBelowIncomingDirectory($dir)
+    {
+        global $mtlda;
+
+        if (empty($dir)) {
+            $mtlda->raiseError("\$dir can not be empty!");
+            return false;
+        }
+
+        $dir = strtolower(realpath($dir));
+        $dir_top = strtolower(realpath($this::INCOMING_DIRECTORY));
+
+        $dir_top_reg = preg_quote($dir_top, '/');
+
+        // check if $dir is within $dir_top
+        if (!preg_match('/^'. preg_quote($dir_top, '/') .'/', $dir)) {
+            return false;
+        }
+
+        if ($dir == $dir_top) {
+            return true;
+        }
+
+        $cnt_dir = count(explode('/', $dir));
+        $cnt_dir_top = count(explode('/', $dir_top));
+
+        if ($cnt_dir > $cnt_dir_top) {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
