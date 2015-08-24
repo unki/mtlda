@@ -10,12 +10,6 @@
     float:          left;
 }
 
-#menu {
-    position:       relative;
-    left:           70px;
-    clear:          left;
-}
-
 #content {
     padding-top:    10px;
 }
@@ -28,10 +22,6 @@
 #page_title {
     font-weight:    bold;
     padding-bottom: 10px;
-}
-
-#progress {
-    display:        none;
 }
 
 .main.container {
