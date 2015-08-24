@@ -90,15 +90,18 @@ function open_preview_dialog(obj_id)
 }
 
 $(document).ready(function() {
-   $("table tr td a.delete").click(function(){
-      rpc_object_delete($(this));
-   });
-   $("table tr td a.archive").click(function(){
-      rpc_object_archive($(this));
-   });
-   $("table tr td a.preview").click(function(){
-      show_preview($(this));
-   });
+
+    /* RPC handlers */
+    $("table tr td a.delete").click(function(){
+        rpc_object_delete($(this));
+    });
+    $("table tr td a.archive").click(function(){
+        rpc_object_archive($(this));
+    });
+    $("table tr td a.preview").click(function(){
+        show_preview($(this));
+    });
+
    /*$("table td a.clone").click(function(){
       obj_clone($(this));
    });
@@ -114,7 +117,7 @@ $(document).ready(function() {
          $(this).css('cursor','auto');
       }
    );
-   //load_menu();
+   init_dropzone();
 });
 
 function change_preview(direction)
@@ -175,48 +178,79 @@ function change_preview(direction)
     return true;
 }
 
-Dropzone.options.upload = {
-    paramName: 'mtlda_upload',
-    addRemoveLinks: true,
-    acceptedFiles: 'application/pdf,.pdf',
-    uploadMultiple: true,
-    dictDefaultMessage: 'drag\'n\'drop files here<br />or click to select',
-    autoProcessQueue: false,
-    createImageThumbnails: false,
-    init: function() {
-        var dropzone = this;
-        $('#submitbtn').click(function() {
-            dropzone.processQueue();
-        });
-    },
-    processing: function(file) {
-        $('#progress').show();
-    },
-    queuecomplete: function(file) {
-        $('#progress').html('');
-        $('#progress').hide();
-    },
-    error: function(file, errorMessage) {
-        if (errorMessage == '') {
-            window.alert('An unknown error occured!');
-            return;
+function init_dropzone() {
+
+    Dropzone.options.upload = {
+        paramName: 'mtlda_upload',
+        addRemoveLinks: true,
+        acceptedFiles: 'application/pdf,.pdf',
+        uploadMultiple: true,
+        dictDefaultMessage: 'drag\'n\'drop files here<br />or<br />click to select',
+        autoProcessQueue: false,
+        createImageThumbnails: false,
+        parallelUploads: false,
+        previewTemplate: document.querySelector('#dropzone-preview-template').innerHTML,
+        init: function() {
+            var dropzone = this;
+            $('#uploadbtn').click(function() {
+                dropzone.processQueue();
+            });
+            $('#uploadprogress').progress({
+                total: 0,
+                value: 0,
+                autoSuccess: false,
+                text: {
+                  label: '{total} files queued for upload',
+                  ratio  : 'File {value} of {total}'
+                }
+            });
+            this.on('addedfile', function() {
+                nofiles = this.getQueuedFiles().length;
+                $('#uploadprogress').progress('reset');
+                $('#uploadprogress').progress({
+                    total: 10,
+                });
+            });
+            this.on('removedfile', function(file) {
+                nofiles = this.getQueuedFiles().length;
+                $('#uploadprogress').progress({
+                    total: nofiles
+                });
+            });
+            this.on('canceled', function(file) {
+                nofiles = this.getQueuedFiles().length;
+                $('#uploadprogress').progress({
+                    total: nofiles
+                });
+            });
+            this.on('processing', function(file) {
+                $('#uploadprogress').progress('increment');
+            });
+            this.on('sending', function(file) {
+            });
+            this.on('queuecomplete', function(file) {
+                //$('#uploadprogress').hide();
+            });
+            this.on('error', function(file, errorMessage) {
+                if (errorMessage == '') {
+                    window.alert('An unknown error occured!');
+                    return;
+                }
+                window.alert('Server reported: ' + errorMessage);
+            });
+            this.on('success', function(file, successMessage) {
+                if (successMessage == 'ok') {
+                    $('#transferlist').append(file.name +'<br />');
+                    this.removeFile(file);
+                    return;
+                } else if (successMessage == '') {
+                    window.alert('An unknown error occured!');
+                    return;
+                }
+                window.alert(successMessage);
+            });
         }
-        window.alert('Server reported: ' + errorMessage);
-    },
-    success: function(file, successMessage) {
-        if (successMessage == 'ok') {
-            $('#transferlist').append(file.name +'<br />');
-            this.removeFile(file);
-            return;
-        } else if (successMessage == '') {
-            window.alert('An unknown error occured!');
-            return;
-        }
-        window.alert(successMessage);
-    },
-    totaluploadprogress: function(progress, transfered) {
-        $('#progress').html('Progress:&nbsp;'+Math.round(progress) + '% ' + Math.round(transfered/1024) + ' bytes');
-    },
-};
+    };
+}
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:

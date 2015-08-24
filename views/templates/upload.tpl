@@ -14,14 +14,28 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<div id="page_title">Upload</div>
-<div id="dropzone" style="float: left; display: block;">
- <form action="{get_url page=upload id=$upload_token}" class="dropzone" id="upload">
-  <div class="fallback"><input name="file" type="file" multiple /></div>
- </form>
+<div id="page_title">Upload Documents</div>
+<div class="ui grid">
+ <div class="row">
+  <div id="dropzone" class="eight wide column ui segment" style="display: block">
+   <form action="{get_url page=upload id=$upload_token}" class="dropzone" id="upload">
+    <div class="fallback"><input name="file" type="file" multiple /></div>
+   </form>
+  </div>
+  <div class="eight wide column">
+   <div class="ui segment">
+    <input type="button" id="uploadbtn" value="Upload" />
+    <div class="ui indicating progress" id="uploadprogress">
+     <div class="bar">
+      <div class="progress"></div>
+     </div>
+     <div class="label"></div>
+    </div>
+   </div>
+   <div class="ui segment">
+    Transfer List:<br />
+    <div id="transferlist"></div>
+   </div>
+  </div>
+ </div>
 </div>
-<input type="button" id="submitbtn" value="Upload" />
-<div id="transferlist" style="clear: left;">
- Transfer List:<br />
-</div>
-<div id="progress">Progress:</div>
