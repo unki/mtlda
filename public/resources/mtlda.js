@@ -92,7 +92,7 @@ function open_preview_dialog(obj_id)
 $(document).ready(function() {
 
     /* RPC handlers */
-    $("table tr td a.delete").click(function(){
+    $("table tr td a.delete, #queueitem-flush").click(function(){
         rpc_object_delete($(this));
     });
     $("table tr td a.archive").click(function(){
@@ -178,58 +178,61 @@ function change_preview(direction)
     return true;
 }
 
-function init_dropzone() {
+function init_upload_progressbar(dropzone)
+{
+    $('#uploadprogress').progress({
+        autoSuccess: true,
+        label: 'ratio',
+        text: {
+            label  : '{total} files queued for upload',
+            ratio  : 'File {value} of {total}'
+        },
+    });
+}
 
+function init_dropzone()
+{
     Dropzone.options.upload = {
         paramName: 'mtlda_upload',
         addRemoveLinks: true,
         acceptedFiles: 'application/pdf,.pdf',
         uploadMultiple: true,
         dictDefaultMessage: 'drag\'n\'drop files here<br />or<br />click to select',
-        autoProcessQueue: false,
+        autoProcessQueue: true,
         createImageThumbnails: false,
-        parallelUploads: false,
         previewTemplate: document.querySelector('#dropzone-preview-template').innerHTML,
         init: function() {
             var dropzone = this;
             $('#uploadbtn').click(function() {
                 dropzone.processQueue();
             });
-            $('#uploadprogress').progress({
-                total: 0,
-                value: 0,
-                autoSuccess: false,
-                text: {
-                  label: '{total} files queued for upload',
-                  ratio  : 'File {value} of {total}'
-                }
-            });
+            init_upload_progressbar(dropzone)
             this.on('addedfile', function() {
                 nofiles = this.getQueuedFiles().length;
                 $('#uploadprogress').progress('reset');
                 $('#uploadprogress').progress({
-                    total: 10,
+                    total: nofiles+1
                 });
             });
             this.on('removedfile', function(file) {
                 nofiles = this.getQueuedFiles().length;
+                $('#uploadprogress').progress('reset');
                 $('#uploadprogress').progress({
-                    total: nofiles
+                    total: nofiles+1
                 });
             });
             this.on('canceled', function(file) {
                 nofiles = this.getQueuedFiles().length;
+                $('#uploadprogress').progress('reset');
                 $('#uploadprogress').progress({
-                    total: nofiles
+                    total: nofiles+1
                 });
             });
-            this.on('processing', function(file) {
+            this.on('complete', function(file) {
                 $('#uploadprogress').progress('increment');
             });
-            this.on('sending', function(file) {
-            });
             this.on('queuecomplete', function(file) {
-                //$('#uploadprogress').hide();
+                $('#uploadprogress').progress('complete');
             });
             this.on('error', function(file, errorMessage) {
                 if (errorMessage == '') {
@@ -237,6 +240,7 @@ function init_dropzone() {
                     return;
                 }
                 window.alert('Server reported: ' + errorMessage);
+                this.removeFile(file);
             });
             this.on('success', function(file, successMessage) {
                 if (successMessage == 'ok') {
@@ -245,9 +249,11 @@ function init_dropzone() {
                     return;
                 } else if (successMessage == '') {
                     window.alert('An unknown error occured!');
+                    this.removeFile(file);
                     return;
                 }
                 window.alert(successMessage);
+                this.removeFile(file);
             });
         }
     };

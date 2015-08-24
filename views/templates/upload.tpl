@@ -25,7 +25,8 @@
   <div class="eight wide column">
    <div class="ui segment">
     <input type="button" id="uploadbtn" value="Upload" />
-    <div class="ui indicating progress" id="uploadprogress">
+    <br /><br />
+    <div class="ui progress" id="uploadprogress">
      <div class="bar">
       <div class="progress"></div>
      </div>
