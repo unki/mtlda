@@ -50,15 +50,15 @@ class OptionsView extends Templates
     {
         global $mtlda, $db;
 
-        try {
-            $storage = new Controllers\StorageController;
-        } catch (Exception $e) {
-            $mtlda->raiseError("failed to load StorageController!");
+        if (!$db->truncateDatabaseTables()) {
+            $mtlda->raiseError("DatabaseController::truncateDatabaseTables() returned false!");
             return false;
         }
 
-        if (!$db->truncateDatabaseTables()) {
-            $mtlda->raiseError("DatabaseController::truncateDatabaseTables() returned false!");
+        try {
+            $storage = new Controllers\StorageController;
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load StorageController!");
             return false;
         }
 
@@ -69,6 +69,18 @@ class OptionsView extends Templates
 
         if (!$storage->flushQueue()) {
             $mtlda->raiseError("StorageController::flushQueue() returned false!");
+            return false;
+        }
+
+        try {
+            $import = new Controllers\ImportController;
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load ImportController!");
+            return false;
+        }
+
+        if (!$import->flush()) {
+            $mtlda->raiseError("ImportController::flush() returned false!");
             return false;
         }
 
