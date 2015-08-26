@@ -27,7 +27,6 @@
   </tr>
  </thead>
  <tbody>
- </tr>
 {queue_list}
  <tr>
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}">{$item->queue_idx}</a></td>
