@@ -14,10 +14,28 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<h1 class="ui header"><i class="archive icon"></i>Keywords</h1>
-<div class ="ui container">
- <input type="text" name="keyword_name[new]" action="new" size="30" />&nbsp;
- <input type="button" value="Add" target="keyword_name[new]" />&nbsp;
+<div class="ui grid">
+ <div class="ten wide column">
+  <div class="left aligned container">
+   <h1 class="ui header"><i class="archive icon"></i>Keywords</h1>
+  </div>
+ </div>
+ <div class="six wide column">
+  <div class="right aligned container">
+   <form class="ui form">
+    <div class="fields">
+     <div class="field">
+      <label>Add keyword:</label>
+      <input type="text" name="keyword_name[new]" placeholder="invoice, personal, ..." action="new" tabindex="0" />
+     </div>
+     <div class="field">
+      <label>&nbsp;</label>
+      <button class="circular ui button" target="new"><i class="save icon"></i>Add</button>
+     </div>
+    </div>
+   </form>
+  </div>
+ </div>
 </div>
 <table class="ui celled table">
  <thead>
