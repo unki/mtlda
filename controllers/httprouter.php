@@ -99,6 +99,12 @@ class HttpRouterController extends DefaultController
         /* register further _GET parameters */
         if (isset($_GET) && is_array($_GET) && !empty($_GET)) {
             foreach ($_GET as $key => $value) {
+                if (is_array($value)) {
+                    array_walk($value, function (&$item_value) {
+                        return htmlentities($item_value, ENT_QUOTES);
+                    });
+                    continue;
+                }
                 $this->query->params[$key] = htmlentities($value, ENT_QUOTES);
             }
         }
