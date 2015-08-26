@@ -14,14 +14,20 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<div id="page_title">Archive</div>
-<input type="text" name="keyword_name[new]" action="new" size="30" />&nbsp;
-<input type="button" value="Add" target="keyword_name[new]" />&nbsp;
-<table>
- <tr>
-  <th>Idx</th>
-  <th>Keyword</th>
- </tr>
+<div id="page_title">Keywords</div>
+<div class ="ui container">
+ <input type="text" name="keyword_name[new]" action="new" size="30" />&nbsp;
+ <input type="button" value="Add" target="keyword_name[new]" />&nbsp;
+</div>
+<table class="ui celled table">
+ <thead>
+  <tr>
+   <th>Idx</th>
+   <th>Keyword</th>
+   <th colspan="2">Actions</th>
+  </tr>
+ </thead>
+ <tbody>
 {keywords_list}
  <tr>
   <td>{$item->keyword_idx}</td>
@@ -29,3 +35,19 @@
   <td><a class="delete" title="delete" id="keyword-{$item_safe_link}">Delete</a></td>
  </tr>
 {/keywords_list}
+ <tfoot>
+  <tr>
+   <th colspan="9">
+    <div class="ui right floated pagination menu">
+     <a class="icon item"><i class="left chevron icon"></i></a>
+     <a class="item">1</a>
+     <a class="item">2</a>
+     <a class="item">3</a>
+     <a class="item">4</a>
+     <a class="icon item"><i class="right chevron icon"></i></a>
+    </div>
+   </th>
+  </tr>
+ </tfoot>
+ </tbody>
+</table>
