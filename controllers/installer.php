@@ -32,21 +32,24 @@ class InstallerController extends DefaultController
                 $mtlda->raiseError("DatabaseController::getDatabaseSchemaVersion() returned false!");
                 return false;
             }
-        } else {
+        }
+
+        if (!isset($this->schema_version_before)) {
             $this->schema_version_before = 0;
         }
 
         if ($this->schema_version_before < $db->getSoftwareSchemaVersion()) {
-
             if (!$this->createDatabaseTables()) {
                 $mtlda->raiseError("InstallerController::createDatabaseTables() returned false!");
                 return false;
             }
         }
 
-        if (!$this->upgradeDatabaseSchema()) {
-            $mtlda->raiseError("InstallerController::upgradeDatabaseSchema() returned false!");
-            return false;
+        if ($db->getDatabaseSchemaVersion() < $db->getSoftwareSchemaVersion()) {
+            if (!$this->upgradeDatabaseSchema()) {
+                $mtlda->raiseError("InstallerController::upgradeDatabaseSchema() returned false!");
+                return false;
+            }
         }
 
         if (!empty($this->schema_version_before)) {
@@ -203,6 +206,13 @@ class InstallerController extends DefaultController
 
     private function upgradeDatabaseSchema()
     {
+        global $mtlda, $db;
+
+        /* final action in this function */
+        if (!$db->setDatabaseSchemaVersion()) {
+            $mtlda->raiseError("DatabaseController:setDatabaseSchemaVersion() returned false!");
+            return false;
+        }
 
         return true;
     }
