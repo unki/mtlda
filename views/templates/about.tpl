@@ -14,7 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<div id="page_title">About</div>
+<h1 class="ui header"><i class="info icon"></i>About</h1>
 <pre>
 MTLDA - My Tiny Little Document Archive
 (c) 2015 Andreas Unterkircher &lt;unki@netshadow.net&gt;

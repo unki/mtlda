@@ -14,7 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<div id="page_title">Keywords</div>
+<h1 class="ui header"><i class="archive icon"></i>Keywords</h1>
 <div class ="ui container">
  <input type="text" name="keyword_name[new]" action="new" size="30" />&nbsp;
  <input type="button" value="Add" target="keyword_name[new]" />&nbsp;

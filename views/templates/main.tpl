@@ -14,7 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<div id="page_title">Welcome to MTLDA!</div>
+<h1 class="ui header"><i class="gamepad icon"></i>Welcome to MTLDA!</h1>
 <br />
 <div id="archive10">
 Recent archived

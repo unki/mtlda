@@ -14,7 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<div id="page_title">Archive</div>
+<h1 class="ui header"><i class="archive icon"></i>Archive</h1>
 <table class="ui celled table">
  <thead>
   <tr>

@@ -14,7 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<div id="page_title">Upload Documents</div>
+<h1 class="ui header"><i class="upload icon"></i>Document Upload</h1>
 <div class="ui grid">
  <div class="row">
   <div id="dropzone" class="eight wide column ui segment" style="display: block">

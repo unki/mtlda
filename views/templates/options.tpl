@@ -14,5 +14,5 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<div id="page_title">Options</div>
+<h1 class="ui header"><i class="options icon"></i>Options</h1>
 <a href="{get_url page=options mode=truncate}">Reset data</a>
