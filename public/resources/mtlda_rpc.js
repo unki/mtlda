@@ -175,19 +175,20 @@ function rpc_object_update(element)
         }),
         beforeSend: function() {
             // change row color to red
-            element.parent().parent().animate({backgroundColor: "#fbc7c7" }, "fast");
+            //element.parent().parent().animate({backgroundColor: "#fbc7c7" }, "fast");
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
         },
         success: function(data){
             if(data == "ok") {
-                state.text('Done');
-                element.parent().parent().animate({ opacity: "hide" }, "fast");
+                location.reload();
+                //state.text('Done');
+                //element.parent().parent().animate({ opacity: "hide" }, "fast");
                 return;
             }
             // change row color back to white
-            element.parent().parent().animate({backgroundColor: "#ffffff" }, "fast");
+            //element.parent().parent().animate({backgroundColor: "#ffffff" }, "fast");
             alert('Server returned: ' + data + ', length ' + data.length);
             return;
         }
