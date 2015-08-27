@@ -21,7 +21,7 @@ namespace MTLDA\Models ;
 
 class KeywordModel extends DefaultModel
 {
-    public $table_name = 'keyword';
+    public $table_name = 'keywords';
     public $column_name = 'keyword';
     public $fields = array(
         'keyword_idx' => 'integer',
