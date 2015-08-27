@@ -43,6 +43,7 @@ class RpcController extends DefaultController
             case 'archive':
                 $this->rpcArchiveObject();
                 break;
+            case 'add':
             case 'update':
                 $this->rpcUpdateObject();
                 break;
