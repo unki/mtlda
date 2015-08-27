@@ -366,101 +366,82 @@ class RpcController extends DefaultController
     {
         global $mtlda, $query;
 
-        $valid_update_ids = array(
+        $valid_update_keys = array(
             'keyword',
         );
 
-        if (!isset($_POST['object'])) {
-            $mtlda->raiseError("object is missing!");
+        if (!isset($_POST['key']) || empty($_POST['key'])) {
+            $mtlda->raiseError("key is missing!");
             return false;
         }
-
-        if (!($parts = preg_match("/^(\w)_(\w)$/", $_POST['object']))) {
-            $mtlda->raiseError("object looks invalid!");
+        if (!isset($_POST['id']) || empty($_POST['id'])) {
+            $mtlda->raiseError("id is missing!");
             return false;
         }
-
-        $object = $_POST['object'];
-
-        if (!in_array($id, $valid_update_ids)) {
-            $mtlda->raiseError("id {$id} is not allowed to be updated!");
-            return false;
-        }
-
-        if (!$mtlda->isValidModel($id)) {
-            $mtlda->raiseError("id contains an invalid model!");
-            return false;
-        }
-
-        if (!($obj = $mtlda->loadModel($id))) {
-            $mtlda->raiseError("unable to locate model for {$id}!");
-            return false;
-        }
-
-        if (!isset($_POST['name']) || empty($_POST['name'])) {
-            $mtlda->raiseError("name is missing!");
-            return false;
-        }
-
-        $name = htmlentities($_POST['name'], ENT_QUOTES);
-
         if (!isset($_POST['value']) || empty($_POST['value'])) {
             $mtlda->raiseError("value is missing!");
             return false;
         }
 
-        $value = htmlentities($_POST['value'], ENT_QUOTES);
-
-        if (preg_match("/.*_new$/", $_POST['name'])) {
-            print_r($_POST);
-            return true;
-        }
+        $key = $_POST['key'];
         $id = $_POST['id'];
+        $value = $_POST['value'];
 
-        $parts = array();
-        if (!preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts)) {
-            $mtlda->raiseError("id in incorrect format!");
+        if (!(preg_match("/^(\w+)_(\w+)$/", $key, $parts))) {
+            $mtlda->raiseError("key looks invalid!");
             return false;
         }
 
-        /* $parts() should now contain
-         * [0] = original id
-         * [1] = object (queueitem, etc.)
-         * [2] = queue_idx
-         * [3] = guid
-         */
-        if (!array($parts) || empty($parts) || count($parts) != 4) {
-            $mtlda->raiseError("id does not contain all required information!");
+        if ($id != 'add' && !is_numeric($id)) {
+            $mtlda->raiseError("id is invalid!");
             return false;
         }
 
-        if (!isset($parts[2]) || !is_numeric($parts[2])) {
-            $mtlda->raiseError("id contains an invalid idx!");
+        if (
+            !isset($parts) ||
+            empty($parts) ||
+            !is_array($parts) ||
+            count($parts) != 3
+        ) {
+            $mtlda->raiseError("key looks wrong!");
             return false;
         }
 
-        if (!isset($parts[3]) || !$mtlda->isValidGuidSyntax($parts[3])) {
-            $mtlda->raiseError("id contains an invalid guid!");
+        $scope = $parts[1];
+
+        if (!in_array($scope, $valid_update_keys)) {
+            $mtlda->raiseError("scope {$scope} is not allowed to be updated!");
             return false;
         }
 
-        $request_object = $parts[1];
-        $id = $parts[2];
-        $guid = $parts[3];
-
-        if (!($obj = $mtlda->loadModel($request_object, $id, $guid))) {
-            $mtlda->raiseError("unable to locate model for {$request_object}!");
+        if (!$mtlda->isValidModel($scope)) {
+            $mtlda->raiseError("scope contains an invalid model ({$scope})!");
             return false;
         }
 
-        if ($obj->save()) {
-            print "ok";
-            return true;
+        if ($id == 'add') {
+            if (!($obj = $mtlda->loadModel($scope))) {
+                $mtlda->raiseError("unable to locate model for {$scope}!");
+                return false;
+            }
+        } else {
+            if (!($obj = $mtlda->loadModel($scope, $id))) {
+                $mtlda->raiseError("unable to locate model for {$scope} with id {$id}!");
+                return false;
+            }
         }
 
-        $mtlda->raiseError("unknown error!");
-        return false;
+        $value = htmlentities($value, ENT_QUOTES);
 
+        $obj->$key = $value;
+
+        if (!$obj->save()) {
+            $mtlda->raiseError(get_class($obj) ."::save() returned false!");
+            return false;
+        }
+
+        print "ok";
+        return true;
     }
 }
 
