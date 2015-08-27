@@ -133,35 +133,45 @@ function rpc_object_update(element)
         return false;
     }
 
-    if(!(parts = $target.match(/^(.+)\[([a-zA-Z0-9+])\]/))) {
+    if(!(parts = target.match(/^(.+)\[([a-zA-Z0-9]+)\]$/))) {
         alert('dont know what to do!');
         return false;
     }
 
-    if(!(input_field = $('input[name="+target+"]'))) {
-        alert("unable to find input field: "+ input_field_name[0]);
+    if(!Array.isArray(parts) || parts.length != 3) {
+        alert('invalid stuff found!');
+        return false;
+    }
+
+    key = parts[1];
+    id = parts[2];
+
+    if(!(input_field = $('input[name="' + target + '"]'))) {
+        alert("unable to find input field: "+ target);
         return false;
     }
 
     if(!(value = input_field.val())) {
+        alert("unable to find value in input field: "+ target);
         return false;
     }
     value = value.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
 
-    if(!(obj = input_field.attr('action'))) {
+    if(!(action = input_field.attr('action'))) {
+        alert("unable to find action in input field: "+ target);
         return false;
     }
-    obj = obj.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
+    action = action.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
 
     $.ajax({
         type: "POST",
         url: "rpc.html",
         data: ({
             type : 'rpc',
-            action : 'update',
-            object : obj,
-            name : input_field_name[0],
-            value : value
+            action : action,
+            key    : key,
+            id     : id,
+            value  : value
         }),
         beforeSend: function() {
             // change row color to red
