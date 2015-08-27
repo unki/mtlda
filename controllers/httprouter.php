@@ -252,27 +252,27 @@ class HttpRouterController extends DefaultController
     public function isValidRpcAction($action)
     {
         $valid_actions = array(
-                'delete',
-                'archive',
-                'update',
-                'find-prev-next',
-                'get-content',
+            'add',
+            'update',
+            'delete',
+            'archive',
+            'find-prev-next',
+            'get-content',
 
-                /*'toggle',
-                'clone',
-                'alter-position',
-                'get-sub-menu',
-                'set-host-profile',
-                'get-host-state',
-                'idle',*/
-                );
+            /*'toggle',
+            'clone',
+            'alter-position',
+            'get-sub-menu',
+            'set-host-profile',
+            'get-host-state',
+            'idle',*/
+        );
 
         if (in_array($action, $valid_actions)) {
             return true;
         }
 
         return false;
-
     }
 
     public function parseQueryParams()
