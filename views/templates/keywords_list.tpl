@@ -22,15 +22,13 @@
  </div>
  <div class="six wide column">
   <div class="right aligned container">
-   <form class="ui form">
+   <form class="ui form" onsubmit="return false;">
     <div class="fields">
      <div class="field">
-      <label>Add keyword:</label>
-      <input type="text" name="keyword_name[new]" placeholder="invoice, personal, ..." action="new" tabindex="0" />
+      <input type="text" name="keyword_name[add]" placeholder="Add keywords" action="add" tabindex="0" />
      </div>
      <div class="field">
-      <label>&nbsp;</label>
-      <button class="circular ui button" target="new"><i class="save icon"></i>Add</button>
+      <button class="circular ui button" target="keyword_name[add]"><i class="save icon"></i>Add</button>
      </div>
     </div>
    </form>
