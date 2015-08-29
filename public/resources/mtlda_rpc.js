@@ -78,7 +78,7 @@ function rpc_object_archive(element)
         return;
     }
 
-    obj_id = obj_id.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
+    obj_id = safe_string(obj_id);
 
     var state = $("#"+obj_id+".state");
     if(!state) {
@@ -133,6 +133,13 @@ function rpc_object_update(element)
         return false;
     }
 
+    var type = element.attr("data-type");
+
+    if(type == undefined || type == "") {
+        alert('no attribute "data-type" found!');
+        return false;
+    }
+
     if(!(parts = target.match(/^(.+)\[([a-zA-Z0-9]+)\]$/))) {
         alert('dont know what to do!');
         return false;
@@ -155,13 +162,13 @@ function rpc_object_update(element)
         alert("unable to find value in input field: "+ target);
         return false;
     }
-    value = value.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
+    value = safe_string(value);
 
     if(!(action = input_field.attr('action'))) {
         alert("unable to find action in input field: "+ target);
         return false;
     }
-    action = action.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
+    action = safe_string(action);
 
     $.ajax({
         type: "POST",
@@ -169,8 +176,8 @@ function rpc_object_update(element)
         data: ({
             type : 'rpc',
             action : action,
-            key    : key,
             id     : id,
+            key    : key,
             value  : value
         }),
         beforeSend: function() {
@@ -182,7 +189,11 @@ function rpc_object_update(element)
         },
         success: function(data){
             if(data == "ok") {
-                location.reload();
+                if(action == 'add') {
+                    location.reload();
+                } else if(action == 'update') {
+                    $('#'+ type + '_label_' + id).html(value);
+                }
                 //state.text('Done');
                 //element.parent().parent().animate({ opacity: "hide" }, "fast");
                 return;
@@ -195,6 +206,11 @@ function rpc_object_update(element)
     });
 
     return true;
+}
+
+function safe_string(input)
+{
+    return input.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
 }
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
