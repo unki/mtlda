@@ -14,27 +14,33 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<table>
- <tr>
-  <td>Filename:</td>
-  <td>{$item->document_file_name}</td>
- </tr>
- <tr>
-  <td>Size:</td>
-  <td>{$item->document_file_size}</td>
- </tr>
- <tr>
-  <td>Versions:</td>
-  <td>
-   <a href="{get_url page=document mode=show id=$item_safe_link}">v1 - Original imported document</a>
-   <a href="{get_url page=document mode=sign id=$item_safe_link}">Sign</a>
-   <br />
-   {foreach $item_versions as $version}
-    {assign var='safe_link' value="document-`$version->document_idx`-`$version->document_guid`"}
-    <a href="{get_url page=document mode=show id=$safe_link}">v{$version->document_version} - {$version->document_file_name}</a>&nbsp;
-    <a href="{get_url page=document mode=delete id=$safe_link}">Delete</a>
-    <br />
-   {/foreach}
-  </td>
- </tr>
-</table>
+<h1 class="ui header">{$item->document_file_name}</h1>
+<div class="ui grid">
+ <div class="row">
+  <div class="column">Filename:</div>
+  <div class="fifteen wide column">{$item->document_file_name}</div>
+ </div>
+ <div class="row">
+  <div class="column">Size:</div>
+  <div class="fifteen wide column">{$item->document_file_size}</div>
+ </div>
+ <div class="row">
+  <div class="column">Versions:</div>
+  <div class="fifteen wide column">
+   <div class="ui list">
+    <div class="item"><a href="{get_url page=document mode=show id=$item_safe_link}">v1 - Original imported document</a></div>
+    <div class="item"><a href="{get_url page=document mode=sign id=$item_safe_link}">Sign</a></div>
+{if $item_versions}
+    <div class="item ui divider"></div>
+{foreach $item_versions as $version}
+ {assign var='safe_link' value="document-`$version->document_idx`-`$version->document_guid`"}
+    <div class="item">
+     <a href="{get_url page=document mode=show id=$safe_link}">v{$version->document_version} - {$version->document_file_name}</a>&nbsp;
+     <a href="{get_url page=document mode=delete id=$safe_link}">Delete</a>
+    </div>
+{/foreach}
+{/if}
+   </div>
+  </div>
+ </div>
+</div>
