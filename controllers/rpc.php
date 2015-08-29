@@ -20,6 +20,7 @@
 namespace MTLDA\Controllers;
 
 use MTLDA\Models;
+use MTLDA\Controllers;
 
 class RpcController extends DefaultController
 {
@@ -80,7 +81,7 @@ class RpcController extends DefaultController
 
     private function rpcDeleteObject()
     {
-        global $mtlda, $query;
+        global $mtlda;
 
         if (!isset($_POST['id'])) {
             $mtlda->raiseError("id is missing!");
@@ -174,16 +175,27 @@ class RpcController extends DefaultController
 
     private function rpcArchiveObject()
     {
-        global $mtlda, $query;
+        global $mtlda;
 
         if (!isset($_POST['id'])) {
             $mtlda->raiseError("id is missing!");
             return false;
         }
 
-        if (!$mtlda->isValidId($_POST['id'])) {
-            $mtlda->raiseError("id looks invalid!");
+        try {
+            $queue = new Controllers\QueueController;
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load QueueController!");
             return false;
+        }
+
+        if (preg_match('/-all$/', $_POST['id'])) {
+            if (!$queue->ArchiveAll()) {
+                $mtlda->raiseError("QueueController::ArchiveAll() returned false!");
+                return false;
+            }
+            print "ok";
+            return true;
         }
 
         $id = $_POST['id'];
@@ -229,20 +241,8 @@ class RpcController extends DefaultController
             return false;
         }
 
-        if (!($obj = $mtlda->loadModel($request_object, $id, $guid))) {
-            $mtlda->raiseError("unable to locate model for ${request_object}!");
-            return false;
-        }
-
-        $storage = new StorageController;
-
-        if (!$storage) {
-            $mtlda->raiseError("unable to load StorageController!");
-            return false;
-        }
-
-        if (!$storage->archive($obj)) {
-            $mtlda->raiseError("StorageController::archive() exited with an error!");
+        if (!$queue->archive($id, $guid)) {
+            $mtlda->raiseError("QueueController::archive() returned false!");
             return false;
         }
 
@@ -364,7 +364,7 @@ class RpcController extends DefaultController
 
     private function rpcUpdateObject()
     {
-        global $mtlda, $query;
+        global $mtlda;
 
         $valid_update_keys = array(
             'keyword',
