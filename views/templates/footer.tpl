@@ -5,5 +5,4 @@
   </div>
  </div>
 </div>
-{include "dialog.tpl"}
 {include "dropzone.tpl"}
