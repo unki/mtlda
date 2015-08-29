@@ -25,10 +25,10 @@
    <form class="ui form" onsubmit="return false;">
     <div class="fields">
      <div class="field">
-      <input type="text" name="keyword_name[add]" placeholder="Add keywords" action="add" tabindex="0" />
+      <input type="text" name="keyword_name[add]" placeholder="Add keywords" data-action="add" tabindex="0" />
      </div>
      <div class="field">
-      <button class="circular ui button" target="keyword_name[add]"><i class="save icon"></i>Add</button>
+      <button class="circular ui button" data-target="keyword_name[add]" data-type="keyword"><i class="save icon"></i>Add</button>
      </div>
     </div>
    </form>
@@ -49,10 +49,10 @@
    <form id="keyword_edit_{$item->keyword_idx}" class="ui form" style="display: none;" onsubmit="return false;">
     <div class="fields">
      <div class="field small ui input">
-      <input type="text" name="keyword_name[{$item->keyword_idx}]" value="{$item->keyword_name}" action="update" />
+      <input type="text" name="keyword_name[{$item->keyword_idx}]" value="{$item->keyword_name}" data-action="update" />
      </div>
      <div class="field">
-      <button class="circular small ui icon button keyword" target="keyword_name[{$item->keyword_idx}]" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="save icon"></i></button>
+      <button class="circular small ui icon button keyword" data-target="keyword_name[{$item->keyword_idx}]" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="save icon"></i></button>
      </div>
     </div>
    </form>
@@ -64,6 +64,7 @@
   <td><a class="delete" title="delete" id="keyword-{$item_safe_link}">Delete</a></td>
  </tr>
 {/keywords_list}
+ </tbody>
  <tfoot>
   <tr>
    <th colspan="2">
@@ -78,7 +79,6 @@
    </th>
   </tr>
  </tfoot>
- </tbody>
 </table>
 <script type="text/javascript"><!--
 $('a.keyword, button.keyword').click(function(element) {

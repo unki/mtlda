@@ -14,7 +14,18 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<h1 class="ui header"><i class="wait icon"></i>Queue</h1>
+<div class="ui grid">
+ <div class="ten wide column">
+  <div class="left aligned container">
+   <h1 class="ui header"><i class="wait icon"></i>Queue</h1>
+  </div>
+ </div>
+ <div class="six wide column">
+  <div class="right aligned container">
+   <a href="{get_url page=upload}"><i class="upload icon"></i>Upload</a>
+  </div>
+ </div>
+</div>
 <table class="ui celled table">
  <thead>
   <tr>

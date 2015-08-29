@@ -126,10 +126,10 @@ function rpc_object_archive(element)
 
 function rpc_object_update(element)
 {
-    var target = element.attr("target");
+    var target = element.attr("data-target");
 
     if(target == undefined || target == "") {
-        alert('no attribute "target" found!');
+        alert('no attribute "data-target" found!');
         return false;
     }
 
@@ -164,8 +164,8 @@ function rpc_object_update(element)
     }
     value = safe_string(value);
 
-    if(!(action = input_field.attr('action'))) {
-        alert("unable to find action in input field: "+ target);
+    if(!(action = input_field.attr('data-action'))) {
+        alert("unable to find 'data-action' in input field: "+ target);
         return false;
     }
     action = safe_string(action);
