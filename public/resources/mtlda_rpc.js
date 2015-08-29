@@ -100,7 +100,12 @@ function rpc_object_archive(element)
         }),
         beforeSend: function() {
             // change row color to red
-            element.parent().parent().animate({backgroundColor: "#fbc7c7" }, "fast");
+            if(!obj_id.match(/-all$/)) {
+                element.parent().parent().animate({backgroundColor: "#fbc7c7" }, "fast");
+            } else {
+                $('tr.queueitem').animate({backgroundColor: "#fbc7c7" }, "fast");
+            }
+            return;
             state.text('Processing');
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
@@ -110,11 +115,19 @@ function rpc_object_archive(element)
         success: function(data){
             if(data == "ok") {
                 state.text('Done');
-                element.parent().parent().animate({ opacity: "hide" }, "fast");
+                if(!obj_id.match(/-all$/)) {
+                    element.parent().parent().animate({ opacity: "hide" }, "fast");
+                } else {
+                    $('tr.queueitem').animate({ opacity: "hide" }, "fast");
+                }
                 return;
             }
             // change row color back to white
-            element.parent().parent().animate({backgroundColor: "#ffffff" }, "fast");
+            if(!obj_id.match(/-all$/)) {
+                element.parent().parent().animate({backgroundColor: "#ffffff" }, "fast");
+            } else {
+                $('tr.queueitem').animate({backgroundColor: "#ffffff" }, "fast");
+            }
             alert('Server returned: ' + data + ', length ' + data.length);
             return;
         }

@@ -39,7 +39,7 @@
  </thead>
  <tbody>
 {queue_list}
- <tr>
+ <tr class="queueitem">
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}">{$item->queue_idx}</a></td>
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}">{$item->queue_file_name}</a></td>
   <td>{$item->queue_file_size}</td>
@@ -55,7 +55,10 @@
  <tfoot>
   <tr>
    <th colspan="9">
-    <div class="ui left floated"><a class="delete" title="deleteall" id="queueitem-flush">Flush queue</a></div>
+    <div class="ui left floated">
+     <a class="archive" title="archive" id="queueitem-all">Archive all</a>,&nbsp;
+     <a class="delete" title="deleteall" id="queueitem-flush">Flush queue</a>
+    </div>
     <div class="ui right floated pagination menu">
      <a class="icon item"><i class="left chevron icon"></i></a>
      <a class="item">1</a>

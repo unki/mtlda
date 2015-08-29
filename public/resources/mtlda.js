@@ -90,7 +90,7 @@ $(document).ready(function() {
     $("table tr td a.delete, #queueitem-flush").click(function(){
         rpc_object_delete($(this));
     });
-    $("table tr td a.archive").click(function(){
+    $("table tr td a.archive, table tr th a.archive").click(function(){
         rpc_object_archive($(this));
     });
     $("table tr td a.preview").click(function(){
