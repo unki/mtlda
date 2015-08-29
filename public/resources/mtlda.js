@@ -24,10 +24,10 @@ function show_preview(element)
         return;
     }
 
-    open_preview_dialog(obj_id);
+    open_preview_window(obj_id);
 }
 
-function open_preview_dialog(obj_id)
+function open_preview_window(obj_id)
 {
     $.ajax({
         type: "POST",
@@ -43,48 +43,43 @@ function open_preview_dialog(obj_id)
             alert('Failed to contact server! ' + textStatus);
         },
         success: function(data) {
-            $('#dialog').html(data);
-            $('#dialog').dialog({
-                title:      'Preview',
-                modal:      true,
-                autoOpen:   false,
-                draggable:  false,
-                resizeable: false,
-                width:      900,
-                height:     450,
-                position:   {
-                    my:      "center top+5%",
-                    at:      "center top+5%",
-                    of:      "#content"
-                },
-                buttons:    {
-                    Ok: function() {
-                        $(this).dialog("close");
-                    }
-                },
-                open: function() {
-                    var previewimg = $("#dialog img[name=previewimg]").attr("load");
-                    if(previewimg == undefined || previewimg == '') {
-                        alert('found no image to load:' + previewimg);
-                        return;
-                    }
-                    var preview = new Image;
-                    preview.src = previewimg;
-                    if(preview.complete) {
-                        $("#dialog img[name=previewimg]").attr('src', previewimg);
-                        preview.onload=function(){};
-                    } else{
-                        preview.onload = function() {
-                            $("#dialog img[name=previewimg]").attr('src', this.src);
-                            //    clear onLoad, IE behaves irratically with animated gifs otherwise
-                            preview.onload=function(){};
-                        }
-                    }
-                }
-            });
-            if(!$('#dialog').dialog('isOpen')) {
-                $('#dialog').dialog('open');
+            if(!data) {
+                window.alert("no data received from server!");
+                return false;
             }
+            if(document.getElementsByClassName('ui modal').length) {
+                $('.ui.modal').replaceWith(data);
+            } else {
+                $('body').append(data);
+            }
+            $(".ui.modal .ui.loader").removeClass('disabled');
+            $('.ui.modal').modal('setting', {
+                observeChanges : true
+            }).modal('show');
+
+            var preview_src = $(".ui.modal img[name=preview_image]").attr("data-src");
+            if(preview_src == undefined || preview_src == '') {
+                alert('found no image source to load:' + preview_src);
+                return;
+            }
+            var preview = new Image;
+            preview.src = preview_src;
+            if(preview.complete) {
+                $(".ui.modal img[name=preview_image]").attr('src', preview_src);
+                preview.onload = function () {
+                    $(".ui.modal .ui.loader").addClass('disabled');
+                };
+            } else{
+                preview.onload = function () {
+                    $(".ui.modal img[name=preview_image]").attr('src', this.src);
+                    $(".ui.modal .ui.loader").addClass('disabled');
+                    $(".ui.segment .ui.active.dimmer").removeClass('active').addClass('disabled');
+                    $('.ui.modal').modal('show');
+                    // for IE
+                    preview.onload=function(){};
+                };
+            }
+            return true;
         }
     });
 }
@@ -124,19 +119,13 @@ $(document).ready(function() {
 
 function change_preview(direction)
 {
-    var dialog = $('#dialog');
-
-    if(!dialog.dialog('isOpen')) {
-        return false;
-    }
-
-    var img = $('#dialog img[name=previewimg]');
+    var img = $('.ui.modal img[name=previewimg]');
 
     if(img == undefined || img == "") {
         return false;
     }
 
-    var imgid = img.attr('imgid');
+    var imgid = img.attr('data-image-id');
 
     if(!imgid) {
         return false;
@@ -156,8 +145,8 @@ function change_preview(direction)
             alert('Failed to contact server! ' + textStatus);
         },
         success: function(obj_id) {
-            open_preview_dialog(obj_id);
-            var previewimg = $("#dialog img[name=previewimg]").attr("load");
+
+            /*var previewimg = $(".ui.modal img[name=previewimg]").attr("load");
             if(previewimg == undefined || previewimg == '') {
                 alert('found no image to load:' + previewimg);
                 return;
@@ -173,7 +162,7 @@ function change_preview(direction)
                     //    clear onLoad, IE behaves irratically with animated gifs otherwise
                     preview.onload=function(){};
                 }
-            }
+            }*/
         }
     });
 
