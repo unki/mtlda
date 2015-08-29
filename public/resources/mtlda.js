@@ -114,7 +114,6 @@ $(document).ready(function() {
          $(this).css('cursor','auto');
       }
    );
-   init_dropzone();
 });
 
 function change_preview(direction)
