@@ -56,7 +56,7 @@
      </div>
     </div>
    </form>
-   <div id="keyword_show_{$item->keyword_idx}" class="ui container">
+   <div id="keyword_show_{$item->keyword_idx}">
     <div style="float: left;" id="keyword_label_{$item->keyword_idx}">{$item->keyword_name}</div>&nbsp;
     <a class="keyword" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="edit icon" ></i></a>
    </div>
