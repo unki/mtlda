@@ -38,22 +38,35 @@
 <table class="ui celled table">
  <thead>
   <tr>
-   <th>Idx</th>
    <th>Keyword</th>
-   <th colspan="2">Actions</th>
+   <th>Actions</th>
   </tr>
  </thead>
  <tbody>
 {keywords_list}
  <tr>
-  <td>{$item->keyword_idx}</td>
-  <td>{$item->keyword_name}&nbsp;<input type="button" value="Edit" target="{$item->keyword_idx}" ></td>
+  <td>
+   <form id="keyword_edit_{$item->keyword_idx}" class="ui form" style="display: none;" onsubmit="return false;">
+    <div class="fields">
+     <div class="field small ui input">
+      <input type="text" name="keyword_name[{$item->keyword_idx}]" value="{$item->keyword_name}" action="update" />
+     </div>
+     <div class="field">
+      <button class="circular small ui icon button keyword" target="keyword_name[{$item->keyword_idx}]" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="save icon"></i></button>
+     </div>
+    </div>
+   </form>
+   <div id="keyword_show_{$item->keyword_idx}" class="ui container">
+    <div style="float: left;" id="keyword_label_{$item->keyword_idx}">{$item->keyword_name}</div>&nbsp;
+    <a class="keyword" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="edit icon" ></i></a>
+   </div>
+  </td>
   <td><a class="delete" title="delete" id="keyword-{$item_safe_link}">Delete</a></td>
  </tr>
 {/keywords_list}
  <tfoot>
   <tr>
-   <th colspan="9">
+   <th colspan="2">
     <div class="ui right floated pagination menu">
      <a class="icon item"><i class="left chevron icon"></i></a>
      <a class="item">1</a>
@@ -67,3 +80,16 @@
  </tfoot>
  </tbody>
 </table>
+<script type="text/javascript"><!--
+$('a.keyword, button.keyword').click(function(element) {
+   type = $(this).attr('data-type');
+   id = $(this).attr('data-id');
+   value = $(this).attr('data-value');
+   if (!type || !id || !value) {
+      console.log('incomplete: ' + type + ', ' + id + ', ' + value);
+      return
+   }
+   $('#' + type + '_show_' + id).toggle();
+   $('#' + type + '_edit_' + id).toggle();
+});
+--></script>
