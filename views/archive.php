@@ -81,8 +81,15 @@ class ArchiveView extends Templates
 
     public function showItem($id, $hash)
     {
+        global $mtlda, $config;
+
         if ($this->item_name == "Document") {
-            $this->item = new Models\DocumentModel($id, $hash);
+            try {
+                $this->item = new Models\DocumentModel($id, $hash);
+            } catch (Exception $e) {
+                $mtlda->raiseError("Failed to load DocumentModel!");
+                return false;
+            }
         }
 
         if (!isset($this->item) || empty($this->item)) {
@@ -95,10 +102,71 @@ class ArchiveView extends Templates
             $descendants = array();
         }
 
+        if (!($base_path = $config->getWebPath())) {
+            $base_path = '';
+        }
+
+        try {
+            $keywords = new Models\KeywordsModel;
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load KeywordsModel!");
+            return false;
+        }
+
+        if (($assigned_keywords = $this->getItemKeywords($this->item->document_idx)) === false) {
+            $mtlda->raiseError(__CLASS__ ."::getItemKeywords() returned false!");
+            return false;
+        }
+
+        $this->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
         $this->assign('item_versions', $descendants);
         $this->assign('item', $this->item);
+        $this->assign('keywords', $keywords->items);
+        $this->assign('assigned_keywords', $assigned_keywords);
         $this->assign("item_safe_link", "document-". $this->item->document_idx ."-". $this->item->document_guid);
         return parent::showItem($id, $hash);
+    }
+
+    private function getItemKeywords($item_idx)
+    {
+        global $mtlda, $db;
+
+        $sth = $db->prepare(
+            "SELECT
+                akd_keyword_idx
+            FROM
+                TABLEPREFIXassign_keywords_to_document
+            WHERE
+                akd_archive_idx LIKE ?"
+        );
+
+        if (!$sth) {
+            $mtlda->raiseError(__TRAIT__ .", failed to prepare query!");
+            return false;
+        }
+
+        if (!$db->execute($sth, array($item_idx))) {
+            $mtlda->raiseError(__TRAIT__ .", failed to execute query!");
+            return false;
+        }
+
+        $rows = $sth->fetchAll(\PDO::FETCH_COLUMN);
+
+        if (!$rows === false) {
+            $mtlda->raiseError(__TRAIT__ .", failed to fetch result!");
+            return false;
+        }
+
+        if (!is_array($rows)) {
+            $mtlda->raiseError(__TRAIT__ .", PDO::fetchAll has not returned an array!");
+            return false;
+        }
+
+        if (is_null($rows)) {
+            return array();
+        }
+
+        return $rows;
     }
 }
 
