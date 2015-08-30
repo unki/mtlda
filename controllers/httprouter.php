@@ -127,12 +127,15 @@ class HttpRouterController extends DefaultController
 
         if (isset($this->query->mode) && $this->query->mode == 'rpc.html') {
             if (!isset($_POST['type']) || !isset($_POST['action'])) {
+                $mtlda->raiseError("Incomplete RPC request!");
                 return false;
             }
             if (!is_string($_POST['type']) || !is_string($_POST['action'])) {
+                $mtlda->raiseError("Invalid RPC request!");
                 return false;
             }
             if ($_POST['type'] != "rpc" && $this->isValidRpcAction($_POST['action'])) {
+                $mtlda->raiseError("Invalid RPC action!");
                 return false;
             }
             $this->query->call_type = "rpc";
@@ -258,6 +261,7 @@ class HttpRouterController extends DefaultController
             'archive',
             'find-prev-next',
             'get-content',
+            'get-keywords',
 
             /*'toggle',
             'clone',
