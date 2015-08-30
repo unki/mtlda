@@ -795,6 +795,17 @@ class DefaultModel
         $db->freeStatement($sth);
         return true;
     }
+
+    public function column($suffix)
+    {
+        global $mtlda;
+
+        if (!isset($this->column_name) || empty($this->column_name)) {
+            return $suffix;
+        }
+
+        return $this->column_name .'_'. $suffix;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
