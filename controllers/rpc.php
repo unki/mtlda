@@ -66,6 +66,9 @@ class RpcController extends DefaultController
             case 'get-content':
                 $this->rpcGetContent();
                 break;
+            case 'get-keywords':
+                $this->rpcGetKeywords();
+                break;
             case 'idle':
                 // just do nothing, for debugging
                 print "ok";
@@ -441,6 +444,40 @@ class RpcController extends DefaultController
         }
 
         print "ok";
+        return true;
+    }
+
+    private function rpcGetKeywords()
+    {
+        global $mtlda;
+
+        try {
+            $keywords = new Models\KeywordsModel;
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load KeywordsModel!");
+            return false;
+        }
+
+        $result = array();
+        foreach ($keywords->avail_items as $keyword) {
+            $item = $keywords->items[$keyword];
+            array_push($result, array(
+                'name' => $item->keyword_name,
+                'value' => $item->keyword_idx
+            ));
+        }
+
+        $output = json_encode(array(
+            'success' => 'true',
+            'results' => $result
+        ));
+
+        if ($output === false) {
+            $mtlda->raiseError("json_encode() returned false!");
+            return false;
+        }
+
+        print $output;
         return true;
     }
 }
