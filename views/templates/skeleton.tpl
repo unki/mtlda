@@ -25,5 +25,6 @@
 {$page_content}
   </div>
 {include "footer.tpl"}
+{include "modal.tpl"}
  </body>
 </html>
