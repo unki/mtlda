@@ -88,10 +88,10 @@ $(document).ready(function() {
 
     /* RPC handlers */
     $("table tr td a.delete, #queueitem-flush").click(function(){
-        rpc_object_delete($(this));
+        delete_object($(this));
     });
     $("table tr td a.archive, table tr th a.archive").click(function(){
-        rpc_object_archive($(this));
+        archive_object($(this));
     });
     $("table tr td a.preview").click(function(){
         show_preview($(this));
@@ -247,6 +247,119 @@ function init_dropzone()
             });
         }
     };
+}
+
+function show_modal(settings, do_function) {
+
+    if (settings.header) {
+        $('.ui.basic.modal .header').html(settings.header);
+    }
+
+    if (settings.icon) {
+        $('.ui.basic.modal .image.content i.icon').removeClass().addClass(settings.icon);
+    }
+
+    if (settings.description) {
+        $('.ui.basic.modal .image.content .description p').html(settings.description);
+    }
+
+    if (settings.closeable == undefined) {
+        settings.closeable = true;
+    }
+
+    if (!settings.closeable) {
+        $('.ui.basic.modal i.close.icon').detach();
+    } else {
+        $('.ui.basic.modal i.close.icon').appendTo('.ui.basic.modal');
+    }
+
+    if (!settings.onDeny) {
+        settings.onDeny = function() { return true; };
+    }
+    if (!settings.onApprove) {
+        settings.onApprove = function() { return true; };
+    }
+
+    $('.ui.basic.modal')
+        .modal({
+            closable  : settings.closeable,
+            onDeny    : settings.onDeny,
+            onApprove : settings.onApprove
+        })
+        .modal('show')
+        .on('click.modal', do_function);
+}
+
+function safe_string(input)
+{
+    return input.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
+}
+
+function delete_object(element)
+{
+    var del_id = element.attr("id");
+
+    if(del_id == undefined || del_id == "") {
+        alert('no attribute "id" found!');
+        return false;
+    }
+
+    del_id = safe_string(del_id);
+
+    // for single objects
+    if(!del_id.match(/-flush$/)) {
+        return rpc_object_delete(element, del_id);
+    }
+
+    // for all objects
+    show_modal({
+        closeable : false,
+        header : 'Flush Queue',
+        icon : 'wait icon',
+        description : 'This will delete all items from Queue! Are you sure?\nThere is NO undo',
+        onDeny : function() {
+            return true;
+        },
+        onApprove : function() {
+            return rpc_object_delete(element, del_id);
+        }
+    });
+}
+
+function archive_object(element)
+{
+    var obj_id = element.attr("id");
+
+    if(obj_id == undefined || obj_id == "") {
+        alert('no attribute "id" found!');
+        return;
+    }
+
+    obj_id = safe_string(obj_id);
+
+    var state = $("#"+obj_id+".state");
+    if(state && state.text() == 'new') {
+        state.text('Processing');
+    }
+
+    // for single objects
+    if(!obj_id.match(/-all$/)) {
+        return rpc_object_archive(element, obj_id, state);
+    }
+
+    // for all objects
+    show_modal({
+        closeable : false,
+        header : 'Archive all queue items',
+        icon : 'archive icon',
+        description : 'This will archive all items! Are you sure?',
+        onDeny : function() {
+            return true;
+        },
+        onApprove : function() {
+            return rpc_object_archive(element, obj_id, state);
+        }
+    });
 }
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:

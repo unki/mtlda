@@ -15,22 +15,11 @@
  * GNU Affero General Public License for more details.
  */
 
-function rpc_object_delete(element)
+function rpc_object_delete(element, del_id)
 {
-    var del_id = element.attr("id");
-
     if(del_id == undefined || del_id == "") {
-        alert('no attribute "id" found!');
+        alert('invalid "del_id" parameter found!');
         return;
-    }
-
-    if(del_id.match(/-flush$/)) {
-        if(!(answer = prompt("This will delete all items from Queue! Are you sure?\nThere is NO undo! Type 'yes' if you want to continue.", 'no'))) {
-            return false;
-        }
-        if(answer != 'yes') {
-            return false;
-        }
     }
 
     $.ajax({
@@ -69,25 +58,11 @@ function rpc_object_delete(element)
 
 } // rpc_object_delete()
 
-function rpc_object_archive(element)
+function rpc_object_archive(element, obj_id, state)
 {
-    var obj_id = element.attr("id");
-
     if(obj_id == undefined || obj_id == "") {
-        alert('no attribute "id" found!');
+        alert('parameter "obj_id" is invalid!');
         return;
-    }
-
-    obj_id = safe_string(obj_id);
-
-    var state = $("#"+obj_id+".state");
-    if(!state) {
-        alert('no state field for '+ id +' found');
-        return;
-    }
-
-    if(state.text() == 'new') {
-        state.text('Processing');
     }
 
     $.ajax({
@@ -106,15 +81,21 @@ function rpc_object_archive(element)
                 $('tr.queueitem').animate({backgroundColor: "#fbc7c7" }, "fast");
             }
             return;
-            state.text('Processing');
+            if(state) {
+                state.text('Processing');
+            }
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
-            state.text('Failure');
+            if(state) {
+                state.text('Failure');
+            }
         },
         success: function(data){
             if(data == "ok") {
-                state.text('Done');
+                if(state) {
+                    state.text('Done');
+                }
                 if(!obj_id.match(/-all$/)) {
                     element.parent().parent().animate({ opacity: "hide" }, "fast");
                 } else {
@@ -219,11 +200,6 @@ function rpc_object_update(element)
     });
 
     return true;
-}
-
-function safe_string(input)
-{
-    return input.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
 }
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
