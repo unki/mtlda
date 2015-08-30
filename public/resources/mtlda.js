@@ -96,7 +96,7 @@ $(document).ready(function() {
     $("table tr td a.preview").click(function(){
         show_preview($(this));
     });
-    $("form.ui.form button, input[type='button']").click(function(){
+    $("form.ui.form button.update, form.ui.form button.add, input[type='button'].update, input[type='button'].add").click(function(){
         rpc_object_update($(this));
     });
    /*$("table td a.clone").click(function(){
