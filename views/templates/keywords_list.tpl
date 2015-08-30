@@ -28,7 +28,7 @@
       <input type="text" name="keyword_name[add]" placeholder="Add keywords" data-action="add" tabindex="0" />
      </div>
      <div class="field">
-      <button class="circular ui button" data-target="keyword_name[add]" data-type="keyword"><i class="save icon"></i>Add</button>
+      <button class="circular ui button add" data-target="keyword_name[add]" data-type="keyword"><i class="save icon"></i>Add</button>
      </div>
     </div>
    </form>
@@ -52,7 +52,7 @@
       <input type="text" name="keyword_name[{$item->keyword_idx}]" value="{$item->keyword_name}" data-action="update" />
      </div>
      <div class="field">
-      <button class="circular small ui icon button keyword" data-target="keyword_name[{$item->keyword_idx}]" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="save icon"></i></button>
+      <button class="circular small ui icon button update keyword" data-target="keyword_name[{$item->keyword_idx}]" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="save icon"></i></button>
      </div>
     </div>
    </form>
