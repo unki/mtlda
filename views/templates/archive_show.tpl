@@ -46,7 +46,7 @@
  <div class="row">
   <div class="column">Keywords:</div>
   <div class="eight wide column">
-   <form id="document_keywordѕ" class="ui form" onsubmit="return false;">
+   <form id="document_keywordѕ" class="ui form" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
     <div class="fields">
      <div class="field">
       <select class="ui fluid search dropdown" name="assigned_keywords" multiple="">
@@ -68,7 +68,7 @@ $('.ui.fluid.search.dropdown').dropdown({
    allowAdditions: false,
    apiSettings: {
       method : 'POST',
-      url    : '{$keywords_rpc_url}',
+      url    : '{/literal}{$keywords_rpc_url}{literal}',
       data   : {
          type   : 'rpc',
          action : 'get-keywords'
@@ -87,22 +87,31 @@ $('.ui.fluid.search.dropdown').dropdown({
    }
 });
 $('.ui.form').on('submit', function() {
-   console.log($('.ui.form select[name=assigned_keywords] option').filter(':selected'));
+   var document_id = $(this).attr('data-id');
+   if (!document_id) {
+      window.alert('Failed to fetch data-id!');
+      return false;
+   }
+   var document_guid = $(this).attr('data-guid');
+   if (!document_guid) {
+      window.alert('Failed to fetch data-guid!');
+      return false;
+   }
    var selected = $('.ui.form select[name=assigned_keywords] option').filter(':selected');
    var values = [];
    selected.each(function(index, element) {
       values.push(element.value);
    });
-   console.log(values);
-   return
 
-    $.ajax({
+   $.ajax({
         type: "POST",
-        url: "rpc.html",
+        url    : '{/literal}{$keywords_rpc_url}{literal}',
         data: ({
-            type : 'rpc',
+            type   : 'rpc',
             action : 'save-keywords',
-            id : del_id
+            id     : document_id,
+            guid   : document_guid,
+            values : values
         }),
         error: function(XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
