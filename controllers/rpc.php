@@ -69,6 +69,9 @@ class RpcController extends DefaultController
             case 'get-keywords':
                 $this->rpcGetKeywords();
                 break;
+            case 'save-keywords':
+                $this->rpcSaveKeywords();
+                break;
             case 'idle':
                 // just do nothing, for debugging
                 print "ok";
@@ -478,6 +481,55 @@ class RpcController extends DefaultController
         }
 
         print $output;
+        return true;
+    }
+
+    private function rpcSaveKeywords()
+    {
+        global $mtlda;
+
+        if (!isset($_POST['id']) || empty($_POST['id'])) {
+            $mtlda->raiseError("No id provided!");
+            return false;
+        }
+
+        if (!isset($_POST['guid']) || empty($_POST['guid'])) {
+            $mtlda->raiseError("No guid provided!");
+            return false;
+        }
+
+        if (!$mtlda->isValidGuidSyntax($_POST['guid'])) {
+            $mtlda->raiseError("guid is invalid!");
+            return false;
+        }
+
+        /* if no values are provided, we simply return "ok" */
+        if (!isset($_POST['values'])) {
+            print "ok";
+            return true;
+        }
+
+        if (empty($_POST['values']) || !is_array($_POST['values'])) {
+            $_POST['values'] = array();
+        }
+
+        $id = $_POST['id'];
+        $guid = $_POST['guid'];
+        $values = $_POST['values'];
+
+        try {
+            $document = new Models\DocumentModel($id, $guid);
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load DocumentModel!");
+            return false;
+        }
+
+        if (!$document->setKeywords($values)) {
+            $mtlda->raiseError("DocumentModel::setKeywords() returned false!");
+            return false;
+        }
+
+        print "ok";
         return true;
     }
 }
