@@ -406,10 +406,19 @@ class MTLDA extends DefaultController
     {
         global $db, $config;
 
+        if (!($base_path = $config->getWebPath())) {
+            $this->raiseError("ConfigController::getWebPath() returned false!");
+            return false;
+        }
+
+        if ($base_path == '/') {
+            $base_path = '';
+        }
+
         if (!$db->checkTableExists("TABLEPREFIXmeta")) {
             $this->raiseError(
                 "You are missing meta table in database! "
-                ."You may run <a href=\"{$config->getWebPath()}/install\">"
+                ."You may run <a href=\"{$base_path}/install\">"
                 ."Installer</a> to fix this.",
                 true
             );
@@ -420,7 +429,7 @@ class MTLDA extends DefaultController
             $this->raiseError(
                 "The local schema version ({$db->getDatabaseSchemaVersion()}) is lower"
                 ."than the programs schema version (". $db::SCHEMA_VERSION ."). "
-                ."You may run <a href=\"{$config->getWebPath()}/install\">Installer</a>"
+                ."You may run <a href=\"{$base_path}/install\">Installer</a>"
                 ." again to upgrade.",
                 true
             );
