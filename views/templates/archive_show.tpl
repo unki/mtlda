@@ -49,7 +49,7 @@
    <form id="document_keywordѕ" class="ui form" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
     <div class="fields">
      <div class="field">
-      <select class="ui fluid search dropdown" name="assigned_keywords" multiple="">
+      <select class="ui fluid search labeled dropdown" name="assigned_keywords" multiple="">
 {foreach $keywords as $keyword}
     <option value="{$keyword->keyword_idx}" {if in_array($keyword->keyword_idx, $assigned_keywords)} selected="selected"{/if}>{$keyword->keyword_name}</option>
 {/foreach}
