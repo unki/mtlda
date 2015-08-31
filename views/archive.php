@@ -103,6 +103,11 @@ class ArchiveView extends Templates
         }
 
         if (!($base_path = $config->getWebPath())) {
+            $mtlda->raiseError("Web path is missing!");
+            return false;
+        }
+
+        if ($base_path == '/') {
             $base_path = '';
         }
 
