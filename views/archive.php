@@ -152,7 +152,7 @@ class ArchiveView extends Templates
 
         $rows = $sth->fetchAll(\PDO::FETCH_COLUMN);
 
-        if (!$rows === false) {
+        if ($rows === false) {
             $mtlda->raiseError(__TRAIT__ .", failed to fetch result!");
             return false;
         }
