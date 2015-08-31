@@ -58,7 +58,12 @@ class InstallerController extends DefaultController
         print "Software supported schema version: {$db->getSoftwareSchemaVersion()}<br />\n";
         print "Database schema version after upgrade: {$db->getDatabaseSchemaVersion()}<br />\n";
 
-        print "<a href='{$config->getWebPath()}'>Return to application</a><br />\n";
+        if (!($base_path = $config->getWebPath())) {
+            $mtlda->raiseError("ConfigController::getWebPath() returned false!");
+            return false;
+        }
+
+        print "<a href='{$base_path}'>Return to application</a><br />\n";
 
         return true;
     }
