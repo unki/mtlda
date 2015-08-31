@@ -68,16 +68,19 @@ class Templates extends Smarty
         }
 
         if (!file_exists($this->compile_dir) && !mkdir($this->compile_dir, 0700)) {
-            print "Failed to create directory ". $this->compile_dir;
-            exit(1);
+            $mtlda->raiseError("Failed to create directory ". $this->compile_dir);
+            return false;
         }
 
         if (!is_writeable($this->compile_dir)) {
-            print "Error - Smarty compile directory ". $this->compile_dir ." is not writeable
-                for the current user (". $this->getuid() .").<br />\n";
-            print "Please check that permissions are set correctly to this directory.<br />\n";
-            exit(1);
+            $mtlda->raiseError(
+                "Error - Smarty compile directory ". $this->compile_dir ." is not writeable
+                for the current user (". $this->getuid() .").<br />\n
+                Please check that permissions are set correctly to this directory.<br />\n"
+            );
+            return false;
         }
+
         $this->setTemplateDir($this->template_dir);
         $this->setCompileDir($this->compile_dir);
         $this->setConfigDir($this->config_dir);
@@ -86,7 +89,13 @@ class Templates extends Smarty
         if ($page_title = $config->getPageTitle()) {
             $this->assign('page_title', $page_title);
         }
+
         if (!($base_path = $config->getWebPath())) {
+            $mtlda->raiseError("Web path is missing!");
+            return false;
+        }
+
+        if ($base_path == '/') {
             $base_path = '';
         }
 
