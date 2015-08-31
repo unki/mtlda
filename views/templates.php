@@ -146,6 +146,11 @@ class Templates extends Smarty
         }
 
         if (!($url = $config->getWebPath())) {
+            $mtlda->raiseError("Web path is missing!");
+            return false;
+        }
+
+        if ($url == '/') {
             $url = "";
         }
 
@@ -162,7 +167,7 @@ class Templates extends Smarty
 
         return $url;
 
-    } // get_url()
+    } // getUrl()
 
     public function fetch(
         $template = null,
@@ -296,7 +301,7 @@ class Templates extends Smarty
         global $query;
 
         if (!array_key_exists('page', $params)) {
-            $mtlda->raiseError("getUrl: missing 'page' parameter", E_USER_WARNING);
+            $mtlda->raiseError("getMenuState: missing 'page' parameter", E_USER_WARNING);
             $repeat = false;
             return false;
         }
