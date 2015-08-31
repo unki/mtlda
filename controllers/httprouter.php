@@ -64,8 +64,10 @@ class HttpRouterController extends DefaultController
         /* for requests to the root page (config item base_web_path), load MainView */
         if (
             !isset($parts[0]) &&
-            empty($uri) &&
-            rtrim($_SERVER['REQUEST_URI'], '/') == $config->getWebPath()
+            empty($uri) && (
+                $_SERVER['REQUEST_URI'] == "/" ||
+                rtrim($_SERVER['REQUEST_URI'], '/') == $config->getWebPath()
+            )
         ) {
             $this->query->view = "main";
         } elseif (isset($parts[0]) && !empty($parts[0])) {
