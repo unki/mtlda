@@ -65,18 +65,27 @@ class ViewsController extends DefaultController
 
     public function load($view, $skeleton = true)
     {
-        $view = 'MTLDA\\Views\\'.$view;
-        $page = new $view;
+        global $mtlda;
 
-        if ($skeleton) {
-            if (!($content = $page->show())) {
-                return false;
-            }
-            $this->page_skeleton->assign('page_content', $content);
-            return $this->page_skeleton->show();
+        $view = 'MTLDA\\Views\\'.$view;
+
+        try {
+            $page = new $view;
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load view {$view}!");
+            return false;
         }
 
-        return $page->show();
+        if (!$skeleton) {
+            return $page->show();
+        }
+
+        if (!($content = $page->show())) {
+            return false;
+        }
+
+        $this->page_skeleton->assign('page_content', $content);
+        return $this->page_skeleton->show();
     }
 }
 
