@@ -422,6 +422,27 @@ class DocumentModel extends DefaultModel
         }
 
         $sth = $db->prepare(
+            "DELETE FROM
+                TABLEPREFIXassign_keywords_to_document
+            WHERE
+                akd_archive_idx
+            LIKE
+                ?"
+        );
+
+        if (!$sth) {
+            $mtlda->raiseError("Unable to prepare query!");
+            return false;
+        }
+
+        if (!$db->execute($sth, array($this->document_idx))) {
+            $mtlda->raiseError("Unable to execute query!");
+            return false;
+        }
+
+        $db->freeStatement($sth);
+
+        $sth = $db->prepare(
             "INSERT INTO
                 TABLEPREFIXassign_keywords_to_document
             (
