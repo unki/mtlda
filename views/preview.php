@@ -56,7 +56,14 @@ class PreviewView extends Templates
             return false;
         }
 
-        $base_path = $config->getWebPath();
+        if (!($base_path = $config->getWebPath())) {
+            $mtlda->raiseError("Web path is missing!");
+            return false;
+        }
+
+        if ($base_path == '/') {
+            $base_path = '';
+        }
 
         $img_url = $base_path .'/preview/'. $query->params['id'];
         $img_load = $base_path .'/resources/images/load.gif';
