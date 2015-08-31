@@ -43,7 +43,10 @@ class HttpRouterController extends DefaultController
             exit(1);
         }
 
-        if ($webpath = $config->getWebPath()) {
+        if (
+            $webpath = $config->getWebPath() &&
+            $webpath != '/'
+        ) {
             $uri = str_replace($webpath, "", $uri);
         }
 
