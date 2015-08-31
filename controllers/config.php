@@ -91,13 +91,13 @@ class ConfigController extends DefaultController
                 exit(1);
             }
 
-            // remove trailing slash from base_web_path if any
+            // remove trailing slash from base_web_path if any, but not if base_web_path = /
             if (
                 isset($config_ary['app']['base_web_path']) &&
-                !empty($config_ary['app']['base_web_path'])) {
+                !empty($config_ary['app']['base_web_path']) &&
+                $config_ary['app']['base_web_path'] != '/') {
 
                 $config_ary['app']['base_web_path'] = rtrim($config_ary['app']['base_web_path'], '/');
-
             }
 
             if (!isset($this->config)) {
@@ -237,14 +237,14 @@ class ConfigController extends DefaultController
     public function getWebPath()
     {
         if (
-            isset($this->config['app']['base_web_path']) &&
-            !empty($this->config['app']['base_web_path']) &&
-            is_string($this->config['app']['base_web_path'])
+            !isset($this->config['app']['base_web_path']) ||
+            empty($this->config['app']['base_web_path']) ||
+            !is_string($this->config['app']['base_web_path'])
         ) {
-            return $this->config['app']['base_web_path'];
+            return false;
         }
 
-        return false;
+        return $this->config['app']['base_web_path'];
     }
 
     public function getPageTitle()
