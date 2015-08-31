@@ -179,7 +179,9 @@ class InstallerController extends DefaultController
                 `akd_idx` int(11) NOT NULL auto_increment,
                 `akd_archive_idx` int(11) NOT NULL,
                 `akd_keyword_idx` int(11) NOT NULL,
-                PRIMARY KEY  (`akd_idx`)
+                PRIMARY KEY  (`akd_idx`),
+                UNIQUE KEY `document_keywords` (`akd_archive_idx`,`akd_keyword_idx`),
+                KEY `documents` (`akd_archive_idx`)
                 )
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
@@ -207,6 +209,18 @@ class InstallerController extends DefaultController
     private function upgradeDatabaseSchema()
     {
         global $mtlda, $db;
+
+        if ($db->getDatabaseSchemaVersion() < 3) {
+            $db->query(
+                "ALTER TABLE
+                    mtlda_assign_keywords_to_document
+                ADD
+                    unique index `document_keywords` (akd_archive_idx, akd_keyword_idx),
+                ADD index `documents` (akd_archive_idx)"
+            );
+
+            $db->setDatabaseSchemaVersion(3);
+        }
 
         /* final action in this function */
         if (!$db->setDatabaseSchemaVersion()) {

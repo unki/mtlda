@@ -23,7 +23,7 @@ use PDO;
 
 class DatabaseController extends DefaultController
 {
-    const SCHEMA_VERSION = 2;
+    const SCHEMA_VERSION = 3;
 
     private $db;
     private $db_cfg;
