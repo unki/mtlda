@@ -412,6 +412,49 @@ class DocumentModel extends DefaultModel
 
         return true;
     }
+
+    public function setKeywords($values)
+    {
+        global $mtlda, $db;
+
+        if (!is_array($values)) {
+            $values = array($values);
+        }
+
+        $sth = $db->prepare(
+            "INSERT INTO
+                TABLEPREFIXassign_keywords_to_document
+            (
+                akd_archive_idx,
+                akd_keyword_idx
+            ) VALUES (
+                ?,
+                ?
+            )"
+        );
+
+        if (!$sth) {
+            $mtlda->raiseError("Unable to prepare query!");
+            return false;
+        }
+
+        foreach ($values as $value) {
+            if (!is_numeric($value)) {
+                $mtlda->raiseError("Value '{$value}' requires to be a number!");
+                $db->freeStatement($sth);
+                return false;
+            }
+
+            if (!$db->execute($sth, array($this->document_idx, $value))) {
+                $mtlda->raiseError("Failed to execute query!");
+                $db->freeStatement($sth);
+                return false;
+            }
+        }
+
+        $db->freeStatement($sth);
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
