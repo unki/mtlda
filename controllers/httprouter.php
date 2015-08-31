@@ -112,6 +112,12 @@ class HttpRouterController extends DefaultController
         /* register further _POST parameters */
         if (isset($_POST) && is_array($_POST) && !empty($_POST)) {
             foreach ($_POST as $key => $value) {
+                if (is_array($value)) {
+                    array_walk($value, function (&$item_value) {
+                        return htmlentities($item_value, ENT_QUOTES);
+                    });
+                    continue;
+                }
                 $this->query->params[$key] = htmlentities($value, ENT_QUOTES);
             }
         }
@@ -262,6 +268,7 @@ class HttpRouterController extends DefaultController
             'find-prev-next',
             'get-content',
             'get-keywords',
+            'save-keywords',
 
             /*'toggle',
             'clone',
