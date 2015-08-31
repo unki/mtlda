@@ -452,6 +452,18 @@ class DatabaseController extends DefaultController
 
         return true;
     }
+
+    public function quote($text)
+    {
+        global $mtlda;
+
+        if (($text = $this->db->quote($text) === false)) {
+            $mtlda->raiseError("PDO driver does not support quote!", true);
+            return false;
+        }
+
+        return $text;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
