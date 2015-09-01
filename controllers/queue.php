@@ -42,6 +42,33 @@ class QueueController extends DefaultController
             return false;
         }
 
+        if (!isset($obj->queue_file_hash) || empty($obj->queue_file_hash)) {
+            $mtlda->raiseError("Found no file hash for QueueItemModel {$id}, {$guid}!");
+            return false;
+        }
+
+        try {
+            $archive = new ArchiveController;
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load ArchiveController!");
+            return false;
+        }
+
+        if (!$archive) {
+            $mtlda->raiseError("Unable to load ArchiveController!");
+            return false;
+        }
+
+        if (($dupl_item = $archive->checkForDuplicateFileByHash($obj->queue_file_hash)) === false) {
+            $mtlda->raiseError("ArchiveController::checkForDuplicateFileByHash returned false!");
+            return false;
+        }
+
+        if (!empty($dupl_item)) {
+            $mtlda->raiseError("There is already an item with the same file hash in the archive!");
+            return false;
+        }
+
         try {
             $storage = new StorageController;
         } catch (Exception $e) {
