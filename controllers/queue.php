@@ -70,19 +70,19 @@ class QueueController extends DefaultController
         }
 
         try {
-            $storage = new StorageController;
+            $archive = new ArchiveController;
         } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load StorageController!");
+            $mtlda->raiseError("Failed to load ArchiveController!");
             return false;
         }
 
-        if (!$storage) {
-            $mtlda->raiseError("Unable to load StorageController!");
+        if (!$archive) {
+            $mtlda->raiseError("Unable to load ArchiveController!");
             return false;
         }
 
-        if (!$storage->archive($obj)) {
-            $mtlda->raiseError("StorageController::archive() exited with an error!");
+        if (!$archive->archive($obj)) {
+            $mtlda->raiseError("ArchiveController::archive() exited with an error!");
             return false;
         }
 
