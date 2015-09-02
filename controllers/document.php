@@ -20,6 +20,7 @@
 namespace MTLDA\Controllers;
 
 use MTLDA\Models;
+use MTLDA\Controllers;
 
 class DocumentController extends DefaultController
 {
@@ -135,15 +136,20 @@ class DocumentController extends DefaultController
             return false;
         }
 
-        $storage = new StorageController($document);
-
-        if (!$storage) {
-            $mtlda->raiseError("Unable to load StorageController!");
+        try {
+            $archive = new Controllers\ArchiveController;
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load ArchiveController!");
             return false;
         }
 
-        if (!$storage->sign($document)) {
-            $mtlda->raiseError("StorageController::sign() returned false!");
+        if (!$archive) {
+            $mtlda->raiseError("Unable to load ArchiveController!");
+            return false;
+        }
+
+        if (!$archive->sign($document)) {
+            $mtlda->raiseError("ArchiveController::sign() returned false!");
             return false;
         }
 
