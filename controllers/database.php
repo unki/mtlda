@@ -402,23 +402,33 @@ class DatabaseController extends DefaultController
     {
         global $mtlda;
 
-        if (($this->query("TRUNCATE TABLEPREFIXmeta")) === false) {
+        if (($this->query("TRUNCATE TABLE TABLEPREFIXmeta")) === false) {
             $mtlda->raiseError("failed to truncate 'meta' table!");
             return false;
         }
 
-        if (($this->query("TRUNCATE TABLEPREFIXaudit")) === false) {
+        if (($this->query("TRUNCATE TABLE TABLEPREFIXaudit")) === false) {
             $mtlda->raiseError("failed to truncate 'audit' table!");
             return false;
         }
 
-        if (($this->query("TRUNCATE TABLEPREFIXqueue")) === false) {
+        if (($this->query("TRUNCATE TABLE TABLEPREFIXqueue")) === false) {
             $mtlda->raiseError("failed to truncate 'queue' table!");
             return false;
         }
 
-        if (($this->query("TRUNCATE TABLEPREFIXarchive")) === false) {
+        if (($this->query("TRUNCATE TABLE TABLEPREFIXarchive")) === false) {
             $mtlda->raiseError("failed to truncate 'archive' table!");
+            return false;
+        }
+
+        if (($this->query("TRUNCATE TABLE TABLEPREFIXkeywords")) === false) {
+            $mtlda->raiseError("failed to truncate 'keywords' table!");
+            return false;
+        }
+
+        if (($this->query("TRUNCATE TABLE TABLEPREFIXassign_keywords_to_document")) === false) {
+            $mtlda->raiseError("failed to truncate 'assign_keywords_to_document' table!");
             return false;
         }
 
