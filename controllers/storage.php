@@ -19,248 +19,9 @@
 
 namespace MTLDA\Controllers;
 
-use MTLDA\Models;
-use MTLDA\Controllers;
-
 class StorageController extends DefaultController
 {
     private $nesting_depth = 5;
-
-    public function archive(&$queue_item)
-    {
-        global $mtlda, $config, $audit;
-
-        // verify QueueItemModel is ok()
-        if (!$queue_item->verify()) {
-            $mtlda->raiseError("QueueItemModel::verify() returned false!");
-            return false;
-        }
-
-        try {
-            $audit->log(
-                "archiving requested",
-                "archive",
-                "storage",
-                $queue_item->queue_guid
-            );
-        } catch (Exception $e) {
-            $mtlda->raiseError("AuditController::log() returned false!");
-            return false;
-        }
-
-        // generate a hash-value based directory name
-        if (!($store_dir_name = $this->generateDirectoryName($queue_item->queue_guid))) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
-            return false;
-        }
-
-        if (!isset($store_dir_name) || empty($store_dir_name)) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned an empty directory string");
-            return false;
-        }
-
-        // create the target directory structure
-        if (!$this->createDirectoryStructure($store_dir_name)) {
-            $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
-            return false;
-        }
-
-        try {
-            $audit->log(
-                "using {$store_dir_name} as destination",
-                "archive",
-                "storage",
-                $queue_item->queue_guid
-            );
-        } catch (Exception $e) {
-            $mtlda->raiseError("AuditController::log() returned false!");
-            return false;
-        }
-
-        $document = new Models\DocumentModel;
-
-        if (
-            !isset($queue_item->fields) ||
-            empty($queue_item->fields) ||
-            !is_array($queue_item->fields)
-        ) {
-            $mtlda->raiseError("\$queue_item->fields not set!");
-            return false;
-        }
-
-        // copy fields from QueueItemModel to DocumentModel
-        foreach (array_keys($queue_item->fields) as $queue_field) {
-
-            // fields we skip
-            if (in_array($queue_field, array("queue_idx", "queue_state"))) {
-                continue;
-            }
-
-            $document_field = str_replace("queue_", "document_", $queue_field);
-            $document->$document_field = $queue_item->$queue_field;
-        }
-
-        $document->document_version = '1';
-        $document->document_derivation = '';
-        $document->document_derivation_guid = '';
-
-        // copy file from queue to data directory
-        if (!$this->copyQueueItemFileToArchive($queue_item->queue_file_name, $store_dir_name)) {
-            $mtlda->raiseError("StorageController::copyQueueItemFileToArchive() returned false!");
-            return false;
-        }
-
-        // safe DocumentModel to database, if that fails revert
-        if (!$document->save()) {
-            $this->deleteItemFile($document);
-            $mtlda->raiseError("DocumentModel::save() returned false!");
-            return false;
-        }
-
-        // delete QueueItemModel from database, if that fails revert
-        // deleting the model will also remove the file
-        if (!$queue_item->delete()) {
-            $document->delete();
-            $mtlda->raiseError("DocumentModel::delete() returned false!");
-            return false;
-        }
-
-        try {
-            $audit->log(
-                "archiving success",
-                "archive",
-                "storage",
-                $document->document_guid
-            );
-        } catch (Exception $e) {
-            $mtlda->raiseError("AuditController::log() returned false!");
-            return false;
-        }
-
-        // if no more actions are necessary, we are done
-        if (!$config->isPdfSigningEnabled()) {
-            return true;
-        }
-
-        // if auto-signing is not enabled, we are done here
-        if (!$config->isPdfAutoPdfSignOnImport()) {
-            return true;
-        }
-
-        if (!$this->sign($document)) {
-            return false;
-        }
-
-        return true;
-
-    }
-
-    public function sign(&$src_item)
-    {
-        global $mtlda, $config, $audit;
-
-        if (!$config->isPdfSigningEnabled()) {
-            $mtlda->raiseError("ConfigController::isPdfSigningEnabled() returns false!");
-            return false;
-        }
-
-        try {
-            $signer = new Controllers\PdfSigningController;
-        } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load PdfSigningController");
-            return false;
-        }
-
-        $signing_item = new models\DocumentModel;
-
-        if (!($signing_item->createClone($src_item))) {
-            $mtlda->raiseError(__TRAIT__ ." unable to clone DocumentModel!");
-            return false;
-        }
-
-        try {
-            $audit->log(
-                __METHOD__,
-                "read",
-                "archive",
-                $src_item->document_guid
-            );
-        } catch (Exception $e) {
-            $signing_item->delete();
-            $mtlda->raiseError("AuditController::log() raised an exception!");
-            return false;
-        }
-
-        $signing_item->document_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->document_file_name);
-        $signing_item->document_version++;
-        $signing_item->document_derivation = $src_item->id;
-        $signing_item->document_derivation_guid = $src_item->document_guid;
-        $signing_item->save();
-
-        // generate a hash-value based directory name
-        if (!($src_dir_name = $this->generateDirectoryName($src_item->document_guid))) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
-            $signing_item->delete();
-            return false;
-        }
-
-        if (!($dest_dir_name = $this->generateDirectoryName($signing_item->document_guid))) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
-            $signing_item->delete();
-            return false;
-        }
-
-        // create the target directory structure
-        if (!$this->createDirectoryStructure($dest_dir_name)) {
-            $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
-            $signing_item->delete();
-            return false;
-        }
-
-        $src = $src_dir_name  .'/'. $src_item->document_file_name;
-        $dst = $dest_dir_name .'/'. $signing_item->document_file_name;
-
-        if (!$this->copyArchiveDocumentFile($src, $dst)) {
-            $signing_item->delete();
-            $mtlda->raiseError("StorageController::copyArchiveDocumentFile() returned false!");
-            return false;
-        }
-
-        $fqpn_dst = $this::ARCHIVE_DIRECTORY .'/'. $dst;
-
-        if (!$signer->signDocument($fqpn_dst, $signing_item)) {
-            $signing_item->delete();
-            $mtlda->raiseError("PdfSigningController::ѕignDocument() returned false!");
-            return $false;
-        }
-
-        if (!$signing_item->refresh($dest_dir_name)) {
-            $signing_item->delete();
-            $mtlda->raiseError("refresh() returned false!");
-            return false;
-        }
-
-        if (!$signing_item->save()) {
-            $signing_item->delete();
-            $mtlda->raiseError("save() returned false!");
-            return false;
-        }
-
-        try {
-            $audit->log(
-                $src_item->document_guid,
-                "signed",
-                "archive",
-                $signing_item->document_guid
-            );
-        } catch (Exception $e) {
-            $signing_item->delete();
-            $mtlda->raiseError("AuditController::log() raised an exception!");
-            return false;
-        }
-
-        return true;
-    }
 
     public function generateDirectoryName($hash)
     {
@@ -300,7 +61,7 @@ class StorageController extends DefaultController
         return $dir_name;
     }
 
-    private function createDirectoryStructure($store_dir_name)
+    public function createDirectoryStructure($store_dir_name)
     {
         global $mtlda;
 
@@ -327,7 +88,7 @@ class StorageController extends DefaultController
         return true;
     }
 
-    private function copyQueueItemFileToArchive($file_name, $dest_dir)
+    public function copyQueueItemFileToArchive($file_name, $dest_dir)
     {
         global $mtlda;
 
@@ -364,7 +125,7 @@ class StorageController extends DefaultController
         return true;
     }
 
-    private function copyArchiveDocumentFile($src, $dst)
+    public function copyArchiveDocumentFile($src, $dst)
     {
         global $mtlda;
 
@@ -389,7 +150,7 @@ class StorageController extends DefaultController
         return true;
     }
 
-    private function deleteQueueItemFile($file_name)
+    public function deleteQueueItemFile($file_name)
     {
         global $mtlda;
 
@@ -407,7 +168,7 @@ class StorageController extends DefaultController
         return true;
     }
 
-    private function deleteFile($file_name, $dest_dir)
+    public function deleteFile($file_name, $dest_dir)
     {
         global $mtlda;
 
