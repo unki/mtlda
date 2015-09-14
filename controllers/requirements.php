@@ -65,7 +65,21 @@ class RequirementsController extends DefaultController
         $missing = false;
 
         if (!(function_exists("microtime"))) {
-            $mtlda->raiseError("Error - microtime() function does not exist!");
+            $mtlda->raiseError("microtime() function does not exist!");
+            $missing = true;
+        }
+
+        if (!(function_exists("curl_init"))) {
+            $mtlda->raiseError("cURL support is missing!");
+            $missing = true;
+        }
+
+        if (!class_exists("SoapClient")) {
+            $mtlda->raiseError("SOAP support is missing!");
+            $missing = true;
+        }
+
+        if ($missing) {
             return false;
         }
 
