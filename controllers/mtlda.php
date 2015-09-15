@@ -360,21 +360,17 @@ class MTLDA extends DefaultController
 
     public function createGuid()
     {
-        if (function_exists("openssl_random_pseudo_bytes")) {
-
-            if (($guid = openssl_random_pseudo_bytes("32")) === false) {
-                $this->raiseError("openssl_random_pseudo_bytes() returned false!");
-                return false;
-            }
-
-            $guid = bin2hex($guid);
-
-        } else {
-
+        if (!function_exists("openssl_random_pseudo_bytes")) {
             $guid = uniqid(rand(0, 32766), true);
-
+            return $guid;
         }
 
+        if (($guid = openssl_random_pseudo_bytes("32")) === false) {
+            $this->raiseError("openssl_random_pseudo_bytes() returned false!");
+            return false;
+        }
+
+        $guid = bin2hex($guid);
         return $guid;
     }
 
