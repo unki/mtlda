@@ -74,6 +74,11 @@ class RequirementsController extends DefaultController
             $missing = true;
         }
 
+        if (!(function_exists("openssl_pkey_get_private"))) {
+            $mtlda->raiseError("OpenSSL support is missing!");
+            $missing = true;
+        }
+
         if (!class_exists("SoapClient")) {
             $mtlda->raiseError("SOAP support is missing!");
             $missing = true;
@@ -154,6 +159,7 @@ class RequirementsController extends DefaultController
             $missing = true;
             unset($php_errormsg);
         }
+
         /*@include_once 'Pager.php';
         if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
             print "PEAR Pager package is missing<br />\n";
