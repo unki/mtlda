@@ -59,7 +59,7 @@ class PdfSigningController extends DefaultController
         }
     }
 
-    public function signDocument($fqpn, &$src_item)
+    public function signDocument($fqpn, &$src_document)
     {
         global $mtlda, $audit;
 
@@ -73,7 +73,10 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
-        if (!isset($src_item->document_signing_icon_position) || empty($src_item->document_signing_icon_position)) {
+        if (
+            !isset($src_document->document_signing_icon_position) ||
+            empty($src_document->document_signing_icon_position)
+        ) {
             $mtlda->raiseError("document_signing_icon is not set!");
             return false;
         }
@@ -83,7 +86,7 @@ class PdfSigningController extends DefaultController
                 "signing request",
                 "request",
                 "signing",
-                $src_item->document_guid
+                $src_document->document_guid
             );
         } catch (Exception $e) {
             $signing_item->delete();
@@ -91,101 +94,108 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
-        $pdf = new \FPDI();
-        $page_count = $pdf->setSourceFile($fqpn);
-
-        for ($page_no = 1; $page_no <= $page_count; $page_no++) {
-
-            // import a page
-            $templateId = $pdf->importPage($page_no);
-            // get the size of the imported page
-            $size = $pdf->getTemplateSize($templateId);
-
-            // create a page (landscape or portrait depending on the imported page size)
-            if ($size['w'] > $size['h']) {
-                $pdf->AddPage('L', array($size['w'], $size['h']));
-            } else {
-                $pdf->AddPage('P', array($size['w'], $size['h']));
-            }
-
-            // use the imported page
-            $pdf->useTemplate($templateId);
-
-            if ($page_no == 1) {
-
-                $signing_icon_position = $this->getSigningIconPosition(
-                    $src_item->document_signing_icon_position,
-                    $size['w'],
-                    $size['h']
-                );
-
-                if (!$signing_icon_position) {
-                    $mtlda->raiseError("getSigningIconPosition() returned false!");
-                    return false;
-                }
-
-                if (
-                    empty($signing_icon_position) ||
-                    !is_array($signing_icon_position) ||
-                    !isset($signing_icon_position['x-pos']) ||
-                    empty($signing_icon_position['x-pos']) ||
-                    !isset($signing_icon_position['y-pos']) ||
-                    empty($signing_icon_position['y-pos'])
-                ) {
-                    $mtlda->raiseError("getSigningIconPosition() returned invalid posіtions!");
-                    return false;
-                }
-
-                $pdf->Image(
-                    MTLDA_BASE.'/public/resources/images/MTLDA_signed.png',
-                    $signing_icon_position['x-pos'],
-                    $signing_icon_position['y-pos'],
-                    16 /* width */,
-                    16 /* height */,
-                    'PNG',
-                    null,
-                    null,
-                    true /* resize */
-                );
-            }
-
+        if (($public_key = file_get_contents($this->pdf_cfg['certificate'])) === false) {
+            $mtlda->raiseError("reading {$this->pdf_cfg['certificate']} failed!");
+            return false;
         }
 
+        if (!$public_key = preg_replace('/(\s*)-----(\s*)(BEGIN|END) CERTIFICATE(\s*)-----(\s*)/', '', $public_key)) {
+            $mtlda->raiseError("failed to strip RSA headers!");
+            return false;
+        }
+        if (!$public_key = str_replace("\n", '', $public_key)) {
+            $mtlda->raiseError("failed to strip whitespaces from public key!");
+            return false;
+        }
+
+        try {
+            $dss = new \SoapClient(
+                $this->pdf_cfg['dss_url'] .'/wservice/signatureService?wsdl',
+                array(
+                    'soap_version' => SOAP_1_1,
+                    'trace' => 1,
+                    'exceptions' => true,
+                    'cache_wsdl' => WSDL_CACHE_NONE,
+                )
+            );
+        } catch (\DSSException $d) {
+            $mtlda->raiseError($d);
+            return false;
+        } catch (\SOAPFault $f) {
+            $mtlda->raiseError($f->faultcode .' - '. $f->faultstring);
+            return false;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load SoapClient!");
+            return false;
+        }
+
+        if (!is_callable(array($dss, "getDataToSign"))) {
+            $mtlda->raiseError("Remote side does not provide getDataToSign() method!");
+            return false;
+        }
+
+        if (!is_callable(array($dss, "signDocument"))) {
+            $mtlda->raiseError("Remote side does not provide signDocument() method!");
+            return false;
+        }
+
+        $parameters = new \stdClass;
+        $document = new \stdClass();
+
+        $parameters->asicZipComment = false;
+        $parameters->chainCertificateList = new \stdClass;
+        $parameters->chainCertificateList->signedAttribute = true;
+        $parameters->chainCertificateList->x509Certificate = base64_decode($public_key);
+        $parameters->deterministicId = $src_document->document_guid;
+        $parameters->signatureLevel = 'PAdES_BASELINE_LTA';
+        $parameters->signaturePackaging = 'ENVELOPED';
+        $parameters->digestAlgorithm = 'SHA256';
+        $parameters->encryptionAlgorithm = 'RSA';
+        //$parameters->timestampDigestAlgorithm = 'SHA256';
+        $parameters->timestampDigestAlgorithm = 'SHA1';
+        $parameters->signWithExpiredCertificate = false;
+        $parameters->signingCertificateBytes = base64_decode($public_key);
+        $parameters->signerLocation = array(
+            'city' => 'Obersdorf',
+            'country' => 'Austria',
+            'postalAddress' => 'Schloßpark 5/12/5',
+            'postalCode' => '2120',
+            'stateOrProvince' => 'Lower Austria'
+        );
+        $parameters->signingDate = time();
+
+        $signing_icon_position = $this->getSigningIconPosition(
+            //$src_item->document_signing_icon_position,
+            SIGN_TOP_LEFT,
+            0,
+            0
+        );
+
+        if (
+            empty($signing_icon_position) ||
+            !is_array($signing_icon_position) ||
+            !isset($signing_icon_position['x-pos']) ||
+            empty($signing_icon_position['x-pos']) ||
+            !isset($signing_icon_position['y-pos']) ||
+            empty($signing_icon_position['y-pos'])
+        ) {
+            $mtlda->raiseError("getSigningIconPosition() returned invalid posіtions!");
+            return false;
+        }
+
+        $parameters->imageParameters = array(
+            'page' => 1,
+            'xAxis' => $signing_icon_position['x-pos'],
+            'yAxis' => $signing_icon_position['y-pos'],
+            'image' => base64_encode(file_get_contents(MTLDA_BASE.'/public/resources/images/MTLDA_signed.png'))
+        );
+
         // set document information
-        $pdf->SetCreator(PDF_CREATOR);
+        /*$pdf->SetCreator(PDF_CREATOR);
         $pdf->SetAuthor($this->pdf_cfg['author']);
         $pdf->SetTitle('Test Title');
         $pdf->SetSubject('Test Subject');
         $pdf->SetKeywords('Test, Keywords');
-
-        // set default header data
-        //$pdf->SetHeaderData(PDF_HEADER_LOGO, PDF_HEADER_LOGO_WIDTH, PDF_HEADER_TITLE.' 052', PDF_HEADER_STRING);
-
-        // set header and footer fonts
-        //$pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
-        //$pdf->setFooterFont(array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
-
-        // set default monospaced font
-        //$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
-
-        // set margins
-        //$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
-        //$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
-        //$pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
-
-        // set auto page breaks
-        //$pdf->SetAutoPageBreak(true, PDF_MARGIN_BOTTOM);
-
-        // set image scale factor
-        //$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
-
-        // set some language-dependent strings (optional)
-        /*if (@file_exists(dirname(__FILE__).'/lang/eng.php')) {
-            require_once(dirname(__FILE__).'/lang/eng.php');
-            $pdf->setLanguageArray($l);
-        }*/
-
-        // ---------------------------------------------------------
 
         // set additional information
         $info = array(
@@ -193,40 +203,98 @@ class PdfSigningController extends DefaultController
             'Location' => $this->pdf_cfg['location'],
             'Reason' => $this->pdf_cfg['reason'],
             'ContactInfo' => $this->pdf_cfg['contact'],
-        );
+        ); */
 
-        // set document signature
-        $pdf->setSignature(
-            $this->pdf_cfg['certificate'],
-            $this->pdf_cfg['private_key'],
-            '',
-            '',
-            1,
-            $info
-        );
+        if (!($document->bytes = file_get_contents($fqpn))) {
+            $mtlda->raiseError("Failed to read {$fqpn}.");
+            return false;
+        }
+        $document->name = basename($fqpn);
+        $document->mimeType = new \stdClass();
+        $document->mimeType->mimeTypeString = 'application/pdf';
+        $document->absolutePath = $fqpn;
 
-        // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        // *** set signature appearance ***
+        try {
+            $result = $dss->getDataToSign(array(
+                'document' => $document,
+                'wsParameters' => $parameters
+            ));
+        } catch (\SoapFault $f) {
+            $mtlda->raiseError(
+                $f->faultcode .' - '. $f->faultstring .'<br />'. htmlspecialchars($dss->__getLastRequest())
+            );
+            return false;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("SOA getDataToSign() method returned unexpected!");
+            return false;
+        }
 
-        // create content for signature (image and/or text)
-        // $pdf->Image(MTLDA_BASE.'public/resources/image/MTLDA_signed.png', 180, 60, 15, 15, 'PNG');
+        if (
+            !isset($result) ||
+            empty($result) ||
+            !isset($result->response) ||
+            empty($result->response)
+        ) {
+            $mtlda->raiseError("Invalid response on SOAP request 'getDataToSign'!");
+            return false;
+        }
 
-        // define active area for signature appearance
-        $pdf->setSignatureAppearance(
-            $signing_icon_position['x-pos'],
-            $signing_icon_position['y-pos'],
-            16,
-            16,
-            1 /* page number */,
-            "MTLDA Document Signature"
-        );
+        if (!$key = openssl_pkey_get_private($this->pdf_cfg['private_key'], $this->pdf_cfg['password'])) {
+            $mtlda->raiseError("Failed to read private key!");
+            return false;
+        }
 
-        // ---------------------------------------------------------
+        if (!openssl_sign($result->response, $signature, $key, 'sha256WithRSAEncryption')) {
+            openssl_free_key($key);
+            $mtldda->raiseError("openssl_sign() returned false!");
+            return false;
+        }
 
-        //Close and output PDF document
-        $pdf->Output($fqpn, 'F');
+        unset($result);
+        openssl_free_key($key);
+
+        if (!isset($signature) || empty($signature)) {
+            $mtlda->raiseError("openssl_sign() returned invalid signature!");
+            return false;
+        }
+
+        try {
+            $result = $dss->signDocument(array(
+                'document' => $document,
+                'wsParameters' => $parameters,
+                'signatureValue' => $signature
+            ));
+        } catch (\SoapFault $f) {
+            $mtlda->raiseError(
+                $f->faultcode .' - '. $f->faultstring .'<br />'. htmlspecialchars($dss->__getLastRequest())
+            );
+            return false;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("SOA signDocument() method returned unexpected!");
+            return false;
+        }
+
+        if (!isset($result) || empty($result) || !isset($result->response) || empty($result->response)) {
+            $mtlda->raiseError("Invalid response on SOAP request 'signDocument'!");
+            return false;
+        }
+
+        if (
+            !isset($result->response->bytes) ||
+            empty($result->response->bytes) ||
+            strlen($result->response->bytes) == 0
+        ) {
+            $mtlda->raiseError("No document received up on SOAP request 'signDocument'!");
+            return false;
+        }
+
+        if (file_put_contents($fqpn, $result->response->bytes) === false) {
+            $mtlda->raiseError("Failed to write signed document into {$fqpn}!");
+            return false;
+        }
+
+        unset($result);
         return true;
-
     }
 
     private function getSigningIconPosition($icon_position, $page_width, $page_height)
