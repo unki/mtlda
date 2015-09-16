@@ -13,37 +13,117 @@
 ; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ; GNU Affero General Public License for more details.
+;
+;
 
 [app]
 
+;
 ; The URL path MTLDA is reachable at. For example /mtlda, or /
 ; if you installed mtlda directly into the document root.
+;
 base_web_path = /mtlda/
 
+;
 ; Page Title
+;
 page_title = "My Tiny Little Document Archive"
 
+;
 ; Image caching, 0 = disabled, 1 = enabled
+;
 image_cache = 1
+
+;
 ; Create preview image during import, 0 = disabled, 1 = enabled
+;
 create_preview_on_import = 0
+
+;
 ; PDF Signing, 0 = disabled, 1 = enabled
+;
 pdf_signing = 0
 
+;
+; Embed MTLDA icon to PDF, 0 = disabled, 1 = enabled
+;
+embed_icon_to_pdf = 1
+
 [database]
+
+;
+; Type, currently only MySQL & MariaDB is supported
+;
 type = mysql
+
+;
+; Host
+;
 host = localhost
+
+;
+; Database name
+;
 db_name = database-name
+
+;
+; Connect user
+;
 db_user = username
+
+;
+; Connect password
+;
 db_pass = password
+
+;
+; Table prefix
+;
 table_prefix = "mtlda_"
 
 [pdf_signing]
+
+;
+; SD-DSS Webservice URL
+;
+dss_url = "http://localhost:8080"
+
+;
+; Auto-sign PDF document on importing to archive
+;
 auto_sign_on_import = true
-sign_position = top-right
-author = "Andreas Unterkircher"
-location = "Obersdorf, Austria"
-reason = "Electronic Signature, Authenticity"
-contact = "http://www.unki.land"
+
+;
+; x509 SSL certificate, public key, PEM format
+;
 certificate = "file:///home/unki/git/mtlda/ssl/unki_crt.pem"
+
+;
+; x509 SSL certificate, private key, PEM format
+;
 private_key = "file:///home/unki/git/mtlda/ssl/unki_key.pem"
+
+;
+; Signature author
+;
+author = "Andreas Unterkircher"
+
+;
+; ٰSignature author's location
+;
+location = "Obersdorf, Austria"
+
+;
+; Signature reason
+;
+reason = "Electronic Signature, Authenticity"
+
+;
+; Signature contact information
+;
+contact = "http://www.unki.land"
+
+[timestamps]
+url1 = http://time.certum.pl/
+url2 = http://timestamp.entrust.net/TSS/RFC3161sha2TS
+url3 = http://timestamp.comodoca.com/rfc3161
