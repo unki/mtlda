@@ -216,6 +216,87 @@ class DocumentModel extends DefaultModel
         return $this->document_file_hash;
     }
 
+    public function getFileName()
+    {
+        if (!isset($this->document_file_name)) {
+            return false;
+        }
+
+        return $this->document_file_name;
+    }
+
+    public function getFilePath()
+    {
+        if (!($guid = $this->getGuid())) {
+            $mtlda->raiseError(__CLASS__ ."::getGuid() returned false!");
+            return false;
+        }
+
+        if (!($dir_name = $this->generateDirectoryName($guid))) {
+            $mtlda->raiseError(__CLASS__ ."::generateDirectoryName() returned false!");
+            return false;
+        }
+
+        if (!isset($dir_name) || empty($dir_name)) {
+            $mtlda->raiseError("Unable to get directory name!");
+            return false;
+        }
+
+        if (!($file_name = $this->getFileName())) {
+            $mtlda->raiseError(__CLASS__ ."::getFileName() returned false!");
+            return false;
+        }
+
+        if (!isset($file_name) || empty($file_name)) {
+            $mtlda->raiseError("Unable to get file name!");
+            return false;
+        }
+
+        $fqpn = Controllers\DefaultController::ARCHIVE_DIRECTORY;
+        $fqpn.= '/'. $dir_name .'/';
+        $fqpn.= $file_name;
+
+        return $fqpn;
+    }
+
+    public function generateDirectoryName($guid)
+    {
+        global $mtlda;
+
+        $dir_name = "";
+
+        if (empty($guid)) {
+            $mtlda->raiseError("guid is empty!");
+            return false;
+        }
+
+        for ($i = 0; $i < strlen($guid); $i+=2) {
+
+            $guid_part = substr($guid, $i, 2);
+
+            if ($guid_part === false) {
+                $mtlda->raiseError("substr() returned false!");
+                return false;
+            }
+
+            // stop if we reach nesting depth
+            if (($i/2) > Controllers\DefaultController::ARCHIVE_NESTING_DEPTH) {
+                break;
+            }
+
+            $dir_name.= $guid_part.'/';
+        }
+
+        if (!isset($dir_name) || empty($dir_name)) {
+            return false;
+        }
+
+        // remove trailing slash
+        $dir_name = rtrim($dir_name, '/');
+
+        return $dir_name;
+    }
+
     public function preDelete()
     {
         global $mtlda;
