@@ -164,32 +164,6 @@ class PdfSigningController extends DefaultController
         );
         $parameters->signingDate = time();
 
-        $signing_icon_position = $this->getSigningIconPosition(
-            //$src_item->document_signing_icon_position,
-            SIGN_TOP_LEFT,
-            0,
-            0
-        );
-
-        if (
-            empty($signing_icon_position) ||
-            !is_array($signing_icon_position) ||
-            !isset($signing_icon_position['x-pos']) ||
-            empty($signing_icon_position['x-pos']) ||
-            !isset($signing_icon_position['y-pos']) ||
-            empty($signing_icon_position['y-pos'])
-        ) {
-            $mtlda->raiseError("getSigningIconPosition() returned invalid posіtions!");
-            return false;
-        }
-
-        $parameters->imageParameters = array(
-            'page' => 1,
-            'xAxis' => $signing_icon_position['x-pos'],
-            'yAxis' => $signing_icon_position['y-pos'],
-            'image' => base64_encode(file_get_contents(MTLDA_BASE.'/public/resources/images/MTLDA_signed.png'))
-        );
-
         // set document information
         /*$pdf->SetCreator(PDF_CREATOR);
         $pdf->SetAuthor($this->pdf_cfg['author']);
@@ -295,78 +269,6 @@ class PdfSigningController extends DefaultController
 
         unset($result);
         return true;
-    }
-
-    private function getSigningIconPosition($icon_position, $page_width, $page_height)
-    {
-        global $mtlda;
-
-        if (empty($icon_position)) {
-            return false;
-        }
-
-        $known_positions = array(
-            SIGN_TOP_LEFT,
-            SIGN_TOP_CENTER,
-            SIGN_TOP_RIGHT,
-            SIGN_MIDDLE_LEFT,
-            SIGN_MIDDLE_CENTER,
-            SIGN_MIDDLE_RIGHT,
-            SIGN_BOTTOM_LEFT,
-            SIGN_BOTTOM_CENTER,
-            SIGN_BOTTOM_RIGHT
-        );
-
-        if (!in_array($icon_position, $known_positions)) {
-            return false;
-        }
-
-        switch ($icon_position) {
-            case SIGN_TOP_LEFT:
-                $x = 50;
-                $y = 10;
-                break;
-            case SIGN_TOP_CENTER:
-                $x = ($page_width/2)-8;
-                $y = 10;
-                break;
-            case SIGN_TOP_RIGHT:
-                $x = $page_width - 50;
-                $y = 10;
-                break;
-            case SIGN_MIDDLE_LEFT:
-                $x = 50;
-                $y = ($page_height/2)-8;
-                break;
-            case SIGN_MIDDLE_CENTER:
-                $x = ($page_width/2)-8;
-                $y = ($page_height/2)-8;
-                break;
-            case SIGN_MIDDLE_RIGHT:
-                $x = $page_width - 50;
-                $y = ($page_height/2)-8;
-                break;
-            case SIGN_BOTTOM_LEFT:
-                $x = 50;
-                $y = $page_height - 50;
-                break;
-            case SIGN_BOTTOM_CENTER:
-                $x = ($page_width/2)-8;
-                $y = $page_height - 50;
-                break;
-            case SIGN_BOTTOM_RIGHT:
-                $x = $page_width - 50;
-                $y = $page_height - 50;
-                break;
-            default:
-                $mtlda->raiseError("Unkown ѕigning icon position {$icon_position}");
-                return false;
-        }
-
-        return array(
-            'x-pos' => $x,
-            'y-pos' => $y
-        );
     }
 }
 
