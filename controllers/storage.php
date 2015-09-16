@@ -21,8 +21,6 @@ namespace MTLDA\Controllers;
 
 class StorageController extends DefaultController
 {
-    private $nesting_depth = 5;
-
     public function generateDirectoryName($hash)
     {
         global $mtlda;
@@ -44,7 +42,7 @@ class StorageController extends DefaultController
             }
 
             // stop if we reach nesting depth
-            if (($i/2) > $this->nesting_depth) {
+            if (($i/2) > $this::ARCHIVE_NESTING_DEPTH) {
                 break;
             }
 
