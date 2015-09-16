@@ -300,6 +300,11 @@ class DocumentModel extends DefaultModel
     {
         global $mtlda;
 
+        if (empty($path)) {
+            $mtlda->raiseError("\$path is not set!");
+            return false;
+        }
+
         $fqpn = $this->archive_directory .'/'. $path .'/'. $this->document_file_name;
 
         if (!file_exists($fqpn)) {
