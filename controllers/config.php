@@ -50,67 +50,88 @@ class ConfigController extends DefaultController
             return false;
         }
 
+        $config_pure = array();
+
         foreach (array('dist', 'local') as $config) {
 
-            $config_file = "config_file_{$config}";
-            $config_fqpn = $this::CONFIG_DIRECTORY ."/". $this->$config_file;
-
-            // missing config.ini is ok
-            if ($config == 'local' && !file_exists($config_fqpn)) {
-                continue;
-            }
-
-            if (!file_exists($config_fqpn)) {
-                $mtlda->raiseError("Error - configuration file {$config_fqpn} does not exist!");
+            if (!($config_pure[$config] = $this->readConfig($config))) {
+                $mtlda->raiseError("readConfig({$config}) returned false!", true);
                 return false;
-            }
-
-            if (!is_readable($config_fqpn)) {
-                $mtlda->raiseError(
-                    "Error - unable to read configuration file {$config_fqpn} - please check permissions!"
-                );
-                return false;
-            }
-
-            if (($config_ary = parse_ini_file($config_fqpn, true)) === false) {
-                $mtlda->raiseError(
-                    "Error - parse_ini_file() function failed on {$config_fqpn} - please check syntax!"
-                );
-                return false;
-            }
-
-            if (empty($config_ary) || !is_array($config_ary)) {
-                $mtlda->raiseError(
-                    "Error - invalid configuration retrieved from {$config_fqpn} - please check syntax!"
-                );
-                exit(1);
-            }
-
-            if (!isset($config_ary['app']) || empty($config_ary['app']) || !array($config_ary['app'])) {
-                $mtlda->raiseError("Mandatory config section [app] is not configured!");
-                exit(1);
-            }
-
-            // remove trailing slash from base_web_path if any, but not if base_web_path = /
-            if (
-                isset($config_ary['app']['base_web_path']) &&
-                !empty($config_ary['app']['base_web_path']) &&
-                $config_ary['app']['base_web_path'] != '/') {
-
-                $config_ary['app']['base_web_path'] = rtrim($config_ary['app']['base_web_path'], '/');
-            }
-
-            if (!isset($this->config)) {
-                $this->config = $config_ary;
-            } else {
-                if (!($this->config = array_replace_recursive($this->config, $config_ary))) {
-                    $mtlda->raiseError("Failed to merge {$this->config_file_local} with {$this->config_file_dist}.");
-                    return false;
-                }
             }
         }
 
+        if (
+            !isset($config_pure['dist']) ||
+            empty($config_pure['dist']) ||
+            !is_array($config_pure['dist'])
+        ) {
+            $mtlda->raiseError("no valid config.ini.dist available!", true);
+            return false;
+        }
+
+        if (!($this->config = array_replace_recursive($config_pure['dist'], $config_pure['local']))) {
+            $mtlda->raiseError("Failed to merge {$this->config_file_local} with {$this->config_file_dist}.");
+            return false;
+        }
+
         return true;
+    }
+
+    private function readConfig($config_target)
+    {
+        $config_file = "config_file_{$config_target}";
+        $config_fqpn = $this::CONFIG_DIRECTORY ."/". $this->$config_file;
+
+        // missing config.ini is ok
+        if ($config_target == 'local' && !file_exists($config_fqpn)) {
+            continue;
+        }
+
+        if (!file_exists($config_fqpn)) {
+            $mtlda->raiseError("Error - configuration file {$config_fqpn} does not exist!", true);
+            return false;
+        }
+
+        if (!is_readable($config_fqpn)) {
+            $mtlda->raiseError(
+                "Error - unable to read configuration file {$config_fqpn} - please check permissions!",
+                true
+            );
+            return false;
+        }
+
+        if (($config_ary = parse_ini_file($config_fqpn, true)) === false) {
+            $mtlda->raiseError(
+                "Error - parse_ini_file() function failed on {$config_fqpn} - please check syntax!",
+                true
+            );
+            return false;
+        }
+
+        if (empty($config_ary) || !is_array($config_ary)) {
+            $mtlda->raiseError(
+                "Error - invalid configuration retrieved from {$config_fqpn} - please check syntax!",
+                true
+            );
+            exit(1);
+        }
+
+        if (!isset($config_ary['app']) || empty($config_ary['app']) || !array($config_ary['app'])) {
+            $mtlda->raiseError("Mandatory config section [app] is not configured!", true);
+            exit(1);
+        }
+
+        // remove trailing slash from base_web_path if any, but not if base_web_path = /
+        if (
+            isset($config_ary['app']['base_web_path']) &&
+            !empty($config_ary['app']['base_web_path']) &&
+            $config_ary['app']['base_web_path'] != '/'
+        ) {
+
+            $config_ary['app']['base_web_path'] = rtrim($config_ary['app']['base_web_path'], '/');
+        }
+
+        return $config_ary;
     }
 
     public function isImageCachingEnabled()
