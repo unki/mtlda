@@ -27,6 +27,8 @@ class DefaultController
     const ARCHIVE_DIRECTORY = self::DATA_DIRECTORY ."/archive";
     const INCOMING_DIRECTORY = self::DATA_DIRECTORY ."/incoming";
     const WORKING_DIRECTORY = self::DATA_DIRECTORY ."/working";
+
+    const ARCHIVE_NESTING_DEPTH = 5;
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
