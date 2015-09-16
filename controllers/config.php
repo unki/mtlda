@@ -358,6 +358,27 @@ class ConfigController extends DefaultController
 
         return true;
     }
+
+    public function isEmbeddingMtldaIcon()
+    {
+        if (!isset($this->config['app']['embed_icon_to_pdf'])) {
+            return false;
+        }
+
+        if (empty($this->config['app']['embed_icon_to_pdf'])) {
+            return false;
+        }
+
+        if (!$this->config['app']['embed_icon_to_pdf']) {
+            return false;
+        }
+
+        if (!in_array($this->config['app']['embed_icon_to_pdf'], array('yes','y','true','on','1'))) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
