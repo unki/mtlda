@@ -128,11 +128,29 @@ class ArchiveController extends DefaultController
             return false;
         }
 
+        if ($config->isEmbeddingMtldaIcon()) {
+            if (!$this->embedMtldaIcon($document)) {
+                $mtlda->raiseError("embedMtldaIcon() returned false!");
+                if (!$document->delete()) {
+                    $mtlda->raiseError("Failed to revert on deleting document from archive!");
+                }
+                return false;
+            }
+            if (!$document->refresh($store_dir_name)) {
+                $mtlda->raiseError("DocumentModel::refresh() returned false!");
+                if (!$document->delete()) {
+                    $mtlda->raiseError("Failed to revert on deleting document from archive!");
+                }
+                return false;
+            }
+        }
+
         // delete QueueItemModel from database, if that fails revert
-        // deleting the model will also remove the file
         if (!$queue_item->delete()) {
-            $document->delete();
             $mtlda->raiseError("DocumentModel::delete() returned false!");
+            if (!$document->delete()) {
+                $mtlda->raiseError("QueueItemModel::delete() returned false!");
+            }
             return false;
         }
 
@@ -147,6 +165,7 @@ class ArchiveController extends DefaultController
         }
 
         if (!$this->sign($document)) {
+            $mtlda->raiseError(__CLASS__ ."::sign() returned false!");
             return false;
         }
 
@@ -229,10 +248,10 @@ class ArchiveController extends DefaultController
 
         try {
             $audit->log(
-                "using {$store_dir_name} as destination",
+                "using {$dest_dir_name} as destination",
                 "archive",
                 "storage",
-                $queue_item->queue_guid
+                $signing_item->document_guid
             );
         } catch (Exception $e) {
             $mtlda->raiseError("AuditController::log() returned false!");
@@ -253,7 +272,7 @@ class ArchiveController extends DefaultController
         if (!$signer->signDocument($fqpn_dst, $signing_item)) {
             $signing_item->delete();
             $mtlda->raiseError("PdfSigningController::ѕignDocument() returned false!");
-            return $false;
+            return false;
         }
 
         if (!$signing_item->refresh($dest_dir_name)) {
@@ -330,6 +349,180 @@ class ArchiveController extends DefaultController
 
         return $rows[0];
     }
-}
 
+    private function embedMtldaIcon(&$document)
+    {
+        global $mtlda;
+
+        try {
+            $pdf = new \FPDI();
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load FPDI!");
+            return false;
+        }
+
+        if (!($fqpn = $document->getFilePath())) {
+            $mtlda->raiseError("DocumentModel::getFilePath() returned false!");
+            return false;
+        }
+
+        if (!isset($fqpn) || empty($fqpn)) {
+            $mtlda->raiseError("DocumentModel::getFilePath() returned an invalid file name!");
+            return false;
+        }
+
+        if (!file_exists($fqpn)) {
+            $mtlda->raiseError("File {$fqpn} does not exist!");
+            return false;
+        }
+
+        if (!is_readable($fqpn)) {
+            $mtlda->raiseError("File {$fqpn} is not readable!");
+            return false;
+        }
+
+        $page_count = $pdf->setSourceFile($fqpn);
+
+        for ($page_no = 1; $page_no <= $page_count; $page_no++) {
+
+            // import a page
+            $templateId = $pdf->importPage($page_no);
+            // get the size of the imported page
+            $size = $pdf->getTemplateSize($templateId);
+
+            // create a page (landscape or portrait depending on the imported page size)
+            if ($size['w'] > $size['h']) {
+                $pdf->AddPage('L', array($size['w'], $size['h']));
+            } else {
+                $pdf->AddPage('P', array($size['w'], $size['h']));
+            }
+
+            // use the imported page
+            $pdf->useTemplate($templateId);
+
+            if ($page_no != 1) {
+                continue;
+            }
+
+            $signing_icon_position = $this->getSigningIconPosition(
+                $document->document_signing_icon_position,
+                $size['w'],
+                $size['h']
+            );
+
+            if (!$signing_icon_position) {
+                $mtlda->raiseError("getSigningIconPosition() returned false!");
+                return false;
+            }
+
+            $pdf->Image(
+                MTLDA_BASE.'/public/resources/images/MTLDA_signed.png',
+                $signing_icon_position['x-pos'],
+                $signing_icon_position['y-pos'],
+                16 /* width */,
+                16 /* height */,
+                'PNG',
+                null,
+                null,
+                true /* resize */
+            );
+        }
+
+        // set additional information
+        /*$info = array(
+            'Name' => $this->pdf_cfg['author'],
+            'Location' => $this->pdf_cfg['location'],
+            'Reason' => $this->pdf_cfg['reason'],
+            'ContactInfo' => $this->pdf_cfg['contact'],
+        );*/
+
+        // define active area for signature appearance
+        $pdf->setSignatureAppearance(
+            $signing_icon_position['x-pos'],
+            $signing_icon_position['y-pos'],
+            16,
+            16,
+            1 /* page number */,
+            "MTLDA Document Signature"
+        );
+
+        // ---------------------------------------------------------
+
+        //Close and output PDF document
+        $pdf->Output($fqpn, 'F');
+        return true;
+    }
+
+    private function getSigningIconPosition($icon_position, $page_width, $page_height)
+    {
+        global $mtlda;
+
+        if (empty($icon_position)) {
+            return false;
+        }
+
+        $known_positions = array(
+            SIGN_TOP_LEFT,
+            SIGN_TOP_CENTER,
+            SIGN_TOP_RIGHT,
+            SIGN_MIDDLE_LEFT,
+            SIGN_MIDDLE_CENTER,
+            SIGN_MIDDLE_RIGHT,
+            SIGN_BOTTOM_LEFT,
+            SIGN_BOTTOM_CENTER,
+            SIGN_BOTTOM_RIGHT
+        );
+
+        if (!in_array($icon_position, $known_positions)) {
+            return false;
+        }
+
+        switch ($icon_position) {
+            case SIGN_TOP_LEFT:
+                $x = 50;
+                $y = 10;
+                break;
+            case SIGN_TOP_CENTER:
+                $x = ($page_width/2)-8;
+                $y = 10;
+                break;
+            case SIGN_TOP_RIGHT:
+                $x = $page_width - 50;
+                $y = 10;
+                break;
+            case SIGN_MIDDLE_LEFT:
+                $x = 50;
+                $y = ($page_height/2)-8;
+                break;
+            case SIGN_MIDDLE_CENTER:
+                $x = ($page_width/2)-8;
+                $y = ($page_height/2)-8;
+                break;
+            case SIGN_MIDDLE_RIGHT:
+                $x = $page_width - 50;
+                $y = ($page_height/2)-8;
+                break;
+            case SIGN_BOTTOM_LEFT:
+                $x = 50;
+                $y = $page_height - 50;
+                break;
+            case SIGN_BOTTOM_CENTER:
+                $x = ($page_width/2)-8;
+                $y = $page_height - 50;
+                break;
+            case SIGN_BOTTOM_RIGHT:
+                $x = $page_width - 50;
+                $y = $page_height - 50;
+                break;
+            default:
+                $mtlda->raiseError("Unkown ѕigning icon position {$icon_position}");
+                return false;
+        }
+
+        return array(
+            'x-pos' => $x,
+            'y-pos' => $y
+        );
+    }
+}
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
