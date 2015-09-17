@@ -79,6 +79,8 @@ class ConfigController extends DefaultController
 
     private function readConfig($config_target)
     {
+        global $mtlda;
+
         $config_file = "config_file_{$config_target}";
         $config_fqpn = $this::CONFIG_DIRECTORY ."/". $this->$config_file;
 
@@ -183,6 +185,21 @@ class ConfigController extends DefaultController
         }
 
         return $this->config['pdf_signing'];
+    }
+
+    public function getTimestampConfiguration()
+    {
+        if (
+            !isset($this->config['timestamp']) ||
+            empty($this->config['timestamp']) ||
+            !is_array($this->config['timestamp'])
+        ) {
+
+            return false;
+
+        }
+
+        return $this->config['timestamp'];
     }
 
     public function getPdfSigningIconPosition()
