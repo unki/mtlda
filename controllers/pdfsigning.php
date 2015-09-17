@@ -39,6 +39,12 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
+        if (!($this->tsp_cfg = $config->getTimestampConfiguration())) {
+            $this->tsp_cfg = array(
+                'tsp_algorithm' => 'SHA256'
+            );
+        }
+
         $fields = array(
             'author',
             'location',
@@ -152,7 +158,7 @@ class PdfSigningController extends DefaultController
         $parameters->digestAlgorithm = 'SHA256';
         $parameters->encryptionAlgorithm = 'RSA';
         //$parameters->timestampDigestAlgorithm = 'SHA256';
-        $parameters->timestampDigestAlgorithm = 'SHA1';
+        $parameters->timestampDigestAlgorithm = $this->tsp_cfg['tsp_algorithm'];
         $parameters->signWithExpiredCertificate = false;
         $parameters->signingCertificateBytes = base64_decode($public_key);
         $parameters->signerLocation = array(
