@@ -123,7 +123,8 @@ reason = "Electronic Signature, Authenticity"
 ;
 contact = "http://www.unki.land"
 
-[timestamps]
-url1 = http://time.certum.pl/
-url2 = http://timestamp.entrust.net/TSS/RFC3161sha2TS
-url3 = http://timestamp.comodoca.com/rfc3161
+[timestamp]
+;
+; Timestamp Digest Algorithm
+;
+tsp_algorithm = SHA256
