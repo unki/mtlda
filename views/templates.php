@@ -209,15 +209,14 @@ class Templates extends Smarty
             $params = $query->params;
         }
 
-        if ((!isset($params) || empty($params)) && $this->default_mode == "list") {
+        if (
+            (!isset($params) || empty($params)) &&
+            $this->default_mode == "list"
+        ) {
             $mode = "list";
         } elseif (isset($params) && !empty($params)) {
-            if ($params[0] == "list") {
-                $mode = "list";
-            } elseif ($params[0] == "edit") {
-                $mode = "edit";
-            } elseif ($params[0] == "show") {
-                $mode = "show";
+            if (isset($params[0]) && $this->isKnownMode($params[0])) {
+                $mode = $params[0];
             }
         } elseif ($this->default_mode == "show") {
             $mode = "show";
@@ -315,6 +314,22 @@ class Templates extends Smarty
         }
 
         return null;
+    }
+
+    private function isKnownMode($mode)
+    {
+        $valid_modes = array(
+            'list',
+            'edit',
+            'show',
+        );
+
+        if (!in_array($mode, $valid_modes)) {
+            return false;
+        }
+
+        return true;
+
     }
 }
 
