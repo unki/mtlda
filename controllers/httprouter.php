@@ -27,14 +27,29 @@ class HttpRouterController extends DefaultController
     {
         global $mtlda, $config;
 
+        $this->query = new \stdClass();
+
+        // check HTTP request method
         if (!isset($_SERVER['REQUEST_URI']) || empty($_SERVER['REQUEST_URI'])) {
             $mtlda->raiseError("Error - \$_SERVER['REQUEST_URI'] is not set!");
             return false;
         }
 
+        if (!isset($_SERVER['REQUEST_METHOD']) || empty($_SERVER['REQUEST_METHOD'])) {
+            $mtlda->raiseError("\$_SERVER['REQUEST_METHOD'] is not set!");
+            return false;
+        }
+
+        if (!$this->isValidRequestMethod($_SERVER['REQUEST_METHOD'])) {
+            $mtlda->raiseError("unspported request method {$_SERVER['REQUEST_METHOD']}");
+            return false;
+        }
+
+        $this->query->method = $_SERVER['REQUEST_METHOD'];
+
+        // check HTTP request URI
         $uri = $_SERVER['REQUEST_URI'];
 
-        $this->query = new \stdClass();
         $this->query->uri = $uri;
 
         // just to check if someone may fools us.
@@ -43,10 +58,13 @@ class HttpRouterController extends DefaultController
             exit(1);
         }
 
-        if (
-            ($webpath = $config->getWebPath()) &&
-            $webpath != '/'
-        ) {
+        if (!($webpath = $config->getWebPath())) {
+            $mtlda->raiseErrro("ConfigController::getWebPath() returned false!", true);
+            exit(1);
+        }
+
+        // strip off our known base path (e.g. /mtlda)
+        if ($webpath != '/') {
             $uri = str_replace($webpath, "", $uri);
         }
 
@@ -64,7 +82,7 @@ class HttpRouterController extends DefaultController
         // remove empty array elements
         $parts = array_filter($parts);
 
-        /* for requests to the root page (config item base_web_path), load MainView */
+        /* for requests to the root page (config item base_web_path), select MainView */
         if (
             !isset($parts[0]) &&
             empty($uri) && (
@@ -73,6 +91,7 @@ class HttpRouterController extends DefaultController
             )
         ) {
             $this->query->view = "main";
+        /* select View according parsed request URI */
         } elseif (isset($parts[0]) && !empty($parts[0])) {
             $this->query->view = $parts[0];
         } else {
@@ -82,18 +101,6 @@ class HttpRouterController extends DefaultController
             );
             return false;
         }
-
-        if (!isset($_SERVER['REQUEST_METHOD']) || empty($_SERVER['REQUEST_METHOD'])) {
-            $mtlda->raiseError("\$_SERVER['REQUEST_METHOD'] is not set!");
-            return false;
-        }
-
-        if (!$this->isValidRequestMethod($_SERVER['REQUEST_METHOD'])) {
-            $mtlda->raiseError("unspported request method {$_SERVER['REQUEST_METHOD']}");
-            return false;
-        }
-
-        $this->query->method = $_SERVER['REQUEST_METHOD'];
 
         if (isset($parts[1]) && $this->isValidAction($parts[1])) {
             $this->query->mode = $parts[1];
@@ -136,7 +143,16 @@ class HttpRouterController extends DefaultController
             array_push($this->query->params, $parts[$i]);
         }
 
-        if (isset($this->query->mode) && $this->query->mode == 'rpc.html') {
+        //
+        // RPC
+        //
+
+        if (
+            /* common RPC calls */
+            (isset($this->query->mode) && $this->query->mode == 'rpc.html') ||
+            /* object update RPC calls */
+            ($this->query->method == 'POST' && $this->isValidUpdateObject($this->query->view))
+        ) {
             if (!isset($_POST['type']) || !isset($_POST['action'])) {
                 $mtlda->raiseError("Incomplete RPC request!");
                 return false;
@@ -152,13 +168,23 @@ class HttpRouterController extends DefaultController
             $this->query->call_type = "rpc";
             $this->query->action = $_POST['action'];
             return $this->query;
-        /* /preview/{id} */
+
+        //
+        // Previews (.../preview/${id})
+        //
+
         } elseif ($this->query->view == "preview") {
             $this->query->call_type = "preview";
             return $this->query;
+
+        //
+        // Documents retrieval (.../show/${id})
+        //
         } elseif ($this->query->view == "document") {
             $this->query->call_type = "document";
             return $this->query;
+
+
         /* queue-xxx.html ... */
         } elseif (preg_match('/(.*)-([0-9]+)/', $this->query->view)) {
             preg_match('/.*\/(.*)-([0-9]+)/', $this->query->view, $parts);
@@ -342,6 +368,19 @@ class HttpRouterController extends DefaultController
         );
 
         if (in_array($method, $valid_methods)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function isValidUpdateObject($update_object)
+    {
+        $valid_update_objects = array(
+            'archive',
+        );
+
+        if (in_array($update_object, $valid_update_objects)) {
             return true;
         }
 
