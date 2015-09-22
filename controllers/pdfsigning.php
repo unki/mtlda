@@ -249,6 +249,10 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
+        if (!isset($this->pdf_cfg['password']) || empty($this->pdf_cfg['password'])) {
+            $this->pdf_cfg['password'] = false;
+        }
+
         if (!$key = openssl_pkey_get_private($this->pdf_cfg['private_key'], $this->pdf_cfg['password'])) {
             $mtlda->raiseError("Failed to read private key!");
             return false;
