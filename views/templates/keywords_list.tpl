@@ -81,15 +81,17 @@
  </tfoot>
 </table>
 <script type="text/javascript"><!--
-$('a.keyword, button.keyword').click(function(element) {
-   type = $(this).attr('data-type');
-   id = $(this).attr('data-id');
-   value = $(this).attr('data-value');
-   if (!type || !id || !value) {
-      console.log('incomplete: ' + type + ', ' + id + ', ' + value);
-      return
-   }
-   $('#' + type + '_show_' + id).toggle();
-   $('#' + type + '_edit_' + id).toggle();
+$(document).ready(function() {
+   $('a.keyword, button.keyword').click(function(element) {
+      type = $(this).attr('data-type');
+      id = $(this).attr('data-id');
+      value = $(this).attr('data-value');
+      if (!type || !id || !value) {
+         console.log('incomplete: ' + type + ', ' + id + ', ' + value);
+         return
+      }
+      $('#' + type + '_show_' + id).toggle();
+      $('#' + type + '_edit_' + id).toggle();
+   });
 });
 --></script>
