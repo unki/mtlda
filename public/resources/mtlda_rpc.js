@@ -17,14 +17,14 @@
 
 function rpc_object_delete(element, del_id)
 {
-    if(del_id == undefined || del_id == "") {
+    if(del_id == undefined || del_id == '') {
         alert('invalid "del_id" parameter found!');
         return;
     }
 
     $.ajax({
-        type: "POST",
-        url: "rpc.html",
+        type: 'POST',
+        url: 'rpc.html',
         data: ({
             type : 'rpc',
             action : 'delete',
@@ -32,23 +32,23 @@ function rpc_object_delete(element, del_id)
         }),
         beforeSend: function() {
             // change row color to red
-            element.parent().parent().animate({backgroundColor: "#fbc7c7" }, "fast");
+            element.parent().parent().animate({backgroundColor: '#fbc7c7' }, 'fast');
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
         },
         success: function(data){
-            if(data == "ok") {
+            if(data == 'ok') {
                 // on flushing, reload the page
                 if(del_id.match(/-flush$/)) {
                     location.reload();
                     return;
                 }
-                element.parent().parent().animate({ opacity: "hide" }, "fast");
+                element.parent().parent().animate({ opacity: 'hide' }, 'fast');
                 return;
             }
             // change row color back to white
-            element.parent().parent().animate({backgroundColor: "#ffffff" }, "fast");
+            element.parent().parent().animate({backgroundColor: '#ffffff' }, 'fast');
             alert('Server returned: ' + data + ', length ' + data.length);
             return;
         }
@@ -60,14 +60,14 @@ function rpc_object_delete(element, del_id)
 
 function rpc_object_archive(element, obj_id, state)
 {
-    if(obj_id == undefined || obj_id == "") {
+    if(obj_id == undefined || obj_id == '') {
         alert('parameter "obj_id" is invalid!');
         return;
     }
 
     $.ajax({
-        type: "POST",
-        url: "rpc.html",
+        type: 'POST',
+        url: 'rpc.html',
         data: ({
             type : 'rpc',
             action : 'archive',
@@ -76,9 +76,9 @@ function rpc_object_archive(element, obj_id, state)
         beforeSend: function() {
             // change row color to red
             if(!obj_id.match(/-all$/)) {
-                element.parent().parent().animate({backgroundColor: "#fbc7c7" }, "fast");
+                element.parent().parent().animate({backgroundColor: '#fbc7c7' }, 'fast');
             } else {
-                $('tr.queueitem').animate({backgroundColor: "#fbc7c7" }, "fast");
+                $('tr.queueitem').animate({backgroundColor: '#fbc7c7' }, 'fast');
             }
             return;
             if(state) {
@@ -92,22 +92,22 @@ function rpc_object_archive(element, obj_id, state)
             }
         },
         success: function(data){
-            if(data == "ok") {
+            if(data == 'ok') {
                 if(state) {
                     state.text('Done');
                 }
                 if(!obj_id.match(/-all$/)) {
-                    element.parent().parent().animate({ opacity: "hide" }, "fast");
+                    element.parent().parent().animate({ opacity: 'hide' }, 'fast');
                 } else {
-                    $('tr.queueitem').animate({ opacity: "hide" }, "fast");
+                    $('tr.queueitem').animate({ opacity: 'hide' }, 'fast');
                 }
                 return;
             }
             // change row color back to white
             if(!obj_id.match(/-all$/)) {
-                element.parent().parent().animate({backgroundColor: "#ffffff" }, "fast");
+                element.parent().parent().animate({backgroundColor: '#ffffff' }, 'fast');
             } else {
-                $('tr.queueitem').animate({backgroundColor: "#ffffff" }, "fast");
+                $('tr.queueitem').animate({backgroundColor: '#ffffff' }, 'fast');
             }
             alert('Server returned: ' + data + ', length ' + data.length);
             return;
@@ -120,16 +120,16 @@ function rpc_object_archive(element, obj_id, state)
 
 function rpc_object_update(element)
 {
-    var target = element.attr("data-target");
+    var target = element.attr('data-target');
 
-    if(target == undefined || target == "") {
+    if(target == undefined || target == '') {
         alert('no attribute "data-target" found!');
         return false;
     }
 
-    var type = element.attr("data-type");
+    var type = element.attr('data-type');
 
-    if(type == undefined || type == "") {
+    if(type == undefined || type == '') {
         alert('no attribute "data-type" found!');
         return false;
     }
@@ -148,25 +148,35 @@ function rpc_object_update(element)
     id = parts[2];
 
     if(!(input_field = $('input[name="' + target + '"]'))) {
-        alert("unable to find input field: "+ target);
+        alert('unable to find input field: '+ target);
         return false;
     }
 
     if(!(value = input_field.val())) {
-        alert("unable to find value in input field: "+ target);
+        alert('unable to find value in input field: '+ target);
         return false;
     }
     value = safe_string(value);
 
     if(!(action = input_field.attr('data-action'))) {
-        alert("unable to find 'data-action' in input field: "+ target);
+        alert('unable to find "data-action" in input field: '+ target);
         return false;
     }
     action = safe_string(action);
 
+    if(
+        window.location.pathname != undefined &&
+        window.location.pathname != '' &&
+        !window.location.pathname.match(/\/$/)
+    ) {
+        url = window.location.pathname;
+    } else {
+        url = 'rpc.html';
+    }
+
     $.ajax({
-        type: "POST",
-        url: "rpc.html",
+        type: 'POST',
+        url: url,
         data: ({
             type : 'rpc',
             action : action,
@@ -176,24 +186,23 @@ function rpc_object_update(element)
         }),
         beforeSend: function() {
             // change row color to red
-            //element.parent().parent().animate({backgroundColor: "#fbc7c7" }, "fast");
+            //element.parent().parent().animate({backgroundColor: '#fbc7c7' }, 'fast');
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
         },
         success: function(data){
-            if(data == "ok") {
+            if(data == 'ok') {
                 if(action == 'add') {
                     location.reload();
+                    return;
                 } else if(action == 'update') {
-                    $('#'+ type + '_label_' + id).html(value);
+                    $('#'+ type + '_label_' + id).html(value.replace(/\\/mg, ''));
+                    $('#' + type + '_show_' + id).toggle();
+                    $('#' + type + '_edit_' + id).toggle();
                 }
-                //state.text('Done');
-                //element.parent().parent().animate({ opacity: "hide" }, "fast");
                 return;
             }
-            // change row color back to white
-            //element.parent().parent().animate({backgroundColor: "#ffffff" }, "fast");
             alert('Server returned: ' + data + ', length ' + data.length);
             return;
         }
