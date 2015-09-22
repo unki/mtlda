@@ -103,6 +103,7 @@ class DocumentController extends DefaultController
                 return false;
             }
             header('Content-Type: application/pdf');
+            header('Content-Length: '. strlen($content));
             print $content;
             return true;
         }
