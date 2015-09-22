@@ -75,8 +75,7 @@ class PdfSigningController extends DefaultController
             'reason',
             'contact',
             'certificate',
-            'private_key',
-            'sign_position',
+            'private_key'
         );
 
         foreach ($fields as $field) {
@@ -85,7 +84,6 @@ class PdfSigningController extends DefaultController
                 $mtlda->raiseError("PdfSigningController, {$field} not found in section [pdf_signing]!");
                 return false;
             }
-
         }
     }
 
