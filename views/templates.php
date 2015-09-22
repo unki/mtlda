@@ -165,6 +165,10 @@ class Templates extends Smarty
             $url.= $params['id'];
         }
 
+        if (array_key_exists('file', $params) && !empty($params['file'])) {
+            $url.= '/'. $params['file'];
+        }
+
         return $url;
 
     } // getUrl()

@@ -28,14 +28,14 @@
   <div class="column">Versions:</div>
   <div class="fifteen wide column">
    <div class="ui list">
-    <div class="item"><a href="{get_url page=document mode=show id=$item_safe_link}">v1 - Original imported document</a></div>
+    <div class="item"><a href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">v1 - Original imported document</a></div>
     <div class="item"><a href="{get_url page=document mode=sign id=$item_safe_link}">Sign</a></div>
 {if $item_versions}
     <div class="item ui divider"></div>
 {foreach $item_versions as $version}
  {assign var='safe_link' value="document-`$version->document_idx`-`$version->document_guid`"}
     <div class="item">
-     <a href="{get_url page=document mode=show id=$safe_link}">v{$version->document_version} - {$version->document_file_name}</a>&nbsp;
+     <a href="{get_url page=document mode=show id=$safe_link file=$version->document_file_name}">v{$version->document_version} - {$version->document_file_name}</a>&nbsp;
      <a href="{get_url page=document mode=delete id=$safe_link}">Delete</a>
     </div>
 {/foreach}
