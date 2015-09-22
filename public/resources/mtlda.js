@@ -292,7 +292,7 @@ function show_modal(settings, do_function) {
 
 function safe_string(input)
 {
-    return input.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\\\$&");
+    return input.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, "\\$&");
 }
 
 function delete_object(element)
