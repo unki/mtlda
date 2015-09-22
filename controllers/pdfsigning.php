@@ -24,6 +24,7 @@ use MTLDA\Models;
 class PdfSigningController extends DefaultController
 {
     private $pdf_cfg;
+    private $tsp_digest_algorithm;
 
     public function __construct()
     {
@@ -43,6 +44,29 @@ class PdfSigningController extends DefaultController
             $this->tsp_cfg = array(
                 'tsp_algorithm' => 'SHA256'
             );
+        }
+
+        if (!isset($this->pdf_cfg['signature_algorithm']) || empty($this->pdf_cfg['signature_algorithm'])) {
+            $this->pdf_cfg['signature_algorithm'] = 'SHA256';
+        }
+
+        // check if tsp algorithm is supported by the local OpenSSL installation
+        if (!preg_match('/^SHA(1|256)$/', $this->tsp_cfg['tsp_algorithm'])) {
+            $mtlda->raiseError("TSP algorithm {$this->tsp_cfg['tsp_algorithm']} is not supported!");
+            return false;
+        }
+
+        $supported_alg = openssl_get_md_methods(true);
+
+        if (empty($supported_alg) || !is_array($supported_alg)) {
+            $mtlda->raiseError("Unable to retrive supported digest algorithms via openssl_get_md_methods()!");
+            return false;
+        }
+
+        $this->tsp_digest_algorithm = strtolower($this->tsp_cfg['tsp_algorithm']) .'WithRSAEncryption';
+        if (!in_array($this->tsp_digest_algorithm, $supported_alg)) {
+            $mtlda->raiseError("OpenSSL installation does not support {$this->tsp_digest_algorithm} digest algorithm!");
+            return false;
         }
 
         $fields = array(
@@ -149,15 +173,23 @@ class PdfSigningController extends DefaultController
         $document = new \stdClass();
 
         $parameters->asicZipComment = false;
-        $parameters->chainCertificateList = new \stdClass;
-        $parameters->chainCertificateList->signedAttribute = true;
-        $parameters->chainCertificateList->x509Certificate = base64_decode($public_key);
+        $parameters->chainCertificateList = array();
+        $parameters->chainCertificateList[] = array(
+            'signedAttribute' => 'true',
+            'x509Certificate' => base64_decode($public_key)
+        );
+
+        if (isset($this->tsp_cfg['tsp_ca_certificate']) && !empty($this->tsp_cfg['tsp_ca_certificate'])) {
+            $parameters->chainCertificateList[] = array(
+                'signedAttribute' => 'true',
+                'x509Certificate' => base64_decode($this->tsp_cfg['tsp_ca_certificate'])
+            );
+        }
         $parameters->deterministicId = $src_document->document_guid;
         $parameters->signatureLevel = 'PAdES_BASELINE_LTA';
         $parameters->signaturePackaging = 'ENVELOPED';
-        $parameters->digestAlgorithm = 'SHA256';
+        $parameters->digestAlgorithm = $this->pdf_cfg['signature_algorithm'];
         $parameters->encryptionAlgorithm = 'RSA';
-        //$parameters->timestampDigestAlgorithm = 'SHA256';
         $parameters->timestampDigestAlgorithm = $this->tsp_cfg['tsp_algorithm'];
         $parameters->signWithExpiredCertificate = false;
         $parameters->signingCertificateBytes = base64_decode($public_key);
@@ -224,9 +256,9 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
-        if (!openssl_sign($result->response, $signature, $key, 'sha256WithRSAEncryption')) {
+        if (!openssl_sign($result->response, $signature, $key, $this->tsp_digest_algorithm)) {
             openssl_free_key($key);
-            $mtldda->raiseError("openssl_sign() returned false!");
+            $mtlda->raiseError("openssl_sign() returned false!");
             return false;
         }
 
