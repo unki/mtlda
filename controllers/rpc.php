@@ -374,6 +374,7 @@ class RpcController extends DefaultController
 
         $valid_update_keys = array(
             'keyword',
+            'document',
         );
 
         if (!isset($_POST['key']) || empty($_POST['key'])) {
@@ -389,11 +390,11 @@ class RpcController extends DefaultController
             return false;
         }
 
-        $key = $_POST['key'];
+        $key = strtolower($_POST['key']);
         $id = $_POST['id'];
         $value = $_POST['value'];
 
-        if (!(preg_match("/^(\w+)_(\w+)$/", $key, $parts))) {
+        if (!(preg_match("/^([a-z]+)_([a-z_]+)$/", $key, $parts))) {
             $mtlda->raiseError("key looks invalid!");
             return false;
         }
@@ -437,9 +438,9 @@ class RpcController extends DefaultController
             }
         }
 
+        // sanitize input value
         $value = htmlentities($value, ENT_QUOTES);
-
-        $obj->$key = $value;
+        $obj->$key = stripslashes($value);
 
         if (!$obj->save()) {
             $mtlda->raiseError(get_class($obj) ."::save() returned false!");
