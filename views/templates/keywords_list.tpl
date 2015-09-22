@@ -82,7 +82,7 @@
 </table>
 <script type="text/javascript"><!--
 $(document).ready(function() {
-   $('a.keyword, button.keyword').click(function(element) {
+   $('a.keyword').click(function(element) {
       type = $(this).attr('data-type');
       id = $(this).attr('data-id');
       value = $(this).attr('data-value');
