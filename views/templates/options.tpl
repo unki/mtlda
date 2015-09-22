@@ -15,4 +15,29 @@
  * GNU Affero General Public License for more details.
 *}
 <h1 class="ui header"><i class="options icon"></i>Options</h1>
-<a href="{get_url page=options mode=truncate}">Reset data</a>
+<a id="truncate_link" href='#' data-url="{get_url page=options mode=truncate}">Reset data</a>
+<script type="text/javascript"><!--
+
+$(document).ready(function() {
+
+   $('#truncate_link').click(function() {
+
+      show_modal({
+         closeable : false,
+         header : 'Truncate Data',
+         icon : 'warning icon',
+         description : 'This will delete all data and settings from database!<br />\nAlso  all archived files in their derivates will be removed!<br /><br />\n\nAre you sure? There is NO undo!',
+         onDeny : function() {
+            return true;
+         },
+         onApprove : function() {
+            if(!$('#truncate_link').attr('data-url')) {
+               return true;
+            }
+            window.location = $('#truncate_link').attr('data-url');
+            return true;
+         }
+      });
+   });
+});
+--></script>
