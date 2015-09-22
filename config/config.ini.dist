@@ -106,12 +106,12 @@ private_key = "file:///home/unki/git/mtlda/ssl/unki_key.pem"
 ;
 ; Signature author
 ;
-author = "Andreas Unterkircher"
+author = "YOUR NAME"
 
 ;
 ; ٰSignature author's location
 ;
-location = "Obersdorf, Austria"
+location = "YOUR LOCATION"
 
 ;
 ; Signature reason
@@ -121,7 +121,7 @@ reason = "Electronic Signature, Authenticity"
 ;
 ; Signature contact information
 ;
-contact = "http://www.unki.land"
+contact = "YOUR CONTACT"
 
 ;
 ; Digest algorithm
