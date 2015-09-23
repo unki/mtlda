@@ -43,7 +43,7 @@
     </div>
    </form>
    <div id="title_show_{$item->document_idx}">
-    <div style="float: left;" id="title_label_{$item->document_idx}"><a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_title}</a></div>&nbsp;
+    <div style="float: left;"><a id="title_label_{$item->document_idx}" href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_title}</a></div>&nbsp;
     <a class="title" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_title}"><i class="edit icon" ></i></a>
    </div>
   </td>
