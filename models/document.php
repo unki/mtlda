@@ -620,6 +620,39 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
+    public function setDescription($description)
+    {
+        global $mtlda, $db;
+
+        if (!is_string($description)) {
+            $mtlda->raiseError("A string must be provided as parameter to this method");
+            return false;
+        }
+
+        $sth = $db->prepare(
+            "UPDATE
+                TABLEPREFIXarchive
+            SET
+                document_description=?
+            WHERE
+                document_idx LIKE ?"
+        );
+
+        if (!$sth) {
+            $mtlda->raiseError("Unable to prepare query!");
+            return false;
+        }
+
+        if (!$db->execute($sth, array($description, $this->document_idx))) {
+            $mtlda->raiseError("Failed to execute query!");
+            $db->freeStatement($sth);
+            return false;
+        }
+
+        $db->freeStatement($sth);
+        return true;
+    }
+
     public function preClone()
     {
         global $mtlda;
