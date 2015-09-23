@@ -77,6 +77,7 @@ class InstallerController extends DefaultController
             $table_sql = "CREATE TABLE `TABLEPREFIXarchive` (
                 `document_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `document_guid` varchar(255) DEFAULT NULL,
+                `document_title` varchar(255) DEFAULT NULL,
                 `document_description` TEXT DEFAULT NULL,
                 `document_file_name` varchar(255) DEFAULT NULL,
                 `document_file_hash` varchar(255) DEFAULT NULL,
@@ -229,6 +230,9 @@ class InstallerController extends DefaultController
             $this->upgradeDatabaseSchemaV5();
         }
 
+        if ($db->getDatabaseSchemaVersion() < 6) {
+            $this->upgradeDatabaseSchemaV6();
+        }
         /* final action in this function
         // disabled for now as of 20150923
         if (!$db->setDatabaseSchemaVersion()) {
@@ -301,6 +305,28 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(5);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV6()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXarchive
+            ADD
+                `document_title` varchar(255) DEFAULT NULL
+            AFTER
+                document_guid"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(6);
         return true;
     }
 }
