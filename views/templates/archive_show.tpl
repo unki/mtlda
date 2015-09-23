@@ -14,7 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<h1 class="ui header">{$item->document_file_name}</h1>
+<h1 class="ui header"><i class="file text icon"></i>{$item->document_file_name}</h1>
 <div class="ui grid">
  <div class="row">
   <div class="column">Filename:</div>
@@ -27,31 +27,41 @@
  <div class="row">
   <div class="column">Versions:</div>
   <div class="eight wide column">
-   <div class="ui list">
-    <div class="item"><a href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">v1 - Original imported document</a></div>
-    <div class="item"><a href="{get_url page=document mode=sign id=$item_safe_link}">Sign</a></div>
+   <div class="ui relaxed divided list">
+    <div class="item">
+     <i class="file text icon"></i>
+     <div class="content">
+      <a class="header" href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">{$item->document_file_name}</a>
+      <div class="description">Original document. Click <a href="{get_url page=document mode=sign id=$item_safe_link}">here</a> to digitally sign document.</div>
+     </div>
+    </div>
 {if $item_versions}
-    <div class="item ui divider"></div>
 {foreach $item_versions as $version}
  {assign var='safe_link' value="document-`$version->document_idx`-`$version->document_guid`"}
     <div class="item">
-     <form id="document_edit_{$version->document_idx}" class="ui form filename" style="display: none;" onsubmit="return false;">
-      <div class="fields">
-       <div class="field small ui input">
-        <input type="text" name="document_file_name[{$version->document_idx}]" value="{$version->document_file_name}" data-action="update" />
+     <i class="file text icon"></i>
+     <div class="content">
+      <form id="document_edit_{$version->document_idx}" class="ui form filename" style="display: none;" onsubmit="return false;">
+       <div class="fields">
+        <div class="field small ui input">
+         <input type="text" name="document_file_name[{$version->document_idx}]" value="{$version->document_file_name}" data-action="update" />
+        </div>
+        <div class="field">
+         <button class="circular small ui icon button update document" data-target="document_file_name[{$version->document_idx}]" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="save icon"></i></button>
+        </div>
+        <div class="field">
+         <button class="circular small ui icon button cancel" data-target="document_file_name[{$version->document_idx}]" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="cancel icon"></i></button>
+        </div>
        </div>
-       <div class="field">
-        <button class="circular small ui icon button update document" data-target="document_file_name[{$version->document_idx}]" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="save icon"></i></button>
+      </form>
+      <div id="document_show_{$version->document_idx}">
+       <div class="header" id="document_label_{$version->document_idx}">
+        <a href="{get_url page=document mode=show id=$safe_link file=$version->document_file_name}">{$version->document_file_name}</a>&nbsp;
+        <a class="document update" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="edit icon" ></i></a>
+        <a href="{get_url page=document mode=delete id=$safe_link}"><i class="delete icon"></i></a>
        </div>
-       <div class="field">
-        <button class="circular small ui icon button cancel" data-target="document_file_name[{$version->document_idx}]" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="cancel icon"></i></button>
-       </div>
+       <div class="description">Version {$version->document_version}</div>
       </div>
-     </form>
-     <div id="document_show_{$version->document_idx}">
-      <div style="float: left;" id="document_label_{$version->document_idx}"><a href="{get_url page=document mode=show id=$safe_link file=$version->document_file_name}">v{$version->document_version} - {$version->document_file_name}</a></div>&nbsp;
-      <a class="document update" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="edit icon" ></i></a>
-      <a href="{get_url page=document mode=delete id=$safe_link}">Delete</a>
      </div>
     </div>
 {/foreach}
