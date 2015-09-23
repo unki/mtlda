@@ -80,26 +80,36 @@
  <!-- right column -->
  <div class="column">
   <div class="ui grid">
-   <div class="two wide column">Keywords:</div>
-   <div class="fourteen wide column">
-    <form id="document_keywordѕ" class="ui form keywords" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
-     <div class="fields">
+   <div class="row">
+    <div class="twelve wide column">
+     <form id="document_keywordѕ" class="ui form keywords" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
       <div class="field">
+       <label>Keywords:</label>
        <select class="ui fluid search labeled dropdown" name="assigned_keywords" multiple="">
 {foreach $keywords as $keyword}
         <option value="{$keyword->keyword_idx}" {if in_array($keyword->keyword_idx, $assigned_keywords)} selected="selected"{/if}>{$keyword->keyword_name}</option>
 {/foreach}
        </select>
       </div>
-      <div class="field">
-       <button class="circular small ui icon button" type="submit" data-target="document_keywords" data-type="selected_keywords" data-id="{$item->document_idx}">
-        <i class="save icon"></i>
-       </button>
-      </div>
-     </div>
-    </form>
+      <button class="circular small ui icon save button" type="submit" data-target="document_keywords" data-type="selected_keywords" data-id="{$item->document_idx}">
+       <i class="save icon"></i>
+      </button>
+     </form>
+    </div>
    </div>
-  </div>
+   <div class="row">
+    <div class="twelve wide column">
+     <form id="document_description" class="ui form description" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
+      <div class="field">
+       <label>Description</label>
+       <textarea>{$item->document_description}</textarea>
+      </div>
+      <button class="circular small ui icon save button" type="submit" data-target="document_description" data-type="document_description" data-id="{$item->document_idx}">
+       <i class="save icon"></i>
+      </button>
+     </form>
+    </div>
+   </div>
  </div>
 </div>
 <script type="text/javascript"><!--{literal}
@@ -135,10 +145,72 @@ $(document).ready(function() {
          }
       },
       onChange : function(value, text, choice) {
-         $('.ui.form.keywords .field button')
+         $('.ui.form.keywords button.save')
             .addClass('red shape')
             .transition('bounce');
       }
+   });
+
+   $('form.ui.form.description textarea').on('input', function() {
+      savebutton = $('form.ui.form.description button.save');
+      if(!savebutton.hasClass('red shape')) {
+         savebutton.addClass('red shape');
+         savebutton.transition('bounce');
+      }
+   });
+   // bounce save icon once more if focus leaves the textarea field
+   $('form.ui.form.description textarea').on('focusout', function() {
+      savebutton = $('form.ui.form.description button.save');
+      if(savebutton.hasClass('red shape')) {
+         savebutton.transition('bounce');
+      }
+   });
+
+   $('form.ui.form.description').on('submit', function() {
+      var document_id = $(this).attr('data-id');
+      if (!document_id) {
+         window.alert('Failed to fetch data-id!');
+         return false;
+      }
+
+      var document_guid = $(this).attr('data-guid');
+      if (!document_guid) {
+         window.alert('Failed to fetch data-guid!');
+         return false;
+      }
+
+      var desc_field = $('form.ui.form.description textarea');
+      if (!desc_field) {
+         window.alert('Failed to find description field');
+         return false;
+      }
+
+      $.ajax({
+           type: "POST",
+           url    : '{/literal}{$keywords_rpc_url}{literal}',
+           data: ({
+               type   : 'rpc',
+               action : 'save-description',
+               id     : document_id,
+               guid   : document_guid,
+               description : desc_field.val()
+           }),
+           error: function(XMLHttpRequest, textStatus, errorThrown) {
+               alert('Failed to contact server! ' + textStatus);
+           },
+           success: function(data){
+               if(data == "ok") {
+                  $('form.ui.form.description button.save')
+                     .transition('tada')
+                     .removeClass('red shape');
+                  return;
+               }
+               alert('Server returned: ' + data + ', length ' + data.length);
+               return;
+           }
+       });
+
+       return true;
    });
 
    $('.ui.form.keywords').on('submit', function() {
@@ -173,7 +245,9 @@ $(document).ready(function() {
            },
            success: function(data){
                if(data == "ok") {
-                  $('.ui.form.keywords .field button').removeClass('red shape');
+                  $('.ui.form.keywords button.save')
+                     .transition('tada')
+                     .removeClass('red shape');
                   return;
                }
                alert('Server returned: ' + data + ', length ' + data.length);
