@@ -88,8 +88,19 @@ class KeywordModel extends DefaultModel
         }
 
         $db->freeStatement($sth);
-
         parent::__construct($row->keyword_idx);
+
+        if (!$this->permitRpcUpdates(true)) {
+            $mtlda->raiseError("permitRpcUpdates() returned false!");
+            return false;
+        }
+
+        try {
+            $this->addRpcEnabledField('keyword_name');
+        } catch (\Exception $e) {
+            $mtlda->raise("Failed on invoking addRpcEnabledField() method");
+            return false;
+        }
 
         return true;
     }
