@@ -82,7 +82,7 @@ abstract class DefaultModel
         if (method_exists($this, 'preLoad')) {
 
             if (!$this->preLoad()) {
-                $mtlda->raiseError(__CLASS__ ."::preLoad() method returned false!");
+                $mtlda->raiseError(get_called_class() ."::preLoad() method returned false!");
                 return false;
             }
         }
@@ -137,7 +137,7 @@ abstract class DefaultModel
 
         if (method_exists($this, 'postLoad')) {
             if (!$this->postLoad()) {
-                $mtlda->raiseError(__CLASS__ ."::postLoad() method returned false!");
+                $mtlda->raiseError(get_called_class() ."::postLoad() method returned false!");
                 return false;
             }
         }
@@ -188,7 +188,7 @@ abstract class DefaultModel
 
         if (method_exists($this, 'preDelete')) {
             if (!$this->preDelete()) {
-                $mtlda->raiseError(__CLASS__ ."::preDelete() method returned false!");
+                $mtlda->raiseError(get_called_class() ."::preDelete() method returned false!");
                 return false;
             }
         }
@@ -215,7 +215,7 @@ abstract class DefaultModel
 
         if (method_exists($this, 'postDelete')) {
             if (!$this->postDelete()) {
-                $mtlda->raiseError(__CLASS__ .", postDelete() method returned false!");
+                $mtlda->raiseError(get_called_class() .", postDelete() method returned false!");
                 return false;
             }
         }
@@ -241,13 +241,6 @@ abstract class DefaultModel
             return false;
         }
 
-        if (method_exists($this, 'preClone')) {
-            if (!$this->preClone()) {
-                $mtlda->raiseError(__CLASS__ ."::preClone() method returned false!");
-                return false;
-            }
-        }
-
         foreach (array_keys($srcobj->fields) as $field) {
 
             // check for a matching key in clone's fields array
@@ -256,6 +249,13 @@ abstract class DefaultModel
             }
 
             $this->$field = $srcobj->$field;
+        }
+
+        if (method_exists($this, 'preClone')) {
+            if (!$this->preClone()) {
+                $mtlda->raiseError(get_called_class() ."::preClone() method returned false!");
+                return false;
+            }
         }
 
         $idx_field = $this->column_name.'_idx';
@@ -365,7 +365,7 @@ abstract class DefaultModel
 
         if (method_exists($this, 'postClone')) {
             if (!$this->postClone()) {
-                $mtlda->raiseError(__CLASS__ ."::postClone() method returned false!");
+                $mtlda->raiseError(get_called_class() ."::postClone() method returned false!");
                 return false;
             }
         }
@@ -430,7 +430,7 @@ abstract class DefaultModel
 
         if (method_exists($this, 'preSave')) {
             if (!$this->preSave()) {
-                $mtlda->raiseError(__CLASS__ ."preSave() method returned false!");
+                $mtlda->raiseError(get_called_class() ."::preSave() method returned false!");
                 return false;
             }
         }
@@ -499,7 +499,7 @@ abstract class DefaultModel
 
         if (method_exists($this, 'postSave')) {
             if (!$this->postSave()) {
-                $mtlda->raiseError(__CLASS__ ."::postSave() method returned false!");
+                $mtlda->raiseError(get_called_class() ."::postSave() method returned false!");
                 return false;
             }
         }
