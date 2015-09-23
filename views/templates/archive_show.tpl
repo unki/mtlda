@@ -14,7 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<h1 class="ui header"><i class="file text icon"></i>{$item->document_file_name}</h1>
+<h1 class="ui header"><i class="file text icon"></i>{$item->document_title}</h1>
 
 <div class="ui two column grid">
 
