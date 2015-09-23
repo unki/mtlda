@@ -423,10 +423,10 @@ class MTLDA extends DefaultController
 
         if ($db->getDatabaseSchemaVersion() < $db::SCHEMA_VERSION) {
             $this->raiseError(
-                "The local schema version ({$db->getDatabaseSchemaVersion()}) is lower"
+                "The local schema version ({$db->getDatabaseSchemaVersion()}) is lower "
                 ."than the programs schema version (". $db::SCHEMA_VERSION ."). "
-                ."You may run <a href=\"{$base_path}/install\">Installer</a>"
-                ." again to upgrade.",
+                ."You may run <a href=\"{$base_path}/install\">Installer</a> "
+                ."again to upgrade.",
                 true
             );
             return true;
