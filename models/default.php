@@ -30,6 +30,8 @@ abstract class DefaultModel
     public $fields;
     public $id;
     public $init_values;
+    public $permit_rpc_updates;
+    public $rpc_allowed_fields;
 
     protected function __construct($id = null)
     {
@@ -56,6 +58,7 @@ abstract class DefaultModel
         }
 
         $this->init_values = array();
+        $this->rpc_allowed_fields = array();
         $this->id = $id;
 
         if (!$this->load()) {
@@ -810,6 +813,74 @@ abstract class DefaultModel
         }
 
         return $this->column_name .'_'. $suffix;
+    }
+
+    final protected function permitRpcUpdates($state)
+    {
+        global $mtlda;
+
+        if (!is_bool($state)) {
+            $mtlda->raiseError(__METHOD__ .', parameter must be a boolean value');
+            return false;
+        }
+
+        $this->permit_rpc_updates = $state;
+        return true;
+    }
+
+    final public function permitsRpcUpdates()
+    {
+        if (
+            !isset($this->permit_rpc_updates) ||
+            !$this->permit_rpc_updates
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    final protected function addRpcEnabledField($field)
+    {
+        global $mtlda;
+
+        if (!is_array($this->rpc_allowed_fields)) {
+            $mtlda->raiseError("\$rpc_allowed_fields is not an array!");
+            return false;
+        }
+
+        if (!is_string($field)) {
+            $mtlda->raiseError(__METHOD__ .' parameter must be a string');
+            return false;
+        }
+
+        array_push($this->rpc_allowed_fields, $field);
+        return true;
+    }
+
+    final public function permitsRpcUpdateToField($field)
+    {
+        global $mtlda;
+
+        if (!is_array($this->rpc_allowed_fields)) {
+            $mtlda->raiseError("\$rpc_allowed_fields is not an array!");
+            return false;
+        }
+
+        if (!is_string($field)) {
+            $mtlda->raiseError(__METHOD__ .' parameter must be a string');
+            return false;
+        }
+
+        if (empty($this->rpc_allowed_fields)) {
+            return false;
+        }
+
+        if (!in_array($field, $this->rpc_allowed_fields)) {
+            return false;
+        }
+
+        return true;
     }
 }
 
