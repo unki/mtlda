@@ -30,7 +30,7 @@ abstract class DefaultModel
     public $fields;
     public $id;
     public $init_values;
-    public $permit_rpc_updates;
+    public $permit_rpc_updates = false;
     public $rpc_allowed_fields;
 
     protected function __construct($id = null)
