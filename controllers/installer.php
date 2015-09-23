@@ -233,6 +233,10 @@ class InstallerController extends DefaultController
         if ($db->getDatabaseSchemaVersion() < 6) {
             $this->upgradeDatabaseSchemaV6();
         }
+
+        if ($db->getDatabaseSchemaVersion() < 7) {
+            $this->upgradeDatabaseSchemaV7();
+        }
         /* final action in this function
         // disabled for now as of 20150923
         if (!$db->setDatabaseSchemaVersion()) {
@@ -327,6 +331,30 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(6);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV7()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query("
+            UPDATE
+                TABLEPREFIXarchive
+            SET
+                document_title=document_file_name
+            WHERE
+                document_title=''
+            OR
+                document_title IS NULL
+        ");
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(7);
         return true;
     }
 }
