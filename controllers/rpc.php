@@ -72,6 +72,9 @@ class RpcController extends DefaultController
             case 'save-keywords':
                 $this->rpcSaveKeywords();
                 break;
+            case 'save-description':
+                $this->rpcSaveDescription();
+                break;
             case 'idle':
                 // just do nothing, for debugging
                 print "ok";
@@ -528,6 +531,56 @@ class RpcController extends DefaultController
 
         if (!$document->setKeywords($values)) {
             $mtlda->raiseError("DocumentModel::setKeywords() returned false!");
+            return false;
+        }
+
+        print "ok";
+        return true;
+    }
+
+    private function rpcSaveDescription()
+    {
+        global $mtlda;
+
+        if (!isset($_POST['id']) || empty($_POST['id'])) {
+            $mtlda->raiseError("No id provided!");
+            return false;
+        }
+
+        if (!isset($_POST['guid']) || empty($_POST['guid'])) {
+            $mtlda->raiseError("No guid provided!");
+            return false;
+        }
+
+        if (!$mtlda->isValidGuidSyntax($_POST['guid'])) {
+            $mtlda->raiseError("guid is invalid!");
+            return false;
+        }
+
+        /* if no values are provided this usually means
+           all keywords have been removed from this document.
+        */
+        if (
+            !isset($_POST['description']) ||
+            empty($_POST['description']) ||
+            !is_string($_POST['description'])
+        ) {
+            $_POST['description'] = '';
+        }
+
+        $id = $_POST['id'];
+        $guid = $_POST['guid'];
+        $description = $_POST['description'];
+
+        try {
+            $document = new Models\DocumentModel($id, $guid);
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load DocumentModel!");
+            return false;
+        }
+
+        if (!$document->setDescription($description)) {
+            $mtlda->raiseError("DocumentModel::setDescription() returned false!");
             return false;
         }
 
