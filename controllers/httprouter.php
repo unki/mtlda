@@ -300,6 +300,7 @@ class HttpRouterController extends DefaultController
             'get-content',
             'get-keywords',
             'save-keywords',
+            'save-description',
 
             /*'toggle',
             'clone',
