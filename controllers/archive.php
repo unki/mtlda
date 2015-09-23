@@ -110,6 +110,7 @@ class ArchiveController extends DefaultController
             $document->$document_field = $queue_item->$queue_field;
         }
 
+        $document->document_title = $document->document_file_name;
         $document->document_version = '1';
         $document->document_derivation = '';
         $document->document_derivation_guid = '';
