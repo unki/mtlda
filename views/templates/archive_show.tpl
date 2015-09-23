@@ -44,6 +44,11 @@
 {foreach $item_versions as $version}
  {assign var='safe_link' value="document-`$version->document_idx`-`$version->document_guid`"}
       <div class="item">
+       {if $latest_document_version == $version->document_version}
+       <div class="right floated content">
+         <i class="ui big red tag icon" data-title="This is the latest version of the current document."></i>
+       </div>
+       {/if}
        <i class="{if $version->document_signed_copy == 'Y'}protect{else}file text{/if} icon" data-title="{if $version->document_signed_copy == 'Y'}This is a signed copy of the original document.{else}This is a copy of the original document.{/if}"></i>
        <div class="content">
         <form id="document_edit_{$version->document_idx}" class="ui form filename" style="display: none;" onsubmit="return false;">
