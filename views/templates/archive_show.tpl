@@ -27,7 +27,7 @@
    </div>
    <div class="row">
     <div class="two wide column">Size:</div>
-    <div class="fourteen wide column">{$item->document_file_size}</div>
+    <div class="fourteen wide column">{get_humanreadable_filesize size=$item->document_file_size}</div>
    </div>
    <div class="row">
     <div class="two wide column">Versions:</div>
