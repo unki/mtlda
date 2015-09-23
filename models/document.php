@@ -374,6 +374,44 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
+        /* has the filename changed? */
+        if ($this->init_values['document_file_name'] == $this->document_file_name) {
+            return true;
+        }
+
+        if (
+            $this->document_version == 1 ||
+            (isset($this->document_derivation) && $this->document_derivation== 0)
+        ) {
+            $mtlda->raiseError("Change the filename of the root document is not allowed!");
+            return false;
+        }
+
+        if (!$fqpn = $this->getFilePath()) {
+            $mtlda->raiseError(__CLASS__ ."::getFilePath() returned false!");
+            return false;
+        }
+
+        $path = dirname($fqpn);
+
+        if (empty($path)) {
+            $mtlda->raiseError("why is \$path empty?");
+            return false;
+        }
+
+        $old_file = $path .'/'. basename($this->init_values['document_file_name']);
+        $new_file = $path .'/'. basename($this->document_file_name);
+
+        if (file_exists($new_file)) {
+            $mtlda->raiseError("Unable to rename {$old_file} to {$new_file} - destination already exists!");
+            return false;
+        }
+
+        if (rename($old_file, $new_file) === false) {
+            $mtlda->raiseError("rename() returned false!");
+            return false;
+        }
+
         return true;
     }
 
