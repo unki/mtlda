@@ -105,8 +105,20 @@ class DocumentModel extends DefaultModel
         }
 
         $db->freeStatement($sth);
-
         parent::__construct($row->document_idx);
+
+        if (!$this->permitRpcUpdates(true)) {
+            $mtlda->raiseError("permitRpcUpdates() returned false!");
+            return false;
+        }
+
+        try {
+            $this->addRpcEnabledField('document_title');
+            $this->addRpcEnabledField('document_description');
+        } catch (\Exception $e) {
+            $mtlda->raise("Failed on invoking addRpcEnabledField() method");
+            return false;
+        }
 
         return true;
     }
