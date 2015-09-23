@@ -374,15 +374,32 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        /* has the filename changed? */
-        if ($this->init_values['document_file_name'] == $this->document_file_name) {
+        if (
+            !isset($this->document_file_name) ||
+            empty($this->document_file_name)
+        ) {
+            $mtlda->raiseError("\$document_file_name must not be empty!");
+            return false;
+        }
+
+        /* new document? no more action here */
+        if (!isset($this->document_idx) && !isset($this->id)) {
             return true;
         }
 
         if (
-            $this->document_version == 1 ||
-            (isset($this->document_derivation) && $this->document_derivation== 0)
+            !isset($this->init_values['document_file_name']) ||
+            !empty($this->init_values['document_file_name'])
         ) {
+            return true;
+        }
+
+        /* filename hasn't changed? we are done */
+        if ($this->init_values['document_file_name'] == $this->document_file_name) {
+            return true;
+        }
+
+        if ($this->document_version == 1) {
             $mtlda->raiseError("Change the filename of the root document is not allowed!");
             return false;
         }
@@ -599,6 +616,111 @@ class DocumentModel extends DefaultModel
 
         $db->freeStatement($sth);
         return true;
+    }
+
+    public function preClone()
+    {
+        global $mtlda;
+
+        if (!isset($this->document_version) || empty($this->document_version)) {
+            $this->document_version = 1;
+            return true;
+        }
+
+        if (!$latest = $this->getLastestDocumentVersionNumber()) {
+            $mtlda->raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned false');
+            return false;
+        }
+
+        if (empty($latest)) {
+            $mtlda->raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned an invalid number!');
+            return false;
+        }
+
+        $latest+=1;
+        $this->document_version = $latest;
+        return true;
+    }
+
+    private function getLastestDocumentVersionNumber()
+    {
+        global $mtlda, $db;
+
+        if (!isset($this->document_idx) || empty($this->document_idx)) {
+            $mtlda->raiseError("Unable to lookup latest document version without known \$document_idx");
+            return false;
+        }
+
+        if (!isset($this->document_guid) || empty($this->document_guid)) {
+            $mtlda->raiseError("Unable to lookup latest document version without known \$document_guid");
+            return false;
+        }
+
+        $sth = $db->prepare(
+            "SELECT
+                    MAX(document_version) as max_version
+            FROM
+                TABLEPREFIX{$this->table_name}
+            WHERE
+                (
+                    document_idx LIKE ?
+                        AND
+                    document_guid LIKE ?
+                )
+                OR
+                (
+                    document_derivation LIKE ?
+                        AND
+                    document_derivation_guid LIKE ?
+                )"
+        );
+
+        if (!$sth) {
+            $mtlda->raiseError("Failed to prepare query");
+            return false;
+        }
+
+        if (
+            !$db->execute($sth, array(
+                $this->document_idx,
+                $this->document_guid,
+                $this->document_idx,
+                $this->document_guid
+            ))
+        ) {
+            $mtlda->raiseError("Failed to execute query");
+            return false;
+        }
+
+        $rows = $sth->fetchAll(\PDO::FETCH_ASSOC);
+        $db->freeStatement($sth);
+
+        if ($rows === false) {
+            $mtlda->raiseError("PDO::fetchAll() returned false!");
+            return false;
+        }
+
+        if (!is_array($rows)) {
+            $mtlda->raiseError("PDO::fetchAll() has not returned an array!");
+            return false;
+        }
+
+        if (count($rows) > 1) {
+            $mtlda->raiseError("Strangly more than one result has been returned by query!");
+            return false;
+        }
+
+        if (!isset($rows[0]['max_version']) || empty($rows[0]['max_version'])) {
+            $mtlda->raiseError("failed to retrieve latest version number!");
+            return false;
+        };
+
+        if (!is_numeric($rows[0]['max_version'])) {
+            $mtlda->raiseError("\$max_version returned from database isn't a number!");
+            return false;
+        }
+
+        return $rows[0]['max_version'];
     }
 }
 
