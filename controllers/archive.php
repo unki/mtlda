@@ -280,6 +280,8 @@ class ArchiveController extends DefaultController
             return false;
         }
 
+        $signing_item->document_signed_copy = 'Y';
+
         if (!$signing_item->save()) {
             $signing_item->delete();
             $mtlda->raiseError("save() returned false!");
