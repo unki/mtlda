@@ -27,12 +27,12 @@
  <div class="row">
   <div class="column">Versions:</div>
   <div class="eight wide column">
-   <div class="ui relaxed divided list">
+   <div class="ui very relaxed divided selection list">
     <div class="item">
      <i class="file text icon"></i>
      <div class="content">
       <a class="header" href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">{$item->document_file_name}</a>
-      <div class="description">Original document<br /><br /><a href="{get_url page=document mode=sign id=$item_safe_link}"><i class="protect icon"></i>Click to digitally sign original document</a>.</div>
+      <div class="description">Original document (imported {$item->document_time|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a href="{get_url page=document mode=sign id=$item_safe_link}"><i class="protect icon"></i>Click to digitally sign original document</a>.</div>
      </div>
     </div>
 {if $item_versions}
@@ -60,7 +60,7 @@
         <a class="document update" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="edit icon" ></i></a>
         <a href="{get_url page=document mode=delete id=$safe_link}"><i class="delete icon"></i></a>
        </div>
-       <div class="description">Version {$version->document_version}</div>
+       <div class="description">Version {$version->document_version} (created {$version->document_time|date_format:"%Y.%m.%d %H:%M"})</div>
       </div>
       <br />
      </div>
