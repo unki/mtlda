@@ -101,6 +101,12 @@ class Templates extends Smarty
 
         $this->registerPlugin("function", "get_url", array(&$this, "getUrl"), false);
         $this->registerPlugin("function", "get_menu_state", array(&$this, "getMenuState"), false);
+        $this->registerPlugin(
+            "function",
+            "get_humanreadable_filesize",
+            array(&$this, "getHumanReadableFilesize"),
+            false
+        );
 
         $this->assign('web_path', $base_path);
         $this->assign('image_arrow_left', $base_path .'/resources/images/arrow-circle-left-4x.png');
@@ -301,7 +307,7 @@ class Templates extends Smarty
 
     public function getMenuState($params, &$smarty)
     {
-        global $query;
+        global $mtlda, $query;
 
         if (!array_key_exists('page', $params)) {
             $mtlda->raiseError("getMenuState: missing 'page' parameter", E_USER_WARNING);
@@ -314,6 +320,23 @@ class Templates extends Smarty
         }
 
         return null;
+    }
+
+    public function getHumanReadableFilesize($params, &$smarty)
+    {
+        global $mtlda, $query;
+
+        if (!array_key_exists('size', $params)) {
+            $mtlda->raiseError("getMenuState: missing 'size' parameter", E_USER_WARNING);
+            $repeat = false;
+            return false;
+        }
+
+        if ($params['size'] < 1048576) {
+            return round($params['size']/1024, 2) ."KB";
+        }
+
+        return round($params['size']/1048576, 2) ."MB";
     }
 
     private function isKnownMode($mode)
@@ -329,7 +352,6 @@ class Templates extends Smarty
         }
 
         return true;
-
     }
 }
 
