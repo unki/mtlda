@@ -28,6 +28,7 @@ class DocumentModel extends DefaultModel
     public $fields = array(
             'document_idx' => 'integer',
             'document_guid' => 'string',
+            'document_description' => 'string',
             'document_file_name' => 'string',
             'document_file_hash' => 'string',
             'document_file_size' => 'integer',
