@@ -441,6 +441,17 @@ class RpcController extends DefaultController
             }
         }
 
+        // check if model permits RPC updates
+        if (!$obj->permitsRpcUpdates()) {
+            $mtlda->raiseError("Model {$scope} does not permit RPC updates!");
+            return false;
+        }
+
+        if (!$obj->permitsRpcUpdateToField($key)) {
+            $mtlda->raiseError("Model {$scope} does not permit RPC updates to field {$key}!");
+            return false;
+        }
+
         // sanitize input value
         $value = htmlentities($value, ENT_QUOTES);
         $obj->$key = stripslashes($value);
