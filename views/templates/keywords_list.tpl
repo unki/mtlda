@@ -54,6 +54,9 @@
      <div class="field">
       <button class="circular small ui icon button update keyword" data-target="keyword_name[{$item->keyword_idx}]" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="save icon"></i></button>
      </div>
+     <div class="field">
+      <button class="circular small ui icon button cancel keyword" data-target="keyword_name[{$item->keyword_idx}]" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="cancel icon"></i></button>
+     </div>
     </div>
    </form>
    <div id="keyword_show_{$item->keyword_idx}">
@@ -82,7 +85,7 @@
 </table>
 <script type="text/javascript"><!--
 $(document).ready(function() {
-   $('a.keyword').click(function(element) {
+   $('a.keyword, button.keyword.cancel').click(function(element) {
       type = $(this).attr('data-type');
       id = $(this).attr('data-id');
       value = $(this).attr('data-value');
