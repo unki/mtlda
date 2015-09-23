@@ -21,7 +21,7 @@ namespace MTLDA\Models ;
 
 use \PDO;
 
-class DefaultModel
+abstract class DefaultModel
 {
     public $table_name;
     public $column_name;
@@ -29,23 +29,24 @@ class DefaultModel
     public $ignore_child_on_clone;
     public $fields;
     public $id;
+    public $init_values;
 
-    public function __construct($id = null)
+    protected function __construct($id = null)
     {
         global $mtlda;
 
         if (!isset($this->table_name)) {
-            $mtlda->raiseError(__TRAIT__ .', missing key table_name', true);
+            $mtlda->raiseError(__METHOD__ .', missing key table_name', true);
             return false;
         }
 
         if (!isset($this->column_name)) {
-            $mtlda->raiseError(__TRAIT__ .', missing key column_name', true);
+            $mtlda->raiseError(__METHOD__ .', missing key column_name', true);
             return false;
         }
 
         if (!isset($this->fields)) {
-            $mtlda->raiseError(__TRAIT__ .', missing key fields', true);
+            $mtlda->raiseError(__METHOD__ .', missing key fields', true);
             return false;
         }
 
@@ -54,6 +55,7 @@ class DefaultModel
             return true;
         }
 
+        $this->init_values = array();
         $this->id = $id;
 
         if (!$this->load()) {
@@ -74,7 +76,7 @@ class DefaultModel
         global $mtlda, $db;
 
         if (!isset($this->fields) || empty($this->fields)) {
-            $mtlda->raiseError(__TRAIT__ .", fields array not set for class ". get_class($this));
+            $mtlda->raiseError(__METHOD__ .", fields array not set for class ". get_class($this));
         }
 
         if (method_exists($this, 'preLoad')) {
@@ -107,28 +109,29 @@ class DefaultModel
         $sth = $db->prepare($sql, array('integer'));
 
         if (!$sth) {
-            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
+            $mtlda->raiseError(__METHOD__ .", unable to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, array($this->id))) {
-            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
+            $mtlda->raiseError(__METHOD__ .", unable to execute query");
             return false;
         }
 
         if ($sth->rowCount() <= 0) {
             $db->freeStatement($sth);
-            $mtlda->raiseError(__TRAIT__ .", No object with id {$this->id}");
+            $mtlda->raiseError(__METHOD__ .", No object with id {$this->id}");
         }
 
         if (!$row = $sth->fetch(PDO::FETCH_ASSOC)) {
             $db->freeStatement($sth);
-            $mtlda->raiseError(__TRAIT__ .", unable to fetch SQL result for object id ". $this->id);
+            $mtlda->raiseError(__METHOD__ .", unable to fetch SQL result for object id ". $this->id);
         }
 
         $db->freeStatement($sth);
 
         foreach ($row as $key => $value) {
+            $this->init_values[$key] = $value;
             $this->$key = $value;
         }
 
@@ -149,7 +152,7 @@ class DefaultModel
      * @param mixed $data
      * @return bool
      */
-    public function update($data)
+    final public function update($data)
     {
         if (!is_array($data)) {
             return false;
@@ -166,7 +169,7 @@ class DefaultModel
     /**
      * delete
      */
-    public function delete()
+    final public function delete()
     {
         global $mtlda, $db;
 
@@ -199,12 +202,12 @@ class DefaultModel
         );
 
         if (!$sth) {
-            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
+            $mtlda->raiseError(__METHOD__ .", unable to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, array($this->id))) {
-            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
+            $mtlda->raiseError(__METHOD__ .", unable to execute query");
             return false;
         }
 
@@ -224,7 +227,7 @@ class DefaultModel
     /**
      * clone
      */
-    public function createClone(&$srcobj)
+    final public function createClone(&$srcobj)
     {
         global $mtlda, $db;
 
@@ -276,7 +279,7 @@ class DefaultModel
 
         // if saving was successful, our new object should have an ID now
         if (!isset($this->id) || empty($this->id)) {
-            $mtlda->raiseError(__TRAIT__ .", error on saving clone. no ID was returned from database!");
+            $mtlda->raiseError(__METHOD__ .", error on saving clone. no ID was returned from database!");
             return false;
         }
 
@@ -292,7 +295,7 @@ class DefaultModel
 
                 // initate an empty child object
                 if (!($child_obj = $mtlda->load_class($child))) {
-                    $mtlda->raiseError(__TRAIT__ .", unable to locate class for {$child_obj}");
+                    $mtlda->raiseError(__METHOD__ .", unable to locate class for {$child_obj}");
                     return false;
                 }
 
@@ -306,12 +309,12 @@ class DefaultModel
                 );
 
                 if (!$sth) {
-                    $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
+                    $mtlda->raiseError(__METHOD__ .", unable to prepare query");
                     return false;
                 }
 
                 if (!$db->execute($sth, array($srcobj->id))) {
-                    $mtlda->raiseError(__TRAIT__ .", unable to execute query");
+                    $mtlda->raiseError(__METHOD__ .", unable to execute query");
                     return false;
                 }
 
@@ -374,7 +377,7 @@ class DefaultModel
     /**
      * init fields
      */
-    public function initFields($override = null)
+    final protected function initFields($override = null)
     {
         global $mtlda, $db;
 
@@ -401,28 +404,28 @@ class DefaultModel
     } // initFields()
 
     /* overloading PHP's __set() function */
-    public function __set($name, $value)
+    final public function __set($name, $value)
     {
         global $mtlda;
 
         if (!isset($this->fields) || empty($this->fields)) {
-            $mtlda->raiseError(__TRAIT__ .", fields array not set for class ". get_class($this));
+            $mtlda->raiseError(__METHOD__ .", fields array not set for class ". get_class($this));
         }
 
         if (!array_key_exists($name, $this->fields) && $name != 'id') {
-            $mtlda->raiseError(__TRAIT__ .", unknown key in ". get_class($this) ."::__set(): {$name}");
+            $mtlda->raiseError(__METHOD__ .", unknown key in ". __CLASS__ ."::__set(): {$name}");
         }
 
         $this->$name = $value;
 
     } // __set()
 
-    public function save()
+    final public function save()
     {
         global $mtlda, $db;
 
         if (!isset($this->fields) || empty($this->fields)) {
-            $mtlda->raiseError(__TRAIT__ .", fields array not set for class ". get_class($this));
+            $mtlda->raiseError(__METHOD__ .", fields array not set for class ". get_class($this));
         }
 
         if (method_exists($this, 'preSave')) {
@@ -475,12 +478,12 @@ class DefaultModel
         }
 
         if (!($sth = $db->prepare($sql))) {
-            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
+            $mtlda->raiseError(__METHOD__ .", unable to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, $arr_values)) {
-            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
+            $mtlda->raiseError(__METHOD__ .", unable to execute query");
             return false;
         }
 
@@ -505,7 +508,7 @@ class DefaultModel
 
     } // save()
 
-    public function toggleStatus($to)
+    final public function toggleStatus($to)
     {
         global $db;
 
@@ -541,12 +544,12 @@ class DefaultModel
         );
 
         if (!$sth) {
-            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
+            $mtlda->raiseError(__METHOD__ .", unable to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, array($new_status, $this->id))) {
-            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
+            $mtlda->raiseError(__METHOD__ .", unable to execute query");
             return false;
         }
 
@@ -555,23 +558,23 @@ class DefaultModel
 
     } // toggleStatus()
 
-    public function toggleChildStatus($to, $child_obj, $child_id)
+    final public function toggleChildStatus($to, $child_obj, $child_id)
     {
         global $db, $mtlda;
 
         if (!isset($this->child_names)) {
-            $mtlda->raiseError(__TRAIT__ .", this object has no childs at all!");
+            $mtlda->raiseError(__METHOD__ .", this object has no childs at all!");
             return false;
         }
         if (!isset($this->child_names[$child_obj])) {
-            $mtlda->raiseError(__TRAIT__ .", requested child is not known to this object!");
+            $mtlda->raiseError(__METHOD__ .", requested child is not known to this object!");
             return false;
         }
 
         $prefix = $this->child_names[$child_obj];
 
         if (!($child_obj = $mtlda->load_class($child_obj, $child_id))) {
-            $mtlda->raiseError(__TRAIT__ .", unable to locate class for {$child_obj}");
+            $mtlda->raiseError(__METHOD__ .", unable to locate class for {$child_obj}");
             return false;
         }
 
@@ -609,7 +612,7 @@ class DefaultModel
         );
 
         if (!$sth) {
-            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
+            $mtlda->raiseError(__METHOD__ .", unable to prepare query");
             return false;
         }
 
@@ -618,7 +621,7 @@ class DefaultModel
             $this->id,
             $child_id
         ))) {
-            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
+            $mtlda->raiseError(__METHOD__ .", unable to execute query");
             return false;
         }
 
@@ -627,7 +630,7 @@ class DefaultModel
 
     } // toggleChildStatus()
 
-    public function prev()
+    final public function prev()
     {
         global $mtlda, $db;
 
@@ -653,24 +656,24 @@ class DefaultModel
         );
 
         if (!isset($result)) {
-            $mtlda->raiseError(__TRAIT__ .", unable to locate previous record!");
+            $mtlda->raiseError(__METHOD__ .", unable to locate previous record!");
             return false;
         }
 
         if (!isset($result->$idx_field) || !isset($result->$guid_field)) {
-            $mtlda->raiseError(__TRAIT__ .", no previous record available!");
+            $mtlda->raiseError(__METHOD__ .", no previous record available!");
             return false;
         }
 
         if (!is_numeric($result->$idx_field) || !$mtlda->isValidGuidSyntax($result->$guid_field)) {
-            $mtlda->raiseError(__TRAIT__ .", Invalid previous record found: ". htmlentities($result->$id, ENT_QUOTES));
+            $mtlda->raiseError(__METHOD__ .", Invalid previous record found: ". htmlentities($result->$id, ENT_QUOTES));
             return false;
         }
 
         return $result->$id ."-". $result->$guid_field;
     }
 
-    public function next()
+    final public function next()
     {
         global $mtlda, $db;
 
@@ -696,24 +699,24 @@ class DefaultModel
         );
 
         if (!isset($result)) {
-            $mtlda->raiseError(__TRAIT__ .", unable to locate next record!");
+            $mtlda->raiseError(__METHOD__ .", unable to locate next record!");
             return false;
         }
 
         if (!isset($result->$idx_field) || !isset($result->$guid_field)) {
-            $mtlda->raiseError(__TRAIT__ .", no next record available!");
+            $mtlda->raiseError(__METHOD__ .", no next record available!");
             return false;
         }
 
         if (!is_numeric($result->$idx_field) || !$mtlda->isValidGuidSyntax($result->$guid_field)) {
-            $mtlda->raiseError(__TRAIT__ .", invalid next record found: ". htmlentities($result->$id, ENT_QUOTES));
+            $mtlda->raiseError(__METHOD__ .", invalid next record found: ". htmlentities($result->$id, ENT_QUOTES));
             return false;
         }
 
         return $result->$id ."-". $result->$guid_field;
     }
 
-    public function isDuplicate()
+    final protected function isDuplicate()
     {
         global $mtlda, $db;
 
@@ -733,7 +736,9 @@ class DefaultModel
             )
         ) {
 
-            $mtlda->raiseError(__TRAIT__ ." can't check for duplicates if neither \$idx_field or \$guid_field is set!");
+            $mtlda->raiseError(
+                __METHOD__ ." can't check for duplicates if neither \$idx_field or \$guid_field is set!"
+            );
             return false;
         }
 
@@ -778,12 +783,12 @@ class DefaultModel
         $sth = $db->prepare($sql);
 
         if (!$sth) {
-            $mtlda->raiseError(__TRAIT__ .", unable to prepare query");
+            $mtlda->raiseError(__METHOD__ .", unable to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, $arr_values)) {
-            $mtlda->raiseError(__TRAIT__ .", unable to execute query");
+            $mtlda->raiseError(__METHOD__ .", unable to execute query");
             return false;
         }
 
@@ -796,7 +801,7 @@ class DefaultModel
         return true;
     }
 
-    public function column($suffix)
+    final protected function column($suffix)
     {
         global $mtlda;
 
