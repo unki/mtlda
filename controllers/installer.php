@@ -77,6 +77,7 @@ class InstallerController extends DefaultController
             $table_sql = "CREATE TABLE `TABLEPREFIXarchive` (
                 `document_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `document_guid` varchar(255) DEFAULT NULL,
+                `document_description` TEXT DEFAULT NULL,
                 `document_file_name` varchar(255) DEFAULT NULL,
                 `document_file_hash` varchar(255) DEFAULT NULL,
                 `document_file_size` int(11) DEFAULT NULL,
@@ -224,11 +225,16 @@ class InstallerController extends DefaultController
             $this->upgradeDatabaseSchemaV4();
         }
 
-        /* final action in this function */
+        if ($db->getDatabaseSchemaVersion() < 5) {
+            $this->upgradeDatabaseSchemaV5();
+        }
+
+        /* final action in this function
+        // disabled for now as of 20150923
         if (!$db->setDatabaseSchemaVersion()) {
             $mtlda->raiseError("DatabaseController:setDatabaseSchemaVersion() returned false!");
             return false;
-        }
+        }*/
 
         return true;
     }
@@ -246,7 +252,7 @@ class InstallerController extends DefaultController
         );
 
         if ($result === false) {
-            $mtlda->raiseError("upgradeDatabaseSchemaV3() failed!");
+            $mtlda->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -268,14 +274,35 @@ class InstallerController extends DefaultController
         );
 
         if ($result === false) {
-            $mtlda->raiseError("upgradeDatabaseSchemaV3() failed!");
+            $mtlda->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
         $db->setDatabaseSchemaVersion(4);
         return true;
     }
-}
 
+    private function upgradeDatabaseSchemaV5()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXarchive
+            ADD
+                `document_description` TEXT DEFAULT NULL
+            AFTER
+                document_derivation_guid"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(5);
+        return true;
+    }
+}
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
