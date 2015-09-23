@@ -221,7 +221,6 @@ class ArchiveController extends DefaultController
         }
 
         $signing_item->document_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->document_file_name);
-        $signing_item->document_version++;
         $signing_item->document_derivation = $src_item->id;
         $signing_item->document_derivation_guid = $src_item->document_guid;
         $signing_item->save();
