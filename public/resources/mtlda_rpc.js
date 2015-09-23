@@ -192,18 +192,18 @@ function rpc_object_update(element)
             alert('Failed to contact server! ' + textStatus);
         },
         success: function(data){
-            if(data == 'ok') {
-                if(action == 'add') {
-                    location.reload();
-                    return;
-                } else if(action == 'update') {
-                    $('#'+ type + '_label_' + id).html(value.replace(/\\/mg, ''));
-                    $('#' + type + '_show_' + id).toggle();
-                    $('#' + type + '_edit_' + id).toggle();
-                }
+            if(data != 'ok') {
+                alert('Server returned: ' + data + ', length ' + data.length);
                 return;
             }
-            alert('Server returned: ' + data + ', length ' + data.length);
+            if(action == 'add') {
+                location.reload();
+                return;
+            } else if(action == 'update') {
+                $('#'+ type + '_label_' + id).html(value.replace(/\\/mg, ''));
+                $('#' + type + '_show_' + id).toggle();
+                $('#' + type + '_edit_' + id).toggle();
+            }
             return;
         }
     });
