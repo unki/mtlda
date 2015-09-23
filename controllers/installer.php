@@ -85,6 +85,7 @@ class InstallerController extends DefaultController
                 `document_version` varchar(255) DEFAULT NULL,
                 `document_derivation` int(11) DEFAULT NULL,
                 `document_derivation_guid` varchar(255) DEFAULT NULL,
+                `document_signed_copy` varchar(1) DEFAULT NULL
                 PRIMARY KEY (`document_idx`)
                     )
                     ENGINE=InnoDB DEFAULT CHARSET=utf8;";
@@ -216,15 +217,11 @@ class InstallerController extends DefaultController
         global $mtlda, $db;
 
         if ($db->getDatabaseSchemaVersion() < 3) {
-            $db->query(
-                "ALTER TABLE
-                    mtlda_assign_keywords_to_document
-                ADD
-                    unique index `document_keywords` (akd_archive_idx, akd_keyword_idx),
-                ADD index `documents` (akd_archive_idx)"
-            );
+            $this->upgradeDatabaseSchemaV3();
+        }
 
-            $db->setDatabaseSchemaVersion(3);
+        if ($db->getDatabaseSchemaVersion() < 4) {
+            $this->upgradeDatabaseSchemaV4();
         }
 
         /* final action in this function */
@@ -235,6 +232,50 @@ class InstallerController extends DefaultController
 
         return true;
     }
+
+    private function upgradeDatabaseSchemaV3()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXassign_keywords_to_document
+            ADD
+                unique index `document_keywords` (akd_archive_idx, akd_keyword_idx),
+            ADD index `documents` (akd_archive_idx)"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError("upgradeDatabaseSchemaV3() failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(3);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV4()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXarchive
+            ADD
+                `document_signed_copy` varchar(1) DEFAULT NULL
+            AFTER
+                document_derivation_guid"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError("upgradeDatabaseSchemaV3() failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(4);
+        return true;
+    }
 }
+
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
