@@ -677,7 +677,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    private function getLastestDocumentVersionNumber()
+    public function getLastestDocumentVersionNumber()
     {
         global $mtlda, $db;
 
