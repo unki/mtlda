@@ -504,13 +504,14 @@ class RpcController extends DefaultController
             return false;
         }
 
-        /* if no values are provided, we simply return "ok" */
-        if (!isset($_POST['values'])) {
-            print "ok";
-            return true;
-        }
-
-        if (empty($_POST['values']) || !is_array($_POST['values'])) {
+        /* if no values are provided this usually means
+           all keywords have been removed from this document.
+        */
+        if (
+            !isset($_POST['values']) ||
+            empty($_POST['values']) ||
+            !is_array($_POST['values'])
+        ) {
             $_POST['values'] = array();
         }
 
