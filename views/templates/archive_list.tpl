@@ -28,7 +28,25 @@
 {archive_list}
  <tr>
   <td><a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_idx}</a></td>
-  <td><a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_title}</a></td>
+  <td>
+   <form id="title_edit_{$item->document_idx}" class="ui form" style="display: none;" onsubmit="return false;">
+    <div class="fields">
+     <div class="field small ui input">
+      <input type="text" name="document_title[{$item->document_idx}]" value="{$item->document_title}" data-action="update" />
+     </div>
+     <div class="field">
+      <button class="circular small ui icon button update title" data-target="document_title[{$item->document_idx}]" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_title}"><i class="save icon"></i></button>
+     </div>
+     <div class="field">
+      <button class="circular small ui icon button cancel title" data-target="document_title[{$item->document_idx}]" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_name}"><i class="cancel icon"></i></button>
+     </div>
+    </div>
+   </form>
+   <div id="title_show_{$item->document_idx}">
+    <div style="float: left;" id="title_label_{$item->document_idx}"><a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_title}</a></div>&nbsp;
+    <a class="title" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_title}"><i class="edit icon" ></i></a>
+   </div>
+  </td>
   <td>{$item->document_time}</td>
   <td><a href="{get_url page=document mode=show id=$document_safe_link}" target="_blank">Open</a></td>
   <td><a class="delete" title="delete" id="document-{$item_safe_link}">Delete</a></td>
@@ -50,3 +68,18 @@
   </tr>
  </tfoot>
 </table>
+<script type="text/javascript"><!--
+$(document).ready(function() {
+   $('a.title, button.title.cancel').click(function(element) {
+      type = $(this).attr('data-type');
+      id = $(this).attr('data-id');
+      value = $(this).attr('data-value');
+      if (!type || !id || !value) {
+         console.log('incomplete: ' + type + ', ' + id + ', ' + value);
+         return
+      }
+      $('#' + type + '_show_' + id).toggle();
+      $('#' + type + '_edit_' + id).toggle();
+   });
+});
+--></script>
