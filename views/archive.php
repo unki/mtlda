@@ -123,6 +123,7 @@ class ArchiveView extends Templates
             return false;
         }
 
+        $this->assign('latest_document_version', $this->item->getLastestDocumentVersionNumber());
         $this->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
         $this->assign('item_versions', $descendants);
         $this->assign('item', $this->item);
