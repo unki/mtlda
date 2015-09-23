@@ -36,6 +36,7 @@ class DocumentModel extends DefaultModel
             'document_version' => 'integer',
             'document_derivation' => 'integer',
             'document_derivation_guid' => 'string',
+            'document_signed_copy' => 'string',
             );
     public $avail_items = array();
     public $items = array();
