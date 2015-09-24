@@ -30,7 +30,14 @@ class ArchiveView extends Templates
 
     public function __construct()
     {
-        $this->archive = new Models\ArchiveModel;
+        global $mtlda;
+
+        try {
+            $this->archive = new Models\ArchiveModel;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load ArchiveModel!", true);
+            return false;
+        }
 
         parent::__construct();
     }
