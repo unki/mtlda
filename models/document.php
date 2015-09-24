@@ -313,9 +313,21 @@ class DocumentModel extends DefaultModel
         return $dir_name;
     }
 
-    public function preDelete()
+    protected function preDelete()
     {
-        global $mtlda;
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "DELETE FROM
+                TABLEPREFIXassign_keywords_to_document
+            WHERE
+                akd_archive_idx LIKE '{$this->document_idx}'"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError("Deleting keyword assignments failed!");
+            return false;
+        }
 
         // load StorageController
         $storage = new Controllers\StorageController;
