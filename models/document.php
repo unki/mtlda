@@ -578,59 +578,42 @@ class DocumentModel extends DefaultModel
             $values = array($values);
         }
 
-        $sth = $db->prepare(
-            "DELETE FROM
-                TABLEPREFIXassign_keywords_to_document
-            WHERE
-                akd_archive_idx
-            LIKE
-                ?"
-        );
-
-        if (!$sth) {
-            $mtlda->raiseError("Unable to prepare query!");
-            return false;
-        }
-
-        if (!$db->execute($sth, array($this->document_idx))) {
-            $mtlda->raiseError("Unable to execute query!");
-            return false;
-        }
-
-        $db->freeStatement($sth);
-
-        $sth = $db->prepare(
-            "INSERT INTO
-                TABLEPREFIXassign_keywords_to_document
-            (
-                akd_archive_idx,
-                akd_keyword_idx
-            ) VALUES (
-                ?,
-                ?
-            )"
-        );
-
-        if (!$sth) {
-            $mtlda->raiseError("Unable to prepare query!");
+        if (!$this->removeAssignedKeywords()) {
+            $mtlda->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false');
             return false;
         }
 
         foreach ($values as $value) {
+
             if (!is_numeric($value)) {
                 $mtlda->raiseError("Value '{$value}' requires to be a number!");
                 $db->freeStatement($sth);
                 return false;
             }
 
-            if (!$db->execute($sth, array($this->document_idx, $value))) {
-                $mtlda->raiseError("Failed to execute query!");
-                $db->freeStatement($sth);
+            try {
+                $keyword = new KeywordAssignmentModel;
+            } catch (\Exception $e) {
+                $mtlda->raiseError("Failed to load KeywordAssignmentModel!");
+                return false;
+            }
+
+            if (!$keyword->setArchive($this->document_idx)) {
+                $mtlda->raiseError("KeywordAssignmentModel::setArchive() returned false!");
+                return false;
+            }
+
+            if (!$keyword->setKeyword($value)) {
+                $mtlda->raiseError("KeywordAssignmentModel::setKeyword() returned false!");
+                return false;
+            }
+
+            if (!$keyword->save()) {
+                $mtlda->raiseError("KeywordAssignmentModel::save() returned false!");
                 return false;
             }
         }
 
-        $db->freeStatement($sth);
         return true;
     }
 
@@ -770,6 +753,33 @@ class DocumentModel extends DefaultModel
         }
 
         return $rows[0]['max_version'];
+    }
+
+    private function removeAssignedKeywords()
+    {
+        global $mtlda, $db;
+
+        $sth = $db->prepare(
+            "DELETE FROM
+                TABLEPREFIXassign_keywords_to_document
+            WHERE
+                akd_archive_idx
+            LIKE
+                ?"
+        );
+
+        if (!$sth) {
+            $mtlda->raiseError("Unable to prepare query!");
+            return false;
+        }
+
+        if (!$db->execute($sth, array($this->document_idx))) {
+            $mtlda->raiseError("Unable to execute query!");
+            return false;
+        }
+
+        $db->freeStatement($sth);
+        return true;
     }
 }
 
