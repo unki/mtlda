@@ -22,7 +22,8 @@
  </div>
  <div class="six wide column">
   <div class="right aligned container">
-   <a href="{get_url page=upload}"><i class="upload icon"></i>Upload</a>
+   <a href="{get_url page=upload}"><i class="upload icon"></i>Upload</a>&nbsp;
+   <a id="mailimport"><i class="mail outline icon"></i>Mailimport</a>
   </div>
  </div>
 </div>
@@ -71,3 +72,80 @@
   </tr>
  </tfoot>
 </table>
+<div class="ui modal">
+  <i class="close icon"></i>
+  <div class="header">Header </div>
+  <div class="image content">
+    <div class="image">
+      An image can appear on left or an icon
+    </div>
+    <div class="description">
+      A description can appear on the right
+    </div>
+  </div>
+  <div class="actions">
+    <div class="ui button">Cancel</div>
+    <div class="ui button">OK</div>
+  </div>
+</div>
+<script type="text/javascript"><!--
+
+$(document).ready(function() {
+
+$('a#mailimport').click(function() {
+
+   modal_wnd = show_modal({
+      closeable : false,
+      header : 'Mailimport',
+      icon : 'mail outlined icon',
+      content : '<div class="ui progress" id="uploadprogress"><div class="bar"><div class="progress"></div></div><div class="label"></div></div>',
+      hasActions : false
+   });
+
+   pbar = $('.ui.basic.modal .image.content .description p');
+   pbar.progress({
+        autoSuccess: true,
+        label: 'ratio',
+        text: {
+            label  : '{literal}{percent}{/literal} success',
+            ratio  : 'percent'
+        },
+    });
+
+    $.ajax({
+        type: 'POST',
+        url: 'rpc.html',
+        data: ({
+            type : 'rpc',
+            action : 'mailimport'
+        }),
+        beforeSend: function() {
+            pbar.progress({ percent: 10 });
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+            alert('Failed to contact server! ' + textStatus);
+        },
+        success: function(data){
+            if (data == "ok") {
+               pbar.progress({ percent: 100 });
+               setTimeout(function() {
+                  if (modal_wnd.modal('is active')) {
+                     modal_wnd.modal('hide');
+                  }
+               }, 2000);
+               return;
+            }
+            modal_wnd.modal('setting', 'closable', true);
+            modal_wnd.addClass('long');
+            modal_wnd.modal('refresh');
+            pbar.html('Server returned: ' + data + ', length ' + data.length);
+            return;
+        }
+    });
+
+    return true;
+
+});
+});
+
+--></script>
