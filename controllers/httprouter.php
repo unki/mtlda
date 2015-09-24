@@ -296,6 +296,7 @@ class HttpRouterController extends DefaultController
             'update',
             'delete',
             'archive',
+            'mailimport',
             'find-prev-next',
             'get-content',
             'get-keywords',
