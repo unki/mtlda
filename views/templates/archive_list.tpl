@@ -38,7 +38,7 @@
       <button class="circular small ui icon button update title" data-target="document_title[{$item->document_idx}]" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_title}"><i class="save icon"></i></button>
      </div>
      <div class="field">
-      <button class="circular small ui icon button cancel title" data-target="document_title[{$item->document_idx}]" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_name}"><i class="cancel icon"></i></button>
+      <button class="circular small ui icon button cancel title" data-target="document_title[{$item->document_idx}]" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_title}"><i class="cancel icon"></i></button>
      </div>
     </div>
    </form>
