@@ -185,6 +185,7 @@ class InstallerController extends DefaultController
 
             $table_sql = "CREATE TABLE `TABLEPREFIXassign_keywords_to_document` (
                 `akd_idx` int(11) NOT NULL auto_increment,
+                `akd_guid` varchar(255) default NULL,
                 `akd_archive_idx` int(11) NOT NULL,
                 `akd_keyword_idx` int(11) NOT NULL,
                 PRIMARY KEY  (`akd_idx`),
@@ -236,6 +237,10 @@ class InstallerController extends DefaultController
 
         if ($db->getDatabaseSchemaVersion() < 7) {
             $this->upgradeDatabaseSchemaV7();
+        }
+
+        if ($db->getDatabaseSchemaVersion() < 8) {
+            $this->upgradeDatabaseSchemaV8();
         }
         /* final action in this function
         // disabled for now as of 20150923
@@ -355,6 +360,61 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(7);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV8()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXassign_keywords_to_document
+            ADD
+                `akd_guid` varchar(255) default NULL
+            AFTER
+                akd_idx"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $result = $db->query(
+            "SELECT
+                akd_idx
+            FROM
+                TABLEPREFIXassign_keywords_to_document"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ .' failed!');
+            return false;
+        }
+
+        while ($row = $result->fetch()) {
+
+            if (!$guid = $mtlda->createGuid()) {
+                $mtlda->raiseError('MTLDA::createGuid() returned no valid GUID!');
+                return false;
+            }
+
+            $res = $db->query(
+                "UPDATE
+                    TABLEPREFIXassign_keywords_to_document
+                SET
+                    akd_guid='{$guid}'
+                WHERE
+                    akd_idx LIKE '{$row->akd_idx}'"
+            );
+            if ($res === false) {
+                $mtlda->raiseError(__METHOD__ .', update failed!');
+                return false;
+            }
+        }
+
+        $db->setDatabaseSchemaVersion(8);
         return true;
     }
 }
