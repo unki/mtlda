@@ -86,6 +86,13 @@ class RequirementsController extends DefaultController
             }
         }
 
+        if ($config->isMailImportEnabled()) {
+            if (!function_exists("imap_open")) {
+                $mtlda->raiseError("IMAP module is missing (also provides POP3 support)!");
+                $missing = true;
+            }
+        }
+
         if ($missing) {
             return false;
         }
