@@ -65,8 +65,8 @@
          </div>
         </form>
         <div id="document_show_{$version->document_idx}">
-         <div class="header" id="document_label_{$version->document_idx}">
-          <a href="{get_url page=document mode=show id=$safe_link file=$version->document_file_name}">{$version->document_file_name}</a>&nbsp;
+         <div class="header">
+          <a id="document_label_{$version->document_idx}" href="{get_url page=document mode=show id=$safe_link file=$version->document_file_name}">{$version->document_file_name}</a>&nbsp;
           <a class="document update" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="edit icon" ></i></a>
           <a href="{get_url page=document mode=delete id=$safe_link}"><i class="delete icon"></i></a>
          </div>
