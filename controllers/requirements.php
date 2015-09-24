@@ -60,7 +60,7 @@ class RequirementsController extends DefaultController
 
     public function checkPhp()
     {
-        global $mtlda;
+        global $mtlda, $config;
 
         $missing = false;
 
@@ -74,14 +74,16 @@ class RequirementsController extends DefaultController
             $missing = true;
         }
 
-        if (!(function_exists("openssl_pkey_get_private"))) {
-            $mtlda->raiseError("OpenSSL support is missing!");
-            $missing = true;
-        }
+        if ($config->isPdfSigningEnabled()) {
+            if (!(function_exists("openssl_pkey_get_private"))) {
+                $mtlda->raiseError("OpenSSL support is missing!");
+                $missing = true;
+            }
 
-        if (!class_exists("SoapClient")) {
-            $mtlda->raiseError("SOAP support is missing!");
-            $missing = true;
+            if (!class_exists("SoapClient")) {
+                $mtlda->raiseError("SOAP support is missing!");
+                $missing = true;
+            }
         }
 
         if ($missing) {
