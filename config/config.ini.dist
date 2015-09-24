@@ -144,7 +144,7 @@ tsp_ca_certificate = "MIIFEzCCA/ugAwIBAgIMWNoT/wAAAABRzg33MA0GCSqGSIb3DQEBCwUAMI
 ;
 ; POP3/IMAP mailbox server
 ;
-mbox_host = localhost
+mbox_server = localhost
 
 ;
 ; POP3/IMAP user name
