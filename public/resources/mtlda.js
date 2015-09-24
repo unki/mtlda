@@ -251,6 +251,8 @@ function init_dropzone()
 
 function show_modal(settings, do_function) {
 
+    var modal_settings = {};
+
     if (settings.header) {
         $('.ui.basic.modal .header').html(settings.header);
     }
@@ -259,8 +261,8 @@ function show_modal(settings, do_function) {
         $('.ui.basic.modal .image.content i.icon').removeClass().addClass(settings.icon);
     }
 
-    if (settings.description) {
-        $('.ui.basic.modal .image.content .description p').html(settings.description);
+    if (settings.content) {
+        $('.ui.basic.modal .image.content .description p').html(settings.content);
     }
 
     if (settings.closeable == undefined) {
@@ -273,14 +275,29 @@ function show_modal(settings, do_function) {
         $('.ui.basic.modal i.close.icon').appendTo('.ui.basic.modal');
     }
 
+    if (settings.hasActions == undefined) {
+        settings.hasActions = true;
+    }
+
+    if (!settings.hasActions) {
+        $('.ui.basic.modal .actions').detach();
+    } else {
+        $('.ui.basic.modal .actions').appendTo('.ui.basic.modal');
+    }
+
     if (!settings.onDeny) {
         settings.onDeny = function() { return true; };
     }
+
     if (!settings.onApprove) {
         settings.onApprove = function() { return true; };
     }
 
-    $('.ui.basic.modal')
+    if (!do_function) {
+        do_function = function() { return true; };
+    }
+
+    modal = $('.ui.basic.modal')
         .modal({
             closable  : settings.closeable,
             onDeny    : settings.onDeny,
@@ -288,6 +305,8 @@ function show_modal(settings, do_function) {
         })
         .modal('show')
         .on('click.modal', do_function);
+
+    return modal;
 }
 
 function safe_string(input)
@@ -316,7 +335,7 @@ function delete_object(element)
         closeable : false,
         header : 'Flush Queue',
         icon : 'wait icon',
-        description : 'This will delete all items from Queue! Are you sure?\nThere is NO undo',
+        content : 'This will delete all items from Queue! Are you sure?\nThere is NO undo',
         onDeny : function() {
             return true;
         },
@@ -352,7 +371,7 @@ function archive_object(element)
         closeable : false,
         header : 'Archive all queue items',
         icon : 'archive icon',
-        description : 'This will archive all items! Are you sure?',
+        content : 'This will archive all items! Are you sure?',
         onDeny : function() {
             return true;
         },
