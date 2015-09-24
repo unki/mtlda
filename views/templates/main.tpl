@@ -14,11 +14,42 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<h1 class="ui header"><i class="gamepad icon"></i>Welcome to MTLDA!</h1>
-<br />
-<div id="archive10">
-Recent archived
-</div>
-<div id="queue10">
-Recent imported
+<h1 class="ui header"><i class="database icon"></i>Welcome to MTLDA!</h1>
+<div class="ui two column grid">
+
+ <!-- left column -->
+ <div class="column">
+<i class="archive icon"></i>Recently archived documents
+  <div class="ui very relaxed divided selection list">
+{top10 type=archive}
+   <div class="item">
+    <i class="file text icon"></i>
+    <div class="content">
+     <div class="header">
+      <a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_title}</a>&nbsp;
+      <a href="{get_url page=document mode=show id="document-$item_safe_link" file=$item->document_file_name}"><i class="search icon"></i></a>
+     </div>
+     <div class="description">added {$item->document_time|date_format:"%Y.%m.%d %H:%M"}.</div>
+    </div>
+   </div>
+{/top10}
+  </div>
+ </div>
+
+ <!-- right column -->
+ <div class="column">
+<i class="wait icon"></i>Recently queued documents
+  <div class="ui very relaxed divided selection list">
+{top10 type=queue}
+   <div class="item">
+    <i class="file text icon"></i>
+    <div class="content">
+     <a class="header" href="{get_url page=queue mode=show id=$item_safe_link file=$item->queue_file_name}">{$item->queue_file_name}</a>
+     <div class="description">added {$item->queue_time|date_format:"%Y.%m.%d %H:%M"}.</div>
+    </div>
+   </div>
+{/top10}
+  </div>
+ </div>
+
 </div>
