@@ -115,6 +115,7 @@ class DocumentModel extends DefaultModel
         try {
             $this->addRpcEnabledField('document_title');
             $this->addRpcEnabledField('document_description');
+            $this->addRpcEnabledField('document_file_name');
         } catch (\Exception $e) {
             $mtlda->raise("Failed on invoking addRpcEnabledField() method");
             return false;
