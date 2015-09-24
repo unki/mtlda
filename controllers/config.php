@@ -202,6 +202,19 @@ class ConfigController extends DefaultController
         return $this->config['timestamp'];
     }
 
+    public function getMailImportConfiguration()
+    {
+        if (
+            !isset($this->config['mailimport']) ||
+            empty($this->config['mailimport']) ||
+            !is_array($this->config['mailimport'])
+        ) {
+            return false;
+        }
+
+        return $this->config['mailimport'];
+    }
+
     public function getPdfSigningIconPosition()
     {
         $default_pos = SIGN_TOP_RIGHT;
@@ -349,6 +362,19 @@ class ConfigController extends DefaultController
 
         return false;
 
+    }
+
+    public function isMailImportEnabled()
+    {
+        if (!isset($this->config['app']['enable_mail_import'])) {
+            return false;
+        }
+
+        if (!in_array($this->config['app']['enable_mail_import'], array('yes','y','true','on','1'))) {
+            return false;
+        }
+
+        return true;
     }
 
     public function isCreatePreviewImageOnImport()
