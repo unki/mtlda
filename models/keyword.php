@@ -104,6 +104,25 @@ class KeywordModel extends DefaultModel
 
         return true;
     }
+
+    protected function preDelete()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "DELETE FROM
+                TABLEPREFIXassign_keywords_to_document
+            WHERE
+                akd_keyword_idx LIKE '{$this->keyword_idx}'"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError("Deleting keyword assignments failed!");
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
