@@ -49,6 +49,11 @@ pdf_signing = 0
 ;
 embed_icon_to_pdf = 1
 
+;
+; Mail imports, 0 = disabled, 1 = enabled
+;
+mail_import = 0
+
 [database]
 
 ;
