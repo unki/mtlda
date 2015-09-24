@@ -30,8 +30,8 @@ abstract class DefaultModel
     public $fields;
     public $id;
     public $init_values;
-    public $permit_rpc_updates = false;
-    public $rpc_allowed_fields;
+    protected $permit_rpc_updates = false;
+    protected $rpc_allowed_fields = array();
 
     protected function __construct($id = null)
     {
@@ -58,7 +58,6 @@ abstract class DefaultModel
         }
 
         $this->init_values = array();
-        $this->rpc_allowed_fields = array();
         $this->id = $id;
 
         if (!$this->load()) {
