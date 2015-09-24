@@ -19,9 +19,84 @@
 
 namespace MTLDA\Views;
 
+use MTLDA\Models;
+
 class MainView extends Templates
 {
     public $class_name = 'main';
+    private $queue;
+    private $archive;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->registerPlugin("block", "top10", array(&$this, 'showTop10List'));
+
+        try {
+            $this->queue = new Models\QueueModel;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load QueueModel!", true);
+            return false;
+        }
+
+        try {
+            $this->archive = new Models\ArchiveModel;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load ArchiveModel!", true);
+            return false;
+        }
+
+        return true;
+    }
+
+    public function showTop10List($params, $content, &$smarty, &$repeat)
+    {
+        global $mtlda;
+
+        if (!isset($params['type'])) {
+            $mtlda->raiseError("top10 block misses 'type' parameter!");
+            return false;
+        }
+
+        if ($params['type'] == 'archive') {
+            $avail_items =& $this->archive->avail_items;
+            $items =& $this->archive->items;
+        } elseif ($params['type'] == 'queue') {
+            $avail_items =& $this->queue->avail_items;
+            $items =& $this->queue->items;
+        } else {
+            $mtlda->raiseError("Type '{$params['type']}' is not supported!");
+            return false;
+        }
+
+        $index = $smarty->getTemplateVars("smarty.IB.{$params['type']}_list.index");
+
+        if (!isset($index) || empty($index)) {
+            $index = 0;
+        }
+
+        if ($index >= count($avail_items) || $index > 9) {
+            $repeat = false;
+            return $content;
+        }
+
+        $item_idx = $avail_items[$index];
+        $item =  $items[$item_idx];
+
+        $smarty->assign("item", $item);
+        if ($params['type'] == 'archive') {
+            $smarty->assign("item_safe_link", "{$item->document_idx}-{$item->document_guid}");
+        } elseif ($params['type'] == 'queue') {
+            $smarty->assign("item_safe_link", "queue-{$item->queue_idx}-{$item->queue_guid}");
+        }
+
+        $index++;
+        $smarty->assign("smarty.IB.{$params['type']}_list.index", $index);
+        $repeat = true;
+
+        return $content;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
