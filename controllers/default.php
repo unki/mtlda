@@ -19,7 +19,7 @@
 
 namespace MTLDA\Controllers;
 
-class DefaultController
+abstract class DefaultController
 {
     const CONFIG_DIRECTORY = MTLDA_BASE ."/config";
     const CACHE_DIRECTORY = MTLDA_BASE ."/cache";
