@@ -33,6 +33,18 @@ class KeywordModel extends DefaultModel
     {
         global $mtlda, $db;
 
+        if (!$this->permitRpcUpdates(true)) {
+            $mtlda->raiseError("permitRpcUpdates() returned false!");
+            return false;
+        }
+
+        try {
+            $this->addRpcEnabledField('keyword_name');
+        } catch (\Exception $e) {
+            $mtlda->raise("Failed on invoking addRpcEnabledField() method");
+            return false;
+        }
+
         // are we creating a new item?
         if (!isset($id) && !isset($guid)) {
             parent::__construct(null);
@@ -89,18 +101,6 @@ class KeywordModel extends DefaultModel
 
         $db->freeStatement($sth);
         parent::__construct($row->keyword_idx);
-
-        if (!$this->permitRpcUpdates(true)) {
-            $mtlda->raiseError("permitRpcUpdates() returned false!");
-            return false;
-        }
-
-        try {
-            $this->addRpcEnabledField('keyword_name');
-        } catch (\Exception $e) {
-            $mtlda->raise("Failed on invoking addRpcEnabledField() method");
-            return false;
-        }
 
         return true;
     }
