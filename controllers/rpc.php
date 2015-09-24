@@ -375,11 +375,6 @@ class RpcController extends DefaultController
     {
         global $mtlda;
 
-        $valid_update_keys = array(
-            'keyword',
-            'document',
-        );
-
         if (!isset($_POST['key']) || empty($_POST['key'])) {
             $mtlda->raiseError("key is missing!");
             return false;
@@ -418,11 +413,6 @@ class RpcController extends DefaultController
         }
 
         $scope = $parts[1];
-
-        if (!in_array($scope, $valid_update_keys)) {
-            $mtlda->raiseError("scope {$scope} is not allowed to be updated!");
-            return false;
-        }
 
         if (!$mtlda->isValidModel($scope)) {
             $mtlda->raiseError("scope contains an invalid model ({$scope})!");
