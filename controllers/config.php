@@ -366,11 +366,11 @@ class ConfigController extends DefaultController
 
     public function isMailImportEnabled()
     {
-        if (!isset($this->config['app']['enable_mail_import'])) {
+        if (!isset($this->config['app']['mail_import'])) {
             return false;
         }
 
-        if (!in_array($this->config['app']['enable_mail_import'], array('yes','y','true','on','1'))) {
+        if (!in_array($this->config['app']['mail_import'], array('yes','y','true','on','1'))) {
             return false;
         }
 
