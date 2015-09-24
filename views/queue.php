@@ -29,7 +29,14 @@ class QueueView extends Templates
 
     public function __construct()
     {
-        $this->queue = new Models\QueueModel;
+        global $mtlda;
+
+        try {
+            $this->queue = new Models\QueueModel;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load QueueModel!", true);
+            return false;
+        }
 
         parent::__construct();
     }
