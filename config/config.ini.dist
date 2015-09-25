@@ -165,3 +165,9 @@ mbox_password = yourpassword
 ; select 'imap' or 'pop3'
 ;
 mbox_type = imap
+
+;
+; delete mail if successfully parsed and placed into the incoming directory
+;    0 = flag seen only, 1 = delete
+;
+mbox_delete_mail = 1
