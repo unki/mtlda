@@ -346,6 +346,37 @@ class StorageController extends DefaultController
 
         return false;
     }
+
+    public function checkDirectoryEmpty($path)
+    {
+        global $mtlda;
+
+        if (empty($path) && !is_string($path)) {
+            $mtlda->raiseError(__METHOD__ .', first parameter needs to be a path!');
+            return false;
+        }
+
+        if (!file_exists($path)) {
+            $mtlda->raiseError("{$path} does not exist!");
+            return false;
+        }
+
+        if (!is_dir($path)) {
+            $mtlda->raiseError("{$path} is not a directory!");
+            return false;
+        }
+
+        if ($path != realpath($path)) {
+            $mtlda->raiseError("Are you trying to fooling me?");
+            return false;
+        }
+
+        if (count(glob($path .'/*', GLOB_NOSORT)) === 0) {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
