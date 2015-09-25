@@ -270,19 +270,8 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$header = imap_fetchheader($msgno)) {
-            $mtlda->raiseError("Unable to retrieve header!". imap_last_error());
-            return false;
-        }
-
-        if (empty($header) || !is_string($header)) {
-            $mtlda->raiseError("imap_fetchheader() hasn't returned a array!");
-            return false;
-        }
-
         $mail = array(
             'msgno' => $msgno,
-            'header' => $header,
             'structure' => $structure
         );
 
@@ -298,7 +287,6 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        $header = $msg['header'];
         $structure = $msg['structure'];
         $msgno = $msg['msgno'];
 
