@@ -193,10 +193,25 @@ class MailImportController extends DefaultController
 
     private function disconnect()
     {
-        global $mtlda;
+        global $mtlda, $config;
 
         if (!$this->isConnected()) {
             return true;
+        }
+
+        // for POP3 we are going to actually delete messages,
+        // for IMAP it is good enough for us to have them marked
+        // deleted without expunging them.
+        if (
+            strtolower($this->mail_cfg['mbox_type']) == 'pop3' ||
+            ( strtolower($this->mail_cfg['mbox_type']) == 'imap' &&
+                $config->getMailImportImapMailboxExpunge()
+            )
+        ) {
+            if (!imap_expunge($this->imap_session)) {
+                $mtlda->raiseError("imap_expunge() returned false!". imap_last_error());
+                return false;
+            }
         }
 
         if (!imap_close($this->imap_session)) {
@@ -204,6 +219,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
+        $this->setDisconnected();
         return true;
     }
 
@@ -374,7 +390,7 @@ class MailImportController extends DefaultController
             }
 
             if (file_exists($dest_queue)) {
-                $mtlda->raiseError("An item with the name {$file['name']} is already queued!");
+                $mtlda->raiseError("An item with the name {$filename} is already queued!");
                 return false;
             }
 
