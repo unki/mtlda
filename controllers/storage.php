@@ -21,44 +21,6 @@ namespace MTLDA\Controllers;
 
 class StorageController extends DefaultController
 {
-    public function generateDirectoryName($hash)
-    {
-        global $mtlda;
-
-        $dir_name = "";
-
-        if (empty($hash)) {
-            $mtlda->raiseError("hash is empty!");
-            return false;
-        }
-
-        for ($i = 0; $i < strlen($hash); $i+=2) {
-
-            $hash_part = substr($hash, $i, 2);
-
-            if (!$hash_part) {
-                $mtlda->raiseError("substr() returned false!");
-                return false;
-            }
-
-            // stop if we reach nesting depth
-            if (($i/2) > $this::ARCHIVE_NESTING_DEPTH) {
-                break;
-            }
-
-            $dir_name.= $hash_part.'/';
-        }
-
-        if (!isset($dir_name) || empty($dir_name)) {
-            return false;
-        }
-
-        // remove trailing slash
-        $dir_name = rtrim($dir_name, '/');
-
-        return $dir_name;
-    }
-
     public function createDirectoryStructure($store_dir_name)
     {
         global $mtlda;
@@ -86,29 +48,19 @@ class StorageController extends DefaultController
         return true;
     }
 
-    public function copyQueueItemFileToArchive($file_name, $dest_dir)
+    public function copyQueueItemFileToArchive($fqpn_src, $fqpn_dst)
     {
         global $mtlda;
-
-        $fqpn_src = $this::WORKING_DIRECTORY .'/'. $file_name;
-        $fqpn_dst = $this::ARCHIVE_DIRECTORY .'/'. $dest_dir;
 
         if (!file_exists($fqpn_src)) {
             $mtlda->raiseError("copyQueueItemFileToArchive(), {$fqpn_src} does not exist!");
             return false;
         }
 
-        if (!file_exists($fqpn_dst)) {
-            $mtlda->raiseError("copyQueueItemFileToArchive(), {$fqpn_dst} does not exist!");
-            return false;
-        }
-
-        if (!is_dir($fqpn_dst)) {
+        if (!is_dir(dirname($fqpn_dst))) {
             $mtlda->raiseError("copyQueueItemFileToArchive(), {$fqpn_dst} is not a directory!");
             return false;
         }
-
-        $fqpn_dst.= '/'. $file_name;
 
         if (file_exists($fqpn_dst)) {
             $mtlda->raiseError("copyQueueItemFileToArchive(), destination file {$fqpn_dst} already exists!");
@@ -123,24 +75,21 @@ class StorageController extends DefaultController
         return true;
     }
 
-    public function copyArchiveDocumentFile($src, $dst)
+    public function copyArchiveDocumentFile($fqfn_src, $fqfn_dst)
     {
         global $mtlda;
 
-        $fqpn_src = $this::ARCHIVE_DIRECTORY .'/'. $src;
-        $fqpn_dst = $this::ARCHIVE_DIRECTORY .'/'. $dst;
-
-        if (!file_exists($fqpn_src)) {
-            $mtlda->raiseError("copyArchiveDocumentFile(), {$fqpn_src} does not exist!");
+        if (!file_exists($fqfn_src)) {
+            $mtlda->raiseError("copyArchiveDocumentFile(), {$fqfn_src} does not exist!");
             return false;
         }
 
-        if (file_exists($fqpn_dst)) {
-            $mtlda->raiseError("copyArchiveDocumentFile(), {$fqpn_dst} already exist!");
+        if (file_exists($fqfn_dst)) {
+            $mtlda->raiseError("copyArchiveDocumentFile(), {$fqfn_dst} already exist!");
             return false;
         }
 
-        if (!copy($fqpn_src, $fqpn_dst)) {
+        if (!copy($fqfn_src, $fqfn_dst)) {
             $mtlda->raiseError("copyArchiveDocumentFile(), copy() returned false!");
             return false;
         }
@@ -201,28 +150,27 @@ class StorageController extends DefaultController
             return false;
         }
 
-        if (!($dir_name = $this->generateDirectoryName($item->$guid))) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+        if (!method_exists($item, 'getFilePath')) {
+            $mtlda->raiseError('Class '. get_class($item) .' does not provide getFilePath() method!');
             return false;
         }
 
-        if (!isset($dir_name) || empty($dir_name)) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned nothing!");
+        if (!($fqfn = $item->getFilePath())) {
+            $mtlda->raiseError(get_class($item) ."::getFilePath() returned false!");
             return false;
         }
 
-        if ($item->column_name == 'document') {
-            $fqpn = $this::ARCHIVE_DIRECTORY .'/'. $dir_name .'/'. $item->$file_name_field;
-        } elseif ($item->column_name == 'queue') {
-            $fqpn = $this::WORKING_DIRECTORY .'/'. $item->$file_name_field;
-        }
-
-        if (!file_exists($fqpn)) {
-            $mtlda->raiseError("StorageController::deleteItemFile(), {$fqpn} does not exist!");
+        if (!file_exists($fqfn)) {
+            $mtlda->raiseError("StorageController::deleteItemFile(), {$fqfn} does not exist!");
             return false;
         }
 
-        if (!unlink($fqpn)) {
+        if (!$this->isBelowDataDirectory(dirname($fqfn))) {
+            $mtlda->raiseError("will only handle requested within ". $this::DATA_DIRECTORY ."!");
+            return false;
+        }
+
+        if (!unlink($fqfn)) {
             $mtlda->raiseError("StorageController::deleteItemFile(), unlink() returned false!");
             return false;
         }
@@ -257,13 +205,13 @@ class StorageController extends DefaultController
             $name_field = "queue_file_name";
         }
 
-        if (!($dir_name = $this->generateDirectoryName($document->$guid_field))) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+        if (!method_exists($document, 'getFilePath')) {
+            $mtlda->raiseError('Class '. get_class($document) .' does not provide getFilePath() method!');
             return false;
         }
 
-        if (!isset($dir_name) || empty($dir_name)) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned an empty directory string");
+        if (!($dir_name = $document->getFilePath())) {
+            $mtlda->raiseError(get_class($document) ."::getFilePath() returned false!");
             return false;
         }
 
