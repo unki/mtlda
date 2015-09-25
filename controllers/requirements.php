@@ -218,6 +218,7 @@ class RequirementsController extends DefaultController
             $this::ARCHIVE_DIRECTORY => 'w',
             $this::INCOMING_DIRECTORY => 'w',
             $this::WORKING_DIRECTORY => 'w',
+            $this::CACHE_DIRECTORY.'/image_cache' => 'w',
         );
 
         if (!file_exists($this::DATA_DIRECTORY)) {
