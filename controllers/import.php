@@ -150,12 +150,12 @@ class ImportController extends DefaultController
     {
         global $mtlda, $audit;
 
-        if (($importdir = opendir($this::INCOMING_DIRECTORY)) === false) {
+        if (($dir = opendir($path)) === false) {
             $mtlda->raiseError("Failed to access ". $this::INCOMING_DIRECTORY);
             return false;
         }
 
-        while ($item = readdir($importdir)) {
+        while ($item = readdir($dir)) {
 
             // ignore special files and if $file is empty
             if (empty($item) || $item == '.' || $item == '..') {
@@ -167,7 +167,7 @@ class ImportController extends DefaultController
                 continue;
             }
 
-            if (is_dir($item)) {
+            if (is_dir($path .'/'. $item)) {
                 if (!$this->scanDirectory($path .'/'. $item, $files)) {
                     $mtlda->raiseError(__CLASS__ .'::scanDirectory() returned false!');
                     return false;
@@ -177,7 +177,7 @@ class ImportController extends DefaultController
 
             $file = array();
             $file['filename'] = basename($item);
-            $file['fqpn'] = $this::INCOMING_DIRECTORY .'/'. $file['filename'];
+            $file['fqpn'] = $path .'/'. $file['filename'];
 
 
             if (!file_exists($file['fqpn'])) {
