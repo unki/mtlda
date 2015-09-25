@@ -128,7 +128,9 @@ class ImportController extends DefaultController
                 return false;
             }
 
-            if (!rmdir($in_dir)) {
+            if (
+                $in_dir != $this::INCOMING_DIRECTORY &&
+                !rmdir($in_dir)) {
                 $mtlda->raiseError("Failed to cleanup incoming directory {$in_dir}!");
                 return false;
             }
