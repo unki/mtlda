@@ -355,7 +355,7 @@ class MailImportController extends DefaultController
             }
 
             // just if someone tries to fool us...
-            $filename = basename($attachment['filename']);
+            $filename = $attachment['filename'];
 
             // if file is not suffixed by a .pdf, we skip it
             if (!preg_match('/\.pdf$/i', $filename)) {
@@ -372,8 +372,21 @@ class MailImportController extends DefaultController
                 return false;
             }
 
-            $dest = $this::INCOMING_DIRECTORY .'/'. $filename;
-            $dest_queue = $this::WORKING_DIRECTORY .'/'. $filename;
+            $indir_ready = false;
+
+            do {
+                $destdir = $this::INCOMING_DIRECTORY .'/'. uniqid();
+
+                if (file_exists($destdir)) {
+                    continue;
+                }
+
+                if (!mkdir($destdir, 0700)) {
+                    continue;
+                }
+            } while (!file_exists($destdir));
+
+            $dest = $destdir .'/'. $filename;
 
             // if $dest is already present, we add a bit random to the filename
             if (file_exists($dest)) {
@@ -384,18 +397,12 @@ class MailImportController extends DefaultController
                     $filename = $filename .'-'. uniqid();
                 }
                 $dest = $this::INCOMING_DIRECTORY .'/'. $filename;
-                $dest_queue = $this::WORKING_DIRECTORY .'/'. $filename;
             }
 
             if (file_exists($dest)) {
                 $mtlda->raiseError(
                     "A file with the name {$file['name']} is already present in the incoming directory!"
                 );
-                return false;
-            }
-
-            if (file_exists($dest_queue)) {
-                $mtlda->raiseError("An item with the name {$filename} is already queued!");
                 return false;
             }
 
@@ -497,7 +504,7 @@ class MailImportController extends DefaultController
 
             array_push($attachments, array(
                 'id' => $id,
-                'filename' => $param->value,
+                'filename' => basename($param->value),
                 'encoding' => $encoding
             ));
         }
