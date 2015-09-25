@@ -21,15 +21,13 @@ namespace MTLDA\Controllers;
 
 class StorageController extends DefaultController
 {
-    public function createDirectoryStructure($store_dir_name)
+    public function createDirectoryStructure($fqpn)
     {
         global $mtlda;
 
-        if (empty($store_dir_name)) {
+        if (empty($fqpn)) {
             return false;
         }
-
-        $fqpn = $this::ARCHIVE_DIRECTORY .'/'. $store_dir_name;
 
         if (file_exists($fqpn) && is_dir($fqpn)) {
             return true;
