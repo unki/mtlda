@@ -98,11 +98,18 @@ class ImportController extends DefaultController
             }
 
             $in_file = $file['fqpn'];
+            $in_dir = dirname($in_file);
+
             $work_file = $this::WORKING_DIRECTORY .'/'. $file['filename'];
 
             if (rename($in_file, $work_file) === false) {
                 $queueitem->delete();
                 $mtdla->raiseError("Rename {$in_file} to {$work_file} failed!");
+                return false;
+            }
+
+            if (!rmdir($in_dir)) {
+                $mtlda->raiseError("Failed to cleanup incoming directory {$in_dir}!");
                 return false;
             }
 
