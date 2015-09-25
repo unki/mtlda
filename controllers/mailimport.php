@@ -307,6 +307,7 @@ class MailImportController extends DefaultController
                 continue;
             }
 
+            // the actual MIME part id is +1 then the array key
             $id+=1;
 
             if (!$this->parseMimePart($part, $id, $attachments)) {
@@ -316,6 +317,19 @@ class MailImportController extends DefaultController
         }
 
         foreach ($attachments as $attachment) {
+
+            if (!isset($attachment['filename']) || empty($attachment['filename'])) {
+                $mtlda->raiseError("Something is wrong. No filename is known for this mime part!");
+                return false;
+            }
+
+            // just if someone tries to fool us...
+            $filename = basename($attachment['filename']);
+
+            // if file is not suffixed by a .pdf, we skip it
+            if (!preg_match('/\.pdf$/i', $filename)) {
+                continue;
+            }
 
             if (($attachment_body = $this->fetchMimePartBody($session, $msgno, $attachment)) === false) {
                 $mtlda->raiseError(__CLASS__ .'::fetchMimePartBody() returned false!');
@@ -327,18 +341,12 @@ class MailImportController extends DefaultController
                 return false;
             }
 
-            if (empty($attachment['filename'])) {
-                $mtlda->raiseError("Something is wrong. No filename is known for this mime part!");
-                return false;
-            }
-
-            $filename = basename($attachment['filename']);
             $dest = $this::INCOMING_DIRECTORY .'/'. $filename;
             $dest_queue = $this::WORKING_DIRECTORY .'/'. $filename;
 
+            // if $dest is already present, we add a bit random to the filename
             if (file_exists($dest)) {
 
-                // if $dest is already present, we choose a random name based on microtime
                 if (preg_match('/([[:print:]]+)\.([[:print:]]+)/', $filename, $matches)) {
                     $filename = "{$matches[1]}-". uniqid() .".{$matches[2]}";
                 } else {
@@ -383,7 +391,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        // if we have parts in parts
+        // if we have parts nested in parts, we have to run through recursive
         if (isset($part->parts)) {
 
             foreach ($part->parts as $subid => $subpart) {
@@ -393,6 +401,7 @@ class MailImportController extends DefaultController
                     continue;
                 }
 
+                // the actual MIME part id is +1 then the array key
                 $id+=1;
 
                 if (!$this->parseMimePart($subpart, "{$id}.{$subid}", $attachments)) {
