@@ -37,7 +37,6 @@ class QueueItemModel extends DefaultModel
             );
     public $avail_items = array();
     public $items = array();
-    private $working_directory = "../data/working";
 
     public function __construct($id = null, $guid = null)
     {
@@ -101,11 +100,6 @@ class QueueItemModel extends DefaultModel
     {
         global $mtlda;
 
-        if (!isset($this->working_directory)) {
-            $mtlda->raiseError("working_directory is not set!");
-            return false;
-        }
-
         if (!isset($this->queue_file_name)) {
             $mtlda->raiseError("queue_file_name is not set!");
             return false;
@@ -116,7 +110,10 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $fqpn = $this->working_directory .'/'. $this->queue_file_name;
+        if (!$fqpn = $this->getFilePath()) {
+            $mtlda->raiseError("getFilePath() returned false!");
+            return false;
+        }
 
         if (!file_exists($fqpn)) {
             $mtlda->raiseError("File {$fqpn} does not exist!");
