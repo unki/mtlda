@@ -190,12 +190,10 @@ class StorageController extends DefaultController
             return false;
         }
 
-        if (!($dir_name = $document->getFilePath())) {
+        if (!($src = $document->getFilePath())) {
             $mtlda->raiseError(get_class($document) ."::getFilePath() returned false!");
             return false;
         }
-
-        $src.= "/{$dir_name}/{$document->$name_field}";
 
         if (!file_exists($src)) {
             $mtlda->raiseError("Source does not exist!");
