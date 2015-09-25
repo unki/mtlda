@@ -24,6 +24,9 @@ class MailImportController extends DefaultController
     private $mail_cfg;
     private $connect_string;
 
+    private $imap_session;
+    private $is_conected = false;
+
     public function __construct()
     {
         global $mtlda, $config;
@@ -59,21 +62,31 @@ class MailImportController extends DefaultController
         }
     }
 
+    public function __destruct()
+    {
+        if (!$this->isConnected()) {
+            return true;
+        }
+
+        $this->disconnect();
+        return true;
+    }
+
     public function fetch()
     {
         global $mtlda;
 
-        if (!$session = $this->connect()) {
+        if (!$this->connect()) {
             $mtlda->raiseError(__CLASS__ .'::connect() returned false!');
             return false;
         }
 
-        if (($msg_cnt = $this->checkForMails($session)) === false) {
+        if (($msg_cnt = $this->checkForMails()) === false) {
             $mtlda->raiseError(__CLASS__ .'::checkForMails() returned false!');
         }
 
         if ($msg_cnt > 0) {
-            if (!$list = $this->retrieveListOfMails($session, $msg_cnt)) {
+            if (!$list = $this->retrieveListOfMails($msg_cnt)) {
                 $mtlda->raiseError(__CLASS__ .'::retrieveListOfMails() returned false!');
             }
         }
@@ -94,18 +107,18 @@ class MailImportController extends DefaultController
                 break;
             }
 
-            if (!$msg = $this->retrieveMail($session, $mail->msgno)) {
+            if (!$msg = $this->retrieveMail($mail->msgno)) {
                 $mtlda->raiseError(__CLASS__ .'::retrieveMail() returned false!');
                 break;
             }
 
-            if (!$this->parseMail($session, $msg)) {
+            if (!$this->parseMail($msg)) {
                 $mtlda->raiseError(__CLASS__ .'::parseMail() returned false!');
                 break;
             }
         }
 
-        if (!$this->disconnect($session)) {
+        if (!$this->disconnect()) {
             $mtlda->raiseError(__CLASS__ .'::disconnect() returned false!');
             return false;
         }
@@ -144,36 +157,36 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        $session = imap_open(
+        $this->imap_session = imap_open(
             $this->connect_string,
             $this->mail_cfg['mbox_username'],
             $this->mail_cfg['mbox_password'],
             OP_SILENT /* to avoid the Mailbox-is-empty notice message */
         );
 
-        if ($session === false) {
+        if ($this->imap_session === false) {
             $mtlda->raiseError("Unable to connect!<br />". imap_last_error());
             return false;
         }
 
-        if (!is_resource($session)) {
+        if (!is_resource($this->imap_session)) {
             $mtlda->raiseError("What ever has been opened, it is not a resource!");
             return false;
         }
 
-        return $session;
+        $this->setConnected();
+        return true;
     }
 
-    private function disconnect(&$session)
+    private function disconnect()
     {
         global $mtlda;
 
-        if (!is_resource($session)) {
-            $mtlda->raiseError("No valid IMAP session provided!");
-            return false;
+        if (!$this->isConnected()) {
+            return true;
         }
 
-        if (!imap_close($session)) {
+        if (!imap_close($this->imap_session)) {
             $mtlda->raiseError("imap_close() failed!". imap_last_error());
             return false;
         }
@@ -181,16 +194,16 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function checkForMails(&$session)
+    private function checkForMails()
     {
         global $mtlda;
 
-        if (!is_resource($session)) {
-            $mtlda->raiseError("No valid IMAP session provided!");
+        if (!$this->isConnected()) {
+            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
-        if (!$status = imap_status($session, $this->connect_string, SA_UNSEEN)) {
+        if (!$status = imap_status($this->imap_session, $this->connect_string, SA_UNSEEN)) {
             $mtlda->raiseError("imap_status() failed!". imap_last_error());
             return false;
         }
@@ -208,12 +221,12 @@ class MailImportController extends DefaultController
         return $status->unseen;
     }
 
-    private function retrieveListOfMails(&$session, $msg_cnt)
+    private function retrieveListOfMails($msg_cnt)
     {
         global $mtlda;
 
-        if (!is_resource($session)) {
-            $mtlda->raiseError("No valid IMAP session provided!");
+        if (!$this->isConnected()) {
+            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
@@ -221,7 +234,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$list = imap_fetch_overview($session, "1:{$msg_cnt}")) {
+        if (!$list = imap_fetch_overview($this->imap_session, "1:{$msg_cnt}")) {
             $mtlda->raiseError("imap_fetch_overview() failed!");
             return false;
         }
@@ -234,12 +247,12 @@ class MailImportController extends DefaultController
         return $list;
     }
 
-    private function retrieveMail(&$session, $msgno)
+    private function retrieveMail($msgno)
     {
-         global $mtlda;
+        global $mtlda;
 
-        if (!is_resource($session)) {
-            $mtlda->raiseError("No valid IMAP session provided!");
+        if (!$this->isConnected()) {
+            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
@@ -247,7 +260,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$structure = imap_fetchstructure($session, $msgno)) {
+        if (!$structure = imap_fetchstructure($msgno)) {
             $mtlda->raiseError("Unable to retrieve structure!". imap_last_error());
             return false;
         }
@@ -257,7 +270,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$header = imap_fetchheader($session, $msgno)) {
+        if (!$header = imap_fetchheader($msgno)) {
             $mtlda->raiseError("Unable to retrieve header!". imap_last_error());
             return false;
         }
@@ -276,17 +289,12 @@ class MailImportController extends DefaultController
         return $mail;
     }
 
-    private function parseMail(&$session, &$msg)
+    private function parseMail(&$msg)
     {
         global $mtlda;
 
-        if (!is_resource($session)) {
-            $mtlda->raiseError("No valid IMAP session provided!");
-            return false;
-        }
-
         if (!is_array($msg)) {
-            $mtlda->raiseError(__METHOD__ .', second parameter should be an array!');
+            $mtlda->raiseError(__METHOD__ .', first parameter should be an array!');
             return false;
         }
 
@@ -332,7 +340,7 @@ class MailImportController extends DefaultController
                 continue;
             }
 
-            if (($attachment_body = $this->fetchMimePartBody($session, $msgno, $attachment)) === false) {
+            if (($attachment_body = $this->fetchMimePartBody($msgno, $attachment)) === false) {
                 $mtlda->raiseError(__CLASS__ .'::fetchMimePartBody() returned false!');
                 return false;
             }
@@ -475,26 +483,26 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function fetchMimePartBody($session, $msgno, $attachment)
+    private function fetchMimePartBody($msgno, $attachment)
     {
         global $mtlda;
 
-        if (!is_resource($session)) {
-            $mtlda->raiseError("No valid IMAP session provided!");
+        if (!$this->isConnected()) {
+            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
         if (!is_numeric($msgno)) {
-            $mtlda->raiseError(__METHOD__ .', second parameter should be an array!');
+            $mtlda->raiseError(__METHOD__ .', first parameter should be an array!');
             return false;
         }
 
         if (!is_array($attachment)) {
-            $mtlda->raiseError(__METHOD__ .', third parameter should be an array!');
+            $mtlda->raiseError(__METHOD__ .', second parameter should be an array!');
             return false;
         }
 
-        if (!$body = imap_fetchbody($session, $msgno, $attachment['id'])) {
+        if (!$body = imap_fetchbody($msgno, $attachment['id'])) {
             $mtlda->raiseError('imap_fetchbody() returned false'. imap_last_error());
             return false;
         }
@@ -518,6 +526,29 @@ class MailImportController extends DefaultController
 
         $mtlda->raiseError("Unsupported encoding: {$attachment['encoding']}!");
         return false;
+    }
+
+    private function isConnected()
+    {
+        if (!isset($this->is_connected) || empty($this->is_connected)) {
+            return false;
+        }
+
+        if (!is_resource($this->imap_session)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function setConnected()
+    {
+        $this->is_connected = true;
+    }
+
+    private function setDisconnected()
+    {
+        $this->is_connected = false;
     }
 }
 
