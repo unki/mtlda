@@ -193,31 +193,28 @@ class StorageController extends DefaultController
             return false;
         }
 
-        if ($item->column_name == 'document') {
-
-            if (!($dir_name = $this->generateDirectoryName($item->$guid))) {
-                $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
-                return false;
-            }
-
-            if (!isset($dir_name) || empty($dir_name)) {
-                $mtlda->raiseError("StorageController::generateDirectoryName() returned nothing!");
-                return false;
-            }
-
-            $fqpn = $this::ARCHIVE_DIRECTORY .'/'. $dir_name .'/'. $item->$file_name_field;
-            $guid = $item->document_guid;
-            $file_name = $item->document_file_name;
-
-        } elseif ($item->column_name == 'queue') {
-
-            $fqpn = $this::WORKING_DIRECTORY .'/'. $item->$file_name_field;
-            $guid = $item->queue_guid;
-            $file_name = $item->queue_file_name;
-
-        } else {
+        if (
+            $item->column_name != 'document' &&
+            $item->column_name != 'queue'
+        ) {
             $mtlda->raiseError("Unsupported model ". $item->column_name);
             return false;
+        }
+
+        if (!($dir_name = $this->generateDirectoryName($item->$guid))) {
+            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+            return false;
+        }
+
+        if (!isset($dir_name) || empty($dir_name)) {
+            $mtlda->raiseError("StorageController::generateDirectoryName() returned nothing!");
+            return false;
+        }
+
+        if ($item->column_name == 'document') {
+            $fqpn = $this::ARCHIVE_DIRECTORY .'/'. $dir_name .'/'. $item->$file_name_field;
+        } elseif ($item->column_name == 'queue') {
+            $fqpn = $this::WORKING_DIRECTORY .'/'. $item->$file_name_field;
         }
 
         if (!file_exists($fqpn)) {
@@ -232,10 +229,10 @@ class StorageController extends DefaultController
 
         try {
             $audit->log(
-                $file_name,
+                $item->$file_name_field,
                 "delete",
                 "storage",
-                $guid
+                $item->$guid
             );
         } catch (Exception $e) {
             $mtlda->raiseError("AuditController::log() returned false!");
