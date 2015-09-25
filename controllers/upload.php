@@ -144,7 +144,7 @@ class UploadController extends DefaultController
         }
 
         if (($filesize != $file['size'])) {
-            $mtdla->raiseError(
+            $mtlda->raiseError(
                 "provided upload size ({$file['size']}) is not equal the actual file size ({$filesize})!"
             );
             return false;
