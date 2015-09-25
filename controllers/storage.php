@@ -95,24 +95,6 @@ class StorageController extends DefaultController
         return true;
     }
 
-    public function deleteFile($file_name, $dest_dir)
-    {
-        global $mtlda;
-
-        $fqpn_dst = $this::ARCHIVE_DIRECTORY .'/'. $dest_dir;
-
-        if (!file_exists($fqpn_dst)) {
-            return true;
-        }
-
-        if (!unlink($fqpn_dst)) {
-            $mtlda->raiseError(__TRAIT__ .", unlink() returned false!");
-            return false;
-        }
-
-        return true;
-    }
-
     public function deleteItemFile(&$item)
     {
         global $mtlda, $audit;
