@@ -74,7 +74,7 @@ class MailImportController extends DefaultController
 
     public function fetch()
     {
-        global $mtlda;
+        global $mtlda, $config;
 
         if (!$this->connect()) {
             $mtlda->raiseError(__CLASS__ .'::connect() returned false!');
@@ -115,6 +115,19 @@ class MailImportController extends DefaultController
             if (!$this->parseMail($msg)) {
                 $mtlda->raiseError(__CLASS__ .'::parseMail() returned false!');
                 break;
+            }
+
+            if ($config->getMailImportMailDestinyIsDelete()) {
+                if (!$this->deleteMail($mail->msgno)) {
+                    $mtlda->raiseError(__CLASS__ .'::deleteMail() returned false!');
+                    return false;
+                }
+                continue;
+            }
+
+            if (!$this->flagMailSeen($mail->msgno)) {
+                $mtlda->raiseError(__CLASS__ .':flagMailSeen() returned false!');
+                return false;
             }
         }
 
@@ -260,7 +273,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$structure = imap_fetchstructure($msgno)) {
+        if (!$structure = imap_fetchstructure($this->imap_session, $msgno)) {
             $mtlda->raiseError("Unable to retrieve structure!". imap_last_error());
             return false;
         }
@@ -490,7 +503,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$body = imap_fetchbody($msgno, $attachment['id'])) {
+        if (!$body = imap_fetchbody($this->imap_session, $msgno, $attachment['id'])) {
             $mtlda->raiseError('imap_fetchbody() returned false'. imap_last_error());
             return false;
         }
@@ -537,6 +550,40 @@ class MailImportController extends DefaultController
     private function setDisconnected()
     {
         $this->is_connected = false;
+    }
+
+    private function deleteMail($msgno)
+    {
+        global $mtlda;
+
+        if (!$this->isConnected()) {
+            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
+            return false;
+        }
+
+        if (!imap_delete($this->imap_session, $msgno)) {
+            $mtlda->raiseError("imap_delete() returned false!". imap_last_error());
+            return false;
+        }
+
+        return true;
+    }
+
+    private function flagMailSeen($msgno)
+    {
+        global $mtlda;
+
+        if (!$this->isConnected()) {
+            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
+            return false;
+        }
+
+        if (!imap_setflag_full($this->imap_session, $msgno, '\Seen')) {
+            $mtlda->raiseError("imap_setflag_full() returned false!". imap_last_error());
+            return false;
+        }
+
+        return true;
     }
 }
 
