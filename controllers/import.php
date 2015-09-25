@@ -68,7 +68,7 @@ class ImportController extends DefaultController
 
         foreach ($files as $file) {
 
-            if (!($file['guid'] = $mtlda->createGuid())) {
+            if (!($guid = $mtlda->createGuid())) {
                 $mtdla->raiseError(__TRAIT__ ." no valid GUID returned by createGuid()!");
                 return false;
             }
@@ -80,7 +80,7 @@ class ImportController extends DefaultController
                 return false;
             }
 
-            $queueitem->queue_guid = $file['guid'];
+            $queueitem->queue_guid = $guid;
             $queueitem->queue_file_name = $file['filename'];
             $queueitem->queue_file_size = $file['size'];
             $queueitem->queue_file_hash = $file['hash'];
@@ -91,20 +91,27 @@ class ImportController extends DefaultController
                 $queueitem->queue_signing_icon_position = $sign_pos;
             }
 
+            $in_file = $file['fqpn'];
+            $in_dir = dirname($in_file);
+
+            if (!$work_file = $queueitem->getFilePath()) {
+                $mtlda->raiseError("QueueItem::getFilePath() returned false!");
+                return false;
+            }
+
+            if (copy($in_file, $work_file) === false) {
+                $mtdla->raiseError("Rename {$in_file} to {$work_file} failed!");
+                return false;
+            }
+
             if (!$queueitem->save()) {
                 $queueitem->delete();
                 $mtlda->raiseError("Saving QueueItemModel failed!");
                 return false;
             }
 
-            $in_file = $file['fqpn'];
-            $in_dir = dirname($in_file);
-
-            $work_file = $this::WORKING_DIRECTORY .'/'. $file['filename'];
-
-            if (rename($in_file, $work_file) === false) {
-                $queueitem->delete();
-                $mtdla->raiseError("Rename {$in_file} to {$work_file} failed!");
+            if (!unlink($in_file)) {
+                $mtlda->raiseError("Failed to remove {$in_file}!");
                 return false;
             }
 
