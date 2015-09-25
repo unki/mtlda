@@ -55,6 +55,13 @@ class ImportController extends DefaultController
             return false;
         }
 
+        try {
+            $storage = new StorageController;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load StorageController!");
+            return false;
+        }
+
         $files = array();
 
         if (!$this->scanDirectory($this::INCOMING_DIRECTORY, $files)) {
@@ -99,8 +106,14 @@ class ImportController extends DefaultController
                 return false;
             }
 
+            // create the target directory structure
+            if (!$storage->createDirectoryStructure(dirname($work_file))) {
+                $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
+                return false;
+            }
+
             if (copy($in_file, $work_file) === false) {
-                $mtlda->raiseError("Rename {$in_file} to {$work_file} failed!");
+                $mtlda->raiseError("copy({$in_file}, {$work_file}) returned false!");
                 return false;
             }
 
@@ -140,7 +153,7 @@ class ImportController extends DefaultController
                     $json_str,
                     "import",
                     "queue",
-                    $file['guid']
+                    $guid
                 );
             } catch (Exception $e) {
                 $queueitem->delete();
