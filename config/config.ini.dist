@@ -149,22 +149,22 @@ tsp_ca_certificate = "MIIFEzCCA/ugAwIBAgIMWNoT/wAAAABRzg33MA0GCSqGSIb3DQEBCwUAMI
 ;
 ; POP3/IMAP mailbox server
 ;
-mbox_server = localhost
+mbox_server = 'localhost'
 
 ;
 ; POP3/IMAP user name
 ;
-mbox_username = youruser
+mbox_username = 'youruser'
 
 ;
 ; POP3/IMAP user password
 ;
-mbox_password = yourpassword
+mbox_password = 'yourpassword'
 
 ;
 ; select 'imap' or 'pop3'
 ;
-mbox_type = imap
+mbox_type = 'imap'
 
 ;
 ; delete mail if successfully parsed and placed into the incoming directory
