@@ -171,3 +171,10 @@ mbox_type = imap
 ;    0 = flag seen only, 1 = delete
 ;
 mbox_delete_mail = 1
+
+;
+; if mbox_type = imap, expunge mailbox on disconnect?
+; (expunging = effectively delete all mails marked as deleted)
+;    0 = disabled, 1 = enabled
+;
+mbox_imap_expunge = 0
