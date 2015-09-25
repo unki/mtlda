@@ -43,8 +43,6 @@ class DocumentModel extends DefaultModel
     public $avail_items = array();
     public $items = array();
     public $descendants = array();
-    private $working_directory = MTLDA_BASE."/data/working";
-    private $archive_directory = MTLDA_BASE."/data/archive";
 
     public function __construct($id = null, $guid = null)
     {
@@ -174,11 +172,6 @@ class DocumentModel extends DefaultModel
     {
         global $mtlda;
 
-        if (!isset($this->working_directory)) {
-            $mtlda->raiseError("working_directory is not set!");
-            return false;
-        }
-
         if (!isset($this->document_file_name)) {
             $mtlda->raiseError("document_file_name is not set!");
             return false;
@@ -189,7 +182,10 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $fqpn = $this->working_directory .'/'. $this->document_file_name;
+        if (!$fqpn = $this->getFilePath()) {
+            $mtlda->raiseError("getFilePath() returned false!");
+            return false;
+        }
 
         if (!file_exists($fqpn)) {
             $mtlda->raiseError("File {$fqpn} does not exist!");
@@ -206,7 +202,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (isset($hash) && $hash != $file_hash) {
+        if ($this->document_file_hash != $file_hash) {
             $mtlda->raiseError("Hash value of ${file} does not match!");
             return false;
         }
@@ -469,7 +465,10 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $fqpn = $this->archive_directory .'/'. $path .'/'. $this->document_file_name;
+        if (!$fqpn = $this->getFilePath()) {
+            $mtlda->raiseError("getFilePath() returned false!");
+            return false;
+        }
 
         if (!file_exists($fqpn)) {
             $mtlda->raiseError("File {$fqpn} does not exist!");
