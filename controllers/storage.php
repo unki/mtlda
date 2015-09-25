@@ -118,20 +118,11 @@ class StorageController extends DefaultController
             return false;
         }
 
-        if (!file_exists($fqfn)) {
-            $mtlda->raiseError("StorageController::deleteItemFile(), {$fqfn} does not exist!");
+        if (!$this->deleteFile($fqfn)) {
+            $mtlda->raiseError(__CLASS__ .'::deleteFile() returned false');
             return false;
         }
 
-        if (!$this->isBelowDataDirectory(dirname($fqfn))) {
-            $mtlda->raiseError("will only handle requested within ". $this::DATA_DIRECTORY ."!");
-            return false;
-        }
-
-        if (!unlink($fqfn)) {
-            $mtlda->raiseError("StorageController::deleteItemFile(), unlink() returned false!");
-            return false;
-        }
 
         try {
             $audit->log(
@@ -142,6 +133,11 @@ class StorageController extends DefaultController
             );
         } catch (Exception $e) {
             $mtlda->raiseError("AuditController::log() returned false!");
+            return false;
+        }
+
+        if (!$this->cleanDirectoryHierarchy(dirname($fqfn))) {
+            $mtlda->raiseError(__CLASS__ .'::cleanDirectoryHierarchy() returned false!');
             return false;
         }
 
@@ -202,6 +198,31 @@ class StorageController extends DefaultController
             'hash' => $hash,
             'content' => $content
         );
+    }
+
+    public function deleteFile($fqfn)
+    {
+        global $mtlda;
+
+        if (!file_exists($fqfn)) {
+            $mtlda->raiseError(__METHOD__ .", {$fqfn} does not exist!");
+            return false;
+        }
+
+        if (!is_file($fqfn)) {
+            $mtlda->raiseError(__METHOD__ .", {$fqfn} is not a regular file!");
+            return false;
+        }
+
+        if (!$this->isBelowDataDirectory(dirname($fqfn))) {
+            $mtlda->raiseError(__METHOD__ .", will only handle requested within ". $this::DATA_DIRECTORY ."!");
+            return false;
+        }
+
+        if (!unlink($fqfn)) {
+            $mtlda->raiseError(__METHOD__ .", unlink({$fqfn}) returned false!");
+            return false;
+        }
     }
 
     public function flushArchive()
@@ -354,6 +375,11 @@ class StorageController extends DefaultController
         }
 
         return false;
+    }
+
+    public function cleanDirectoryHierarchy($path)
+    {
+
     }
 }
 
