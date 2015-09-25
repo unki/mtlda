@@ -114,8 +114,8 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!$storage->copyQueueItemFileToArchive($fqfn_src, $fqfn_dst)) {
-            $mtlda->raiseError("StorageController::copyQueueItemFileToArchive() returned false!");
+        if (!$storage->copyFile($fqfn_src, $fqfn_dst)) {
+            $mtlda->raiseError("StorageController::copyFile() returned false!");
             return false;
         }
 
@@ -254,9 +254,9 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!$storage->copyArchiveDocumentFile($fqfn_src, $fqfn_dst)) {
+        if (!$storage->copyFile($fqfn_src, $fqfn_dst)) {
             $signing_item->delete();
-            $mtlda->raiseError("StorageController::copyArchiveDocumentFile() returned false!");
+            $mtlda->raiseError("StorageController::copyFile() returned false!");
             return false;
         }
 
