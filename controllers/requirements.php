@@ -92,11 +92,6 @@ class RequirementsController extends DefaultController
                 $mtlda->raiseError("IMAP extension is missing (also provides POP3 support)!");
                 $missing = true;
             }
-
-            if (!function_exists("mailparse_msg_create")) {
-                $mtlda->raiseError("PECL mailparse extension is missing!");
-                $missing = true;
-            }
         }
 
         if ($missing) {
