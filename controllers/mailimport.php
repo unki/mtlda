@@ -440,9 +440,20 @@ class MailImportController extends DefaultController
                 }
 
                 // the actual MIME part id is +1 then the array key
-                $id+=1;
+                $subid+=1;
 
-                if (!$this->parseMimePart($subpart, "{$id}.{$subid}", $attachments)) {
+                if (
+                    isset($part->ifsubtype) &&
+                    $part->ifsubtype &&
+                    isset($part->subtype) &&
+                    strtoupper($part->subtype) == 'RFC822'
+                ) {
+                    $nextid = $id;
+                } else {
+                    $nextid = $id .'.'. $subid;
+                }
+
+                if (!$this->parseMimePart($subpart, $nextid, $attachments)) {
                     $mtlda->raiseError(__CLASS__ .'::parseMimePart() returned false!');
                     return false;
                 }
@@ -532,7 +543,10 @@ class MailImportController extends DefaultController
         }
 
         if (!$body = imap_fetchbody($this->imap_session, $msgno, $attachment['id'])) {
-            $mtlda->raiseError('imap_fetchbody() returned false'. imap_last_error());
+            $mtlda->raiseError(
+                "imap_fetchbody() returned false!<br />Msgno: {$msgno}<br />".
+                "Attachment: {$attachment['id']}<br />". imap_last_error()
+            );
             return false;
         }
 
