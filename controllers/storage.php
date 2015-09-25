@@ -46,49 +46,27 @@ class StorageController extends DefaultController
         return true;
     }
 
-    public function copyQueueItemFileToArchive($fqpn_src, $fqpn_dst)
+    public function copyFile($fqpn_src, $fqpn_dst)
     {
         global $mtlda;
 
         if (!file_exists($fqpn_src)) {
-            $mtlda->raiseError("copyQueueItemFileToArchive(), {$fqpn_src} does not exist!");
+            $mtlda->raiseError(__METHOD__ .", {$fqpn_src} does not exist!");
             return false;
         }
 
         if (!is_dir(dirname($fqpn_dst))) {
-            $mtlda->raiseError("copyQueueItemFileToArchive(), {$fqpn_dst} is not a directory!");
+            $mtlda->raiseError(__METHOD__ .", {$fqpn_dst} is not a directory!");
             return false;
         }
 
         if (file_exists($fqpn_dst)) {
-            $mtlda->raiseError("copyQueueItemFileToArchive(), destination file {$fqpn_dst} already exists!");
+            $mtlda->raiseError(__METHOD__ .", destination file {$fqpn_dst} already exists!");
             return false;
         }
 
         if (!copy($fqpn_src, $fqpn_dst)) {
-            $mtlda->raiseError("copyQueueItemFileToArchive(), copy() returned false!");
-            return false;
-        }
-
-        return true;
-    }
-
-    public function copyArchiveDocumentFile($fqfn_src, $fqfn_dst)
-    {
-        global $mtlda;
-
-        if (!file_exists($fqfn_src)) {
-            $mtlda->raiseError("copyArchiveDocumentFile(), {$fqfn_src} does not exist!");
-            return false;
-        }
-
-        if (file_exists($fqfn_dst)) {
-            $mtlda->raiseError("copyArchiveDocumentFile(), {$fqfn_dst} already exist!");
-            return false;
-        }
-
-        if (!copy($fqfn_src, $fqfn_dst)) {
-            $mtlda->raiseError("copyArchiveDocumentFile(), copy() returned false!");
+            $mtlda->raiseError(__METHOD__ .", copy() returned false!");
             return false;
         }
 
