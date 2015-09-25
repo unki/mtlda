@@ -60,35 +60,6 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        // generate a hash-value based directory name
-        if (!($store_dir_name = $storage->generateDirectoryName($queue_item->queue_guid))) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
-            return false;
-        }
-
-        if (!isset($store_dir_name) || empty($store_dir_name)) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned an empty directory string");
-            return false;
-        }
-
-        // create the target directory structure
-        if (!$storage->createDirectoryStructure($store_dir_name)) {
-            $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
-            return false;
-        }
-
-        try {
-            $audit->log(
-                "using {$store_dir_name} as destination",
-                "archive",
-                "storage",
-                $queue_item->queue_guid
-            );
-        } catch (Exception $e) {
-            $mtlda->raiseError("AuditController::log() returned false!");
-            return false;
-        }
-
         if (
             !isset($queue_item->fields) ||
             empty($queue_item->fields) ||
@@ -115,16 +86,53 @@ class ArchiveController extends DefaultController
         $document->document_derivation = '';
         $document->document_derivation_guid = '';
 
-        // safe DocumentModel to database, if that fails revert
-        if (!$document->save()) {
-            $mtlda->raiseError("DocumentModel::save() returned false!");
+        if (!$fqfn_src = $queue_item->getFilePath()) {
+            $mtlda->raiseError(get_class($queue_item) .'::getFilePath() returned false!');
             return false;
         }
 
-        if (!$storage->copyQueueItemFileToArchive($queue_item->queue_file_name, $store_dir_name)) {
+        if (!($fqfn_dst = $document->getFilePath())) {
+            $mtlda->raiseError(get_class($queue_item) .'::getFilePath() returned false!');
+            return false;
+        }
+
+        // create the target directory structure
+        if (!$storage->createDirectoryStructure(dirname($fqfn_dst))) {
+            $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                "using {$fqfn_dst} as destination",
+                "archive",
+                "storage",
+                $queue_item->queue_guid
+            );
+        } catch (Exception $e) {
+            $mtlda->raiseError("AuditController::log() returned false!");
+            return false;
+        }
+
+        if (!$storage->copyQueueItemFileToArchive($fqfn_src, $fqfn_dst)) {
             $mtlda->raiseError("StorageController::copyQueueItemFileToArchive() returned false!");
+            return false;
+        }
+
+        // safe DocumentModel to database, remove the file from archive again
+        if (!$document->save()) {
+            $mtlda->raiseError("DocumentModel::save() returned false!");
+            if (!$storage->deleteItemFile($document)) {
+                $mtlda->raiseError("StorageController::deleteItemFile() returned false!");
+            }
+            return false;
+        }
+
+        // delete QueueItemModel from database, if that fails revert
+        if (!$queue_item->delete()) {
+            $mtlda->raiseError("DocumentModel::delete() returned false!");
             if (!$document->delete()) {
-                $mtlda->raiseError("Failed to revert on deleting document from archive!");
+                $mtlda->raiseError("QueueItemModel::delete() returned false!");
             }
             return false;
         }
@@ -137,22 +145,10 @@ class ArchiveController extends DefaultController
                 }
                 return false;
             }
-            if (!$document->refresh($store_dir_name)) {
+            if (!$document->refresh()) {
                 $mtlda->raiseError("DocumentModel::refresh() returned false!");
-                if (!$document->delete()) {
-                    $mtlda->raiseError("Failed to revert on deleting document from archive!");
-                }
                 return false;
             }
-        }
-
-        // delete QueueItemModel from database, if that fails revert
-        if (!$queue_item->delete()) {
-            $mtlda->raiseError("DocumentModel::delete() returned false!");
-            if (!$document->delete()) {
-                $mtlda->raiseError("QueueItemModel::delete() returned false!");
-            }
-            return false;
         }
 
         // if no more actions are necessary, we are done
@@ -227,20 +223,20 @@ class ArchiveController extends DefaultController
         $signing_item->save();
 
         // generate a hash-value based directory name
-        if (!($src_dir_name = $storage->generateDirectoryName($src_item->document_guid))) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+        if (!($fqfn_src = $src_item->getFilePath())) {
+            $mtlda->raiseError(get_class($src_item) .'::getFilePath() returned false!');
             $signing_item->delete();
             return false;
         }
 
-        if (!($dest_dir_name = $storage->generateDirectoryName($signing_item->document_guid))) {
-            $mtlda->raiseError("StorageController::generateDirectoryName() returned false!");
+        if (!($fqfn_dst = $signing_item->getFilePath())) {
+            $mtlda->raiseError(get_class($signing_item) .'::getFilePath() returned false!');
             $signing_item->delete();
             return false;
         }
 
         // create the target directory structure
-        if (!$storage->createDirectoryStructure($dest_dir_name)) {
+        if (!$storage->createDirectoryStructure(dirname($fqfn_dst))) {
             $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
             $signing_item->delete();
             return false;
@@ -248,7 +244,7 @@ class ArchiveController extends DefaultController
 
         try {
             $audit->log(
-                "using {$dest_dir_name} as destination",
+                "using {$fqfn_dst} as destination",
                 "archive",
                 "storage",
                 $signing_item->document_guid
@@ -258,24 +254,19 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        $src = $src_dir_name  .'/'. $src_item->document_file_name;
-        $dst = $dest_dir_name .'/'. $signing_item->document_file_name;
-
-        if (!$storage->copyArchiveDocumentFile($src, $dst)) {
+        if (!$storage->copyArchiveDocumentFile($fqfn_src, $fqfn_dst)) {
             $signing_item->delete();
             $mtlda->raiseError("StorageController::copyArchiveDocumentFile() returned false!");
             return false;
         }
 
-        $fqpn_dst = $this::ARCHIVE_DIRECTORY .'/'. $dst;
-
-        if (!$signer->signDocument($fqpn_dst, $signing_item)) {
+        if (!$signer->signDocument($fqfn_dst, $signing_item)) {
             $signing_item->delete();
             $mtlda->raiseError("PdfSigningController::ѕignDocument() returned false!");
             return false;
         }
 
-        if (!$signing_item->refresh($dest_dir_name)) {
+        if (!$signing_item->refresh()) {
             $signing_item->delete();
             $mtlda->raiseError("refresh() returned false!");
             return false;
@@ -363,27 +354,27 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!($fqpn = $document->getFilePath())) {
+        if (!($fqfn = $document->getFilePath())) {
             $mtlda->raiseError("DocumentModel::getFilePath() returned false!");
             return false;
         }
 
-        if (!isset($fqpn) || empty($fqpn)) {
+        if (!isset($fqfn) || empty($fqfn)) {
             $mtlda->raiseError("DocumentModel::getFilePath() returned an invalid file name!");
             return false;
         }
 
-        if (!file_exists($fqpn)) {
-            $mtlda->raiseError("File {$fqpn} does not exist!");
+        if (!file_exists($fqfn)) {
+            $mtlda->raiseError("File {$fqfn} does not exist!");
             return false;
         }
 
-        if (!is_readable($fqpn)) {
-            $mtlda->raiseError("File {$fqpn} is not readable!");
+        if (!is_readable($fqfn)) {
+            $mtlda->raiseError("File {$fqfn} is not readable!");
             return false;
         }
 
-        $page_count = $pdf->setSourceFile($fqpn);
+        $page_count = $pdf->setSourceFile($fqfn);
 
         for ($page_no = 1; $page_no <= $page_count; $page_no++) {
 
@@ -451,7 +442,7 @@ class ArchiveController extends DefaultController
         // ---------------------------------------------------------
 
         //Close and output PDF document
-        $pdf->Output($fqpn, 'F');
+        $pdf->Output($fqfn, 'F');
         return true;
     }
 
