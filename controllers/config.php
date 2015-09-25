@@ -422,6 +422,27 @@ class ConfigController extends DefaultController
 
         return true;
     }
+
+    public function getMailImportMailDestinyIsDelete()
+    {
+        if (!isset($this->config['mail_import']['mbox_delete_mail'])) {
+            return false;
+        }
+
+        if (empty($this->config['mail_import']['mbox_delete_mail'])) {
+            return false;
+        }
+
+        if (!$this->config['mail_import']['mbox_delete_mail']) {
+            return false;
+        }
+
+        if (!in_array($this->config['mail_import']['mbox_delete_mail'], array('yes','y','true','on','1'))) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
