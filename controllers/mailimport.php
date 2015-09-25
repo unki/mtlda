@@ -173,12 +173,30 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        $this->imap_session = imap_open(
+        /* sometimes imap_open causes some warning messages to be returned from c-client library.
+           some of them are harmless and we try to filter them here.
+        */
+        ini_set('track_errors', 1);
+        unset($php_errormsg);
+        $this->imap_session = @imap_open(
             $this->connect_string,
             $this->mail_cfg['mbox_username'],
             $this->mail_cfg['mbox_password'],
             OP_SILENT /* to avoid the Mailbox-is-empty notice message */
         );
+
+        if (
+            isset($php_errormsg) &&
+            !strstr($php_errormsg, "Kerberos error: No Kerberos credentials available")
+        ) {
+            $mtlda->raiseError("imap_open() returned an error!<br />". $php_errormsg ."<br />". imap_last_error());
+            ini_restore('track_errors');
+            unset($php_errormsg);
+            return false;
+        }
+
+        ini_restore('track_errors');
+        unset($php_errormsg);
 
         if ($this->imap_session === false) {
             $mtlda->raiseError("Unable to connect!<br />". imap_last_error());
