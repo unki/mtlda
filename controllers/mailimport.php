@@ -68,16 +68,17 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (($msg_cnt = $this->check($session)) === false) {
-            $mtlda->raiseError(__CLASS__ .'::check() returned false!');
+        if (($msg_cnt = $this->checkForMails($session)) === false) {
+            $mtlda->raiseError(__CLASS__ .'::checkForMails() returned false!');
         }
 
         if ($msg_cnt > 0) {
-            if (!$list = $this->retrieveList($session, $msg_cnt)) {
-                $mtlda->raiseError(__CLASS__ .'::retrieveList() returned false!');
+            if (!$list = $this->retrieveListOfMails($session, $msg_cnt)) {
+                $mtlda->raiseError(__CLASS__ .'::retrieveListOfMails() returned false!');
             }
         }
 
+        // if no mails are pending in the mailbox
         if (!(count($list) >= 1)) {
             print "ok";
             return true;
@@ -89,7 +90,7 @@ class MailImportController extends DefaultController
                 !isset($mail->message_id) || empty($mail->message_id) ||
                 !isset($mail->msgno) || empty($mail->msgno)
             ) {
-                $mtlda->raiseError("Mail is not complete!");
+                $mtlda->raiseError("Fetched mail is incomplete!");
                 break;
             }
 
@@ -180,7 +181,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function check(&$session)
+    private function checkForMails(&$session)
     {
         global $mtlda;
 
@@ -207,7 +208,7 @@ class MailImportController extends DefaultController
         return $status->unseen;
     }
 
-    private function retrieveList(&$session, $msg_cnt)
+    private function retrieveListOfMails(&$session, $msg_cnt)
     {
         global $mtlda;
 
