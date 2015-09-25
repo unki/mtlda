@@ -108,7 +108,10 @@ class ImageController extends DefaultController
             return false;
         }
 
-        $src = $this::WORKING_DIRECTORY .'/'. $item->queue_file_name;
+        if (!$src = $item->getFilePath()) {
+            $mtlda->raiseError(get_class($item) ."::getFilePath() returned false!");
+            return false;
+        }
 
         if (!file_exists($src)) {
             $mtlda->raiseError("Source does not exist!");
