@@ -425,19 +425,40 @@ class ConfigController extends DefaultController
 
     public function getMailImportMailDestinyIsDelete()
     {
-        if (!isset($this->config['mail_import']['mbox_delete_mail'])) {
+        if (!isset($this->config['mailimport']['mbox_delete_mail'])) {
             return false;
         }
 
-        if (empty($this->config['mail_import']['mbox_delete_mail'])) {
+        if (empty($this->config['mailimport']['mbox_delete_mail'])) {
             return false;
         }
 
-        if (!$this->config['mail_import']['mbox_delete_mail']) {
+        if (!$this->config['mailimport']['mbox_delete_mail']) {
             return false;
         }
 
-        if (!in_array($this->config['mail_import']['mbox_delete_mail'], array('yes','y','true','on','1'))) {
+        if (!in_array($this->config['mailimport']['mbox_delete_mail'], array('yes','y','true','on','1'))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getMailImportImapMailboxExpunge()
+    {
+        if (!isset($this->config['mailimport']['mbox_imap_expunge'])) {
+            return false;
+        }
+
+        if (empty($this->config['mailimport']['mbox_imap_expunge'])) {
+            return false;
+        }
+
+        if (!$this->config['mailimport']['mbox_imap_expunge']) {
+            return false;
+        }
+
+        if (!in_array($this->config['mailimport']['mbox_imap_expunge'], array('yes','y','true','on','1'))) {
             return false;
         }
 
