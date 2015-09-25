@@ -482,7 +482,7 @@ class DocumentModel extends DefaultModel
         }
 
         if (($hash = sha1_file($fqpn)) === false) {
-            $mtdla->raiseError(__TRAIT__ ." SHA1 value of {$fqpn} can not be calculated!");
+            $mtlda->raiseError(__TRAIT__ ." SHA1 value of {$fqpn} can not be calculated!");
             return false;
         }
 
@@ -492,7 +492,7 @@ class DocumentModel extends DefaultModel
         }
 
         if (($size = filesize($fqpn)) === false) {
-            $mtdla->raiseError(__TRAIT__ ." filesize of {$fqpn} is not available!");
+            $mtlda->raiseError(__TRAIT__ ." filesize of {$fqpn} is not available!");
             return false;
         }
 
