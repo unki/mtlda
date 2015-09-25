@@ -85,10 +85,13 @@ class MailImportController extends DefaultController
             $mtlda->raiseError(__CLASS__ .'::checkForMails() returned false!');
         }
 
-        if ($msg_cnt > 0) {
-            if (!$list = $this->retrieveListOfMails($msg_cnt)) {
-                $mtlda->raiseError(__CLASS__ .'::retrieveListOfMails() returned false!');
-            }
+        if (!($msg_cnt > 0)) {
+            print "ok";
+            return true;
+        }
+
+        if (!$list = $this->retrieveListOfMails($msg_cnt)) {
+            $mtlda->raiseError(__CLASS__ .'::retrieveListOfMails() returned false!');
         }
 
         // if no mails are pending in the mailbox
