@@ -148,24 +148,6 @@ class StorageController extends DefaultController
         return true;
     }
 
-    public function deleteQueueItemFile($file_name)
-    {
-        global $mtlda;
-
-        $fqpn_src = $this::WORKING_DIRECTORY .'/'. $file_name;
-
-        if (!file_exists($fqpn_src)) {
-            return true;
-        }
-
-        if (!unlink($fqpn_src)) {
-            $mtlda->raiseError("deleteQueueItemFile(), unlink() returned false!");
-            return false;
-        }
-
-        return true;
-    }
-
     public function deleteFile($file_name, $dest_dir)
     {
         global $mtlda;
