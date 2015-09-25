@@ -223,6 +223,8 @@ class StorageController extends DefaultController
             $mtlda->raiseError(__METHOD__ .", unlink({$fqfn}) returned false!");
             return false;
         }
+
+        return true;
     }
 
     public function flushArchive()
@@ -346,7 +348,7 @@ class StorageController extends DefaultController
         return false;
     }
 
-    public function checkDirectoryEmpty($path)
+    public function checkIfDirectoryEmpty($path)
     {
         global $mtlda;
 
@@ -379,7 +381,35 @@ class StorageController extends DefaultController
 
     public function cleanDirectoryHierarchy($path)
     {
+        global $mtlda;
 
+        // nothing strange in the path?
+        if ($path != realpath($path)) {
+            $mtlda->raiseError(__METHOD__ .", are you trying to fooling me?");
+            return false;
+        }
+
+        // if directory isn't empty, we are done
+        if (!$this->checkIfDirectoryEmpty($path)) {
+            return true;
+        }
+
+        if (!rmdir($path)) {
+            $mtlda->raiseError(__METHOD__ .", rmdir({$path}) returned false!");
+            return false;
+        }
+
+        $next_path = dirname($path);
+
+        if (!$this->isBelowDataDirectory($next_path)) {
+            return true;
+        }
+
+        if (!$this->cleanDirectoryHierarchy($next_path)) {
+            return false;
+        }
+
+        return true;
     }
 }
 
