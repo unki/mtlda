@@ -456,14 +456,9 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function refresh($path)
+    public function refresh()
     {
         global $mtlda;
-
-        if (empty($path)) {
-            $mtlda->raiseError("\$path is not set!");
-            return false;
-        }
 
         if (!$fqpn = $this->getFilePath()) {
             $mtlda->raiseError("getFilePath() returned false!");
