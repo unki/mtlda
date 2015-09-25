@@ -69,7 +69,7 @@ class ImportController extends DefaultController
         foreach ($files as $file) {
 
             if (!($guid = $mtlda->createGuid())) {
-                $mtdla->raiseError(__TRAIT__ ." no valid GUID returned by createGuid()!");
+                $mtlda->raiseError(__TRAIT__ ." no valid GUID returned by createGuid()!");
                 return false;
             }
 
@@ -100,7 +100,7 @@ class ImportController extends DefaultController
             }
 
             if (copy($in_file, $work_file) === false) {
-                $mtdla->raiseError("Rename {$in_file} to {$work_file} failed!");
+                $mtlda->raiseError("Rename {$in_file} to {$work_file} failed!");
                 return false;
             }
 
@@ -194,7 +194,7 @@ class ImportController extends DefaultController
 
 
             if (!file_exists($file['fqpn'])) {
-                $mtdla->raiseError("File {$file['fqpn']} does not exist!");
+                $mtlda->raiseError("File {$file['fqpn']} does not exist!");
                 return false;
             }
 
@@ -204,7 +204,7 @@ class ImportController extends DefaultController
             }
 
             if (!is_readable($file['fqpn'])) {
-                $mtdla->raiseError("{$file['fqpn']} is not readable!");
+                $mtlda->raiseError("{$file['fqpn']} is not readable!");
                 return false;
             }
 
@@ -220,12 +220,12 @@ class ImportController extends DefaultController
             }
 
             if (($file['hash'] = sha1_file($file['fqpn'])) === false) {
-                $mtdla->raiseError("SHA1 value of {$file['fqpn']} can not be calculated!");
+                $mtlda->raiseError("SHA1 value of {$file['fqpn']} can not be calculated!");
                 return false;
             }
 
             if (($file['size'] = filesize($file['fqpn'])) === false) {
-                $mtdla->raiseError("Filesize of {$file['fqpn']} is not available!");
+                $mtlda->raiseError("Filesize of {$file['fqpn']} is not available!");
                 return false;
             }
 
