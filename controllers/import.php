@@ -144,7 +144,6 @@ class ImportController extends DefaultController
             if ($config->isCreatePreviewImageOnImport()) {
                 if (!$imagectrl->createPreviewImage($queueitem, false)) {
                     $mtlda->raiseError("ImageController::savePreviewImage() returned false");
-                    $queueitem->delete();
                     return false;
                 }
             }
