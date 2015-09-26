@@ -254,7 +254,7 @@ abstract class DefaultModel
         }
 
         if (method_exists($this, 'preClone')) {
-            if (!$this->preClone()) {
+            if (!$this->preClone($srcobj)) {
                 $mtlda->raiseError(get_called_class() ."::preClone() method returned false!");
                 return false;
             }
@@ -366,7 +366,7 @@ abstract class DefaultModel
         }
 
         if (method_exists($this, 'postClone')) {
-            if (!$this->postClone()) {
+            if (!$this->postClone($srcobj)) {
                 $mtlda->raiseError(get_called_class() ."::postClone() method returned false!");
                 return false;
             }
@@ -884,7 +884,9 @@ abstract class DefaultModel
 
     final public function getGuid()
     {
-        if (!isset($this->fields[$this->column_name .'guid'])) {
+        global $mtlda;
+
+        if (!isset($this->fields[$this->column_name .'_guid'])) {
             $mtlda->raiseError(__CLASS__ .'has no guid field!');
             return false;
         }
