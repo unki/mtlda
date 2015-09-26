@@ -170,15 +170,6 @@ class QueueItemModel extends DefaultModel
         return true;
     }
 
-    public function getGuid()
-    {
-        if (!isset($this->queue_guid)) {
-            return false;
-        }
-
-        return $this->queue_guid;
-    }
-
     public function getFileHash()
     {
         if (!isset($this->queue_file_hash)) {
