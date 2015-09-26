@@ -21,7 +21,7 @@ namespace MTLDA\Views;
 
 use MTLDA\Controllers;
 
-class OptionsView extends Templates
+class OptionsView extends DefaultView
 {
     public $default_mode = 'show';
     public $class_name = 'options';

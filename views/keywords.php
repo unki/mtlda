@@ -21,7 +21,7 @@ namespace MTLDA\Views;
 
 use MTLDA\Models;
 
-class KeywordsView extends Templates
+class KeywordsView extends DefaultView
 {
     public $default_mode = 'list';
     public $class_name = 'keywords';

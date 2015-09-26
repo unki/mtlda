@@ -21,7 +21,7 @@ namespace MTLDA\Views;
 
 use MTLDA\Models;
 
-class ArchiveView extends Templates
+class ArchiveView extends DefaultView
 {
     public $class_name = 'archive';
     public $item_name = 'Document';

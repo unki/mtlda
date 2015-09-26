@@ -21,7 +21,7 @@ namespace MTLDA\Views;
 
 use MTLDA\Controllers;
 
-class AboutView extends Templates
+class AboutView extends DefaultView
 {
     public $default_mode = 'show';
     public $class_name = 'about';

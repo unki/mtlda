@@ -21,7 +21,7 @@ namespace MTLDA\Views;
 
 use MTLDA\Models;
 
-class PreviewView extends Templates
+class PreviewView extends DefaultView
 {
     public $class_name = 'preview';
     public $default_mode = 'show';

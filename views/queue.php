@@ -21,7 +21,7 @@ namespace MTLDA\Views;
 
 use MTLDA\Models;
 
-class QueueView extends Templates
+class QueueView extends DefaultView
 {
     public $class_name = 'queue';
     public $item_name = 'QueueItem';

@@ -21,7 +21,7 @@ namespace MTLDA\Views;
 
 use MTLDA\Models;
 
-class UploadView extends Templates
+class UploadView extends DefaultView
 {
     public $class_name = 'upload';
     public $item_name = 'UploadItem';

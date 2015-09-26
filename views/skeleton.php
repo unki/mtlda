@@ -19,7 +19,7 @@
 
 namespace MTLDA\Views;
 
-class SkeletonView extends Templates
+class SkeletonView extends DefaultView
 {
     public $class_name = 'skeleton';
 

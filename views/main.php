@@ -21,7 +21,7 @@ namespace MTLDA\Views;
 
 use MTLDA\Models;
 
-class MainView extends Templates
+class MainView extends DefaultView
 {
     public $class_name = 'main';
     private $queue;
