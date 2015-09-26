@@ -132,8 +132,8 @@ class DocumentController extends DefaultController
             return false;
         }
 
-        if ($document->document_version != 1) {
-            $mtlda->raiseError(__TRAIT__ ." can only sign the original imported document!");
+        if ($document->document_signed_copy == 'Y') {
+            $mtlda->raiseError(__TRAIT__ ." will not resign an already signed document!");
             return false;
         }
 
