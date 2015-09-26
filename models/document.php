@@ -501,10 +501,6 @@ class DocumentModel extends DefaultModel
     {
         $version = $this->column_name.'_version';
 
-        if ($this->$version != 1) {
-            return array();
-        }
-
         if (!isset($this->descendants) || !is_array($this->descendants)) {
             return false;
         }
