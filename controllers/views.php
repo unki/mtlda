@@ -84,7 +84,13 @@ class ViewsController extends DefaultController
             return false;
         }
 
+        // if $content=true, View has handled output already, we are done
+        if ($content === true) {
+            return true;
+        }
+
         $this->page_skeleton->assign('page_content', $content);
+
         return $this->page_skeleton->show();
     }
 }
