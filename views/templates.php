@@ -21,7 +21,7 @@ namespace MTLDA\Views ;
 
 use Smarty;
 
-class Templates extends Smarty
+abstract class Templates extends Smarty
 {
     public $template_dir;
     public $compile_dir;
@@ -44,10 +44,6 @@ class Templates extends Smarty
         global $mtlda, $config;
 
         parent::__construct();
-
-        if (!isset($this->class_name)) {
-            $mtlda->raiseError("Class has not defined property 'class_name'. Something is wrong with it");
-        }
 
         // disable template caching during development
         $this->setCaching(Smarty::CACHING_OFF);
@@ -195,115 +191,24 @@ class Templates extends Smarty
         }
 
         // Now call parent method
-        return parent::fetch(
-            $template,
-            $cache_id,
-            $compile_id,
-            $parent,
-            $display,
-            $merge_tpl_vars,
-            $no_output_filter
-        );
-
-    } // fetch()
-
-    public function show()
-    {
-        global $mtlda, $query, $router;
-
-        if (isset($query->params)) {
-            $params = $query->params;
-        }
-
-        if (
-            (!isset($params) || empty($params)) &&
-            $this->default_mode == "list"
-        ) {
-            $mode = "list";
-        } elseif (isset($params) && !empty($params)) {
-            if (isset($params[0]) && $this->isKnownMode($params[0])) {
-                $mode = $params[0];
-            }
-        } elseif ($this->default_mode == "show") {
-            $mode = "show";
-        }
-
-        if (!isset($mode)) {
-            $mtlda->raiseError("\$mode not set - do not know how to proceed!");
+        try {
+            $result =  parent::fetch(
+                $template,
+                $cache_id,
+                $compile_id,
+                $parent,
+                $display,
+                $merge_tpl_vars,
+                $no_output_filter
+            );
+        } catch (\SmartyException $e) {
+            $mtlda->raise("Smarty throwed an exception! ". $e->getMessage());
             return false;
         }
 
-        if ($mode == "list" && $this->templateExists($this->class_name ."_list.tpl")) {
+        return $result;
 
-            return $this->showList();
-
-        } elseif ($mode == "edit" && $this->templateExists($this->class_name ."_edit.tpl")) {
-
-            if (!$item = $router->parseQueryParams()) {
-                $mtlda->raiseError("HttpRouterController::parseQueryParams() returned false!");
-                return false;
-            }
-            if (
-                empty($item) ||
-                !is_array($item) ||
-                !isset($item['id']) ||
-                empty($item['id']) ||
-                !isset($item['hash']) ||
-                empty($item['hash']) ||
-                !$mtlda->isValidId($item['id']) ||
-                !$mtlda->isValidGuidSyntax($item['hash'])
-            ) {
-                $mtlda->raiseError("HttpRouterController::parseQueryParams() was unable to parse query parameters!");
-                return false;
-            }
-            return $this->showEdit($item['id'], $item['hash']);
-
-        } elseif ($mode == "show" && $this->templateExists($this->class_name ."_show.tpl")) {
-
-            if (!$item = $router->parseQueryParams()) {
-                $mtlda->raiseError("HttpRouterController::parseQueryParams() returned false!");
-            }
-            if (
-                empty($item) ||
-                !is_array($item) ||
-                !isset($item['id']) ||
-                empty($item['id']) ||
-                !isset($item['hash']) ||
-                empty($item['hash']) ||
-                !$mtlda->isValidId($item['id']) ||
-                !$mtlda->isValidGuidSyntax($item['hash'])
-            ) {
-                $mtlda->raiseError("HttpRouterController::parseQueryParams() was unable to parse query parameters!");
-                return false;
-            }
-            return $this->showItem($item['id'], $item['hash']);
-
-        } elseif ($this->templateExists($this->class_name .".tpl")) {
-
-            return $this->fetch($this->class_name .".tpl");
-
-        }
-
-        $mtlda->raiseError("All methods utilized but still don't know what to show!");
-        return false;
-    }
-
-    public function showList()
-    {
-        $this->registerPlugin("block", $this->class_name ."_list", array(&$this, $this->class_name ."List"));
-        return $this->fetch($this->class_name ."_list.tpl");
-    }
-
-    public function showEdit($id)
-    {
-        $this->assign('item', $id);
-        return $this->fetch($this->class_name ."_edit.tpl");
-    }
-
-    public function showItem($id, $hash)
-    {
-        return $this->fetch($this->class_name ."_show.tpl");
-    }
+    } // fetch()
 
     public function getMenuState($params, &$smarty)
     {
@@ -337,21 +242,6 @@ class Templates extends Smarty
         }
 
         return round($params['size']/1048576, 2) ."MB";
-    }
-
-    private function isKnownMode($mode)
-    {
-        $valid_modes = array(
-            'list',
-            'edit',
-            'show',
-        );
-
-        if (!in_array($mode, $valid_modes)) {
-            return false;
-        }
-
-        return true;
     }
 }
 
