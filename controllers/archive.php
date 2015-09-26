@@ -138,11 +138,9 @@ class ArchiveController extends DefaultController
         }
 
         if ($config->isEmbeddingMtldaIcon()) {
+
             if (!$this->embedMtldaIcon($document)) {
                 $mtlda->raiseError("embedMtldaIcon() returned false!");
-                if (!$document->delete()) {
-                    $mtlda->raiseError("Failed to revert on deleting document from archive!");
-                }
                 return false;
             }
             if (!$document->refresh()) {
@@ -218,13 +216,19 @@ class ArchiveController extends DefaultController
         }
 
         // we need to save once so the database id is written back to the document_idx field.
-        $signing_item->save();
+        if (!$signing_item->save()) {
+            $mtlda->raiseError(get_class($signing_item) .'::save() returned false!');
+            return false;
+        }
 
         // append a suffix to new cloned file
         $signing_item->document_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->document_file_name);
         $signing_item->document_derivation = $src_item->id;
         $signing_item->document_derivation_guid = $src_item->document_guid;
-        $signing_item->save();
+        if (!$signing_item->save()) {
+            $mtlda->raiseError(get_class($signing_item) .'::save() returned false!');
+            return false;
+        }
 
         if (!$signer->signDocument($signing_item)) {
             $signing_item->delete();
@@ -309,9 +313,14 @@ class ArchiveController extends DefaultController
         return $rows[0];
     }
 
-    private function embedMtldaIcon(&$document)
+    private function embedMtldaIcon(&$src_document)
     {
         global $mtlda;
+
+        if (!is_a($src_document, 'MTLDA\Models\DocumentModel')) {
+            $mtlda->raiseError(__METHOD__ .' can only operate on DocumentModels!');
+            return false;
+        }
 
         try {
             $pdf = new \FPDI();
@@ -320,7 +329,27 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!($fqfn = $document->getFilePath())) {
+        try {
+            $logo_doc = new Models\DocumentModel;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load DocumentModel!");
+            return false;
+        }
+
+        if (!$logo_doc->createClone($src_document)) {
+            $mtlda->raiseError(get_class($logo_doc) .'::createClone() returned false!');
+            return false;
+        }
+
+        $logo_doc->document_derivation = $src_document->document_idx;
+        $logo_doc->document_derivation_guid = $src_document->document_guid;
+
+        if (!$logo_doc->save()) {
+            $mtlda->raiseError(get_class($logo_doc) .'::save() returned false!');
+            return false;
+        }
+
+        if (!($fqfn = $logo_doc->getFilePath())) {
             $mtlda->raiseError("DocumentModel::getFilePath() returned false!");
             return false;
         }
@@ -364,7 +393,7 @@ class ArchiveController extends DefaultController
             }
 
             $signing_icon_position = $this->getSigningIconPosition(
-                $document->document_signing_icon_position,
+                $logo_doc->document_signing_icon_position,
                 $size['w'],
                 $size['h']
             );
@@ -409,6 +438,12 @@ class ArchiveController extends DefaultController
 
         //Close and output PDF document
         $pdf->Output($fqfn, 'F');
+
+        if (!$logo_doc->refresh()) {
+            $mtlda->raiseError(get_class($logo_doc) .'::refresh() returned false!');
+            return false;
+        }
+
         return true;
     }
 
