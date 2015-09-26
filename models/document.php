@@ -210,15 +210,6 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function getGuid()
-    {
-        if (!isset($this->document_guid)) {
-            return false;
-        }
-
-        return $this->document_guid;
-    }
-
     public function getFileHash()
     {
         if (!isset($this->document_file_hash)) {
