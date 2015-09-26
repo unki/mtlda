@@ -881,6 +881,22 @@ abstract class DefaultModel
 
         return true;
     }
+
+    final public function getGuid()
+    {
+        if (!isset($this->fields[$this->column_name .'guid'])) {
+            $mtlda->raiseError(__CLASS__ .'has no guid field!');
+            return false;
+        }
+
+        $guid_field = $this->column_name .'_guid';
+
+        if (!isset($this->$guid_field)) {
+            return false;
+        }
+
+        return $this->$guid_field;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
