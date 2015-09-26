@@ -20,6 +20,7 @@
 namespace MTLDA\Views;
 
 use MTLDA\Models;
+use MTLDA\Controllers;
 
 class QueueView extends DefaultView
 {
@@ -67,6 +68,67 @@ class QueueView extends DefaultView
         $repeat = true;
 
         return $content;
+    }
+
+    public function showItem($id, $guid)
+    {
+        global $mtlda;
+
+        if (empty($id) || !$mtlda->isValidId($id)) {
+            $mtlda->raiseError("Require a valid \$id to show!");
+            return false;
+        }
+
+        if (empty($guid) || !$mtlda->isValidGuidSyntax($guid)) {
+            $mtlda->raiseError("Require a valid \$guid to show!");
+            return false;
+        }
+
+        try {
+            $item = new Models\QueueItemModel($id, $guid);
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load QueueItemModel({$id}, {$guid})!");
+            return false;
+        }
+
+        try {
+            $storage = new Controllers\StorageController;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load StorageController!");
+            return false;
+        }
+
+        if (!$file = $storage->retrieveFile($item)) {
+            $mtlda->raiseError("StorageController::retrieveFile() returned false!");
+            return false;
+        }
+
+        if (
+            !isset($file) ||
+            empty ($file) ||
+            !is_array($file) ||
+            !isset($file['hash'], $file['content']) ||
+            empty($file['hash']) ||
+            empty($file['content'])
+        ) {
+            $mtlda->raiseError("StorageController::retireveFile() returned an invalid file");
+            return false;
+        }
+
+        if (strlen($file['content']) != $item->queue_file_size) {
+            $mtlda->raiseError("File size of retrieved file does not match archive record!");
+            return false;
+        }
+
+        if ($file['hash'] != $item->queue_file_hash) {
+            $mtlda->raiseError("File hash of retrieved file does not match archive record!");
+            return false;
+        }
+
+        header('Content-Type: application/pdf');
+        header('Content-Length: '. strlen($file['content']));
+        print $file['content'];
+        return true;
     }
 }
 
