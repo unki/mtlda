@@ -217,50 +217,16 @@ class ArchiveController extends DefaultController
             return false;
         }
 
+        // we need to save once so the database id is written back to the document_idx field.
+        $signing_item->save();
+
+        // append a suffix to new cloned file
         $signing_item->document_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->document_file_name);
         $signing_item->document_derivation = $src_item->id;
         $signing_item->document_derivation_guid = $src_item->document_guid;
         $signing_item->save();
 
-        // generate a hash-value based directory name
-        if (!($fqfn_src = $src_item->getFilePath())) {
-            $mtlda->raiseError(get_class($src_item) .'::getFilePath() returned false!');
-            $signing_item->delete();
-            return false;
-        }
-
-        if (!($fqfn_dst = $signing_item->getFilePath())) {
-            $mtlda->raiseError(get_class($signing_item) .'::getFilePath() returned false!');
-            $signing_item->delete();
-            return false;
-        }
-
-        // create the target directory structure
-        if (!$storage->createDirectoryStructure(dirname($fqfn_dst))) {
-            $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
-            $signing_item->delete();
-            return false;
-        }
-
-        try {
-            $audit->log(
-                "using {$fqfn_dst} as destination",
-                "archive",
-                "storage",
-                $signing_item->document_guid
-            );
-        } catch (Exception $e) {
-            $mtlda->raiseError("AuditController::log() returned false!");
-            return false;
-        }
-
-        if (!$storage->copyFile($fqfn_src, $fqfn_dst)) {
-            $signing_item->delete();
-            $mtlda->raiseError("StorageController::copyFile() returned false!");
-            return false;
-        }
-
-        if (!$signer->signDocument($fqfn_dst, $signing_item)) {
+        if (!$signer->signDocument($signing_item)) {
             $signing_item->delete();
             $mtlda->raiseError("PdfSigningController::ѕignDocument() returned false!");
             return false;
