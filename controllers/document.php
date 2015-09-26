@@ -214,14 +214,15 @@ class DocumentController extends DefaultController
             return false;
         }
 
-        if ($document->document_version != 1 && $document->document_derivation != 0) {
+        // don't rembmer the purpose of this code
+        /*if ($document->document_version != 1 && $document->document_derivation != 0) {
 
             $descent = new Models\DocumentModel($document->document_derivation);
             if (!$descent) {
                 $mtlda->raiseError("Unable to load parent DocumentModel!");
                 return false;
             }
-        }
+        }*/
 
         $storage = new StorageController;
 
