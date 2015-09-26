@@ -25,7 +25,7 @@
    <form class="ui form" onsubmit="return false;">
     <div class="fields">
      <div class="field">
-      <input type="text" name="keyword_name[add]" placeholder="Add keywords" data-action="add" tabindex="0" />
+      <input type="text" name="keyword_name[add]" placeholder="Add keywords" data-action="add" data-model="keyword" tabindex="0" />
      </div>
      <div class="field">
       <button class="circular ui button add" data-target="keyword_name[add]" data-type="keyword"><i class="save icon"></i>Add</button>
@@ -49,7 +49,7 @@
    <form id="keyword_edit_{$item->keyword_idx}" class="ui form" style="display: none;" onsubmit="return false;">
     <div class="fields">
      <div class="field small ui input">
-      <input type="text" name="keyword_name[{$item->keyword_idx}]" value="{$item->keyword_name}" data-action="update" />
+      <input type="text" name="keyword_name[{$item->keyword_idx}]" value="{$item->keyword_name}" data-action="update" data-model="keyword" />
      </div>
      <div class="field">
       <button class="circular small ui icon button update keyword" data-target="keyword_name[{$item->keyword_idx}]" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="save icon"></i></button>
