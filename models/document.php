@@ -413,7 +413,7 @@ class DocumentModel extends DefaultModel
 
         if (
             !isset($this->init_values['document_file_name']) ||
-            !empty($this->init_values['document_file_name'])
+            empty($this->init_values['document_file_name'])
         ) {
             return true;
         }
