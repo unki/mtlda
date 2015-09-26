@@ -378,22 +378,28 @@ class RpcController extends DefaultController
     {
         global $mtlda;
 
-        if (!isset($_POST['key']) || empty($_POST['key'])) {
-            $mtlda->raiseError("key is missing!");
-            return false;
-        }
-        if (!isset($_POST['id']) || empty($_POST['id'])) {
-            $mtlda->raiseError("id is missing!");
-            return false;
-        }
-        if (!isset($_POST['value']) || empty($_POST['value'])) {
-            $mtlda->raiseError("value is missing!");
-            return false;
+        $input_fields = array('key', 'id', 'value', 'model');
+
+        foreach ($input_fields as $field) {
+
+            if (!isset($_POST[$field])) {
+                $mtlda->raiseError("'{$field}' isn't set in POST request!");
+                return false;
+            }
+            if (empty($_POST[$field])) {
+                $mtlda->raiseError("'{$field}' is empty!");
+                return false;
+            }
+            if (!is_string($_POST[$field]) && !is_numeric($_POST[$field])) {
+                $mtlda->raiseError("'{$field}' is not from a valid type!");
+                return false;
+            }
         }
 
         $key = strtolower($_POST['key']);
         $id = $_POST['id'];
         $value = $_POST['value'];
+        $model = $_POST['model'];
 
         if (!(preg_match("/^([a-z]+)_([a-z_]+)$/", $key, $parts))) {
             $mtlda->raiseError("key looks invalid!");
@@ -415,33 +421,28 @@ class RpcController extends DefaultController
             return false;
         }
 
-        $scope = $parts[1];
-
-        if (!$mtlda->isValidModel($scope)) {
-            $mtlda->raiseError("scope contains an invalid model ({$scope})!");
+        if (!$mtlda->isValidModel($model)) {
+            $mtlda->raiseError("scope contains an invalid model ({$model})!");
             return false;
         }
 
         if ($id == 'add') {
-            if (!($obj = $mtlda->loadModel($scope))) {
-                $mtlda->raiseError("unable to locate model for {$scope}!");
-                return false;
-            }
-        } else {
-            if (!($obj = $mtlda->loadModel($scope, $id))) {
-                $mtlda->raiseError("unable to locate model for {$scope} with id {$id}!");
-                return false;
-            }
+            $id = null;
+        }
+
+        if (!($obj = $mtlda->loadModel($model, $id))) {
+            $mtlda->raiseError("Failed to load {$model}!");
+            return false;
         }
 
         // check if model permits RPC updates
         if (!$obj->permitsRpcUpdates()) {
-            $mtlda->raiseError("Model {$scope} does not permit RPC updates!");
+            $mtlda->raiseError("Model {$model} denys RPC updates!");
             return false;
         }
 
         if (!$obj->permitsRpcUpdateToField($key)) {
-            $mtlda->raiseError("Model {$scope} does not permit RPC updates to field {$key}!");
+            $mtlda->raiseError("Model {$model} denys RPC updates to field {$key}!");
             return false;
         }
 
