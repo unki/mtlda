@@ -506,6 +506,19 @@ abstract class DefaultModel
             }
         }
 
+        // now we need to update the init_values array.
+
+        $this->init_values = array();
+
+        foreach (array_keys($this->fields) as $field) {
+
+            if (!isset($this->$field)) {
+                continue;
+            }
+
+            $this->init_values[$field] = $this->$field;
+        }
+
         return true;
 
     } // save()
