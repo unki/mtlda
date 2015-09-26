@@ -32,7 +32,7 @@
    <form id="title_edit_{$item->document_idx}" class="ui form" style="display: none;" onsubmit="return false;">
     <div class="fields">
      <div class="field small ui input">
-      <input type="text" name="document_title[{$item->document_idx}]" value="{$item->document_title}" data-action="update" />
+      <input type="text" name="document_title[{$item->document_idx}]" value="{$item->document_title}" data-action="update" data-model="document" />
      </div>
      <div class="field">
       <button class="circular small ui icon button update title" data-target="document_title[{$item->document_idx}]" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_title}"><i class="save icon"></i></button>
