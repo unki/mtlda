@@ -38,7 +38,7 @@
 
  <!-- right column -->
  <div class="column">
-<i class="wait icon"></i>Recently queued documents
+<i class="wait icon"></i>Recently enqueued documents
   <div class="ui very relaxed divided selection list">
 {top10 type=queue}
    <div class="item">
