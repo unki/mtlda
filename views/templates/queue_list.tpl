@@ -42,7 +42,25 @@
 {queue_list}
  <tr class="queueitem">
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}">{$item->queue_idx}</a></td>
-  <td><a href="{get_url page=queue mode=edit id=$item_safe_link}">{$item->queue_file_name}</a></td>
+  <td>
+   <form id="filename_edit_{$item->queue_idx}" class="ui form" style="display: none;" onsubmit="return false;">
+    <div class="fields">
+     <div class="field small ui input">
+      <input type="text" name="queue_file_name[{$item->queue_idx}]" value="{$item->queue_file_name}" data-action="update" data-model="queueitem" />
+     </div>
+     <div class="field">
+      <button class="circular small ui icon button update filename" data-target="queue_file_name[{$item->queue_idx}]" data-type="filename" data-id="{$item->queue_idx}" data-value="{$item->queue_file_name}"><i class="save icon"></i></button>
+     </div>
+     <div class="field">
+      <button class="circular small ui icon button cancel filename" data-target="queue_file_name[{$item->queue_idx}]" data-type="filename" data-id="{$item->queue_idx}" data-value="{$item->queue_file_name}"><i class="cancel icon"></i></button>
+     </div>
+    </div>
+   </form>
+   <div id="filename_show_{$item->queue_idx}">
+    <div style="float: left;"><a id="filename_label_{$item->queue_idx}" href="{get_url page=queue mode=edit id=$item_safe_link}">{$item->queue_file_name}</a></div>&nbsp;
+    <a class="filename" data-type="filename" data-id="{$item->queue_idx}" data-value="{$item->queue_file_name}"><i class="edit icon" ></i></a>
+   </div>
+  </td>
   <td>{$item->queue_file_size}</td>
   <td class="state" id="queueitem-{$item_safe_link}">{$item->queue_state}</td>
   <td>{$item->queue_time}</td>
@@ -91,6 +109,18 @@
 <script type="text/javascript"><!--
 
 $(document).ready(function() {
+
+$('a.filename, button.filename.cancel').click(function(element) {
+   type = $(this).attr('data-type');
+   id = $(this).attr('data-id');
+   value = $(this).attr('data-value');
+   if (!type || !id || !value) {
+      console.log('incomplete: ' + type + ', ' + id + ', ' + value);
+      return
+   }
+   $('#' + type + '_show_' + id).toggle();
+   $('#' + type + '_edit_' + id).toggle();
+});
 
 $('a#mailimport').click(function() {
 
