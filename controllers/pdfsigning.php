@@ -87,9 +87,19 @@ class PdfSigningController extends DefaultController
         }
     }
 
-    public function signDocument($fqpn, &$src_document)
+    public function signDocument(&$src_document)
     {
         global $mtlda, $audit;
+
+        if (!is_a($src_document, 'MTLDA\Models\DocumentModel')) {
+            $mtlda->raiseError(__METHOD__ .' only supports DocumentModels!');
+            return false;
+        }
+
+        if (!$fqpn = $src_document->getFilePath()) {
+            $mtlda->raiseError(get_class($src_document) .'::getFilePath() returned false!');
+            return false;
+        }
 
         if (!file_exists($fqpn)) {
             $mtlda->raiseError("{$fqpn} does not exist!");
