@@ -14,4 +14,4 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-bla
+{* this is a blanko template as mode=show actually retrieves the PDF document from queue *}
