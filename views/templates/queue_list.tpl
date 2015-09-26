@@ -41,7 +41,7 @@
  <tbody>
 {queue_list}
  <tr class="queueitem">
-  <td><a href="{get_url page=queue mode=show id=$item_safe_link}">{$item->queue_idx}</a></td>
+  <td><a href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->queue_idx}</a></td>
   <td>
    <form id="filename_edit_{$item->queue_idx}" class="ui form" style="display: none;" onsubmit="return false;">
     <div class="fields">
@@ -57,7 +57,7 @@
     </div>
    </form>
    <div id="filename_show_{$item->queue_idx}">
-    <div style="float: left;"><a id="filename_label_{$item->queue_idx}" href="{get_url page=queue mode=show id=$item_safe_link}">{$item->queue_file_name}</a></div>&nbsp;
+    <div style="float: left;"><a id="filename_label_{$item->queue_idx}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->queue_file_name}</a></div>&nbsp;
     <a class="filename" data-type="filename" data-id="{$item->queue_idx}" data-value="{$item->queue_file_name}"><i class="edit icon" ></i></a>
    </div>
   </td>
