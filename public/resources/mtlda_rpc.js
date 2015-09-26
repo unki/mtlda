@@ -164,6 +164,12 @@ function rpc_object_update(element)
     }
     action = safe_string(action);
 
+    if (!(model = input_field.attr('data-model'))) {
+        alert('unable to find "data-model" in input field: '+ target);
+        return false;
+    }
+    model = safe_string(model);
+
     if(
         window.location.pathname != undefined &&
         window.location.pathname != '' &&
@@ -180,6 +186,7 @@ function rpc_object_update(element)
         data: ({
             type : 'rpc',
             action : action,
+            model  : model,
             id     : id,
             key    : key,
             value  : value
