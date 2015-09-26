@@ -144,22 +144,30 @@ class StorageController extends DefaultController
         return true;
     }
 
-    public function retrieveFile(&$document, $from = 'archive')
+    public function retrieveFile(&$document)
     {
         global $mtlda;
 
-
-        if ($from == 'archive') {
-            $src = $this::ARCHIVE_DIRECTORY;
-            $guid_field = "document_guid";
-            $name_field = "document_file_name";
-        } else {
-            $src = $this::WORKING_DIRECTORY;
-            $guid_field = "queue_guid";
-            $name_field = "queue_file_name";
+        if (!is_object($document)) {
+            $mtlda->raiseError(__METHOD__ .', first parameter should be an object!');
+            return false;
         }
 
-        if (!method_exists($document, 'getFilePath')) {
+        if (is_a($document, 'MTLDA\Models\DocumentModel')) {
+            $guid_field = "document_guid";
+            $name_field = "document_file_name";
+        } elseif (is_a($document, 'MTLDA\Models\QueueItemModel')) {
+            $guid_field = "queue_guid";
+            $name_field = "queue_file_name";
+        } else {
+            $mtlda->raiseError("Unsupported model: ". get_class($document) .'!');
+            return false;
+        }
+
+        if (
+            !method_exists($document, 'getFilePath') ||
+            !is_callable(array($document, 'getFilePath'))
+        ) {
             $mtlda->raiseError('Class '. get_class($document) .' does not provide getFilePath() method!');
             return false;
         }
