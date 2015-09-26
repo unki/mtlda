@@ -671,6 +671,45 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
+    public function postClone(&$srcobj)
+    {
+        global $mtlda;
+
+        try {
+            $storage = new Controllers\StorageController;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load StorageController!");
+            return false;
+        }
+
+        if (!$guid = $this->getGuid()) {
+            $mtlda->raiseError(__CLASS__ .'::getGuid() returned false!');
+            return false;
+        }
+
+        if (!$src_file = $srcobj->getFilePath()) {
+            $mtlda->raiseError(__METHOD__ .', unable to retrieve source objects full qualified path name!');
+            return false;
+        }
+
+        if (!$dst_file = $this->getFilePath()) {
+            $mtlda->raiseError(__CLASS__ .'::getFilePath() returned false!');
+            return false;
+        }
+
+        if (!$storage->createDirectoryStructure(dirname($dst_file))) {
+            $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
+            return false;
+        }
+
+        if (!$storage->copyFile($src_file, $dst_file)) {
+            $mtlda->raiseError("StorageController::copyFile() returned false!");
+            return false;
+        }
+
+        return true;
+    }
+
     public function getLastestDocumentVersionNumber()
     {
         global $mtlda, $db;
