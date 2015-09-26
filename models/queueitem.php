@@ -42,56 +42,88 @@ class QueueItemModel extends DefaultModel
     {
         global $mtlda, $db;
 
-        if (
-            !isset($id) || !isset($guid) ||
-            empty($id) || empty($guid)
-        ) {
+        $this->permitRpcUpdates(true);
 
-            parent::__construct();
-            return true;
-
+        if (!$this->permitRpcUpdates(true)) {
+            $mtlda->raiseError("permitRpcUpdates() returned false!");
+            return false;
         }
 
-        if (!$mtlda->isValidId($id)) {
+        try {
+            $this->addRpcEnabledField('queue_file_name');
+        } catch (\Exception $e) {
+            $mtlda->raise("Failed on invoking addRpcEnabledField() method");
+            return false;
+        }
+
+        // are we creating a new item?
+        if (!isset($id) && !isset($guid)) {
+            parent::__construct(null);
+            return true;
+        }
+
+        if (!empty($id) && !$mtlda->isValidId($id)) {
             $mtlda->raiseError("\$id is in an invalid format", true);
             return false;
         }
 
-        if (!$mtlda->isValidGuidSyntax($guid)) {
+        if (!empty($guid) && !$mtlda->isValidGuidSyntax($guid)) {
             $mtlda->raiseError("\$guid is in an invalid format", true);
             return false;
         }
 
-        // get $id from db
-        $sth = $db->prepare(
+        if (empty($id) && empty($guid)) {
+            $mtlda->raiseError("Need to know either \$id or \$guid to load item!", true);
+            return false;
+        }
+
+        $sql =
             "SELECT
                 queue_idx
             FROM
                 TABLEPREFIX{$this->table_name}
-            WHERE
-                queue_idx LIKE ?
-            AND
-                queue_guid LIKE ?"
-        );
+            WHERE";
 
-        if (!$db->execute($sth, array($id, $guid))) {
-            $mtlda->raiseError("Failed to execute query");
+        $arr_query = array();
+        if (isset($id)) {
+            $sql.= "
+                queue_idx LIKE ?
+            ";
+            $arr_query[] = $id;
+        }
+        if (isset($id) && isset($guid)) {
+            $sql.= "
+                AND
+            ";
+        }
+        if (isset($guid)) {
+            $sql.= "
+                queue_guid LIKE ?
+            ";
+            $arr_query[] = $guid;
+        };
+
+        if (!$sth = $db->prepare($sql)) {
+            $mtlda->raiseError("Failed to prepare query!", true);
+            return false;
+        }
+
+        if (!$db->execute($sth, $arr_query)) {
+            $mtlda->raiseError("Failed to execute query!", true);
+            return false;
         }
 
         if (!($row = $sth->fetch())) {
-            $mtlda->raiseError("Unable to find queue item with guid value {$guid}");
+            $mtlda->raiseError("Unable to find queue item with guid value {$guid}", true);
             return false;
         }
 
         if (!isset($row->queue_idx) || empty($row->queue_idx)) {
-            $mtlda->raiseError("Unable to find queue item with guid value {$guid}");
+            $mtlda->raiseError("Unable to find queue item with guid value {$guid}", true);
             return false;
         }
 
         parent::__construct($row->queue_idx);
-
-
-        $db->freeStatement($sth);
 
         return true;
     }
@@ -210,6 +242,56 @@ class QueueItemModel extends DefaultModel
 
         if ($this->isDuplicate()) {
             $mtlda->raiseError("Duplicated record detected!");
+            return false;
+        }
+
+        if (
+            !isset($this->queue_file_name) ||
+            empty($this->queue_file_name)
+        ) {
+            $mtlda->raiseError("\$queue_file_name must not be empty!");
+            return false;
+        }
+
+        /* new queueitem? no more action here */
+        if (!isset($this->document_idx) && !isset($this->id)) {
+            return true;
+        }
+
+        if (
+            !isset($this->init_values['queue_file_name']) ||
+            empty($this->init_values['queue_file_name'])
+        ) {
+            return true;
+        }
+
+        /* filename hasn't changed? we are done */
+        if ($this->init_values['queue_file_name'] == $this->queue_file_name) {
+            return true;
+        }
+
+        if (!$fqpn = $this->getFilePath()) {
+            $mtlda->raiseError(__CLASS__ ."::getFilePath() returned false!");
+            return false;
+        }
+
+        $path = dirname($fqpn);
+
+        if (empty($path)) {
+            $mtlda->raiseError("why is \$path empty?");
+            return false;
+        }
+
+        $old_file = $path .'/'. basename($this->init_values['queue_file_name']);
+        $new_file = $path .'/'. basename($this->queue_file_name);
+
+        if (file_exists($new_file)) {
+            $mtlda->raiseError("Unable to rename {$old_file} to {$new_file} - destination already exists!");
+            return false;
+        }
+
+        if (rename($old_file, $new_file) === false) {
+            $mtlda->raiseError("rename() returned false!");
             return false;
         }
 
