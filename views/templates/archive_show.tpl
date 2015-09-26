@@ -54,7 +54,7 @@
         <form id="document_edit_{$version->document_idx}" class="ui form filename" style="display: none;" onsubmit="return false;">
          <div class="fields">
           <div class="field small ui input">
-           <input type="text" name="document_file_name[{$version->document_idx}]" value="{$version->document_file_name}" data-action="update" />
+           <input type="text" name="document_file_name[{$version->document_idx}]" value="{$version->document_file_name}" data-action="update" data-model="document" />
           </div>
           <div class="field">
            <button class="circular small ui icon button update document" data-target="document_file_name[{$version->document_idx}]" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="save icon"></i></button>
