@@ -41,13 +41,6 @@ class QueueView extends DefaultView
         parent::__construct();
     }
 
-    public function showEdit($id, $hash)
-    {
-        $item = new Models\QueueItemModel($id, $hash);
-
-        parent::showEdit($item);
-    }
-
     public function queueList($params, $content, &$smarty, &$repeat)
     {
         global $mtlda;
