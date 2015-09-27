@@ -315,28 +315,20 @@ class DocumentModel extends DefaultModel
     {
         global $mtlda, $db;
 
-        $result = $db->query(
-            "DELETE FROM
-                TABLEPREFIXassign_keywords_to_document
-            WHERE
-                akd_archive_idx LIKE '{$this->document_idx}'"
-        );
+        if ($this->hasDescendants()) {
+            if (!$this->deleteAllDescendants()) {
+                $mtlda->raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
+                return false;
+            }
+        }
 
-        if ($result === false) {
-            $mtlda->raiseError("Deleting keyword assignments failed!");
+        if (!$this->deleteAllAssignedKeywords()) {
+            $mtlda->raiseError(__CLASS__ .'::deleteAllAssignedKeywords() returned false!');
             return false;
         }
 
-        // load StorageController
-        $storage = new Controllers\StorageController;
-
-        if (!$storage) {
-            $mtlda->raiseError("unable to load StorageController!");
-            return false;
-        }
-
-        if (!$storage->deleteItemFile($this)) {
-            $mtlda->raiseError("StorageController::deleteItemFile() returned false!");
+        if (!$this->deleteFile()) {
+            $mtlda->raiseError(__CLASS__ .'::deleteFile() returned false!');
             return false;
         }
 
@@ -346,35 +338,6 @@ class DocumentModel extends DefaultModel
     public function postDelete()
     {
         global $mtlda, $audit;
-
-        if (!isset($this->descendants) && !is_array($this->descendants)) {
-            $mtlda->raiseError("descendants are not set!");
-            return false;
-        }
-
-        if (empty($this->descendants)) {
-            return true;
-        }
-
-        foreach ($this->descendants as $descendant) {
-
-            if (!isset($descendant['idx'], $descendant['guid'])) {
-                $mtlda->raiseError("descendant is invalid!");
-                return false;
-            }
-
-            $child = new DocumentModel($descendant['idx'], $descendant['guid']);
-
-            if (!$child) {
-                $mtlda->raiseError("Unable to find document with guid value {$descendant['guid']}");
-                return false;
-            }
-
-            if (!$child->delete()) {
-                $mtlda->raiseError("descendant {$descendant['guid']} delete() returned false!");
-                return false;
-            }
-        }
 
         try {
             $audit->log(
@@ -819,6 +782,63 @@ class DocumentModel extends DefaultModel
         }
 
         $db->freeStatement($sth);
+        return true;
+    }
+
+    private function deleteAllAssignedKeywords()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "DELETE FROM
+                TABLEPREFIXassign_keywords_to_document
+            WHERE
+                akd_archive_idx LIKE '{$this->document_idx}'"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError("Deleting keyword assignments failed!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private function deleteFile()
+    {
+        global $mtlda;
+
+        // load StorageController
+        $storage = new Controllers\StorageController;
+
+        if (!$storage) {
+            $mtlda->raiseError("unable to load StorageController!");
+            return false;
+        }
+
+        if (!$storage->deleteItemFile($this)) {
+            $mtlda->raiseError("StorageController::deleteItemFile() returned false!");
+            return false;
+        }
+
+        return true;
+    }
+
+    private function deleteAllDescendants()
+    {
+        global $mtlda;
+
+        if (!$this->hasDescendants()) {
+            return true;
+        }
+
+        foreach ($this->getDescendants() as $descendant) {
+            if (!$descendant->delete()) {
+                $mtlda->raiseError(get_class($descendant) .'::delete() returned false!');
+                return false;
+            }
+        }
+
         return true;
     }
 }
