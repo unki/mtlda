@@ -364,6 +364,19 @@ class ConfigController extends DefaultController
 
     }
 
+    public function isPdfSigningAttachAuditLogEnabled()
+    {
+        if (
+            isset($this->config['pdf_signing']['attach_audit_log']) &&
+            !empty($this->config['pdf_signing']['attach_audit_log']) &&
+            $this->isEnabled($this->config['pdf_signing']['attach_audit_log'])
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function isMailImportEnabled()
     {
         if (!isset($this->config['app']['mail_import'])) {
