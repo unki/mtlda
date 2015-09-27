@@ -133,6 +133,12 @@ contact = "YOUR CONTACT"
 ;
 signature_algorithm = SHA256
 
+;
+; attach auditing log to PDF document
+;    0 = disabled, 1 = enabled
+;
+attach_audit_log = 1
+
 [timestamp]
 ;
 ; Timestamp Digest Algorithm
