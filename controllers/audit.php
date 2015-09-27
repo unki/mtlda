@@ -61,6 +61,40 @@ class AuditController extends DefaultController
 
         return true;
     }
+
+    public function retrieveAuditLog($guid)
+    {
+        global $mtlda;
+
+        if (empty($guid) || !$mtlda->isValidGuidSyntax($guid)) {
+            $mtlda->raiseError(__METHOD__ .' requires a valid GUID as first parameter!');
+            return false;
+        }
+
+        try {
+            $log = new Models\AuditLogModel($guid);
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load AuditLogModel! ". $e->getMessage());
+            return false;
+        }
+
+        if (!$entries = $log->getLog()) {
+            $mtlda->raiseError(get_class($log) .'::getLog() returned false!');
+            return false;
+        }
+
+        if (!is_array($entries)) {
+            $mtlda->raiseError(__METHOD__ .' invalid audit log retrieved!');
+            return false;
+        }
+
+        if (empty($entries)) {
+            $entries = array('No audit log entries available!');
+        }
+
+        $txtlog = implode('\n', $entries);
+        return $txtlog;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
