@@ -434,6 +434,41 @@ class StorageController extends DefaultController
 
         return true;
     }
+
+    public function createTempDir()
+    {
+        global $mtlda;
+
+        $tmpdir_created = false;
+
+        if (!file_exists(self::CACHE_DIRECTORY)) {
+            $mtlda->raiseError(self::CACHE_DIRECTORY .' does not exist!');
+            return false;
+        }
+
+        if (!is_writeable(self::CACHE_DIRECTORY)) {
+            $mtlda->raiseError(self::CACHE_DIRECTORY .' is not writeable!');
+            return false;
+        }
+
+        do {
+            $dir_name = 'auditlog_'. uniqid();
+            $fqpn = self::CACHE_DIRECTORY .'/'. $dir_name;
+
+            if (file_exists($fqpn)) {
+                continue;
+            }
+
+            if (!mkdir($fqpn)) {
+                $mtlda->raiseError('Failed to create directory '. $fqpn);
+                return false;
+            }
+
+            $tmpdir_create = true;
+            return $fqpn;
+
+        } while (!$tmpdir_created);
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
