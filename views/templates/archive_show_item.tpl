@@ -39,7 +39,7 @@
    <div class="header">
     <a id="document_label_{$item->document_idx}" href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">{$item->document_file_name}</a>&nbsp;
     <a class="document update" data-type="document" data-id="{$item->document_idx}" data-value="{$item->document_file_name}"><i class="edit icon" ></i></a>
-    <a href="{get_url page=document mode=delete id=$item_safe_link}"><i class="delete icon"></i></a>
+    <a href="{get_url page=document mode=delete id=$item_safe_link}"><i class="remove circle icon"></i></a>
    </div>
    <div class="description">Version {$item->document_version} (created {$item->document_time|date_format:"%Y.%m.%d %H:%M"})</div>
 {if $item->document_signed_copy != 'Y' }
