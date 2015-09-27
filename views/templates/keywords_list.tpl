@@ -64,7 +64,7 @@
     <a class="keyword" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="edit icon" ></i></a>
    </div>
   </td>
-  <td><a class="delete" title="delete" id="keyword-{$item_safe_link}">Delete</a></td>
+  <td><a class="delete" title="delete" id="keyword-{$item_safe_link}"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/keywords_list}
  </tbody>
