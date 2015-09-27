@@ -440,6 +440,8 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
+        clearstatcache(true, $fqpn);
+
         if (($hash = sha1_file($fqpn)) === false) {
             $mtlda->raiseError(__TRAIT__ ." SHA1 value of {$fqpn} can not be calculated!");
             return false;
