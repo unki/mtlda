@@ -40,46 +40,7 @@
         <div class="description">Original document (imported {$item->document_time|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a href="{get_url page=document mode=sign id=$item_safe_link}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
        </div>
       </div>
-{if $item_versions}
-{foreach $item_versions as $version}
- {assign var='safe_link' value="document-`$version->document_idx`-`$version->document_guid`"}
-      <div class="item">
-       {if $latest_document_version == $version->document_version}
-       <div class="right floated content">
-         <i class="ui big red tag icon" data-title="This is the latest version of the current document."></i>
-       </div>
-       {/if}
-       <i class="{if $version->document_signed_copy == 'Y'}protect{else}file text{/if} icon" data-title="{if $version->document_signed_copy == 'Y'}This is a signed copy of the original document.{else}This is a copy of the original document.{/if}"></i>
-       <div class="content">
-        <form id="document_edit_{$version->document_idx}" class="ui form filename" style="display: none;" onsubmit="return false;">
-         <div class="fields">
-          <div class="field small ui input">
-           <input type="text" name="document_file_name[{$version->document_idx}]" value="{$version->document_file_name}" data-action="update" data-model="document" />
-          </div>
-          <div class="field">
-           <button class="circular small ui icon button update document" data-target="document_file_name[{$version->document_idx}]" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="save icon"></i></button>
-          </div>
-          <div class="field">
-           <button class="circular small ui icon button cancel" data-target="document_file_name[{$version->document_idx}]" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="cancel icon"></i></button>
-          </div>
-         </div>
-        </form>
-        <div id="document_show_{$version->document_idx}">
-         <div class="header">
-          <a id="document_label_{$version->document_idx}" href="{get_url page=document mode=show id=$safe_link file=$version->document_file_name}">{$version->document_file_name}</a>&nbsp;
-          <a class="document update" data-type="document" data-id="{$version->document_idx}" data-value="{$version->document_file_name}"><i class="edit icon" ></i></a>
-          <a href="{get_url page=document mode=delete id=$safe_link}"><i class="delete icon"></i></a>
-         </div>
-         <div class="description">Version {$version->document_version} (created {$version->document_time|date_format:"%Y.%m.%d %H:%M"})</div>
-{if $version->document_signed_copy != 'Y' }
-         <br />
-         <a href="{get_url page=document mode=sign id=$safe_link}"><i class="protect icon"></i>Click to digitally sign document</a>.
-{/if}
-        </div>
-       </div>
-      </div>
-{/foreach}
-{/if}
+{list_versions}
      </div>
     </div>
    </div>
