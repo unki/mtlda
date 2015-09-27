@@ -27,6 +27,7 @@ class ArchiveView extends DefaultView
     public $item_name = 'Document';
     public $archive;
     private $item;
+    private $keywords;
 
     public function __construct()
     {
@@ -40,6 +41,8 @@ class ArchiveView extends DefaultView
         }
 
         parent::__construct();
+
+        $this->registerPlugin("function", "list_versions", array(&$this, "listVersions"), false);
     }
 
     public function showEdit()
@@ -90,23 +93,29 @@ class ArchiveView extends DefaultView
     {
         global $mtlda, $config;
 
-        if ($this->item_name == "Document") {
-            try {
-                $this->item = new Models\DocumentModel($id, $hash);
-            } catch (Exception $e) {
-                $mtlda->raiseError("Failed to load DocumentModel!");
-                return false;
-            }
+        if ($this->item_name != "Document") {
+            $mtlda->raiseError(__METHOD__ .' can only work with documents!');
+            return false;
+        }
+
+        try {
+            $this->item = new Models\DocumentModel($id, $hash);
+        } catch (Exception $e) {
+            $mtlda->raiseError("Failed to load DocumentModel!");
+            return false;
         }
 
         if (!isset($this->item) || empty($this->item)) {
             return false;
         }
 
-        $descendants = $this->item->getDescendants();
+        $descendants = array();
 
-        if (!$descendants) {
-            $descendants = array();
+        if ($this->item->hasDescendants()) {
+            if (!$descendants = $this->item->getDescendants()) {
+                $mtlda->raiseError(get_class($this->item) .'::getDescendants() returned false!');
+                return false;
+            }
         }
 
         if (!($base_path = $config->getWebPath())) {
@@ -119,7 +128,7 @@ class ArchiveView extends DefaultView
         }
 
         try {
-            $keywords = new Models\KeywordsModel;
+            $this->keywords = new Models\KeywordsModel;
         } catch (Exception $e) {
             $mtlda->raiseError("Failed to load KeywordsModel!");
             return false;
@@ -134,7 +143,7 @@ class ArchiveView extends DefaultView
         $this->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
         $this->assign('item_versions', $descendants);
         $this->assign('item', $this->item);
-        $this->assign('keywords', $keywords->items);
+        $this->assign('keywords', $this->keywords->items);
         $this->assign('assigned_keywords', $assigned_keywords);
         $this->assign("item_safe_link", "document-". $this->item->document_idx ."-". $this->item->document_guid);
         return parent::showItem($id, $hash);
@@ -180,6 +189,88 @@ class ArchiveView extends DefaultView
         }
 
         return $rows;
+    }
+
+    public function listVersions($params, &$smarty)
+    {
+        global $mtlda, $query;
+
+        if (!$this->item->hasDescendants()) {
+            return true;
+        }
+
+        $content = "";
+
+        if (!$content = $this->buildVersionsList()) {
+            $mtlda->raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
+            return false;
+        }
+
+        return $content;
+    }
+
+    private function buildVersionsList($descendants = null, $level = 0)
+    {
+        $content = "";
+
+        if (!isset($descendants)) {
+            if (!$descendants = $this->item->getDescendants()) {
+                $mtlda->raiseError(get_class($this->item) .'::getDescendants() returned false!');
+                return false;
+            }
+        }
+
+        $len = count($descendants);
+        $counter = 0;
+
+        foreach ($descendants as $item) {
+
+            $this->assign('item', $item);
+            $this->assign('item_safe_link', 'document-'. $item->document_idx .'-'. $item->document_guid);
+
+            if ($item->hasDescendants()) {
+                $this->assign('item_has_descendants', true);
+            } else {
+                $this->assign('item_has_descendants', false);
+            }
+
+            if ($level > 0 && $counter == ($len-1)) {
+                $this->assign('item_is_last_descendant', true);
+            } else {
+                $this->assign('item_is_last_descendant', false);
+            }
+
+            if (!$src = $this->fetch('archive_show_item.tpl')) {
+                $mtlda->raiseError(__CLASS__ .'::fetch() returned false!');
+                return false;
+            }
+
+            $content.= $src;
+
+            if (!$item->hasDescendants()) {
+                $counter+=1;
+                continue;
+            }
+
+            if (!$item_descendants = $item->getDescendants()) {
+                $mtlda->raiseError(get_class($item) .'::getDescendants() returned false!');
+                return false;
+            }
+
+            if (!$item_content = $this->buildVersionsList($item_descendants, $level+1)) {
+                $mtlda->raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
+                return false;
+            }
+
+            $content.= $item_content;
+            $counter+=1;
+        }
+
+        if (empty($content)) {
+            return false;
+        }
+
+        return $content;
     }
 }
 
