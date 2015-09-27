@@ -170,7 +170,6 @@ class AuditEntryModel extends DefaultModel
 
         $this->audit_type = $entry_type;
         return true;
-
     }
 
     public function setScene($scene)
@@ -193,7 +192,6 @@ class AuditEntryModel extends DefaultModel
 
         $this->audit_scene = $scene;
         return true;
-
     }
 }
 
