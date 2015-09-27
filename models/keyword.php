@@ -41,7 +41,7 @@ class KeywordModel extends DefaultModel
         try {
             $this->addRpcEnabledField('keyword_name');
         } catch (\Exception $e) {
-            $mtlda->raise("Failed on invoking addRpcEnabledField() method");
+            $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
             return false;
         }
 
