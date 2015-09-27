@@ -225,9 +225,18 @@ class ArchiveController extends DefaultController
         $signing_item->document_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->document_file_name);
         $signing_item->document_derivation = $src_item->id;
         $signing_item->document_derivation_guid = $src_item->document_guid;
+
         if (!$signing_item->save()) {
             $mtlda->raiseError(get_class($signing_item) .'::save() returned false!');
             return false;
+        }
+
+        if ($config->isPdfSigningAttachAuditLogEnabled()) {
+            if (!$this->attachAuditLogToDocument($signing_item)) {
+                $signing_item->delete();
+                $mtlda->raiseError(__CLASS__ .'::attachAuditLogToDocument() returned false!');
+                return false;
+            }
         }
 
         if (!$signer->signDocument($signing_item)) {
@@ -369,7 +378,12 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        $page_count = $pdf->setSourceFile($fqfn);
+        try {
+            $page_count = $pdf->setSourceFile($fqfn);
+        } catch (\Exception $e) {
+            $mtlda->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
 
         for ($page_no = 1; $page_no <= $page_count; $page_no++) {
 
@@ -437,7 +451,19 @@ class ArchiveController extends DefaultController
         // ---------------------------------------------------------
 
         //Close and output PDF document
-        $pdf->Output($fqfn, 'F');
+        try {
+            $pdf->Output($fqfn, 'F');
+        } catch (\Exception $e) {
+            $mtlda->raiseError(get_class($pdf) .'::Output() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
+
+        try {
+            @$pdf->cleanUp();
+        } catch (\Exception $e) {
+            $mtlda->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
 
         if (!$logo_doc->refresh()) {
             $mtlda->raiseError(get_class($logo_doc) .'::refresh() returned false!');
@@ -517,6 +543,131 @@ class ArchiveController extends DefaultController
             'x-pos' => $x,
             'y-pos' => $y
         );
+    }
+
+    private function attachAuditLogToDocument($document)
+    {
+        global $mtlda, $audit;
+
+        if (empty($mtlda) || !get_class($document) == 'DocumentModel') {
+            $mtlda->raiseError(__METHOD__ .' can only work with DocmentModels!');
+            return false;
+        }
+
+        if (!$fqfn = $document->getFilePath()) {
+            $mtlda->raiseError(get_class($document) .'::getFilePath() returned false!');
+            return false;
+        }
+
+        try {
+            $pdf = new \FPDI();
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load FPDI!");
+            return false;
+        }
+
+        try {
+            $storage = new StorageController;
+        } catch (\Exception $e) {
+            $mtlda->raiseError('Failed to load StorageController!');
+            return false;
+        }
+
+        try {
+            $page_count = $pdf->setSourceFile($fqfn);
+        } catch (\Exception $e) {
+            $mtlda->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
+
+        for ($page_no = 1; $page_no <= $page_count; $page_no++) {
+
+            // import a page
+            $templateId = $pdf->importPage($page_no);
+            // get the size of the imported page
+            $size = $pdf->getTemplateSize($templateId);
+
+            // create a page (landscape or portrait depending on the imported page size)
+            if ($size['w'] > $size['h']) {
+                $pdf->AddPage('L', array($size['w'], $size['h']));
+            } else {
+                $pdf->AddPage('P', array($size['w'], $size['h']));
+            }
+
+            // use the imported page
+            $pdf->useTemplate($templateId);
+        }
+
+        if (!$audittxt = $audit->retrieveAuditLog($document->getGuid())) {
+            $mtlda->raiseError(get_class($audit) .'::retrieveAuditLog() returned false!');
+            return false;
+        }
+
+        if (empty($audittxt)) {
+            $mtlda->raiseError(__METHOD__ .' audit log is empty!');
+            return false;
+        }
+
+        if (!$tmpdir = $storage->createTempDir()) {
+            $mtlda->raiseError(get_class($storage) .'::createTempDir() returned false!');
+            return false;
+        }
+
+        $auditlog = $tmpdir .'/AuditLog.txt';
+
+        if (file_exists($auditlog)) {
+            $mtlda->raiseError('Strangle there is already an AuditLog.txt in my temporary directory! '. $auditlog);
+            return false;
+        }
+
+        if (!file_put_contents($auditlog, $audittxt)) {
+            $mtlda->raiseError('file_put_contents() returned false!');
+            return false;
+        }
+
+        try {
+            $pdf->Annotation(
+                10,
+                10,
+                5,
+                7,
+                'AuditLog.txt',
+                array(
+                    'Subtype' => 'FileAttachment',
+                    'Name' => 'PushPin',
+                    'FS' => $auditlog
+                )
+            );
+        } catch (\Exception $e) {
+            unlink($auditlog);
+            rmdir($tmpdir);
+            $mtlda->raiseError(get_class($pdf) .'::Annotation() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
+
+        unlink($auditlog);
+        rmdir($tmpdir);
+
+        try {
+            $pdf->Output($fqfn, 'F');
+        } catch (\Exception $e) {
+            $mtlda->raiseError(get_class($pdf) .'::Output() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
+
+        try {
+            @$pdf->cleanUp();
+        } catch (\Exception $e) {
+            $mtlda->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
+
+        if (!$document->refresh()) {
+            $mtlda->raiseError(get_class($document) .'::refresh() returned false!');
+            return false;
+        }
+
+        return true;
     }
 }
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
