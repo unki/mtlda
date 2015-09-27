@@ -222,7 +222,7 @@ class StorageController extends DefaultController
             return false;
         }
 
-        if (!$this->isBelowDataDirectory(dirname($fqfn))) {
+        if (!$this->isBelowDirectory(dirname($fqfn), self::DATA_DIRECTORY)) {
             $mtlda->raiseError(__METHOD__ .", will only handle requested within ". $this::DATA_DIRECTORY ."!");
             return false;
         }
@@ -298,7 +298,7 @@ class StorageController extends DefaultController
                 return false;
             }
 
-            if (!$this->isBelowDataDirectory(dirname($fqfn))) {
+            if (!$this->isBelowDirectory(dirname($fqfn), self::DATA_DIRECTORY)) {
                 $mtlda->raiseError("will only handle requested within ". $this::DATA_DIRECTORY ."!");
                 return false;
             }
@@ -323,7 +323,7 @@ class StorageController extends DefaultController
         return true;
     }
 
-    private function isBelowDataDirectory($dir)
+    private function isBelowDirectory($dir, $topmost = null)
     {
         global $mtlda;
 
@@ -332,8 +332,12 @@ class StorageController extends DefaultController
             return false;
         }
 
+        if (empty($topmost)) {
+            $topmost = self::DATA_DIRECTORY;
+        }
+
         $dir = strtolower(realpath($dir));
-        $dir_top = strtolower(realpath($this::DATA_DIRECTORY));
+        $dir_top = strtolower(realpath($topmost));
 
         $dir_top_reg = preg_quote($dir_top, '/');
 
@@ -343,7 +347,7 @@ class StorageController extends DefaultController
         }
 
         if ($dir == $dir_top) {
-            return true;
+            return false;
         }
 
         $cnt_dir = count(explode('/', $dir));
@@ -387,14 +391,29 @@ class StorageController extends DefaultController
         return false;
     }
 
-    public function cleanDirectoryHierarchy($path)
+    public function cleanDirectoryHierarchy($path, $upperpath = null)
     {
         global $mtlda;
+
+        if (empty($upperpath) && strstr($path, self::ARCHIVE_DIRECTORY)) {
+            $upperpath = self::ARCHIVE_DIRECTORY;
+        } elseif (empty($upperpath) && strstr($path, self::INCOMING_DIRECTORY)) {
+            $upperpath = self::INCOMING_DIRECTORY;
+        } elseif (empty($upperpath) && strstr($path, self::WORKING_DIRECTORY)) {
+            $upperpath = self::WORKING_DIRECTORY;
+        } elseif (empty($upperpath)) {
+            $upperpath = self::DATA_DIRECTORY;
+        }
 
         // nothing strange in the path?
         if ($path != realpath($path)) {
             $mtlda->raiseError(__METHOD__ .", are you trying to fooling me?");
             return false;
+        }
+
+        // avoid traversing too much up the hierarchy
+        if (!$this->isBelowDirectory($path, $upperpath)) {
+            return true;
         }
 
         // if directory isn't empty, we are done
@@ -409,11 +428,7 @@ class StorageController extends DefaultController
 
         $next_path = dirname($path);
 
-        if (!$this->isBelowDataDirectory($next_path)) {
-            return true;
-        }
-
-        if (!$this->cleanDirectoryHierarchy($next_path)) {
+        if (!$this->cleanDirectoryHierarchy($next_path, $upperpath)) {
             return false;
         }
 
