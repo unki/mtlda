@@ -21,7 +21,7 @@
    <th>Idx</th>
    <th>Document</th>
    <th>Time</th>
-   <th colspan="2">Actions</th>
+   <th colspan="3">Actions</th>
   </tr>
  </thead>
  <tbody>
@@ -48,8 +48,9 @@
    </div>
   </td>
   <td>{$item->document_time}</td>
-  <td><a href="{get_url page=document mode=show id=$document_safe_link}" target="_blank">Open</a></td>
-  <td><a class="delete" title="delete" id="document-{$item_safe_link}">Delete</a></td>
+  <td><a href="{get_url page=archive mode=show id=$item_safe_link}"><i class="file text icon"></i>Details</a></td>
+  <td><a href="{get_url page=document mode=show id=$document_safe_link}" target="_blank"><i class="icons"><i class="file text icon"></i><i class="corner search icon"></i></i>Show</a></td>
+  <td><a class="delete" title="delete" id="document-{$item_safe_link}"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/archive_list}
  </tbody>
