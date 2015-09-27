@@ -138,6 +138,8 @@ class UploadController extends DefaultController
             return false;
         }
 
+        clearstatcache(true, $file['tmp_name']);
+
         if (($filesize = filesize($file['tmp_name'])) === false || empty($filesize)) {
             $mtlda->raiseError("failed to detected file size of {$file['tmp_name']}");
             return false;
