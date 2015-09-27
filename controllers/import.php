@@ -239,6 +239,8 @@ class ImportController extends DefaultController
                 return false;
             }
 
+            clearstatcache(true, $file['fqpn']);
+
             if (($file['size'] = filesize($file['fqpn'])) === false) {
                 $mtlda->raiseError("Filesize of {$file['fqpn']} is not available!");
                 return false;
