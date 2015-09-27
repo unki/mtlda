@@ -202,7 +202,7 @@ abstract class Templates extends Smarty
                 $no_output_filter
             );
         } catch (\SmartyException $e) {
-            $mtlda->raise("Smarty throwed an exception! ". $e->getMessage());
+            $mtlda->raiseError("Smarty throwed an exception! ". $e->getMessage());
             return false;
         }
 
