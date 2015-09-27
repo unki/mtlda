@@ -115,7 +115,7 @@ class DocumentModel extends DefaultModel
             $this->addRpcEnabledField('document_description');
             $this->addRpcEnabledField('document_file_name');
         } catch (\Exception $e) {
-            $mtlda->raise("Failed on invoking addRpcEnabledField() method");
+            $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
             return false;
         }
 
@@ -124,18 +124,25 @@ class DocumentModel extends DefaultModel
 
     public function postLoad()
     {
-        global $db;
+        global $mtlda;
+
+        if (!$this->loadDescendants()) {
+            $mtlda->raiseError(__CLASS__ .'::loadDescendants() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    private function loadDescendants()
+    {
+        global $mtlda, $db;
 
         $idx_field = $this->column_name ."_idx";
         $guid_field = $this->column_name ."_guid";
         $version_field = $this->column_name ."_version";
 
-        // check if there are descendants of this item available
-        if (!isset($this->$version_field) || $this->$version_field != 1) {
-            return true;
-        }
-
-        $sth = $db->prepare(
+        $sql =
             "SELECT
                     document_idx,
                     document_guid
@@ -143,11 +150,10 @@ class DocumentModel extends DefaultModel
                 TABLEPREFIX{$this->table_name}
             WHERE
                 document_derivation LIKE ?
-                AND
-                document_derivation_guid LIKE ?"
-        );
+            AND
+                document_derivation_guid LIKE ?";
 
-        if (!$sth) {
+        if (!$sth = $db->prepare($sql)) {
             $mtlda->raiseError("Failed to prepare query");
             return false;
         }
@@ -158,10 +164,15 @@ class DocumentModel extends DefaultModel
         }
 
         while ($row = $sth->fetch()) {
-            $this->descendants[] = array(
-                'idx' => $row->document_idx,
-                'guid' => $row->document_guid
-            );
+            try {
+                $this->descendants[] = new DocumentModel(
+                    $row->document_idx,
+                    $row->document_guid
+                );
+            } catch (\Exception $e) {
+                $mtlda->raiseError("Failed to load DocumentModel({$id}, {$guid})!");
+                return false;
+            }
         }
 
         $db->freeStatement($sth);
@@ -499,8 +510,6 @@ class DocumentModel extends DefaultModel
 
     public function getDescendants()
     {
-        $version = $this->column_name.'_version';
-
         if (!isset($this->descendants) || !is_array($this->descendants)) {
             return false;
         }
@@ -509,17 +518,16 @@ class DocumentModel extends DefaultModel
             return array();
         }
 
-        $ary_descendants = array();
+        return $this->descendants;
+    }
 
-        foreach ($this->descendants as $descendant) {
-
-            $ary_descendants[] = new DocumentModel(
-                $descendant['idx'],
-                $descendant['guid']
-            );
+    public function hasDescendants()
+    {
+        if (!isset($this->descendants) || empty($this->descendants)) {
+            return false;
         }
 
-        return $ary_descendants;
+        return true;
     }
 
     public function postSave()
