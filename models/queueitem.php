@@ -52,7 +52,7 @@ class QueueItemModel extends DefaultModel
         try {
             $this->addRpcEnabledField('queue_file_name');
         } catch (\Exception $e) {
-            $mtlda->raise("Failed on invoking addRpcEnabledField() method");
+            $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
             return false;
         }
 
