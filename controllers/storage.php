@@ -459,7 +459,7 @@ class StorageController extends DefaultController
                 continue;
             }
 
-            if (!mkdir($fqpn)) {
+            if (!mkdir($fqpn, 0700)) {
                 $mtlda->raiseError('Failed to create directory '. $fqpn);
                 return false;
             }
