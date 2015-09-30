@@ -29,22 +29,22 @@
  <tr>
   <td><a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_idx}</a></td>
   <td>
-   <form id="title_edit_{$item->document_idx}" class="ui form" style="display: none;" onsubmit="return false;">
-    <div class="fields">
-     <div class="field small ui input">
-      <input type="text" name="document_title[{$item->document_idx}]" value="{$item->document_title}" data-action="update" data-model="document" />
+   <a name="title_{$item->document_idx}" class="inline editable content" data-orig-value="{$item->document_title}" href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_title}</a>
+   <a name="title_{$item->document_idx}" class="inline editable edit link" data-inline-name="title_{$item->document_idx}"><i class="tiny edit icon"></i></a>
+   <div name="title_{$item->document_idx}" class="inline editable formsrc" style="display: none;">
+    <form class="ui form" onsubmit="return false;">
+     <div class="fields">
+      <div class="field small ui input">
+       <input type="text" name="title_{$item->document_idx}" value="{$item->document_title}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->document_idx}" />
+      </div>
+      <div class="field">
+       <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
+      </div>
+      <div class="field">
+       <button class="circular ui icon button inline editable cancel"><i class="cancel icon"></i></button>
+      </div>
      </div>
-     <div class="field">
-      <button class="circular small ui icon button update title" data-target="document_title[{$item->document_idx}]" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_title}"><i class="save icon"></i></button>
-     </div>
-     <div class="field">
-      <button class="circular small ui icon button cancel title" data-target="document_title[{$item->document_idx}]" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_title}"><i class="cancel icon"></i></button>
-     </div>
-    </div>
-   </form>
-   <div id="title_show_{$item->document_idx}">
-    <div style="float: left;"><a id="title_label_{$item->document_idx}" href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_title}</a></div>&nbsp;
-    <a class="title" data-type="title" data-id="{$item->document_idx}" data-value="{$item->document_title}"><i class="edit icon" ></i></a>
+    </form>
    </div>
   </td>
   <td>{$item->document_time}</td>
