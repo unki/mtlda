@@ -120,6 +120,11 @@ function rpc_object_archive(element, obj_id, state)
 
 function rpc_object_update(element)
 {
+    if (!(element instanceof jQuery) ){
+        throw "element is not a jQuery object!";
+        return false;
+    }
+
     var target = element.attr('data-target');
 
     if(target == undefined || target == '') {
@@ -127,48 +132,41 @@ function rpc_object_update(element)
         return false;
     }
 
-    var type = element.attr('data-type');
 
-    if(type == undefined || type == '') {
-        alert('no attribute "data-type" found!');
+    if (!(input = element.find('input[name="'+target+'"]'))) {
+        throw "Failed to get input element!";
         return false;
     }
 
-    if(!(parts = target.match(/^(.+)\[([a-zA-Z0-9]+)\]$/))) {
-        alert('dont know what to do!');
+    if (!(action = input.attr('data-action'))) {
+        throw "Unable to locate 'data-action' attribute!";
         return false;
     }
 
-    if(!Array.isArray(parts) || parts.length != 3) {
-        alert('invalid stuff found!');
+    if (!(model = input.attr('data-model'))) {
+        throw "Unable to locate 'data-model' attribute!";
         return false;
     }
 
-    key = parts[1];
-    id = parts[2];
-
-    if(!(input_field = $('input[name="' + target + '"]'))) {
-        alert('unable to find input field: '+ target);
+    if (!(key = input.attr('data-key'))) {
+        throw "Unable to locate 'data-key' attribute!";
         return false;
     }
 
-    if(!(value = input_field.val())) {
-        alert('unable to find value in input field: '+ target);
+    if (!(id = input.attr('data-id'))) {
+        throw "Unable to locate 'data-id' attribute!";
         return false;
     }
-    value = safe_string(value);
 
-    if(!(action = input_field.attr('data-action'))) {
-        alert('unable to find "data-action" in input field: '+ target);
+    if (!(value = input.val())) {
         return false;
     }
+
     action = safe_string(action);
-
-    if (!(model = input_field.attr('data-model'))) {
-        alert('unable to find "data-model" in input field: '+ target);
-        return false;
-    }
     model = safe_string(model);
+    key = safe_string(key);
+    id = safe_string(id);
+    value = safe_string(value);
 
     if(
         window.location.pathname != undefined &&
@@ -184,21 +182,17 @@ function rpc_object_update(element)
         type: 'POST',
         url: url,
         data: ({
-            type : 'rpc',
+            type   : 'rpc',
             action : action,
             model  : model,
             id     : id,
             key    : key,
             value  : value
         }),
-        beforeSend: function() {
-            // change row color to red
-            //element.parent().parent().animate({backgroundColor: '#fbc7c7' }, 'fast');
-        },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
         },
-        success: function(data){
+        success: function (data) {
             if(data != 'ok') {
                 alert('Server returned: ' + data + ', length ' + data.length);
                 return;
@@ -206,10 +200,6 @@ function rpc_object_update(element)
             if(action == 'add') {
                 location.reload();
                 return;
-            } else if(action == 'update') {
-                $('#'+ type + '_label_' + id).html(value.replace(/\\/mg, ''));
-                $('#' + type + '_show_' + id).toggle();
-                $('#' + type + '_edit_' + id).toggle();
             }
             return;
         }
