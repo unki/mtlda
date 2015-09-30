@@ -406,7 +406,7 @@ class RpcController extends DefaultController
             return false;
         }
 
-        if ($id != 'add' && !is_numeric($id)) {
+        if ($id != 'new' && !is_numeric($id)) {
             $mtlda->raiseError(__METHOD__ ."id is invalid!");
             return false;
         }
