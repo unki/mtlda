@@ -14,7 +14,29 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-<h1 class="ui header"><i class="file text icon"></i>{$item->document_title}</h1>
+
+<h1 class="ui block header">
+ <i class="file text icon"></i>
+ <div class="content">
+  <div name="title" class="inline editable content" data-orig-value="{$item->document_title}">{$item->document_title}</div>
+  <a name="title" class="inline editable edit link" data-inline-name="title"><i class="tiny edit icon"></i></a>
+ </div>
+</h1>
+<div name="title" class="inline editable formsrc" style="display: none;">
+<form class="ui form" onsubmit="return false;">
+ <div class="fields">
+  <div class="field small ui input">
+   <input type="text" name="title" value="{$item->document_title}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->document_idx}" />
+  </div>
+  <div class="field">
+   <button class="circular ui big icon button inline editable save" type="submit"><i class="save icon"></i></button>
+  </div>
+  <div class="field">
+   <button class="circular ui big icon button inline editable cancel"><i class="cancel icon"></i></button>
+  </div>
+ </div>
+</form>
+</div>
 
 <div class="ui two column grid">
 
@@ -85,18 +107,6 @@
 <script type="text/javascript"><!--{literal}
 
 $(document).ready(function() {
-
-   $('a.document.update, button.cancel').click(function(element) {
-      type = $(this).attr('data-type');
-      id = $(this).attr('data-id');
-      value = $(this).attr('data-value');
-      if (!type || !id || !value) {
-         console.log('incomplete: ' + type + ', ' + id + ', ' + value);
-         return
-      }
-      $('#' + type + '_show_' + id).toggle();
-      $('#' + type + '_edit_' + id).toggle();
-   });
 
    $('.ui.fluid.search.dropdown').dropdown({
       allowAdditions: false,
