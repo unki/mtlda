@@ -96,8 +96,13 @@ $(document).ready(function() {
     $("table tr td a.preview").click(function(){
         show_preview($(this));
     });
-    $("form.ui.form button.update, form.ui.form button.add, input[type='button'].update, input[type='button'].add").click(function(){
+    $("form.ui.form.add").on('submit', function() {
         rpc_object_update($(this));
+    });
+
+    $('.inline.editable.edit.link').click(function() {
+        inlineobj = new MtldaInlineEditable($(this));
+        inlineobj.toggle();
     });
    /*$("table td a.clone").click(function(){
       obj_clone($(this));
