@@ -383,15 +383,15 @@ class RpcController extends DefaultController
         foreach ($input_fields as $field) {
 
             if (!isset($_POST[$field])) {
-                $mtlda->raiseError("'{$field}' isn't set in POST request!");
+                $mtlda->raiseError(__METHOD__ ."'{$field}' isn't set in POST request!");
                 return false;
             }
             if (empty($_POST[$field])) {
-                $mtlda->raiseError("'{$field}' is empty!");
+                $mtlda->raiseError(__METHOD__ ."'{$field}' is empty!");
                 return false;
             }
             if (!is_string($_POST[$field]) && !is_numeric($_POST[$field])) {
-                $mtlda->raiseError("'{$field}' is not from a valid type!");
+                $mtlda->raiseError(__METHOD__ ."'{$field}' is not from a valid type!");
                 return false;
             }
         }
@@ -402,47 +402,37 @@ class RpcController extends DefaultController
         $model = $_POST['model'];
 
         if (!(preg_match("/^([a-z]+)_([a-z_]+)$/", $key, $parts))) {
-            $mtlda->raiseError("key looks invalid!");
+            $mtlda->raiseError(__METHOD__ ."key looks invalid!");
             return false;
         }
 
         if ($id != 'add' && !is_numeric($id)) {
-            $mtlda->raiseError("id is invalid!");
-            return false;
-        }
-
-        if (
-            !isset($parts) ||
-            empty($parts) ||
-            !is_array($parts) ||
-            count($parts) != 3
-        ) {
-            $mtlda->raiseError("key looks wrong!");
+            $mtlda->raiseError(__METHOD__ ."id is invalid!");
             return false;
         }
 
         if (!$mtlda->isValidModel($model)) {
-            $mtlda->raiseError("scope contains an invalid model ({$model})!");
+            $mtlda->raiseError(__METHOD__ ."scope contains an invalid model ({$model})!");
             return false;
         }
 
-        if ($id == 'add') {
+        if ($id == 'new') {
             $id = null;
         }
 
         if (!($obj = $mtlda->loadModel($model, $id))) {
-            $mtlda->raiseError("Failed to load {$model}!");
+            $mtlda->raiseError(__METHOD__ ."Failed to load {$model}!");
             return false;
         }
 
         // check if model permits RPC updates
         if (!$obj->permitsRpcUpdates()) {
-            $mtlda->raiseError("Model {$model} denys RPC updates!");
+            $mtlda->raiseError(__METHOD__ ."Model {$model} denys RPC updates!");
             return false;
         }
 
         if (!$obj->permitsRpcUpdateToField($key)) {
-            $mtlda->raiseError("Model {$model} denys RPC updates to field {$key}!");
+            $mtlda->raiseError(__METHOD__ ."Model {$model} denys RPC updates to field {$key}!");
             return false;
         }
 
