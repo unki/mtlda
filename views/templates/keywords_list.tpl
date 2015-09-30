@@ -22,13 +22,13 @@
  </div>
  <div class="six wide column">
   <div class="right aligned container">
-   <form class="ui form" onsubmit="return false;">
+   <form class="ui form add" onsubmit="return false;" data-target="keyword_add">
     <div class="fields">
      <div class="field">
-      <input type="text" name="keyword_name[add]" placeholder="Add keywords" data-action="add" data-model="keyword" tabindex="0" />
+      <input type="text" name="keyword_add" placeholder="Add keywords" data-action="add" data-model="keyword" data-key="keyword_name" data-id="new" tabindex="0" />
      </div>
      <div class="field">
-      <button class="circular ui button add" data-target="keyword_name[add]" data-type="keyword"><i class="save icon"></i>Add</button>
+      <button class="circular ui button add" type="submit"><i class="save icon"></i>Add</button>
      </div>
     </div>
    </form>
@@ -46,22 +46,22 @@
 {keywords_list}
  <tr>
   <td>
-   <form id="keyword_edit_{$item->keyword_idx}" class="ui form" style="display: none;" onsubmit="return false;">
-    <div class="fields">
-     <div class="field small ui input">
-      <input type="text" name="keyword_name[{$item->keyword_idx}]" value="{$item->keyword_name}" data-action="update" data-model="keyword" />
+   <a name="keyword_{$item->keyword_idx}" class="inline editable content" data-orig-value="{$item->keyword_name}">{$item->keyword_name}</a>
+   <a name="keyword_{$item->keyword_idx}" class="inline editable edit link" data-inline-name="keyword_{$item->keyword_idx}"><i class="tiny edit icon"></i></a>
+   <div name="keyword_{$item->keyword_idx}" class="inline editable formsrc" style="display: none;">
+    <form class="ui form" onsubmit="return false;">
+     <div class="fields">
+      <div class="field small ui input">
+       <input type="text" name="keyword_{$item->keyword_idx}" value="{$item->keyword_name}" data-action="update" data-model="keyword" data-key="keyword_name" data-id="{$item->keyword_idx}" />
+      </div>
+      <div class="field">
+       <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
+      </div>
+      <div class="field">
+       <button class="circular ui icon button inline editable cancel"><i class="cancel icon"></i></button>
+      </div>
      </div>
-     <div class="field">
-      <button class="circular small ui icon button update keyword" data-target="keyword_name[{$item->keyword_idx}]" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="save icon"></i></button>
-     </div>
-     <div class="field">
-      <button class="circular small ui icon button cancel keyword" data-target="keyword_name[{$item->keyword_idx}]" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="cancel icon"></i></button>
-     </div>
-    </div>
-   </form>
-   <div id="keyword_show_{$item->keyword_idx}">
-    <div style="float: left;" id="keyword_label_{$item->keyword_idx}">{$item->keyword_name}</div>&nbsp;
-    <a class="keyword" data-type="keyword" data-id="{$item->keyword_idx}" data-value="{$item->keyword_name}"><i class="edit icon" ></i></a>
+    </form>
    </div>
   </td>
   <td><a class="delete" title="delete" id="keyword-{$item_safe_link}"><i class="remove circle icon"></i>Delete</a></td>
@@ -83,18 +83,3 @@
   </tr>
  </tfoot>
 </table>
-<script type="text/javascript"><!--
-$(document).ready(function() {
-   $('a.keyword, button.keyword.cancel').click(function(element) {
-      type = $(this).attr('data-type');
-      id = $(this).attr('data-id');
-      value = $(this).attr('data-value');
-      if (!type || !id || !value) {
-         console.log('incomplete: ' + type + ', ' + id + ', ' + value);
-         return
-      }
-      $('#' + type + '_show_' + id).toggle();
-      $('#' + type + '_edit_' + id).toggle();
-   });
-});
---></script>
