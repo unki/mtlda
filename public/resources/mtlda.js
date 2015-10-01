@@ -102,6 +102,9 @@ $(document).ready(function() {
     $("a.sign.document").click(function() {
         rpc_object_sign($(this));
     });
+    $("a.delete.document").click(function() {
+        rpc_object_delete2($(this));
+    });
     $('.inline.editable.edit.link').click(function() {
         inlineobj = new MtldaInlineEditable($(this));
         inlineobj.toggle();
