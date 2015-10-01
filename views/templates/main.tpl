@@ -38,8 +38,9 @@
 
  <!-- right column -->
  <div class="column">
-<i class="wait icon"></i>Recently enqueued documents
+  <i class="wait icon"></i>Recently enqueued documents
   <div class="ui very relaxed divided selection list">
+{if isset($pending_queue_items)}
 {top10 type=queue}
    <div class="item">
     <i class="file text icon"></i>
@@ -49,6 +50,11 @@
     </div>
    </div>
 {/top10}
+{else}
+   <div class="item">
+    <div class="content">No items pending in queue.</div>
+   </div>
+{/if}
   </div>
  </div>
 
