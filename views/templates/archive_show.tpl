@@ -59,7 +59,7 @@
        <i class="file text icon"></i>
        <div class="content">
         <a class="header" href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">{$item->document_file_name}</a>
-        <div class="description">Original document (imported {$item->document_time|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a href="{get_url page=document mode=sign id=$item_safe_link}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
+        <div class="description">Original document (imported {$item->document_time|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
        </div>
       </div>
 {list_versions}
