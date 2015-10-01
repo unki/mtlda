@@ -163,24 +163,24 @@ class ArchiveView extends DefaultView
         );
 
         if (!$sth) {
-            $mtlda->raiseError(__TRAIT__ .", failed to prepare query!");
+            $mtlda->raiseError(__METHOD__ .", failed to prepare query!");
             return false;
         }
 
         if (!$db->execute($sth, array($item_idx))) {
-            $mtlda->raiseError(__TRAIT__ .", failed to execute query!");
+            $mtlda->raiseError(__METHOD__ .", failed to execute query!");
             return false;
         }
 
         $rows = $sth->fetchAll(\PDO::FETCH_COLUMN);
 
         if ($rows === false) {
-            $mtlda->raiseError(__TRAIT__ .", failed to fetch result!");
+            $mtlda->raiseError(__METHOD__ .", failed to fetch result!");
             return false;
         }
 
         if (!is_array($rows)) {
-            $mtlda->raiseError(__TRAIT__ .", PDO::fetchAll has not returned an array!");
+            $mtlda->raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
             return false;
         }
 
