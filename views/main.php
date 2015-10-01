@@ -47,6 +47,10 @@ class MainView extends DefaultView
             return false;
         }
 
+        if (count($this->queue->avail_items) > 0) {
+            $this->assign('pending_queue_items', true);
+        }
+
         return true;
     }
 
