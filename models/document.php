@@ -443,22 +443,22 @@ class DocumentModel extends DefaultModel
         clearstatcache(true, $fqpn);
 
         if (($hash = sha1_file($fqpn)) === false) {
-            $mtlda->raiseError(__TRAIT__ ." SHA1 value of {$fqpn} can not be calculated!");
+            $mtlda->raiseError(__METHOD__ ." SHA1 value of {$fqpn} can not be calculated!");
             return false;
         }
 
         if (empty($hash)) {
-            $mtlda->raiseError(__TRAIT__ ." sha1_file() returned an empty hash value!");
+            $mtlda->raiseError(__METHOD__ ." sha1_file() returned an empty hash value!");
             return false;
         }
 
         if (($size = filesize($fqpn)) === false) {
-            $mtlda->raiseError(__TRAIT__ ." filesize of {$fqpn} is not available!");
+            $mtlda->raiseError(__METHOD__ ." filesize of {$fqpn} is not available!");
             return false;
         }
 
         if (empty($size) || !is_numeric($size) || ($size <= 0)) {
-            $mtlda->raiseError(__TRAIT__ ." fizesize of {$fqpn} is invalid!");
+            $mtlda->raiseError(__METHOD__ ." fizesize of {$fqpn} is invalid!");
             return false;
         }
 
