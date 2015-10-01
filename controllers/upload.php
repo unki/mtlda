@@ -28,7 +28,7 @@ class UploadController extends DefaultController
         global $mtlda, $session;
 
         if (!$session) {
-            $mtlda->raiseError(__TRAIT__ ." requires SessionController to be initialized!");
+            $mtlda->raiseError(__METHOD__ ." requires SessionController to be initialized!");
             return false;
         }
     }
