@@ -99,7 +99,9 @@ $(document).ready(function() {
     $("form.ui.form.add").on('submit', function() {
         rpc_object_update($(this));
     });
-
+    $("a.sign.document").click(function() {
+        rpc_object_sign($(this));
+    });
     $('.inline.editable.edit.link').click(function() {
         inlineobj = new MtldaInlineEditable($(this));
         inlineobj.toggle();
