@@ -198,7 +198,7 @@ class ArchiveController extends DefaultController
         }
 
         if (!($signing_item->createClone($src_item))) {
-            $mtlda->raiseError(__TRAIT__ ." unable to clone DocumentModel!");
+            $mtlda->raiseError(__METHOD__ ." unable to clone DocumentModel!");
             return false;
         }
 
