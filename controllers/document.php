@@ -53,7 +53,7 @@ class DocumentController extends DefaultController
             return false;
         }
 
-        if (!in_array($query->params[0], array('show','sign', 'delete'))) {
+        if (!in_array($query->params[0], array('show'))) {
             $mtlda->raiseError("Invalid action!");
             return false;
         }
@@ -75,8 +75,6 @@ class DocumentController extends DefaultController
 
         if ($query->params[0] == "show") {
             $this->loadDocument($id);
-        } elseif ($query->params[0] == "delete") {
-            $this->deleteDocument($id);
         } else {
             $mtlda->raiseError("Unknown action found!");
             return false;
@@ -108,48 +106,6 @@ class DocumentController extends DefaultController
 
         $mtlda->raiseError("Unsupported model requested");
         return false;
-    }
-
-    private function deleteDocument($id)
-    {
-        global $mtlda, $router;
-
-        if (!$mtlda->isValidGuidSyntax($id->guid)) {
-            $mtlda->raiseError("GUID syntax is invalid!");
-            return false;
-        }
-
-        if ($id->model != "document") {
-            $mtlda->raiseError("Can only handle Documents!");
-            return false;
-        }
-
-        $document = new Models\DocumentModel($id->id, $id->guid);
-        if (!$document) {
-            $mtlda->raiseError("Unable to load a DocumentModel!");
-            return false;
-        }
-
-        if ($document->document_version == 1) {
-            $mtlda->raiseError(__TRAIT__ ." cannot delete the original imported document!");
-            return false;
-        }
-
-        $parent_idx = $document->document_derivation;
-        $parent_guid = $document->document_derivation_guid;
-
-        if (!$document->delete()) {
-            $mtlda->raiseError("DocumentModel::delete() returned false!");
-            return false;
-        }
-
-        $router->redirectTo(
-            'archive',
-            'show',
-            $parent_idx ."-". $parent_guid
-        );
-
-        return true;
     }
 
     private function getArchiveDocumentContent(&$id)
