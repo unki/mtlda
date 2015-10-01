@@ -76,7 +76,7 @@ class ImportController extends DefaultController
         foreach ($files as $file) {
 
             if (!($guid = $mtlda->createGuid())) {
-                $mtlda->raiseError(__TRAIT__ ." no valid GUID returned by createGuid()!");
+                $mtlda->raiseError(__METHOD__ ." no valid GUID returned by createGuid()!");
                 return false;
             }
 
