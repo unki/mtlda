@@ -75,8 +75,6 @@ class DocumentController extends DefaultController
 
         if ($query->params[0] == "show") {
             $this->loadDocument($id);
-        } elseif ($query->params[0] == "sign") {
-            $this->signDocument($id);
         } elseif ($query->params[0] == "delete") {
             $this->deleteDocument($id);
         } else {
@@ -110,55 +108,6 @@ class DocumentController extends DefaultController
 
         $mtlda->raiseError("Unsupported model requested");
         return false;
-    }
-
-    private function signDocument($id)
-    {
-        global $mtlda, $router;
-
-        if (!$mtlda->isValidGuidSyntax($id->guid)) {
-            $mtlda->raiseError("GUID syntax is invalid!");
-            return false;
-        }
-
-        if ($id->model != "document") {
-            $mtlda->raiseError("Can only handle Documents!");
-            return false;
-        }
-
-        $document = new Models\DocumentModel($id->id, $id->guid);
-        if (!$document) {
-            $mtlda->raiseError("Unable to load a DocumentModel!");
-            return false;
-        }
-
-        if ($document->document_signed_copy == 'Y') {
-            $mtlda->raiseError(__TRAIT__ ." will not resign an already signed document!");
-            return false;
-        }
-
-        try {
-            $archive = new Controllers\ArchiveController;
-        } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load ArchiveController!");
-            return false;
-        }
-
-        if (!$archive) {
-            $mtlda->raiseError("Unable to load ArchiveController!");
-            return false;
-        }
-
-        if (!$archive->sign($document)) {
-            $mtlda->raiseError("ArchiveController::sign() returned false!");
-            return false;
-        }
-
-        $router->redirectTo(
-            'archive',
-            'show',
-            $document->document_idx ."-". $document->document_guid
-        );
     }
 
     private function deleteDocument($id)
