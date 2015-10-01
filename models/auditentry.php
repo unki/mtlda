@@ -133,16 +133,16 @@ class AuditEntryModel extends DefaultModel
         global $mtlda;
 
         if (empty($message)) {
-            $mtlda->raiseError(__TRAIT__ .", \$message can not be empty!");
+            $mtlda->raiseError(__METHOD__ .", \$message can not be empty!");
             return false;
         }
         if (!is_string($message)) {
-            $mtlda->raiseError(__TRAIT__ .", \$message must be a string!");
+            $mtlda->raiseError(__METHOD__ .", \$message must be a string!");
             return false;
         }
 
         if (strlen($message) > 8192) {
-            $mtlda->raiseError(__TRAIT__ .", \$message is to long!");
+            $mtlda->raiseError(__METHOD__ .", \$message is to long!");
             return false;
         }
 
@@ -155,16 +155,16 @@ class AuditEntryModel extends DefaultModel
         global $mtlda;
 
         if (empty($entry_type)) {
-            $mtlda->raiseError(__TRAIT__ .", \$entry_type can not be empty!");
+            $mtlda->raiseError(__METHOD__ .", \$entry_type can not be empty!");
             return false;
         }
         if (!is_string($entry_type)) {
-            $mtlda->raiseError(__TRAIT__ .", \$entry_type must be a string!");
+            $mtlda->raiseError(__METHOD__ .", \$entry_type must be a string!");
             return false;
         }
 
         if (strlen($entry_type) > 255) {
-            $mtlda->raiseError(__TRAIT__ .", \$entry_type is to long!");
+            $mtlda->raiseError(__METHOD__ .", \$entry_type is to long!");
             return false;
         }
 
@@ -177,16 +177,16 @@ class AuditEntryModel extends DefaultModel
         global $mtlda;
 
         if (empty($scene)) {
-            $mtlda->raiseError(__TRAIT__ .", \$scene can not be empty!");
+            $mtlda->raiseError(__METHOD__ .", \$scene can not be empty!");
             return false;
         }
         if (!is_string($scene)) {
-            $mtlda->raiseError(__TRAIT__ .", \$scene must be a string!");
+            $mtlda->raiseError(__METHOD__ .", \$scene must be a string!");
             return false;
         }
 
         if (strlen($scene) > 255) {
-            $mtlda->raiseError(__TRAIT__ .", \$scene is to long!");
+            $mtlda->raiseError(__METHOD__ .", \$scene is to long!");
             return false;
         }
 
