@@ -295,6 +295,7 @@ class HttpRouterController extends DefaultController
             'add',
             'update',
             'delete',
+            'delete-document',
             'archive',
             'sign',
             'mailimport',
