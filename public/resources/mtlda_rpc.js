@@ -263,4 +263,58 @@ function rpc_object_sign(element)
     return true;
 }
 
+function rpc_object_delete2(element)
+{
+    if (!(element instanceof jQuery) ){
+        throw "element is not a jQuery object!";
+        return false;
+    }
+
+    if (!(id = element.attr('data-id'))) {
+        alert('no attribute "data-id" found!');
+        return false;
+    }
+
+    if (!(guid = element.attr('data-guid'))) {
+        alert('no attribute "data-guid" found!');
+        return false;
+    }
+
+    id = safe_string(id);
+    guid = safe_string(guid);
+
+    if(
+        window.location.pathname != undefined &&
+        window.location.pathname != '' &&
+        !window.location.pathname.match(/\/$/)
+    ) {
+        url = window.location.pathname;
+    } else {
+        url = 'rpc.html';
+    }
+
+    $.ajax({
+        type: 'POST',
+        url: url,
+        data: ({
+            type   : 'rpc',
+            action : 'delete-document',
+            id     : id,
+            guid   : guid
+        }),
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+            alert('Failed to contact server! ' + textStatus);
+        },
+        success: function (data) {
+            if(data != 'ok') {
+                alert('Server returned: ' + data + ', length ' + data.length);
+                return;
+            }
+            location.reload();
+            return;
+        }
+    });
+
+    return true;
+}
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
