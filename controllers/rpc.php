@@ -41,6 +41,9 @@ class RpcController extends DefaultController
             case 'delete':
                 $this->rpcDeleteObject();
                 break;
+            case 'delete-document':
+                $this->rpcDeleteDocument();
+                break;
             case 'archive':
                 $this->rpcArchiveObject();
                 break;
@@ -687,6 +690,62 @@ class RpcController extends DefaultController
             return false;
         }
 
+        return true;
+    }
+
+    protected function rpcDeleteDocument()
+    {
+        global $mtlda;
+
+        $input_fields = array('id', 'guid');
+
+        foreach ($input_fields as $field) {
+
+            if (!isset($_POST[$field])) {
+                $mtlda->raiseError(__METHOD__ ."'{$field}' isn't set in POST request!");
+                return false;
+            }
+            if (empty($_POST[$field])) {
+                $mtlda->raiseError(__METHOD__ ."'{$field}' is empty!");
+                return false;
+            }
+            if (!is_string($_POST[$field]) && !is_numeric($_POST[$field])) {
+                $mtlda->raiseError(__METHOD__ ."'{$field}' is not from a valid type!");
+                return false;
+            }
+        }
+
+        $id = $_POST['id'];
+        $guid = $_POST['guid'];
+
+        if (!$mtlda->isValidId($id)) {
+            $mtlda->raiseError(__METHOD__ .', \$id is invalid!');
+            return false;
+        }
+
+        if (!$mtlda->isValidGuidSyntax($guid)) {
+            $mtlda->raiseError(__METHOD__ .', \$guid is invalid!');
+            return false;
+        }
+
+        try {
+            $document = new Models\DocumentModel($id, $guid);
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .", unable to load DocumentModel!");
+            return false;
+        }
+
+        if (!$document->permitsRpcActions('delete')) {
+            $mtlda->raiseError(get_class($document) .' does not permit "delete" via a RPC call!');
+            return false;
+        }
+
+        if (!$document->delete()) {
+            $mtlda->raiseError(__CLASS__ .'::delete() returned false!');
+            return false;
+        }
+
+        print "ok";
         return true;
     }
 }
