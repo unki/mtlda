@@ -32,6 +32,7 @@ abstract class DefaultModel
     public $init_values;
     protected $permit_rpc_updates = false;
     protected $rpc_allowed_fields = array();
+    protected $rpc_allowed_actions = array();
 
     protected function __construct($id = null)
     {
@@ -866,7 +867,33 @@ abstract class DefaultModel
             return false;
         }
 
+        if (in_array($field, $this->rpc_allowed_fields)) {
+            return true;
+        }
+
         array_push($this->rpc_allowed_fields, $field);
+        return true;
+    }
+
+    final protected function addRpcAction($action)
+    {
+        global $mtlda;
+
+        if (!is_array($this->rpc_allowed_actions)) {
+            $mtlda->raiseError("\$rpc_allowed_actions is not an array!");
+            return false;
+        }
+
+        if (!is_string($action)) {
+            $mtlda->raiseError(__METHOD__ .', parameter must be a string!');
+            return false;
+        }
+
+        if (in_array($action, $this->rpc_allowed_actions)) {
+            return true;
+        }
+
+        array_push($this->rpc_allowed_actions, $action);
         return true;
     }
 
@@ -889,6 +916,31 @@ abstract class DefaultModel
         }
 
         if (!in_array($field, $this->rpc_allowed_fields)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    final public function permitsRpcActions($action)
+    {
+        global $mtlda;
+
+        if (!is_array($this->rpc_allowed_actions)) {
+            $mtlda->raiseError("\$rpc_allowed_actions is not an array!");
+            return false;
+        }
+
+        if (!is_string($action)) {
+            $mtlda->raiseError(__METHOD__ .' parameter must be a string');
+            return false;
+        }
+
+        if (empty($this->rpc_allowed_actions)) {
+            return false;
+        }
+
+        if (!in_array($action, $this->rpc_allowed_actions)) {
             return false;
         }
 
