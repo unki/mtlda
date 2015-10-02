@@ -34,7 +34,7 @@ abstract class DefaultModel
     protected $rpc_allowed_fields = array();
     protected $rpc_allowed_actions = array();
 
-    protected function __construct($id = null)
+    public function __construct($id = null)
     {
         global $mtlda;
 
