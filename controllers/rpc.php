@@ -84,6 +84,12 @@ class RpcController extends DefaultController
             case 'save-description':
                 $this->rpcSaveDescription();
                 break;
+            case 'submit-messages':
+                $this->rpcSubmitToMessageBus();
+                break;
+            case 'retrieve-messages':
+                $this->rpcRetrieveFromMessageBus();
+                break;
             case 'idle':
                 // just do nothing, for debugging
                 print "ok";
@@ -746,6 +752,60 @@ class RpcController extends DefaultController
         }
 
         print "ok";
+        return true;
+    }
+
+    private function rpcSubmitToMessageBus()
+    {
+        global $mtlda;
+
+        if (
+            !isset($_POST['messages']) ||
+            empty($_POST['messages']) ||
+            !is_string($_POST['messages'])
+        ) {
+            $mtlda->raiseError(__METHOD__ .', no message submited!');
+            return false;
+        }
+
+        try {
+            $mbus = new MessageBusController;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load MessageBusController!");
+            return false;
+        }
+
+        if (!$mbus->submit($_POST['messages'])) {
+            $mtlda->raiseError(get_class($mbus) .'::submit() returned false!');
+            return false;
+        }
+
+        print "ok";
+        return true;
+    }
+
+    private function rpcRetrieveFromMessageBus()
+    {
+        global $mtlda;
+
+        try {
+            $mbus = new MessageBusController;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load MessageBusController!");
+            return false;
+        }
+
+        if (!($messages = $mbus->poll())) {
+            $mtlda->raiseError(get_class($mbus) .'::poll() returned false!');
+            return false;
+        }
+
+        if (!is_string($messages)) {
+            $mtlda->raiseError(get_class($mbus) .'::poll() has not returned a string!');
+            return false;
+        }
+
+        print $messages;
         return true;
     }
 }
