@@ -304,6 +304,8 @@ class HttpRouterController extends DefaultController
             'get-keywords',
             'save-keywords',
             'save-description',
+            'submit-messages',
+            'retrieve-messages',
 
             /*'toggle',
             'clone',
