@@ -39,7 +39,7 @@ class QueueModel extends DefaultModel
 
     public function load()
     {
-        global $db;
+        global $mtlda, $db;
 
         $idx_field = $this->column_name ."_idx";
 
