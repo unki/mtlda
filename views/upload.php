@@ -33,7 +33,7 @@ class UploadView extends DefaultView
         global $mtlda, $session;
 
         if (!($token = $session->getOnetimeIdentifierId("upload"))) {
-            $mtlda->raiseError("SessionController:getOnetimeIdentifierId() returned false!");
+            $mtlda->raiseError("SessionController::getOnetimeIdentifierId() returned false!");
             return false;
         }
     
