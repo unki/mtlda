@@ -171,7 +171,7 @@ class InstallerController extends DefaultController
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'meta' table");
+                $mtlda->raiseError("Failed to create 'keywords' table");
                 return false;
             }
 
@@ -195,7 +195,27 @@ class InstallerController extends DefaultController
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'meta' table");
+                $mtlda->raiseError("Failed to create 'assign_keywords_to_document' table");
+                return false;
+            }
+
+            if (!$db->setDatabaseSchemaVersion()) {
+                $mtlda->raiseError("Failed to set schema verison!");
+                return false;
+            }
+        }
+
+        if (!$db->checkTableExists("TABLEPREFIXmessage_bus")) {
+
+            $table_sql = "CREATE TABLE `mtlda_message_bus` (
+                `msg_idx` int(11) NOT NULL auto_increment,
+                `msg_session` varchar(255) NOT NULL,
+                `msg_command` varchar(255) NOT NULL,
+                PRIMARY KEY  (`msg_idx`)
+                ) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+
+            if ($db->query($table_sql) === false) {
+                $mtlda->raiseError("Failed to create 'message_bus' table");
                 return false;
             }
 
