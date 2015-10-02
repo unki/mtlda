@@ -174,11 +174,6 @@ class InstallerController extends DefaultController
                 $mtlda->raiseError("Failed to create 'keywords' table");
                 return false;
             }
-
-            if (!$db->setDatabaseSchemaVersion()) {
-                $mtlda->raiseError("Failed to set schema verison!");
-                return false;
-            }
         }
 
         if (!$db->checkTableExists("TABLEPREFIXassign_keywords_to_document")) {
@@ -198,29 +193,19 @@ class InstallerController extends DefaultController
                 $mtlda->raiseError("Failed to create 'assign_keywords_to_document' table");
                 return false;
             }
-
-            if (!$db->setDatabaseSchemaVersion()) {
-                $mtlda->raiseError("Failed to set schema verison!");
-                return false;
-            }
         }
 
         if (!$db->checkTableExists("TABLEPREFIXmessage_bus")) {
 
             $table_sql = "CREATE TABLE `mtlda_message_bus` (
                 `msg_idx` int(11) NOT NULL auto_increment,
-                `msg_session` varchar(255) NOT NULL,
+                `msg_session_id` varchar(255) NOT NULL,
                 `msg_command` varchar(255) NOT NULL,
                 PRIMARY KEY  (`msg_idx`)
                 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
                 $mtlda->raiseError("Failed to create 'message_bus' table");
-                return false;
-            }
-
-            if (!$db->setDatabaseSchemaVersion()) {
-                $mtlda->raiseError("Failed to set schema verison!");
                 return false;
             }
         }
@@ -261,6 +246,10 @@ class InstallerController extends DefaultController
 
         if ($db->getDatabaseSchemaVersion() < 8) {
             $this->upgradeDatabaseSchemaV8();
+        }
+
+        if ($db->getDatabaseSchemaVersion() < 10) {
+            $this->upgradeDatabaseSchemaV10();
         }
         /* final action in this function
         // disabled for now as of 20150923
@@ -435,6 +424,26 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(8);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV10()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXmessage_bus
+            CHANGE COLUMN
+                msg_session msg_session_id varchar(255) NOT NULL"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(10);
         return true;
     }
 }
