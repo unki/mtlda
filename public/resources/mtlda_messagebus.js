@@ -19,6 +19,7 @@ var MtldaMessageBus = function (id) {
 
     this.element = id;
     this.messages = new Array;
+    this.subscribers = new Array;
     return true;
 };
 
@@ -108,13 +109,12 @@ MtldaMessageBus.prototype.send = function (messages) {
         },
         //success: this.parseResponse
         success: function (data) {
-            if (data == "ok") {
-                return true;
+            if (data != "ok") {
+                alert('Failed to submit messages! ' + data);
+                return false;
             }
-
-            alert('Failed to submit messages! ' + data);
-            return false;
-        }
+            console.log(this.getSubscribers());
+        }.bind(this)
     });
 }
 
@@ -185,7 +185,73 @@ MtldaMessageBus.prototype.parseResponse = function (data) {
         return true;
     }
 
+    console.log(json.json);
+    return true;
+    for (var message in json.json) {
+
+        if (!message) {
+            throw 'Invalid message!';
+            return false;
+        }
+        console.log(message);
+    }
+
     return true;
 };
+
+MtldaMessageBus.prototype.subscribe = function (name, category, handler) {
+
+    if (!name) {
+        throw 'No name provided!';
+        return false;
+    }
+
+    if (!category) {
+        throw 'No category provided!';
+        return false;
+    }
+
+    if (!handler) {
+        throw 'No handler provided!';
+        return false;
+    }
+
+    if (this.subscribers[name]) {
+        throw 'A subscriber named '+ name +' has already been registered!';
+        return false;
+    }
+
+    this.subscribers[name] = new Object;
+    this.subscribers[name].category = category;
+    this.subscribers[name].handler = handler;
+    return true;
+}
+
+MtldaMessageBus.prototype.unsubscribe = function (name) {
+
+    if (!this.subscribers[name]) {
+        return true;
+    }
+
+    delete this.subscribers[name];
+    return true;
+}
+
+MtldaMessageBus.prototype.getSubscribers = function (category) {
+
+    if (!category) {
+        return this.subscribers;
+    }
+
+    subscribers = new Array;
+    for (var subscriber in this.subscribers) {
+        if (subscriber.category != category) {
+            continue;
+        }
+        subscribers.push(subscriber);
+    }
+
+    return subscribers;
+}
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
