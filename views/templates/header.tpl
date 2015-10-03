@@ -29,10 +29,14 @@
   <!-- semantic ui -->
   <link rel="stylesheet" type="text/css" href="{$web_path}/resources/semantic/semantic.min.css" />
   <script type="text/javascript" src="{$web_path}/resources/semantic/semantic.min.js"></script>
+  <!-- forge crypto -->
+  <script type="text/javascript" src="{$web_path}/resources/forge/js/forge.js"></script>
+  <script type="text/javascript" src="{$web_path}/resources/forge/js/util.js"></script>
+  <script type="text/javascript" src="{$web_path}/resources/forge/js/sha1.js"></script>
   <!-- MTLDA JavaScript -->
   <script type="text/javascript" src="{$web_path}/resources/mtlda.js"></script>
   <script type="text/javascript" src="{$web_path}/resources/mtlda_rpc.js"></script>
   <script type="text/javascript" src="{$web_path}/resources/mtlda_editable.js"></script>
-  <script type="text/javascript" src="{$web_path}/resources/mtlda_messages.js"></script>
+  <script type="text/javascript" src="{$web_path}/resources/mtlda_messagebus.js"></script>
   <!-- MTLDA CSS -->
   <link type="text/css" href="{$web_path}/resources/mtlda.css" rel="Stylesheet" />
