@@ -947,6 +947,24 @@ abstract class DefaultModel
         return true;
     }
 
+    final public function getId()
+    {
+        global $mtlda;
+
+        if (!isset($this->fields[$this->column_name .'_idx'])) {
+            $mtlda->raiseError(__CLASS__ .'has no idx field!');
+            return false;
+        }
+
+        $guid_field = $this->column_name .'_idx';
+
+        if (!isset($this->$guid_field)) {
+            return false;
+        }
+
+        return $this->$guid_field;
+    }
+
     final public function getGuid()
     {
         global $mtlda;
