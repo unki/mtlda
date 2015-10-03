@@ -35,4 +35,5 @@ Your MTLDA installation bundles further software and libraries:<br />
 <div class="item">TCPDF,&nbsp;<a href="http://www.tcpdf.org" target="_blank">http://www.tcpdf.org</a></div>
 <div class="item">FPDI,&nbsp;<a href="http://www.setasign.com/products/fpdi/about/" target="_blank">http://www.setasign.com</a></div>
 <div class="item">Semantic UI,&nbsp;<a href="http://semantic-ui.com" target="_blank">http://semantic-ui.com</a></div>
+<div class="item">Forge,&nbsp;<a href="https://github.com/digitalbazaar/forge" target="_blank">https://github.com/digitalbazaar/forge</a></div>
 </div>
