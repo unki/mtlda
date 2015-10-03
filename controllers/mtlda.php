@@ -24,7 +24,7 @@ use MTLDA\Models;
 
 class MTLDA extends DefaultController
 {
-    const VERSION = "0.2";
+    const VERSION = "0.3";
 
     private $verbosity_level = LOG_WARNING;
 
