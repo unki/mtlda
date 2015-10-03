@@ -84,6 +84,17 @@ class MessageModel extends DefaultModel
         $this->msg_session_id = $sessionid;
         return true;
     }
+
+
+    public function getCommand()
+    {
+        return $this->msg_command;
+    }
+
+    public function getBody()
+    {
+        return $this->msg_body;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
