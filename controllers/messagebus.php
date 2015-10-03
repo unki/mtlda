@@ -100,6 +100,11 @@ class MessageBusController extends DefaultController
                 return false;
             }
 
+            if (!isset($message->message) || empty($message->message)) {
+                $mtlda->raiseError(__METHOD__ .', \$message does not contain a body!');
+                return false;
+            }
+
             try {
                 $mbmsg = new Models\MessageModel;
             } catch (\Exception $e) {
@@ -117,6 +122,17 @@ class MessageBusController extends DefaultController
                 return false;
             }
 
+            if (is_object($message->message) || is_array($message->message)) {
+                $msgbody = serialize($message->message);
+            } else {
+                $msgbody = $message->message;
+            }
+
+            if (!$mbmsg->setMessage($msgbody)) {
+                $mtlda->raiseError(get_class($mbmsg) .'::setMessage() returned false!');
+                return false;
+            }
+
             if (!$mbmsg->save()) {
                 $mtlda->raiseError(get_class($mbmsg) .'::save() returned false!');
                 return false;
@@ -130,6 +146,8 @@ class MessageBusController extends DefaultController
     {
         global $mtlda, $session;
 
+        $messages = array();
+
         try {
             $msgs = new Models\MessageBusModel;
         } catch (\Exception $e) {
@@ -142,14 +160,25 @@ class MessageBusController extends DefaultController
             return false;
         }
 
-        if (($raw_messages = $msgs->getMessagesForSession($sessionid)) === false) {
+        if (($messages = $msgs->getMessagesForSession($sessionid)) === false) {
             $mtlda->raiseError(get_class($msgs) .'::getMessagesForSession() returned false!');
             return false;
         }
 
-        if (empty($raw_messages)) {
-            $raw_messages = array();
-        };
+        $raw_messages = array();
+        foreach ($messages as $message) {
+            $raw_messages[] = array(
+                'id' => $message->getId(),
+                'guid' => $message->getGuid(),
+                'command' => $message->getCommand(),
+                'body' => $message->getBody()
+            );
+
+            /*if (!$message->delete()) {
+                $mtlda->raiseError(get_class($message) .'::delete() returned false!');
+                return false;
+            }*/
+        }
 
         if (!($json = json_encode($raw_messages))) {
             $mtlda->raiseError('json_encode() returned false!');
