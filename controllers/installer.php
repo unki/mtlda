@@ -198,13 +198,14 @@ class InstallerController extends DefaultController
         if (!$db->checkTableExists("TABLEPREFIXmessage_bus")) {
 
             $table_sql = "CREATE TABLE `mtlda_message_bus` (
-                `msg_idx` int(11) NOT NULL auto_increment,
-                `msg_guid` varchar(255) default NULL,
+                `msg_idx` int(11) NOT NULL AUTO_INCREMENT,
+                `msg_guid` varchar(255) DEFAULT NULL,
                 `msg_session_id` varchar(255) NOT NULL,
+                `msg_scope` varchar(255) DEFAULT NULL,
                 `msg_command` varchar(255) NOT NULL,
                 `msg_body` varchar(255) NOT NULL,
-                PRIMARY KEY  (`msg_idx`)
-                ) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+                PRIMARY KEY (`msg_idx`)
+                ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8";
 
             if ($db->query($table_sql) === false) {
                 $mtlda->raiseError("Failed to create 'message_bus' table");
@@ -226,36 +227,32 @@ class InstallerController extends DefaultController
     {
         global $mtlda, $db;
 
-        if ($db->getDatabaseSchemaVersion() < 3) {
-            $this->upgradeDatabaseSchemaV3();
+        if (!$software_version = $db->getSoftwareSchemaVersion()) {
+            $mtlda->raiseError(get_class($db) .'::getSoftwareSchemaVersion() returned false!');
+            return false;
         }
 
-        if ($db->getDatabaseSchemaVersion() < 4) {
-            $this->upgradeDatabaseSchemaV4();
+        if (($db_version = $db->getDatabaseSchemaVersion()) === false) {
+            $mtlda->raiseError(get_class($db) .'::getDatabaseSchemaVersion() returned false!');
+            return false;
         }
 
-        if ($db->getDatabaseSchemaVersion() < 5) {
-            $this->upgradeDatabaseSchemaV5();
+        if ($db_version == $software_version) {
+            return true;
         }
 
-        if ($db->getDatabaseSchemaVersion() < 6) {
-            $this->upgradeDatabaseSchemaV6();
-        }
+        for ($i = $db_version+1; $i <= $software_version; $i++) {
 
-        if ($db->getDatabaseSchemaVersion() < 7) {
-            $this->upgradeDatabaseSchemaV7();
-        }
+            $method_name = "upgradeDatabaseSchemaV{$i}";
 
-        if ($db->getDatabaseSchemaVersion() < 8) {
-            $this->upgradeDatabaseSchemaV8();
-        }
+            if (!method_exists($this, $method_name)) {
+                continue;
+            }
 
-        if ($db->getDatabaseSchemaVersion() < 10) {
-            $this->upgradeDatabaseSchemaV10();
-        }
-
-        if ($db->getDatabaseSchemaVersion() < 11) {
-            $this->upgradeDatabaseSchemaV11();
+            if (!$this->$method_name()) {
+                $mtlda->raiseError(__CLASS__ ."::{$method_name} returned false!");
+                return false;
+            }
         }
 
         /* final action in this function
@@ -477,6 +474,28 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(11);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV12()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXmessage_bus
+            ADD COLUMN
+                `msg_scope` varchar(255) default NULL
+            AFTER
+                msg_session_id"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(12);
         return true;
     }
 }
