@@ -86,6 +86,13 @@ function open_preview_window(obj_id)
 
 $(document).ready(function() {
 
+    try {
+        mbus = new MtldaMessageBus;
+    } catch (e) {
+        throw 'Failed to load MtldaMessageBus! '+ e;
+        return false;
+    }
+
     /* RPC handlers */
     $("table tr td a.delete, #queueitem-flush").click(function(){
         delete_object($(this));
