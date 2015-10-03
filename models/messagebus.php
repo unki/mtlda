@@ -33,6 +33,8 @@ class MessageBusModel extends DefaultModel
     {
         global $mtlda, $db;
 
+        $messages = array();
+
         if (empty($session_id)) {
             $mtlda->raiseError(__METHOD__ .', \$session_id can not be empty!');
             return false;
@@ -42,7 +44,8 @@ class MessageBusModel extends DefaultModel
 
         $sql =
             "SELECT
-                *
+                msg_idx,
+                msg_guid
             FROM
                 TABLEPREFIX{$this->table_name}
             WHERE
@@ -61,14 +64,29 @@ class MessageBusModel extends DefaultModel
             return false;
         }
 
-        if (($result = $sth->fetchAll()) === false) {
-            $db->freeStatement($sth);
-            $mtlda->raiseError(get_class($sth) .'::fetchAll() returned false!');
-            return false;
+        while ($row = $sth->fetch()) {
+
+            if (
+                !isset($row->msg_idx) || empty($row->msg_idx) ||
+                !isset($row->msg_guid) || empty($row->msg_guid)
+            ) {
+                $db->freeStatement($sth);
+                $mtlda->raiseError(__METHOD__ .', message returned from query is incomplete!');
+            }
+
+            try {
+                $message = new MessageModel($row->msg_idx, $row->msg_guid);
+            } catch (\Exception $e) {
+                $db->freeStatement($sth);
+                $mtlda->raiseError('Failed to load MessageModel!');
+                return false;
+            }
+
+            array_push($messages, $message);
         }
 
         $db->freeStatement($sth);
-        return $result;
+        return $messages;
     }
 }
 
