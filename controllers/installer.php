@@ -199,8 +199,10 @@ class InstallerController extends DefaultController
 
             $table_sql = "CREATE TABLE `mtlda_message_bus` (
                 `msg_idx` int(11) NOT NULL auto_increment,
+                `msg_guid` varchar(255) default NULL,
                 `msg_session_id` varchar(255) NOT NULL,
                 `msg_command` varchar(255) NOT NULL,
+                `msg_body` varchar(255) NOT NULL,
                 PRIMARY KEY  (`msg_idx`)
                 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
@@ -251,6 +253,11 @@ class InstallerController extends DefaultController
         if ($db->getDatabaseSchemaVersion() < 10) {
             $this->upgradeDatabaseSchemaV10();
         }
+
+        if ($db->getDatabaseSchemaVersion() < 11) {
+            $this->upgradeDatabaseSchemaV11();
+        }
+
         /* final action in this function
         // disabled for now as of 20150923
         if (!$db->setDatabaseSchemaVersion()) {
@@ -444,6 +451,32 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(10);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV11()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXmessage_bus
+            ADD COLUMN
+                `msg_guid` varchar(255) default NULL
+            AFTER
+                msg_idx,
+            ADD COLUMN
+                `msg_body` varchar(255) NOT NULL
+            AFTER
+                msg_command"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(11);
         return true;
     }
 }
