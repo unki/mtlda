@@ -225,41 +225,26 @@ function rpc_object_sign(element)
         return false;
     }
 
-    id = safe_string(id);
-    guid = safe_string(guid);
+    var msg_body = new Object;
+    msg_body.id = safe_string(id);
+    msg_body.guid = safe_string(guid);
 
-    if(
-        window.location.pathname != undefined &&
-        window.location.pathname != '' &&
-        !window.location.pathname.match(/\/$/)
-    ) {
-        url = window.location.pathname;
-    } else {
-        url = 'rpc.html';
-    }
+    var msg = new MtldaMessage;
+    msg.setCommand('sign-request');
+    msg.setMessage(msg_body);
 
-    $.ajax({
-        type: 'POST',
-        url: url,
-        data: ({
-            type   : 'rpc',
-            action : 'sign',
-            id     : id,
-            guid   : guid
-        }),
-        error: function(XMLHttpRequest, textStatus, errorThrown) {
-            alert('Failed to contact server! ' + textStatus);
-        },
-        success: function (data) {
-            if(data != 'ok') {
-                alert('Server returned: ' + data + ', length ' + data.length);
-                return;
-            }
-            location.reload();
-            return;
+    mbus.add(msg);
+    mbus.subscribe('replies', 'sign-reply', function(reply) {
+        if (!reply) {
+            throw 'reply is empty!';
+            return false;
         }
+        console.log('got a reply! ' + reply);
     });
+    mbus.send();
+    mbus.poll();
 
+    //location.reload();
     return true;
 }
 
