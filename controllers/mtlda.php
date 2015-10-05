@@ -89,6 +89,7 @@ class MTLDA extends DefaultController
         }
 
         $this->loadController("Session", "session");
+        $this->loadController("Jobs", "jobs");
         $this->loadController("MessageBus", "mbus");
 
         if (!$this->performActions()) {
