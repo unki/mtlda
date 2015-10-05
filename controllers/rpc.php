@@ -757,7 +757,7 @@ class RpcController extends DefaultController
 
     private function rpcSubmitToMessageBus()
     {
-        global $mtlda;
+        global $mtlda, $mbus;
 
         if (
             !isset($_POST['messages']) ||
@@ -765,13 +765,6 @@ class RpcController extends DefaultController
             !is_string($_POST['messages'])
         ) {
             $mtlda->raiseError(__METHOD__ .', no message submited!');
-            return false;
-        }
-
-        try {
-            $mbus = new MessageBusController;
-        } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load MessageBusController!");
             return false;
         }
 
@@ -786,14 +779,7 @@ class RpcController extends DefaultController
 
     private function rpcRetrieveFromMessageBus()
     {
-        global $mtlda;
-
-        try {
-            $mbus = new MessageBusController;
-        } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load MessageBusController!");
-            return false;
-        }
+        global $mtlda, $mbus;
 
         if (!($messages = $mbus->poll())) {
             $mtlda->raiseError(get_class($mbus) .'::poll() returned false!');
