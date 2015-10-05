@@ -57,12 +57,22 @@ class JobsController extends DefaultController
         return true;
     }
 
-    public function createJob($sessionid = null)
+    public function createJob($sessionid = null, $request_guid = null)
     {
         global $mtlda;
 
-        if (isset($sessionid) && (empty($session) || !is_string($sessionid))) {
+        if (isset($sessionid) && (empty($sessionid) || !is_string($sessionid))) {
             $mtlda->raiseError(__METHOD__ .', parameter \$sessionid has to be a string!');
+            return false;
+        }
+
+        if (
+            isset($request_guid) && (
+                empty($request_guid) ||
+                !$mtlda->isValidGuidSyntax($request_guid)
+            )
+        ) {
+            $mtlda->raiseError(__METHOD__ .', parameter \$request_guid is invalid!');
             return false;
         }
 
@@ -75,6 +85,11 @@ class JobsController extends DefaultController
 
         if (isset($sessionid) && !$job->setSessionId($sessionid)) {
             $mtlda->raiseError(get_class($job) .'::setSessionId() returned false!');
+            return false;
+        }
+
+        if (isset($request_guid) && !$job->setRequestGuid($request_guid)) {
+            $mtlda->raiseError(get_class($job) .'::setRequestGuid() returned false!');
             return false;
         }
 
@@ -116,6 +131,12 @@ class JobsController extends DefaultController
             return false;
         }
 
+        if ($this->hasCurrentJob() && ($cur_guid = $this->getCurrentJob())) {
+            if ($cur_guid == $job_guid) {
+                $this->clearCurrentJob();
+            }
+        }
+
         return true;
     }
 
@@ -129,6 +150,7 @@ class JobsController extends DefaultController
         }
 
         $this->currentJobGuid = $job_guid;
+        return true;
     }
 
     public function getCurrentJob()
@@ -152,6 +174,34 @@ class JobsController extends DefaultController
     public function clearCurrentJob()
     {
         unset($this->currentJobGuid);
+        return true;
+    }
+
+    public function setJobInProcessing($guid = null)
+    {
+        global $mtlda;
+
+        if (!isset($guid) || empty($guid) && $this->hasCurrentJob()) {
+            $guid = $this->getCurrentJob();
+        }
+
+        try {
+            $job = new Models\JobModel(null, $guid);
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .", failed to load JobModel(null, {$guid})!");
+            return false;
+        }
+
+        if (!$job->setProcessingFlag()) {
+            $mtlda->raiseError(get_class($job) .'::setProcessingFlag() returned false!');
+            return false;
+        }
+
+        if (!$job->save()) {
+            $mtlda->raiseError(get_class($job) .'::save() returned false!');
+            return false;
+        }
+
         return true;
     }
 }
