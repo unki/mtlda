@@ -260,6 +260,69 @@ class MessageBusController extends DefaultController
 
         return true;
     }
+
+    public function sendMessageToClient($command, $body, $value, $sessionid)
+    {
+        global $mtlda;
+
+        if (!isset($command) || empty($command) || !is_string($command)) {
+            $mtlda->raiseError(__METHOD__ .', first parameter \$command is mandatory and has to be a string!');
+            return false;
+        }
+        if (!isset($body) || empty($body) || !is_string($body)) {
+            $mtlda->raiseError(__METHOD__ .', second parameter \$body is mandatory and has to be a string!');
+            return false;
+        }
+
+        if (isset($value) && !empty($value) && !is_string($value)) {
+            $mtlda->raiseError(__METHOD__ .', third parameter \$value has to be a string!');
+            return false;
+        }
+
+        if (!isset($sessionid) || empty($sessionid) || !is_string($sessionid)) {
+            $mtlda->raiseError(__METHOD__ .', fourth parameter \$sessionid is mandatory and has to be a string!');
+            return false;
+        }
+
+        try {
+            $msg = new Models\MessageModel;
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .', failed to load MessageModel!');
+            return false;
+        }
+
+        if (!$msg->setCommand($command)) {
+            $mtlda->raiseError(get_class($msg) .'::setCommand() returned false!');
+            return false;
+        }
+
+        if (!$msg->setBody($body)) {
+            $mtlda->raiseError(get_class($msg) .'::setBody() returned false!');
+            return false;
+        }
+
+        if (!$msg->setValue($value)) {
+            $mtlda->raiseError(get_class($msg) .'::setValue() returned false!');
+            return false;
+        }
+
+        if (!$msg->setSessionId($sessionid)) {
+            $mtlda->raiseError(get_class($msg) .'::setSessionId() returned false!');
+            return false;
+        }
+
+        if (!$msg->setScope('outbound')) {
+            $mtlda->raiseError(get_class($msg) .'::setScope() returned false!');
+            return false;
+        }
+
+        if (!$msg->save()) {
+            $mtlda->raiseError(get_class($msg) .'::save() returned false!');
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
