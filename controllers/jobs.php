@@ -24,6 +24,7 @@ use MTLDA\Models;
 class JobsController extends DefaultController
 {
     const EXPIRE_TIMEOUT = 300;
+    private $currentJobGuid;
 
     public function __construct()
     {
@@ -92,6 +93,66 @@ class JobsController extends DefaultController
         }
 
         return $job->job_guid;
+    }
+
+    public function deleteJob($job_guid)
+    {
+        global $mtlda;
+
+        if (!isset($job_guid) || empty($job_guid) || !$mtlda->isValidGuidSyntax($job_guid)) {
+            $mtlda->raiseError(__METHOD__ .', first parameter has to be a valid GUID!');
+            return false;
+        }
+
+        try {
+            $job = new Models\JobModel(null, $job_guid);
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .", failed to load JobModel(null, {$job_guid})");
+            return false;
+        }
+
+        if (!$job->delete()) {
+            $mtlda->raiseError(get_class($job) .'::delete() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function setCurrentJob($job_guid)
+    {
+        global $mtlda;
+
+        if (!isset($job_guid) || empty($job_guid) || !$mtlda->isValidGuidSyntax($job_guid)) {
+            $mtlda->raiseError(__METHOD__ .', first parameter has to be a valid GUID!');
+            return false;
+        }
+
+        $this->currentJobGuid = $job_guid;
+    }
+
+    public function getCurrentJob()
+    {
+        if (!$this->hasCurrentJob()) {
+            return false;
+        }
+
+        return $this->currentJobGuid;
+    }
+
+    public function hasCurrentJob()
+    {
+        if (!isset($this->currentJobGuid) || empty($this->currentJobGuid)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function clearCurrentJob()
+    {
+        unset($this->currentJobGuid);
+        return true;
     }
 }
 
