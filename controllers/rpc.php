@@ -57,9 +57,6 @@ class RpcController extends DefaultController
             case 'find-prev-next':
                 $this->rpcFindPrevNextObject();
                 break;
-            case 'sign':
-                $this->rpcSignObject();
-                break;
             /*case 'toggle':
                 $this->rpc_toggle_object_status();
                 break;
@@ -608,91 +605,6 @@ class RpcController extends DefaultController
 
         if (!$importer->fetch()) {
             $mtlda->raiseError("MailImportController::fetch() returned false!");
-            return false;
-        }
-
-        return true;
-    }
-
-    protected function rpcSignObject()
-    {
-        global $mtlda;
-
-        $input_fields = array('id', 'guid');
-
-        foreach ($input_fields as $field) {
-
-            if (!isset($_POST[$field])) {
-                $mtlda->raiseError(__METHOD__ ."'{$field}' isn't set in POST request!");
-                return false;
-            }
-            if (empty($_POST[$field])) {
-                $mtlda->raiseError(__METHOD__ ."'{$field}' is empty!");
-                return false;
-            }
-            if (!is_string($_POST[$field]) && !is_numeric($_POST[$field])) {
-                $mtlda->raiseError(__METHOD__ ."'{$field}' is not from a valid type!");
-                return false;
-            }
-        }
-
-        $id = $_POST['id'];
-        $guid = $_POST['guid'];
-
-        if (!$mtlda->isValidId($id)) {
-            $mtlda->raiseError(__METHOD__ .', \$id is invalid!');
-            return false;
-        }
-
-        if (!$mtlda->isValidGuidSyntax($guid)) {
-            $mtlda->raiseError(__METHOD__ .', \$guid is invalid!');
-            return false;
-        }
-
-        try {
-            $document = new Models\DocumentModel($id, $guid);
-        } catch (\Exception $e) {
-            $mtlda->raiseError(__METHOD__ .", unable to load DocumentModel!");
-            return false;
-        }
-
-        if (!$this->signDocument($document)) {
-            $mtlda->raiseError(__CLASS__ .'::signDocument() returned false!');
-            return false;
-        }
-
-        print "ok";
-        return true;
-    }
-
-    private function signDocument(&$document)
-    {
-        global $mtlda;
-
-        if (get_class($document) != "MTLDA\Models\DocumentModel") {
-            $mtlda->raiseError(__METHOD__ .', can only work with DocumentModels!');
-            return false;
-        }
-
-        if ($document->document_signed_copy == 'Y') {
-            $mtlda->raiseError(__METHOD__ .", will not resign an already signed document!");
-            return false;
-        }
-
-        try {
-            $archive = new Controllers\ArchiveController;
-        } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load ArchiveController!");
-            return false;
-        }
-
-        if (!$archive) {
-            $mtlda->raiseError("Unable to load ArchiveController!");
-            return false;
-        }
-
-        if (!$archive->sign($document)) {
-            $mtlda->raiseError("ArchiveController::sign() returned false!");
             return false;
         }
 
