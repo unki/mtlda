@@ -543,7 +543,7 @@ class MTLDA extends DefaultController
             $message->setProcessingFlag();
 
             if (!$message->save()) {
-                $mtlda->raiseError(get_class($message) .'::save() returned false!');
+                $this->raiseError(get_class($message) .'::save() returned false!');
                 return false;
             }
 
@@ -563,6 +563,8 @@ class MTLDA extends DefaultController
 
     private function handleMessage(&$message)
     {
+        global $jobs;
+
         if (
             empty($message) ||
             get_class($message) != 'MTLDA\Models\MessageModel'
@@ -586,6 +588,36 @@ class MTLDA extends DefaultController
             return false;
         }
 
+        if (!($sessionid = $message->getSessionId())) {
+            $this->raiseError(get_class($message) .'::getSessionId() returned false!');
+            return false;
+        }
+
+        if (!($msg_guid = $message->getGuid()) || !$this->isValidGuidSyntax($msg_guid)) {
+            $this->raiseError(get_class($message) .'::getGuid() has not returned a valid GUID!');
+            return false;
+        }
+
+        if (!($job = $jobs->createJob($sessionid, $msg_guid))) {
+            $this->raiseError(get_class($jobs) .'::createJob() returned false!');
+            return false;
+        }
+
+        if (isset($job) && (empty($job) || !$this->isValidGuidSyntax($job))) {
+            $this->raiseError(get_class($jobs) .'::createJob() has not returned a valid GUID!');
+            return false;
+        }
+
+        if (!$jobs->setCurrentJob($job)) {
+            $this->raiseError(get_class($jobs) .'::setCurrentJob() returned false!');
+            return false;
+        }
+
+        if (!$jobs->setJobInProcessing($job)) {
+            $this->raiseError(get_class($jobs) .'::setJobInProcessing() returned false!');
+            return false;
+        }
+
         switch ($command) {
             default:
                 $this->raiseError(__METHOD__ .', unknown command \"'. $command .'\" found!');
@@ -598,6 +630,11 @@ class MTLDA extends DefaultController
                     return false;
                 }
                 break;
+        }
+
+        if (!$jobs->deleteJob($job)) {
+            $this->raiseError(get_class($jobs) .'::deleteJob() returned false!');
+            return false;
         }
 
         return true;
