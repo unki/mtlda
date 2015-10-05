@@ -197,7 +197,7 @@ class InstallerController extends DefaultController
 
         if (!$db->checkTableExists("TABLEPREFIXmessage_bus")) {
 
-            $table_sql = "CREATE TABLE `mtlda_message_bus` (
+            $table_sql = "CREATE TABLE `TABLEPREFIXmessage_bus` (
                 `msg_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `msg_guid` varchar(255) DEFAULT NULL,
                 `msg_session_id` varchar(255) NOT NULL,
@@ -212,6 +212,23 @@ class InstallerController extends DefaultController
 
             if ($db->query($table_sql) === false) {
                 $mtlda->raiseError("Failed to create 'message_bus' table");
+                return false;
+            }
+        }
+
+        if (!$db->checkTableExists("TABLEPREFIXjobs")) {
+
+            $table_sql = "CREATE TABLE `TABLEPREFIXjobs` (
+                `job_idx` int(11) NOT NULL AUTO_INCREMENT,
+                `job_guid` varchar(255) DEFAULT NULL,
+                `job_session_id` varchar(255) NOT NULL,
+                `job_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+                `job_in_processing` varchar(1) DEFAULT NULL,
+                PRIMARY KEY (`job_idx`)
+                ) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8";
+
+            if ($db->query($table_sql) === false) {
+                $mtlda->raiseError("Failed to create 'jobs' table");
                 return false;
             }
         }
@@ -547,6 +564,14 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(14);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV15()
+    {
+        global $db;
+
+        $db->setDatabaseSchemaVersion(15);
         return true;
     }
 }
