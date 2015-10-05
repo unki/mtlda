@@ -539,6 +539,13 @@ class MTLDA extends DefaultController
 
         foreach ($messages as $message) {
 
+            $message->setProcessingFlag();
+
+            if (!$message->save()) {
+                $mtlda->raiseError(get_class($message) .'::save() returned false!');
+                return false;
+            }
+
             if (!$this->handleMessage($message)) {
                 $this->raiseError('handleMessage() returned false!');
                 return false;
