@@ -169,7 +169,7 @@ class ArchiveController extends DefaultController
 
     public function sign(&$src_item)
     {
-        global $mtlda, $config, $audit;
+        global $mtlda, $config, $audit, $mbus;
 
         if (!$config->isPdfSigningEnabled()) {
             $mtlda->raiseError("ConfigController::isPdfSigningEnabled() returns false!");
@@ -194,6 +194,11 @@ class ArchiveController extends DefaultController
             $signing_item = new Models\DocumentModel;
         } catch (Exception $e) {
             $mtlda->raiseError("Failed to load DocumentModel!");
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('sign-request', 'Deriving copy of orignal document', '30%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -242,6 +247,11 @@ class ArchiveController extends DefaultController
         if (!$signer->signDocument($signing_item)) {
             $signing_item->delete();
             $mtlda->raiseError("PdfSigningController::ѕignDocument() returned false!");
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('sign-request', 'Refreshing document information', '90%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
