@@ -122,6 +122,8 @@ class MessageBusController extends DefaultController
                 return false;
             }
 
+            $mbmsg->setProcessingFlag(false);
+
             if (is_object($message->message) || is_array($message->message)) {
                 $msgbody = serialize($message->message);
             } else {
