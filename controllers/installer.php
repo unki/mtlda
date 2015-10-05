@@ -201,11 +201,13 @@ class InstallerController extends DefaultController
                 `msg_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `msg_guid` varchar(255) DEFAULT NULL,
                 `msg_session_id` varchar(255) NOT NULL,
+                `msg_submit_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
                 `msg_scope` varchar(255) DEFAULT NULL,
                 `msg_command` varchar(255) NOT NULL,
                 `msg_body` varchar(255) NOT NULL,
+                `msg_in_processing` varchar(1) DEFAULT NULL,
                 PRIMARY KEY (`msg_idx`)
-                ) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8";
+                ) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8";
 
             if ($db->query($table_sql) === false) {
                 $mtlda->raiseError("Failed to create 'message_bus' table");
@@ -496,6 +498,32 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(12);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV13()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXmessage_bus
+            ADD COLUMN
+                `msg_submit_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
+            AFTER
+                msg_session_id,
+            ADD COLUMN
+                `msg_in_processing` varchar(1) DEFAULT NULL
+            AFTER
+                msg_body"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(13);
         return true;
     }
 }
