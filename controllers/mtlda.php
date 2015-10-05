@@ -87,6 +87,13 @@ class MTLDA extends DefaultController
             exit(0);
         }
 
+        $this->loadController("Session", "session");
+        $this->loadController("MessageBus", "mbus");
+
+        if (!$this->performActions()) {
+            $mtlda->raiseError(__CLASS__ .'::performActions() returned false!');
+            return false;
+        }
         return true;
     }
 
@@ -102,7 +109,6 @@ class MTLDA extends DefaultController
         $this->loadController("Views", "views");
         global $views;
 
-        $this->loadController("Session", "session");
 
         if ($router->isRpcCall()) {
 
@@ -506,6 +512,26 @@ class MTLDA extends DefaultController
         }
 
         return false;
+    }
+
+    private function performActions()
+    {
+        global $mtlda, $mbus;
+
+        if (!($messages = $mbus->getRequestMessages()) || empty($messages)) {
+            return true;
+        }
+
+        if (!is_array($messages)) {
+            $mtlda->raiseError(get_class($mbus) .'::getRequestMessages() has not returned an array!');
+            return false;
+        }
+
+        foreach ($messages as $message) {
+            print_r($messages);
+        }
+
+        return true;
     }
 }
 
