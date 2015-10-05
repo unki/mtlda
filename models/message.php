@@ -89,6 +89,17 @@ class MessageModel extends DefaultModel
         return true;
     }
 
+    public function getSessionId()
+    {
+        global $mtlda;
+
+        if (!isset($this->msg_session_id)) {
+            $mtlda->raiseError(__METHOD__ .', \$msg_session_id has not been set yet!');
+            return false;
+        }
+
+        return $this->msg_session_id;
+    }
 
     public function getCommand()
     {
