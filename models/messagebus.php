@@ -88,6 +88,53 @@ class MessageBusModel extends DefaultModel
         $db->freeStatement($sth);
         return $messages;
     }
+
+    public function getServerRequests()
+    {
+        global $mtlda, $db;
+
+        $messages = array();
+
+        $idx_field = $this->column_name ."_idx";
+
+        $sql =
+            "SELECT
+                msg_idx,
+                msg_guid
+            FROM
+                TABLEPREFIX{$this->table_name}
+            WHERE
+                msg_scope
+            LIKE
+                'inbound'";
+
+        if (!($result = $db->query($sql))) {
+            $mtlda->raiseError(__METHOD__ .', failed to query database!');
+            return false;
+        };
+
+        while ($row = $result->fetch()) {
+
+            if (
+                !isset($row->msg_idx) || empty($row->msg_idx) ||
+                !isset($row->msg_guid) || empty($row->msg_guid)
+            ) {
+                $db->freeStatement($sth);
+                $mtlda->raiseError(__METHOD__ .', message returned from query is incomplete!');
+            }
+
+            try {
+                $message = new MessageModel($row->msg_idx, $row->msg_guid);
+            } catch (\Exception $e) {
+                $mtlda->raiseError('Failed to load MessageModel!');
+                return false;
+            }
+
+            array_push($messages, $message);
+        }
+
+        return $messages;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
