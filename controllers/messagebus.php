@@ -261,26 +261,31 @@ class MessageBusController extends DefaultController
         return true;
     }
 
-    public function sendMessageToClient($command, $body, $value, $sessionid)
+    public function sendMessageToClient($command, $body, $value, $sessionid = null)
     {
-        global $mtlda;
+        global $mtlda, $jobs;
 
         if (!isset($command) || empty($command) || !is_string($command)) {
-            $mtlda->raiseError(__METHOD__ .', first parameter \$command is mandatory and has to be a string!');
+            $mtlda->raiseError(__METHOD__ .', parameter \$command is mandatory and has to be a string!');
             return false;
         }
         if (!isset($body) || empty($body) || !is_string($body)) {
-            $mtlda->raiseError(__METHOD__ .', second parameter \$body is mandatory and has to be a string!');
+            $mtlda->raiseError(__METHOD__ .', parameter \$body is mandatory and has to be a string!');
             return false;
         }
 
         if (isset($value) && !empty($value) && !is_string($value)) {
-            $mtlda->raiseError(__METHOD__ .', third parameter \$value has to be a string!');
+            $mtlda->raiseError(__METHOD__ .', parameter \$value has to be a string!');
+            return false;
+        }
+
+        if (empty($sessionid) && !($sessionid = $this->getSessionIdFromJob())) {
+            $mtlda->raiseError(__METHOD__ .', no session id returnd by getSessionIdFromJob()!');
             return false;
         }
 
         if (!isset($sessionid) || empty($sessionid) || !is_string($sessionid)) {
-            $mtlda->raiseError(__METHOD__ .', fourth parameter \$sessionid is mandatory and has to be a string!');
+            $mtlda->raiseError(__METHOD__ .', the specified \$sessionid is invalid!');
             return false;
         }
 
@@ -322,6 +327,35 @@ class MessageBusController extends DefaultController
         }
 
         return true;
+    }
+
+    private function getSessionIdFromJob($job_guid = null)
+    {
+        global $mtlda, $jobs;
+
+        if (empty($job_guid) && !($job_guid = $jobs->getCurrentJob())) {
+            $mtlda->raiseError(get_class($jobs) .'::getCurrentJob() returned false!');
+            return false;
+        }
+
+        if (!$mtlda->isValidGuidSyntax($job_guid)) {
+            $mtlda->raiseError(__METHOD__ .', \$job_guid is not a valid GUID!');
+            return false;
+        }
+
+        try {
+            $job = new Models\JobModel(null, $job_guid);
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .', failed to load JobModel(null, {$job})!');
+            return false;
+        }
+
+        if (!($sessionid = $job->getSessionId())) {
+            $mtlda->raiseError(get_class($message) .'::getSessionId() returned false!');
+            return false;
+        }
+
+        return $sessionid;
     }
 }
 
