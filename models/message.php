@@ -31,6 +31,7 @@ class MessageModel extends DefaultModel
         'msg_session_id' => 'string',
         'msg_command' => 'string',
         'msg_body' => 'string',
+        'msg_value' => 'string',
         'msg_in_processing' => 'string',
     );
 
