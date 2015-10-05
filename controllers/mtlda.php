@@ -672,7 +672,7 @@ class MTLDA extends DefaultController
             return false;
         }
 
-        if (!$mbus->sendMessageToClient('sign-request', 'Preparing', '0%', $sessionid)) {
+        if (!$mbus->sendMessageToClient('sign-request', 'Preparing', '10%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
@@ -705,6 +705,11 @@ class MTLDA extends DefaultController
             return false;
         }
 
+        if (!$mbus->sendMessageToClient('sign-request', 'Loading document', '20%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
         try {
             $document = new Models\DocumentModel(
                 $sign_request->id,
@@ -717,6 +722,11 @@ class MTLDA extends DefaultController
 
         if (!$this->signDocument($document)) {
             $this->raiseError(__CLASS__ .'::signDocument() returned false!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('sign-request', 'Done', '100%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
