@@ -113,6 +113,19 @@ class MessageModel extends DefaultModel
         return $this->msg_command;
     }
 
+    public function setBody($body)
+    {
+        global $mtlda;
+
+        if (!isset($body) || empty($body) || !is_string($body)) {
+            $mtlda->raiseError(__METHOD__ .', first parameter needs to be a string!');
+            return false;
+        }
+
+        $this->msg_body = $body;
+        return true;
+    }
+
     public function getBody()
     {
         global $mtlda;
@@ -217,6 +230,46 @@ class MessageModel extends DefaultModel
 
         if ($this->msg_in_processing != 'Y') {
             return false;
+        }
+
+        return true;
+    }
+
+    public function setValue($value)
+    {
+        global $mtlda;
+
+        if (!isset($value) || empty($value) || !is_string($value)) {
+            $mtlda->raiseError(__METHOD__ .', first parameter \$value has to be a string!');
+            return false;
+        }
+
+        $this->msg_value = $value;
+        return true;
+    }
+
+    public function getValue()
+    {
+        if (!$this->hasValue()) {
+            return false;
+        }
+
+        return $this->msg_value;
+    }
+
+    public function hasValue()
+    {
+        if (!isset($this->msg_value) || empty($this->msg_value)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function preSave()
+    {
+        if (!isset($this->msg_in_processing) || empty($this->msg_in_processing)) {
+            $this->msg_in_processing = 'N';
         }
 
         return true;
