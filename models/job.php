@@ -27,6 +27,7 @@ class JobModel extends DefaultModel
         'job_idx' => 'integer',
         'job_guid' => 'integer',
         'job_session_id' => 'string',
+        'job_request_guid' => 'string',
         'job_time' => 'timestamp',
         'job_in_processing' => 'string',
     );
@@ -167,6 +168,31 @@ class JobModel extends DefaultModel
         }
 
         return true;
+    }
+
+    public function setRequestGuid($guid)
+    {
+        global $mtlda;
+
+        if (empty($guid) || !$mtlda->isValidGuidSyntax($guid)) {
+            $mtlda->raiseError(__METHOD__ .', first parameter needs to be a valid GUID!');
+            return false;
+        }
+
+        $this->job_request_guid = $guid;
+        return true;
+    }
+
+    public function getRequestGuid()
+    {
+        global $mtlda;
+
+        if (!isset($this->job_request_guid)) {
+            $mtlda->raiseError(__METHOD__ .', \$job_request_guid has not been set yet!');
+            return false;
+        }
+
+        return $this->job_request_guid;
     }
 }
 
