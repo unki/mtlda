@@ -604,6 +604,8 @@ class MTLDA extends DefaultController
 
     private function handleSignRequest(&$message)
     {
+        global $mbus;
+
         if (
             empty($message) ||
             get_class($message) != 'MTLDA\Models\MessageModel'
@@ -619,6 +621,21 @@ class MTLDA extends DefaultController
 
         if (!is_string($body)) {
             $this->raiseError(get_class($message) .'::getBody() has not returned a string!');
+            return false;
+        }
+
+        if (!($sessionid = $message->getSessionId())) {
+            $this->raiseError(get_class($message) .'::getSessionId() returned false!');
+            return false;
+        }
+
+        if (!is_string($sessionid)) {
+            $this->raiseError(get_class($message) .'::getSessionId() has not returned a string!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('sign-request', 'Preparing', '0%', $sessionid)) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
