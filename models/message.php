@@ -89,11 +89,25 @@ class MessageModel extends DefaultModel
 
     public function getCommand()
     {
+        global $mtlda;
+
+        if (!isset($this->msg_command)) {
+            $mtlda->raiseError(__METHOD__ .', \$msg_command has not been set yet!');
+            return false;
+        }
+
         return $this->msg_command;
     }
 
     public function getBody()
     {
+        global $mtlda;
+
+        if (!isset($this->msg_body)) {
+            $mtlda->raiseError(__METHOD__ .', \$msg_body has not been set yet!');
+            return false;
+        }
+
         return $this->msg_body;
     }
 
