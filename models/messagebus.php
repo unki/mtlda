@@ -106,7 +106,9 @@ class MessageBusModel extends DefaultModel
             WHERE
                 msg_scope
             LIKE
-                'inbound'";
+                'inbound'
+            AND
+                msg_in_processing <> 'Y'";
 
         if (!($result = $db->query($sql))) {
             $mtlda->raiseError(__METHOD__ .', failed to query database!');
