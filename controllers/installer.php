@@ -205,6 +205,7 @@ class InstallerController extends DefaultController
                 `msg_scope` varchar(255) DEFAULT NULL,
                 `msg_command` varchar(255) NOT NULL,
                 `msg_body` varchar(255) NOT NULL,
+                `msg_value` varchar(255) DEFAULT NULL,
                 `msg_in_processing` varchar(1) DEFAULT NULL,
                 PRIMARY KEY (`msg_idx`)
                 ) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8";
@@ -524,6 +525,28 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(13);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV14()
+    {
+        global $mtlda, $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXmessage_bus
+            ADD COLUMN
+                `msg_value` varchar(255) default NULL
+            AFTER
+                msg_body"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(14);
         return true;
     }
 }
