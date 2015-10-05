@@ -96,6 +96,8 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
+        $this->sendMessage('sign-request', 'Retrieving document copy from archive.', '40%');
+
         if (!$fqpn = $src_document->getFilePath()) {
             $mtlda->raiseError(get_class($src_document) .'::getFilePath() returned false!');
             return false;
@@ -145,6 +147,12 @@ class PdfSigningController extends DefaultController
             $mtlda->raiseError("failed to strip whitespaces from public key!");
             return false;
         }
+
+        $this->sendMessage(
+            'sign-request',
+            'Sending SOAP request to signing server '. $this->pdf_cfg['dss_url'] .'.',
+            '50%'
+        );
 
         try {
             $dss = new \SoapClient(
@@ -234,6 +242,12 @@ class PdfSigningController extends DefaultController
         $document->mimeType->mimeTypeString = 'application/pdf';
         $document->absolutePath = $fqpn;
 
+        $this->sendMessage(
+            'sign-request',
+            'Submitting document to signing server '. $this->pdf_cfg['dss_url'],
+            '60%'
+        );
+
         try {
             $result = $dss->getDataToSign(array(
                 'document' => $document,
@@ -282,6 +296,8 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
+        $this->sendMessage('sign-request', 'Now signing the signing servers response digest.', '70%');
+
         try {
             $result = $dss->signDocument(array(
                 'document' => $document,
@@ -312,12 +328,40 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
+        $this->sendMessage('sign-request', 'Transfering the signed document into archive.', '80%');
+
         if (file_put_contents($fqpn, $result->response->bytes) === false) {
             $mtlda->raiseError("Failed to write signed document into {$fqpn}!");
             return false;
         }
 
         unset($result);
+        return true;
+    }
+
+    private function sendMessage($command, $body, $value = null)
+    {
+        global $mtlda, $mbus;
+
+        if (!isset($command) || empty($command) || !is_string($command)) {
+            $mtlda->raiseError(__METHOD__ .', parameter \$command is mandatory and has to be a string!');
+            return false;
+        }
+        if (!isset($body) || empty($body) || !is_string($body)) {
+            $mtlda->raiseError(__METHOD__ .', parameter \$body is mandatory and has to be a string!');
+            return false;
+        }
+
+        if (isset($value) && !empty($value) && !is_string($value)) {
+            $mtlda->raiseError(__METHOD__ .', parameter \$value has to be a string!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient($command, $body, $value)) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
         return true;
     }
 }
