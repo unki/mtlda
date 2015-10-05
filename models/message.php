@@ -27,9 +27,11 @@ class MessageModel extends DefaultModel
         'msg_idx' => 'integer',
         'msg_guid' => 'integer',
         'msg_scope' => 'string',
+        'msg_submit_time' => 'timestamp',
         'msg_session_id' => 'string',
         'msg_command' => 'string',
         'msg_body' => 'string',
+        'msg_in_processing' => 'string',
     );
 
     public function setCommand($command)
@@ -167,6 +169,41 @@ class MessageModel extends DefaultModel
         }
 
         if ($scope != 'outbound') {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function setProcessingFlag($value = true)
+    {
+        if (!$value) {
+            $this->msg_in_processing = 'N';
+            return true;
+        }
+
+        $this->msg_in_processing = 'Y';
+        return true;
+    }
+
+    public function getProcessingFlag()
+    {
+        if (!isset($this->msg_in_processing)) {
+            return 'N';
+        }
+
+        return $this->msg_in_processing;
+    }
+
+    public function isProcessing()
+    {
+        global $mtlda;
+
+        if (!isset($this->getProcessingFlag)) {
+            return false;
+        }
+
+        if ($this->msg_in_processing != 'Y') {
             return false;
         }
 
