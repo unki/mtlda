@@ -203,6 +203,30 @@ class MessageBusController extends DefaultController
 
         return $reply;
     }
+
+    public function getRequestMessages()
+    {
+        global $mtlda;
+
+        try {
+            $msgs = new Models\MessageBusModel;
+        } catch (\Exception $e) {
+            $mtlda->raiseError('Failed to load MessageBusModel!');
+            return false;
+        }
+
+        if (($messages = $msgs->getServerRequests()) === false) {
+            $mtlda->raiseError(get_class($msgs) .'::getServerRequests() returned false!');
+            return false;
+        }
+
+        if (!is_array($messages)) {
+            $mtlda->raiseError(get_class($msgs) .'::getServerRequests() has not returned an arary!');
+            return false;
+        }
+
+        return $messages;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
