@@ -133,6 +133,11 @@ class MessageBusController extends DefaultController
                 return false;
             }
 
+            if (!$mbmsg->setScope('inbound')) {
+                $mtlda->raiseError(get_class($mbmsg) .'::setScope() returned false!');
+                return false;
+            }
+
             if (!$mbmsg->save()) {
                 $mtlda->raiseError(get_class($mbmsg) .'::save() returned false!');
                 return false;
