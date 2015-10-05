@@ -23,12 +23,19 @@ use MTLDA\Models;
 
 class MessageBusController extends DefaultController
 {
+    const EXPIRE_TIMEOUT = 300;
+
     public function __construct()
     {
         global $mtlda, $session;
 
         if (!$session) {
             $mtlda->raiseError(__METHOD__ ." requires SessionController to be initialized!", true);
+            return false;
+        }
+
+        if (!$this->removeExpiredMessages()) {
+            $mtlda->raiseError('removeExpiredMessages() returned false!', true);
             return false;
         }
 
@@ -233,6 +240,25 @@ class MessageBusController extends DefaultController
         }
 
         return $messages;
+    }
+
+    private function removeExpiredMessages()
+    {
+        global $mtlda;
+
+        try {
+            $msgs = new Models\MessageBusModel;
+        } catch (\Exception $e) {
+            $mtlda->raiseError('Failed to load MessageBusModel!');
+            return false;
+        }
+
+        if (!$msgs->deleteExpiredMessages(self::EXPIRE_TIMEOUT)) {
+            $mtlda->raiseError(get_class($msgs) .'::deleteExpiredMessages() returned false!');
+            return false;
+        }
+
+        return true;
     }
 }
 
