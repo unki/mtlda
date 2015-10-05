@@ -96,6 +96,68 @@ class MessageModel extends DefaultModel
     {
         return $this->msg_body;
     }
+
+    public function setScope($scope)
+    {
+        global $mtlda;
+
+        if (!is_string($scope)) {
+            $mtlda->raiseError(__METHOD__ .', parameter has to be a string!');
+            return false;
+        }
+
+        if (!in_array($scope, array('inbound', 'outbound'))) {
+            $mtlda->raiseError(__METHOD__ .', allowed values for scope are "inbound" and "outbound" only!');
+            return false;
+        }
+
+        $this->msg_scope = $scope;
+        return true;
+    }
+
+    public function getScope()
+    {
+        global $mtlda;
+
+        if (!isset($this->msg_scope)) {
+            $mtlda->raiseError(__METHOD__ .', \$msg_scope has not been set yet!');
+            return false;
+        }
+
+        return $this->msg_scope;
+    }
+
+    public function isClientMessage()
+    {
+        global $mtlda;
+
+        if (!($scope = $this->getScope())) {
+            $mtlda->raiseError(__CLASS__ .'::getScope() returned false!');
+            return false;
+        }
+
+        if ($scope != 'inbound') {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function isServerMessage()
+    {
+        global $mtlda;
+
+        if (!($scope = $this->getScope())) {
+            $mtlda->raiseError(__CLASS__ .'::getScope() returned false!');
+            return false;
+        }
+
+        if ($scope != 'outbound') {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
