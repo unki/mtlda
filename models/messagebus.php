@@ -137,6 +137,37 @@ class MessageBusModel extends DefaultModel
 
         return $messages;
     }
+
+    public function deleteExpiredMessages($timeout)
+    {
+        global $mtlda, $db;
+
+        if (!isset($timeout) || empty($timeout) || !is_numeric($timeout)) {
+            $mtlda->raiseError(__METHOD__ .', parameter needs to be an integer!');
+            return false;
+        }
+
+        $now = microtime();
+        $oldest = $now-$timeout;
+
+        $sql =
+            "DELETE FROM
+                TABLEPREFIXmessage_bus
+            WHERE
+                msg_submit_time < ?";
+
+        if (!($sth = $db->prepare($sql))) {
+            $mtlda->raiseError(__METHOD__ .', failed to prepare query!');
+            return false;
+        }
+
+        if (!($db->execute($sth, array($oldest)))) {
+            $mtlda->raiseError(__METHOD__ .', failed to execute query!');
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
