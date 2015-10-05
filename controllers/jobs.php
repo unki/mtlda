@@ -48,12 +48,50 @@ class JobsController extends DefaultController
             return false;
         }
 
-        if (!$jobs->deleteExpiredMessages(self::EXPIRE_TIMEOUT)) {
-            $mtlda->raiseError(get_class($jobs) .'::deleteExpiredMessages() returned false!');
+        if (!$jobs->deleteExpiredJobs(self::EXPIRE_TIMEOUT)) {
+            $mtlda->raiseError(get_class($jobs) .'::deleteExpiredJobs() returned false!');
             return false;
         }
 
         return true;
+    }
+
+    public function createJob($sessionid = null)
+    {
+        global $mtlda;
+
+        if (isset($sessionid) && (empty($session) || !is_string($sessionid))) {
+            $mtlda->raiseError(__METHOD__ .', parameter \$sessionid has to be a string!');
+            return false;
+        }
+
+        try {
+            $job = new Models\JobModel;
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .', unable to load JobModel!');
+            return false;
+        }
+
+        if (isset($sessionid) && !$job->setSessionId($sessionid)) {
+            $mtlda->raiseError(get_class($job) .'::setSessionId() returned false!');
+            return false;
+        }
+
+        if (!$job->save()) {
+            $mtlda->raiseError(get_class($job) .'::save() returned false!');
+            return false;
+        }
+
+        if (
+            !isset($job->job_guid) ||
+            empty($job->job_guid) ||
+            !$mtlda->isValidGuidSyntax($job->job_guid)
+        ) {
+            $mtlda->raiseError(get_class($job) .'::save() has not lead to a valid GUID!');
+            return false;
+        }
+
+        return $job->job_guid;
     }
 }
 
