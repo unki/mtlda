@@ -222,6 +222,7 @@ class InstallerController extends DefaultController
                 `job_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `job_guid` varchar(255) DEFAULT NULL,
                 `job_session_id` varchar(255) NOT NULL,
+                `job_request_guid` varchar(255) DEFAULT NULL,
                 `job_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
                 `job_in_processing` varchar(1) DEFAULT NULL,
                 PRIMARY KEY (`job_idx`)
@@ -572,6 +573,28 @@ class InstallerController extends DefaultController
         global $db;
 
         $db->setDatabaseSchemaVersion(15);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV16()
+    {
+        global $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXjobs
+            ADD COLUMN
+                `job_request_guid` varchar(255) DEFAULT NULL
+            AFTER
+                msg_body"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(16);
         return true;
     }
 }
