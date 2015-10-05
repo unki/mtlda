@@ -21,6 +21,7 @@ namespace MTLDA\Controllers;
 
 use MTLDA\Views;
 use MTLDA\Models;
+use MTLDA\Controllers;
 
 class MTLDA extends DefaultController
 {
@@ -91,7 +92,7 @@ class MTLDA extends DefaultController
         $this->loadController("MessageBus", "mbus");
 
         if (!$this->performActions()) {
-            $mtlda->raiseError(__CLASS__ .'::performActions() returned false!');
+            $this->raiseError(__CLASS__ .'::performActions() returned false!', true);
             return false;
         }
         return true;
@@ -254,8 +255,17 @@ class MTLDA extends DefaultController
             $this->raiseError("RpcController::perform() returned false!");
             return false;
         }
-
         unset($rpc);
+
+        ob_start();
+        // invoke the MessageBus processor so pending tasks can
+        // be handled. but suppress any output.
+        if (!$this->performActions()) {
+            $this->raiseError('performActions() returned false!');
+            return false;
+        }
+        ob_end_clean();
+
         return true;
     }
 
@@ -516,19 +526,168 @@ class MTLDA extends DefaultController
 
     private function performActions()
     {
-        global $mtlda, $mbus;
+        global $mbus;
 
         if (!($messages = $mbus->getRequestMessages()) || empty($messages)) {
             return true;
         }
 
         if (!is_array($messages)) {
-            $mtlda->raiseError(get_class($mbus) .'::getRequestMessages() has not returned an array!');
+            $this->raiseError(get_class($mbus) .'::getRequestMessages() has not returned an array!');
             return false;
         }
 
         foreach ($messages as $message) {
-            print_r($messages);
+
+            if (!$this->handleMessage($message)) {
+                $this->raiseError('handleMessage() returned false!');
+                return false;
+            }
+
+            if (!$message->delete()) {
+                $this->raiseError(get_class($message) .'::delete() returned false!');
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function handleMessage(&$message)
+    {
+        if (
+            empty($message) ||
+            get_class($message) != 'MTLDA\Models\MessageModel'
+        ) {
+            $this->raiseError(__METHOD__ .' requires a MessageModel reference as parameter!');
+            return false;
+        }
+
+        if (!$message->isClientMessage()) {
+            $this->raiseError(__METHOD__ .' can only handle client requests!');
+            return false;
+        }
+
+        if (!($command = $message->getCommand())) {
+            $this->raiseError(get_class($message) .'::getCommand() returned false!');
+            return false;
+        }
+
+        if (!is_string($command)) {
+            $this->raiseError(get_class($message) .'::getCommand() has not returned a string!');
+            return false;
+        }
+
+        switch ($command) {
+            default:
+                $this->raiseError(__METHOD__ .', unknown command \"'. $command .'\" found!');
+                return false;
+                break;
+
+            case 'sign-request':
+                if (!$this->handleSignRequest($message)) {
+                    $this->raiseError('handleSignRequest() returned false!');
+                    return false;
+                }
+                break;
+        }
+
+        return true;
+    }
+
+    private function handleSignRequest(&$message)
+    {
+        if (
+            empty($message) ||
+            get_class($message) != 'MTLDA\Models\MessageModel'
+        ) {
+            $this->raiseError(__METHOD__ .', requires a MessageModel reference as parameter!');
+            return false;
+        }
+
+        if (!($body = $message->getBody())) {
+            $this->raiseError(get_class($message) .'::getBody() returned false!');
+            return false;
+        }
+
+        if (!is_string($body)) {
+            $this->raiseError(get_class($message) .'::getBody() has not returned a string!');
+            return false;
+        }
+
+        if (!($sign_request = unserialize($body))) {
+            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
+            return false;
+        }
+
+        if (!is_object($sign_request)) {
+            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            return false;
+        }
+
+        if (
+            !isset($sign_request->id) || empty($sign_request->id) ||
+            !isset($sign_request->guid) || empty($sign_request->guid)
+        ) {
+            $this->raiseError(__METHOD__ .', sign-request is incomplete!');
+            return false;
+        }
+
+        if (!$this->isValidId($sign_request->id)) {
+            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            return false;
+        }
+
+        if (!$this->isValidGuidSyntax($sign_request->guid)) {
+            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            return false;
+        }
+
+        try {
+            $document = new Models\DocumentModel(
+                $sign_request->id,
+                $sign_request->guid
+            );
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .", unable to load DocumentModel!");
+            return false;
+        }
+
+        if (!$this->signDocument($document)) {
+            $this->raiseError(__CLASS__ .'::signDocument() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    private function signDocument(&$document)
+    {
+        if (get_class($document) != "MTLDA\Models\DocumentModel") {
+            $this->raiseError(__METHOD__ .', can only work with DocumentModels!');
+            return false;
+        }
+
+        if ($document->document_signed_copy == 'Y') {
+            $this->raiseError(__METHOD__ .", will not resign an already signed document!");
+            return false;
+        }
+
+        try {
+            $archive = new Controllers\ArchiveController;
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load ArchiveController!");
+            return false;
+        }
+
+        if (!$archive) {
+            $this->raiseError("Unable to load ArchiveController!");
+            return false;
+        }
+
+        if (!$archive->sign($document)) {
+            $this->raiseError("ArchiveController::sign() returned false!");
+            return false;
         }
 
         return true;
