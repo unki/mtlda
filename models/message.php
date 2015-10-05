@@ -26,6 +26,7 @@ class MessageModel extends DefaultModel
     public $fields = array(
         'msg_idx' => 'integer',
         'msg_guid' => 'integer',
+        'msg_scope' => 'string',
         'msg_session_id' => 'string',
         'msg_command' => 'string',
         'msg_body' => 'string',
