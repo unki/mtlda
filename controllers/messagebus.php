@@ -185,13 +185,14 @@ class MessageBusController extends DefaultController
                 'id' => $message->getId(),
                 'guid' => $message->getGuid(),
                 'command' => $message->getCommand(),
-                'body' => $message->getBody()
+                'body' => $message->getBody(),
+                'value' => $message->getValue()
             );
 
-            /*if (!$message->delete()) {
+            if (!$message->delete()) {
                 $mtlda->raiseError(get_class($message) .'::delete() returned false!');
                 return false;
-            }*/
+            }
         }
 
         if (!($json = json_encode($raw_messages))) {
