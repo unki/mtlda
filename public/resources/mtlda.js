@@ -266,20 +266,32 @@ function init_dropzone()
     };
 }
 
-function show_modal(settings, do_function) {
+function show_modal(settings, do_function, modalclass) {
+
+    if (!modalclass) {
+        modalclass = '.ui.basic.modal';
+    }
 
     var modal_settings = {};
 
     if (settings.header) {
-        $('.ui.basic.modal .header').html(settings.header);
+        $(modalclass + ' .header').html(settings.header);
     }
 
     if (settings.icon) {
-        $('.ui.basic.modal .image.content i.icon').removeClass().addClass(settings.icon);
+        $(modalclass + ' .image.content i.icon').removeClass().addClass(settings.icon);
+    } else {
+        settings.icon = 'icon';
+    }
+
+    if (settings.iconHtml) {
+        $(modalclass + ' .image.content i.' + settings.icon).html(settings.iconHtml);
+    } else {
+        $(modalclass + ' .image.content i.' + settings.icon).html('');
     }
 
     if (settings.content) {
-        $('.ui.basic.modal .image.content .description p').html(settings.content);
+        $(modalclass + ' .image.content .description p').html(settings.content);
     }
 
     if (settings.closeable == undefined) {
@@ -287,19 +299,23 @@ function show_modal(settings, do_function) {
     }
 
     if (!settings.closeable) {
-        $('.ui.basic.modal i.close.icon').detach();
+        $(modalclass + ' i.close.icon').detach();
     } else {
-        $('.ui.basic.modal i.close.icon').appendTo('.ui.basic.modal');
+        $(modalclass + ' i.close.icon').appendTo('.ui.basic.modal');
     }
 
     if (settings.hasActions == undefined) {
         settings.hasActions = true;
     }
 
+    if (settings.blurring == undefined) {
+        settings.blurring = true;
+    }
+
     if (!settings.hasActions) {
-        $('.ui.basic.modal .actions').detach();
+        $(modalclass + ' .actions').detach();
     } else {
-        $('.ui.basic.modal .actions').appendTo('.ui.basic.modal');
+        $(modalclass + ' .actions').appendTo('.ui.basic.modal');
     }
 
     if (!settings.onDeny) {
@@ -314,11 +330,12 @@ function show_modal(settings, do_function) {
         do_function = function() { return true; };
     }
 
-    modal = $('.ui.basic.modal')
+    modal = $(modalclass)
         .modal({
             closable  : settings.closeable,
             onDeny    : settings.onDeny,
-            onApprove : settings.onApprove
+            onApprove : settings.onApprove,
+            blurring  : settings.blurring
         })
         .modal('show')
         .on('click.modal', do_function);
