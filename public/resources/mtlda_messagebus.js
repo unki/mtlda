@@ -19,7 +19,20 @@ var MtldaMessageBus = function (id) {
 
     this.element = id;
     this.messages = new Array;
-    this.subscribers = new Array;
+    this.recvMessages = new Array;
+    this.subscribers = new Object;
+    this.pollerId;
+    this.rpcEnabled = true;
+
+    if (!(this.pollerId = setInterval("mbus.poll()", 1000))) {
+        throw 'Failed to start MtldaMessageBus.poll()!';
+        return false;
+    }
+
+    $(document).on('MTLDA:notifySubscribers', function(event) {
+        this.notifySubscribers();
+    }.bind(this));
+
     return true;
 };
 
@@ -45,6 +58,19 @@ MtldaMessageBus.prototype.getMessages = function () {
 
 MtldaMessageBus.prototype.getMessagesCount = function () {
     return this.messages.length;
+}
+
+MtldaMessageBus.prototype.getReceivedMessages = function () {
+    var _messages = new Array;
+
+    while (message = this.recvMessages.shift()) {
+        _messages.push(message);
+    }
+    return _messages;
+}
+
+MtldaMessageBus.prototype.getReceivedMessagesCount = function () {
+    return this.recvMessages.length;
 }
 
 MtldaMessageBus.prototype.send = function (messages) {
@@ -105,17 +131,18 @@ MtldaMessageBus.prototype.send = function (messages) {
             messages : submitmsg
         }),
         error: function(XMLHttpRequest, textStatus, errorThrown) {
-            alert('Failed to contact server! ' + textStatus);
+            throw 'Failed to contact server! ' + textStatus;
+            return false;
         },
-        //success: this.parseResponse
         success: function (data) {
             if (data != "ok") {
-                alert('Failed to submit messages! ' + data);
+                throw 'Failed to submit messages! ' + data;
                 return false;
             }
-            console.log(this.getSubscribers());
         }.bind(this)
     });
+
+    return true;
 }
 
 MtldaMessageBus.prototype.poll = function () {
@@ -130,13 +157,15 @@ MtldaMessageBus.prototype.poll = function () {
             action : 'retrieve-messages',
         }),
         error: function(XMLHttpRequest, textStatus, errorThrown) {
-            alert('Failed to contact server! ' + textStatus);
+            throw 'Failed to contact server! ' + textStatus;
         },
-        //success: this.parseResponse
-        success: this.parseResponse.bind(this)
+        success: function (data) {
+            this.parseResponse(data);
+        }.bind(this)
     });
-}
 
+    return true;
+}
 
 MtldaMessageBus.prototype.parseResponse = function (data) {
 
@@ -185,17 +214,21 @@ MtldaMessageBus.prototype.parseResponse = function (data) {
         return true;
     }
 
-    console.log(json.json);
-    return true;
-    for (var message in json.json) {
-
-        if (!message) {
-            throw 'Invalid message!';
-            return false;
-        }
-        console.log(message);
+    if (!(messages = JSON.parse(json.json))) {
+        throw 'Failed to parse JSON field!';
+        return false;
     }
 
+    if (messages.length != json.count) {
+        throw 'Response meta data stat '+ json.count +' message(s) but only found '+ messages.length +'!';
+        return false;
+    }
+
+    for (var message in messages) {
+        this.recvMessages.push(messages[message]);
+    }
+
+    $(document).trigger("MTLDA:notifySubscribers");
     return true;
 };
 
@@ -243,7 +276,7 @@ MtldaMessageBus.prototype.getSubscribers = function (category) {
         return this.subscribers;
     }
 
-    subscribers = new Array;
+    subscribers = new Object;
     for (var subscriber in this.subscribers) {
         if (subscriber.category != category) {
             continue;
@@ -252,6 +285,38 @@ MtldaMessageBus.prototype.getSubscribers = function (category) {
     }
 
     return subscribers;
+}
+
+MtldaMessageBus.prototype.notifySubscribers = function () {
+
+    var subscribers;
+    var messages;
+
+    // if there are no messages pending, we do not bother our
+    // subscribers.
+    if (!(cnt = this.getReceivedMessagesCount())) {
+        return true;
+    }
+
+    if (!(messages = this.getReceivedMessages())) {
+        throw 'Failed to query received messages!';
+        return false;
+    }
+
+    if (!(subscribers = this.getSubscribers())) {
+        throw 'Failed to retrieve subscribers list!';
+        return false;
+    }
+
+    for (var msgid in messages) {
+        for (var subid in subscribers) {
+            if (!subscribers[subid].handler(messages[msgid])) {
+                throw 'Subscriber "'+ subid +'" returned false!';
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
