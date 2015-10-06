@@ -59,7 +59,7 @@
        <i class="file text icon"></i>
        <div class="content">
         <a class="header" href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">{$item->document_file_name}</a>
-        <div class="description">Original document (imported {$item->document_time|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
+        <div class="description">Original document (imported {$item->document_time|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-title="{$item->document_title}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
        </div>
       </div>
 {list_versions}
@@ -239,3 +239,31 @@ $(document).ready(function() {
    });
 });
 {/literal}--></script>
+<div class="ui signer modal">
+ <i class="close icon"></i>
+ <div class="header">header</div>
+ <div class="image content">
+  <div class="image">
+   <i class="icon"></i>
+  </div>
+  <div class="description" style="width: 100%;">
+   <p style="display: none">description</p>
+   <div class="ui indicating progress active" id="signingprogress">
+    <div class="bar">
+     <div class="progress">0%</div>
+    </div>
+    <div class="label">Please wait.</div>
+   </div>
+  </div>
+ </div>
+ <div class="actions">
+  <div class="two fluid ui inverted buttons">
+   <div class="ui red basic inverted button deny">
+    <i class="remove icon"></i>No
+   </div>
+   <div class="ui green basic inverted button approve">
+    <i class="checkmark icon"></i>Yes
+   </div>
+  </div>
+ </div>
+</div>
