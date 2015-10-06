@@ -252,20 +252,26 @@ class MTLDA extends DefaultController
         $this->loadController("Rpc", "rpc");
         global $rpc;
 
+        ob_start();
         if (!$rpc->perform()) {
             $this->raiseError("RpcController::perform() returned false!");
             return false;
         }
         unset($rpc);
 
-        ob_start();
+        $size = ob_get_length();
+        header("Content-Length: $size");
+        header('Connection: close');
+        ob_end_flush();
+        ob_flush();
+        session_write_close();
+
         // invoke the MessageBus processor so pending tasks can
         // be handled. but suppress any output.
         if (!$this->performActions()) {
             $this->raiseError('performActions() returned false!');
             return false;
         }
-        ob_end_clean();
 
         return true;
     }
