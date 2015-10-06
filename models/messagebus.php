@@ -49,9 +49,15 @@ class MessageBusModel extends DefaultModel
             FROM
                 TABLEPREFIX{$this->table_name}
             WHERE
+                msg_scope
+            LIKE
+                'outbound'
+            AND
                 msg_session_id
             LIKE
-                ?";
+                ?
+            ORDER BY
+                msg_submit_time ASC";
 
         if (!($sth = $db->prepare($sql))) {
             $mtlda->raiseError(__METHOD__ .', failed to prepare query!');
@@ -147,14 +153,14 @@ class MessageBusModel extends DefaultModel
             return false;
         }
 
-        $now = microtime();
+        $now = microtime(true);
         $oldest = $now-$timeout;
 
         $sql =
             "DELETE FROM
                 TABLEPREFIXmessage_bus
             WHERE
-                msg_submit_time < ?";
+                UNIX_TIMESTAMP(msg_submit_time) < ?";
 
         if (!($sth = $db->prepare($sql))) {
             $mtlda->raiseError(__METHOD__ .', failed to prepare query!');
