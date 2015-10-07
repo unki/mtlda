@@ -26,7 +26,7 @@ class ArchiveController extends DefaultController
 {
     public function archive(&$queue_item)
     {
-        global $mtlda, $config, $audit;
+        global $mtlda, $config, $audit, $mbus;
 
         // verify QueueItemModel is ok()
         if (!$queue_item->verify()) {
@@ -159,10 +159,12 @@ class ArchiveController extends DefaultController
             return true;
         }
 
+        $mbus->suppressOutboundMessaging(true);
         if (!$this->sign($document)) {
             $mtlda->raiseError(__CLASS__ ."::sign() returned false!");
             return false;
         }
+        $mbus->suppressOutboundMessaging(false);
 
         return true;
     }
