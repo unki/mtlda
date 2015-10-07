@@ -24,6 +24,7 @@ use MTLDA\Models;
 class MessageBusController extends DefaultController
 {
     const EXPIRE_TIMEOUT = 300;
+    private $suppressOutboundMessaging = false;
 
     public function __construct()
     {
@@ -266,6 +267,10 @@ class MessageBusController extends DefaultController
     {
         global $mtlda, $jobs;
 
+        if ($this->isSuppressOutboundMessaging()) {
+            return true;
+        }
+
         if (!isset($command) || empty($command) || !is_string($command)) {
             $mtlda->raiseError(__METHOD__ .', parameter \$command is mandatory and has to be a string!');
             return false;
@@ -357,6 +362,28 @@ class MessageBusController extends DefaultController
         }
 
         return $sessionid;
+    }
+
+    public function isSuppressOutboundMessaging()
+    {
+        if (empty($this->suppressOutboundMessaging)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function suppressOutboundMessaging($state)
+    {
+        global $mtlda;
+
+        if (!is_bool($state)) {
+            $mtlda->raiseError(__METHOD__ .', parameter need to be boolean!');
+            return false;
+        }
+
+        $this->suppressOutboundMessaging = $state;
+        return true;
     }
 }
 
