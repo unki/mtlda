@@ -69,6 +69,13 @@ class ConfigController extends DefaultController
             return false;
         }
 
+        if (
+            !isset($config_pure['local']) ||
+            !is_array($config_pure['local'])
+        ) {
+            $config_pure['local'] = array();
+        }
+
         if (!($this->config = array_replace_recursive($config_pure['dist'], $config_pure['local']))) {
             $mtlda->raiseError("Failed to merge {$this->config_file_local} with {$this->config_file_dist}.");
             return false;
