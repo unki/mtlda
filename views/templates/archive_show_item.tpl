@@ -45,7 +45,7 @@
   <div class="description">Version {$item->document_version} (created {$item->document_time|date_format:"%Y.%m.%d %H:%M"})</div>
 {if $item->document_signed_copy != 'Y' }
   <br />
-  <a class="sign document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}"><i class="protect icon"></i>Click to digitally sign document</a>.
+  <a class="sign document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-title="{$item->document_title}"><i class="protect icon"></i>Click to digitally sign document</a>.
 {/if}
  </div>
 </div>
