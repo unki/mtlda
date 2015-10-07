@@ -200,7 +200,7 @@ class ArchiveController extends DefaultController
         }
 
         if (!$mbus->sendMessageToClient('sign-request', 'Deriving copy of orignal document', '30%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            $mtlda->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -253,7 +253,7 @@ class ArchiveController extends DefaultController
         }
 
         if (!$mbus->sendMessageToClient('sign-request', 'Refreshing document information', '90%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            $mtlda->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
