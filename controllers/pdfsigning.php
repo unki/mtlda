@@ -358,7 +358,7 @@ class PdfSigningController extends DefaultController
         }
 
         if (!$mbus->sendMessageToClient($command, $body, $value)) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            $mtlda->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
