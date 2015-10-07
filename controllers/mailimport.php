@@ -148,7 +148,7 @@ class MailImportController extends DefaultController
         }
 
         if (!$import->handleQueue()) {
-            $this->raiseError("ImportController::handleQueue() returned false!");
+            $mtlda->raiseError("ImportController::handleQueue() returned false!");
             return false;
         }
 
