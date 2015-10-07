@@ -86,7 +86,7 @@ class ConfigController extends DefaultController
 
         // missing config.ini is ok
         if ($config_target == 'local' && !file_exists($config_fqpn)) {
-            continue;
+            return true;
         }
 
         if (!file_exists($config_fqpn)) {
