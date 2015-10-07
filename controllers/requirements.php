@@ -227,7 +227,7 @@ class RequirementsController extends DefaultController
         }
 
         if (!is_writeable($this::DATA_DIRECTORY)) {
-            $mtlda->raiseError($this::DATA_DIRECTORY ." is not readable for {$uid}:{$gid}!");
+            $mtlda->raiseError($this::DATA_DIRECTORY ." is not writeable for {$uid}:{$gid}!");
             return false;
         }
 
