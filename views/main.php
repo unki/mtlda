@@ -29,6 +29,8 @@ class MainView extends DefaultView
 
     public function __construct()
     {
+        global $mtlda;
+
         parent::__construct();
 
         $this->registerPlugin("block", "top10", array(&$this, 'showTop10List'));
