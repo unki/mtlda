@@ -492,7 +492,7 @@ class InstallerController extends DefaultController
 
         if ($db->checkColumnExists(
             'TABLEPREFIXmessage_bus',
-            'msg_session'
+            'msg_session_id'
         )) {
             $db->setDatabaseSchemaVersion(10);
             return true;
@@ -552,6 +552,14 @@ class InstallerController extends DefaultController
     {
         global $mtlda, $db;
 
+        if ($db->checkColumnExists(
+            'TABLEPREFIXmessage_bus',
+            'msg_scope'
+        )) {
+            $db->setDatabaseSchemaVersion(12);
+            return true;
+        }
+
         $result = $db->query(
             "ALTER TABLE
                 TABLEPREFIXmessage_bus
@@ -573,6 +581,14 @@ class InstallerController extends DefaultController
     private function upgradeDatabaseSchemaV13()
     {
         global $mtlda, $db;
+
+        if (
+            $db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_submit_time') &&
+            $db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_in_processing')
+        ) {
+            $db->setDatabaseSchemaVersion(13);
+            return true;
+        }
 
         $result = $db->query(
             "ALTER TABLE
@@ -599,6 +615,11 @@ class InstallerController extends DefaultController
     private function upgradeDatabaseSchemaV14()
     {
         global $mtlda, $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_value')) {
+            $db->setDatabaseSchemaVersion(14);
+            return true;
+        }
 
         $result = $db->query(
             "ALTER TABLE
