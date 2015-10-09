@@ -174,8 +174,10 @@ MtldaMessageBus.prototype.parseResponse = function (data) {
         return false;
     }
 
-    if (!(json = JSON.parse(data))) {
-        throw 'Failed to parse response!';
+    try {
+        json = JSON.parse(data);
+    } catch (e) {
+        throw 'Failed to parse response! ' + e;
         console.log(data);
         return false;
     }
@@ -215,8 +217,11 @@ MtldaMessageBus.prototype.parseResponse = function (data) {
         return true;
     }
 
-    if (!(messages = JSON.parse(json.json))) {
-        throw 'Failed to parse JSON field!';
+    try {
+        messages = JSON.parse(json.json);
+    } catch (e) {
+        throw 'Failed to parse JSON field!' + e;
+        console.log(data);
         return false;
     }
 
