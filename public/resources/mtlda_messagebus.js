@@ -176,6 +176,7 @@ MtldaMessageBus.prototype.parseResponse = function (data) {
 
     if (!(json = JSON.parse(data))) {
         throw 'Failed to parse response!';
+        console.log(data);
         return false;
     }
 
