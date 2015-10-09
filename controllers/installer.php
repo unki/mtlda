@@ -311,6 +311,14 @@ class InstallerController extends DefaultController
     {
         global $mtlda, $db;
 
+        if ($db->checkColumnExists(
+            'TABLEPREFIXarchive',
+            'document_signed_copy'
+        )) {
+            $db->setDatabaseSchemaVersion(4);
+            return true;
+        }
+
         $result = $db->query(
             "ALTER TABLE
                 TABLEPREFIXarchive
@@ -333,6 +341,15 @@ class InstallerController extends DefaultController
     {
         global $mtlda, $db;
 
+
+        if ($db->checkColumnExists(
+            'TABLEPREFIXarchive',
+            'document_description'
+        )) {
+            $db->setDatabaseSchemaVersion(5);
+            return true;
+        }
+
         $result = $db->query(
             "ALTER TABLE
                 TABLEPREFIXarchive
@@ -354,6 +371,15 @@ class InstallerController extends DefaultController
     private function upgradeDatabaseSchemaV6()
     {
         global $mtlda, $db;
+
+
+        if ($db->checkColumnExists(
+            'TABLEPREFIXarchive',
+            'document_title'
+        )) {
+            $db->setDatabaseSchemaVersion(6);
+            return true;
+        }
 
         $result = $db->query(
             "ALTER TABLE
@@ -400,6 +426,14 @@ class InstallerController extends DefaultController
     private function upgradeDatabaseSchemaV8()
     {
         global $mtlda, $db;
+
+        if ($db->checkColumnExists(
+            'TABLEPREFIXassign_keywords_to_document',
+            'akd_guid'
+        )) {
+            $db->setDatabaseSchemaVersion(8);
+            return true;
+        }
 
         $result = $db->query(
             "ALTER TABLE
@@ -456,6 +490,14 @@ class InstallerController extends DefaultController
     {
         global $mtlda, $db;
 
+        if ($db->checkColumnExists(
+            'TABLEPREFIXmessage_bus',
+            'msg_session'
+        )) {
+            $db->setDatabaseSchemaVersion(10);
+            return true;
+        }
+
         $result = $db->query(
             "ALTER TABLE
                 TABLEPREFIXmessage_bus
@@ -475,6 +517,14 @@ class InstallerController extends DefaultController
     private function upgradeDatabaseSchemaV11()
     {
         global $mtlda, $db;
+
+        if (
+            $db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_guid') &&
+            $db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_body')
+        ) {
+            $db->setDatabaseSchemaVersion(11);
+            return true;
+        }
 
         $result = $db->query(
             "ALTER TABLE
@@ -579,6 +629,11 @@ class InstallerController extends DefaultController
     private function upgradeDatabaseSchemaV16()
     {
         global $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXjobs', 'job_request_guid')) {
+            $db->setDatabaseSchemaVersion(16);
+            return true;
+        }
 
         $result = $db->query(
             "ALTER TABLE
