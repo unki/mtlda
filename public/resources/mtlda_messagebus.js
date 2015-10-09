@@ -177,8 +177,8 @@ MtldaMessageBus.prototype.parseResponse = function (data) {
     try {
         json = JSON.parse(data);
     } catch (e) {
-        throw 'Failed to parse response! ' + e;
         console.log(data);
+        throw 'Failed to parse response! ' + e;
         return false;
     }
 
@@ -220,8 +220,8 @@ MtldaMessageBus.prototype.parseResponse = function (data) {
     try {
         messages = JSON.parse(json.json);
     } catch (e) {
-        throw 'Failed to parse JSON field!' + e;
         console.log(data);
+        throw 'Failed to parse JSON field!' + e;
         return false;
     }
 
