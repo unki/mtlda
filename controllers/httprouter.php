@@ -102,7 +102,9 @@ class HttpRouterController extends DefaultController
             return false;
         }
 
-        if (isset($parts[1]) && $this->isValidAction($parts[1])) {
+        if (isset($parts[0]) && $this->isValidAction($parts[0])) {
+            $this->query->mode = $parts[0];
+        } elseif (isset($parts[1]) && $this->isValidAction($parts[1])) {
             $this->query->mode = $parts[1];
         }
 
@@ -134,11 +136,6 @@ class HttpRouterController extends DefaultController
             }
         }
 
-        // no more information in URI, then we are done
-        if (count($parts) <= 1) {
-            return $this->query;
-        }
-
         for ($i = 1; $i < count($parts); $i++) {
             array_push($this->query->params, $parts[$i]);
         }
@@ -146,7 +143,6 @@ class HttpRouterController extends DefaultController
         //
         // RPC
         //
-
         if (
             /* common RPC calls */
             (isset($this->query->mode) && $this->query->mode == 'rpc.html') ||
@@ -168,12 +164,18 @@ class HttpRouterController extends DefaultController
             $this->query->call_type = "rpc";
             $this->query->action = $_POST['action'];
             return $this->query;
+        }
+
+        // no more information in URI, then we are done
+        if (count($parts) <= 1) {
+            return $this->query;
+        }
 
         //
         // Previews (.../preview/${id})
         //
 
-        } elseif ($this->query->view == "preview") {
+        if ($this->query->view == "preview") {
             $this->query->call_type = "preview";
             return $this->query;
 
