@@ -474,6 +474,38 @@ class DatabaseController extends DefaultController
 
         return $text;
     }
+
+    public function checkColumnExists($table_name, $column)
+    {
+        global $mtlda;
+
+        if (!$this->getConnectionStatus()) {
+            $mtlda->raiseError(__METHOD__ .'(), needs to be connected to database!');
+            return false;
+        }
+
+        if (
+            !isset($table_name) || empty($table_name) ||
+            !isset($column) || empty($column)
+        ) {
+            $mtlda->raiseError(__METHOD__ .'(), incomplete parameters!');
+            return false;
+        }
+
+        if (!($result = $this->query("DESC ". $table_name, PDO::FETCH_NUM))) {
+            $mtlda->raiseError(__METHOD__ .'(), failed to fetch table structure!');
+            return false;
+        }
+
+        while ($row = $result->fetch()) {
+
+            if (in_array($column, $row)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
