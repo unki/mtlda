@@ -74,19 +74,29 @@ class MailImportController extends DefaultController
 
     public function fetch()
     {
-        global $mtlda, $config;
+        global $mtlda, $config, $mbus;
+
+        if (!$mbus->sendMessageToClient('mailimport-reply', 'Establishing connection to mailbox.', '10%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
 
         if (!$this->connect()) {
             $mtlda->raiseError(__CLASS__ .'::connect() returned false!');
             return false;
         }
 
+        if (!$mbus->sendMessageToClient('mailimport-reply', 'Checking mailbox for new E-mails.', '20%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+
         if (($msg_cnt = $this->checkForMails()) === false) {
             $mtlda->raiseError(__CLASS__ .'::checkForMails() returned false!');
         }
 
         if (!($msg_cnt > 0)) {
-            print "ok";
             return true;
         }
 
@@ -96,11 +106,15 @@ class MailImportController extends DefaultController
 
         // if no mails are pending in the mailbox
         if (!(count($list) >= 1)) {
-            print "ok";
             return true;
         }
 
-        foreach ($list as $mail) {
+        // calculate percentage for status message
+        $percentage_step = round((90-20)/$msg_cnt);
+
+        foreach ($list as $id => $mail) {
+
+            $mail_no = $id+1;
 
             if (
                 !isset($mail->message_id) || empty($mail->message_id) ||
@@ -110,9 +124,27 @@ class MailImportController extends DefaultController
                 break;
             }
 
+            if (!$mbus->sendMessageToClient(
+                'mailimport-reply',
+                "Retrieving E-mail {$mail_no} of {$msg_cnt}.",
+                (20+($percentage_step*$id)) .'%'
+            )) {
+                $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+                return false;
+            }
+
             if (!$msg = $this->retrieveMail($mail->msgno)) {
                 $mtlda->raiseError(__CLASS__ .'::retrieveMail() returned false!');
                 break;
+            }
+
+            if (!$mbus->sendMessageToClient(
+                'mailimport-reply',
+                "Extracting documents from E-mail {$mail_no} of {$msg_cnt}.",
+                (20+($percentage_step*$id)) .'%'
+            )) {
+                $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+                return false;
             }
 
             if (!$this->parseMail($msg)) {
@@ -153,8 +185,6 @@ class MailImportController extends DefaultController
         }
 
         unset($import);
-
-        print "ok";
         return true;
     }
 
