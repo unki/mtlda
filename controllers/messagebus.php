@@ -108,11 +108,6 @@ class MessageBusController extends DefaultController
                 return false;
             }
 
-            if (!isset($message->message) || empty($message->message)) {
-                $mtlda->raiseError(__METHOD__ .', \$message does not contain a body!');
-                return false;
-            }
-
             try {
                 $mbmsg = new Models\MessageModel;
             } catch (\Exception $e) {
@@ -132,15 +127,17 @@ class MessageBusController extends DefaultController
 
             $mbmsg->setProcessingFlag(false);
 
-            if (is_object($message->message) || is_array($message->message)) {
-                $msgbody = serialize($message->message);
-            } else {
-                $msgbody = $message->message;
-            }
+            if (isset($message->message) && !empty($message->message)) {
+                if (is_object($message->message) || is_array($message->message)) {
+                    $msgbody = serialize($message->message);
+                } else {
+                    $msgbody = $message->message;
+                }
 
-            if (!$mbmsg->setMessage($msgbody)) {
-                $mtlda->raiseError(get_class($mbmsg) .'::setMessage() returned false!');
-                return false;
+                if (!$mbmsg->setMessage($msgbody)) {
+                    $mtlda->raiseError(get_class($mbmsg) .'::setMessage() returned false!');
+                    return false;
+                }
             }
 
             if (!$mbmsg->setScope('inbound')) {
