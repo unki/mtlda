@@ -282,12 +282,12 @@ MtldaMessageBus.prototype.getSubscribers = function (category) {
         return this.subscribers;
     }
 
-    subscribers = new Object;
-    for (var subscriber in this.subscribers) {
-        if (subscriber.category != category) {
+    subscribers = new Array;
+    for (var subname in this.subscribers) {
+        if (this.subscribers[subname].category != category) {
             continue;
         }
-        subscribers.push(subscriber);
+        subscribers.push(this.subscribers[subname]);
     }
 
     return subscribers;
@@ -309,12 +309,13 @@ MtldaMessageBus.prototype.notifySubscribers = function () {
         return false;
     }
 
-    if (!(subscribers = this.getSubscribers())) {
-        throw 'Failed to retrieve subscribers list!';
-        return false;
-    }
-
     for (var msgid in messages) {
+
+        if (!(subscribers = this.getSubscribers(messages[msgid].command))) {
+            throw 'Failed to retrieve subscribers list!';
+            return false;
+        }
+
         for (var subid in subscribers) {
             if (!subscribers[subid].handler(messages[msgid])) {
                 throw 'Subscriber "'+ subid +'" returned false!';
