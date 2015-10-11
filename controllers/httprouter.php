@@ -300,7 +300,6 @@ class HttpRouterController extends DefaultController
             'delete-document',
             'archive',
             'sign',
-            'mailimport',
             'find-prev-next',
             'get-content',
             'get-keywords',
