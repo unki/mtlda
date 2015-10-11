@@ -51,9 +51,6 @@ class RpcController extends DefaultController
             case 'update':
                 $this->rpcUpdateObject();
                 break;
-            case 'mailimport':
-                $this->rpcMailImport();
-                break;
             case 'find-prev-next':
                 $this->rpcFindPrevNextObject();
                 break;
@@ -589,25 +586,6 @@ class RpcController extends DefaultController
         }
 
         print "ok";
-        return true;
-    }
-
-    protected function rpcMailImport()
-    {
-        global $mtlda;
-
-        try {
-            $importer = new MailImportController;
-        } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load MailImportController!");
-            return false;
-        }
-
-        if (!$importer->fetch()) {
-            $mtlda->raiseError("MailImportController::fetch() returned false!");
-            return false;
-        }
-
         return true;
     }
 
