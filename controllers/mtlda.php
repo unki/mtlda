@@ -664,7 +664,7 @@ class MTLDA extends DefaultController
             return false;
         }
 
-        if (!($body = $message->getBody())) {
+        if (!$message->hasBody() || !($body = $message->getBody())) {
             $this->raiseError(get_class($message) .'::getBody() returned false!');
             return false;
         }
