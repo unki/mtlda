@@ -264,7 +264,7 @@ function rpc_object_sign(element)
         return false;
     }
 
-    mbus.subscribe('replies', 'sign-reply', function(reply) {
+    mbus.subscribe('signing-replies-handler', 'sign-reply', function(reply) {
 
         if (!reply) {
             throw 'reply is empty!';
@@ -272,6 +272,10 @@ function rpc_object_sign(element)
         }
         if (!wnd) {
             throw 'Have no reference to the modal window!';
+            return false;
+        }
+        if (!progressbar) {
+            throw 'Have no reference to the progressbar!';
             return false;
         }
 
@@ -301,6 +305,7 @@ function rpc_object_sign(element)
 
         setTimeout(function() {
             wnd.modal('hide');
+            mbus.unsubscribe('signing-replies-handler');
             location.reload();
         }, 1000);
         return true;
@@ -315,7 +320,7 @@ function rpc_object_sign(element)
     return true;
 }
 
-function rpc_fetch_jobstatus ()
+function rpc_fetch_jobstatus()
 {
     if (!mbus.poll()) {
         throw 'MessageBus.poll() returned false!';
@@ -377,4 +382,93 @@ function rpc_object_delete2(element)
 
     return true;
 }
+
+function rpc_mail_import(element)
+{
+    if (!(element instanceof jQuery) ){
+        throw "element is not a jQuery object!";
+        return false;
+    }
+
+    wnd = show_modal({
+        blurring : true,
+        closeable : false,
+        header : 'MTLDA is importing documents from mailbox.',
+        icon : 'wait icon',
+        hasActions : false,
+        content : 'Please wait a moment.',
+        onShow : rpc_fetch_jobstatus()
+    }, function() {}, '.ui.import.modal');
+
+    progressbar = $('.ui.import.modal .image.content .description #importprogress');
+
+    if (!progressbar) {
+        throw 'Can not find the progress bar in the modal window!';
+        return false;
+    }
+
+    var msg = new MtldaMessage;
+    msg.setCommand('mailimport-request');
+
+    if (!mbus.add(msg)) {
+        throw 'MtldaMessageBus.add() returned false!';
+        return false;
+    }
+
+    mbus.subscribe('mailimport-replies-handler', 'mailimport-reply', function(reply) {
+
+        if (!reply) {
+            throw 'reply is empty!';
+            return false;
+        }
+        if (!wnd) {
+            throw 'Have no reference to the modal window!';
+            return false;
+        }
+        if (!progressbar) {
+            throw 'Have no reference to the progressbar!';
+            return false;
+        }
+
+        var newData = new Object;
+
+        if (reply.value && (value = reply.value.match(/([0-9]+)%$/))) {
+            newData.percent = value[1];
+        }
+        if (reply.body) {
+            newData.text = {
+                active : reply.body,
+                success: reply.body
+            };
+        }
+        if (progressbar.hasClass('active')) {
+            progressbar.addClass('active');
+        }
+
+        progressbar.progress(newData);
+        wnd.modal('refresh');
+
+        if (reply.value != '100%') {
+            return true;
+        }
+
+        progressbar.removeClass('active').addClass('success');
+
+        setTimeout(function() {
+            wnd.modal('hide');
+            mbus.unsubscribe('mailimport-replies-handler');
+            location.reload();
+        }, 1000);
+        return true;
+
+    }.bind(this));
+
+    if (!mbus.send()) {
+        throw 'MtldaMessageBus.send() returned false!';
+        return false;
+    }
+
+    return true;
+}
+
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
