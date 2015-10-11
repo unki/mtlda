@@ -636,6 +636,12 @@ class MTLDA extends DefaultController
                     return false;
                 }
                 break;
+            case 'mailimport-request':
+                if (!$this->handleMailImportRequest($message)) {
+                    $this->raiseError('handleMailImportRequest() returned false!');
+                    return false;
+                }
+                break;
         }
 
         if (!$jobs->deleteJob($job)) {
@@ -732,6 +738,48 @@ class MTLDA extends DefaultController
         }
 
         if (!$mbus->sendMessageToClient('sign-request', 'Done', '100%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    private function handleMailImportRequest(&$message)
+    {
+        global $mbus;
+
+        if (
+            empty($message) ||
+            get_class($message) != 'MTLDA\Models\MessageModel'
+        ) {
+            $this->raiseError(__METHOD__ .', requires a MessageModel reference as parameter!');
+            return false;
+        }
+
+        if (!($sessionid = $message->getSessionId())) {
+            $this->raiseError(get_class($message) .'::getSessionId() returned false!');
+            return false;
+        }
+
+        if (!is_string($sessionid)) {
+            $this->raiseError(get_class($message) .'::getSessionId() has not returned a string!');
+            return false;
+        }
+
+        try {
+            $importer = new MailImportController;
+        } catch (\Exception $e) {
+            $mtlda->raiseError("Failed to load MailImportController!");
+            return false;
+        }
+
+        if (!$importer->fetch()) {
+            $mtlda->raiseError("MailImportController::fetch() returned false!");
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('mailimport-reply', 'Done', '100%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
