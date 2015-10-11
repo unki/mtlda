@@ -126,6 +126,15 @@ class MessageModel extends DefaultModel
         return true;
     }
 
+    public function hasBody()
+    {
+        if (!isset($this->msg_body) || empty($this->msg_body)) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function getBody()
     {
         global $mtlda;
