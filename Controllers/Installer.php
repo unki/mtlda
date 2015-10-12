@@ -195,6 +195,25 @@ class InstallerController extends DefaultController
             }
         }
 
+        if (!$db->checkTableExists("TABLEPREFIXdocument_indices")) {
+
+            $table_sql = "CREATE TABLE `TABLEPREFIXdocument_indices` (
+                `di_idx` int(11) NOT NULL auto_increment,
+                `di_document_idx` int(11) NOT NULL,
+                `di_document_guid` varchar(255) default NULL,
+                `di_text` TEXT default NULL,
+                PRIMARY KEY  (`di_idx`),
+                UNIQUE KEY `document_indices` (`di_document_idx`,`di_document_guid`),
+                FULLTEXT KEY `text` (`di_text`)
+                )
+                ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+
+            if ($db->query($table_sql) === false) {
+                $mtlda->raiseError("Failed to create 'document_indices' table");
+                return false;
+            }
+        }
+
         if (!$db->checkTableExists("TABLEPREFIXmessage_bus")) {
 
             $table_sql = "CREATE TABLE `TABLEPREFIXmessage_bus` (
@@ -671,6 +690,14 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(16);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV17()
+    {
+        global $db;
+
+        $db->setDatabaseSchemaVersion(17);
         return true;
     }
 }
