@@ -47,8 +47,6 @@ class QueueModel extends DefaultModel
     {
         global $mtlda, $db;
 
-        $params = array();
-
         if (isset($sort_order) && !empty($sort_order)) {
 
             if (!is_array($sort_order)) {
@@ -77,8 +75,6 @@ class QueueModel extends DefaultModel
                 $mtlda->raiseError(__METHOD__ .'(), \$order is invalid!');
                 return false;
             }
-
-            $params = array_values($sort_order);
         }
 
         $idx_field = $this->column_name ."_idx";
@@ -89,8 +85,11 @@ class QueueModel extends DefaultModel
             FROM
                 TABLEPREFIX{$this->table_name}";
 
-        if (!empty($params)) {
-            $sql.= " ORDER BY ? ?";
+        if (!empty($sort_order)) {
+            $sql.=
+                ' ORDER BY '.
+                $db->quote($sort_order['by']) .
+                ' ' . $db->quote($sort_order['order']);
         }
 
         if (!($sth = $db->prepare($sql))) {
@@ -98,7 +97,7 @@ class QueueModel extends DefaultModel
             return false;
         }
 
-        if (!($db->execute($sth, $params))) {
+        if (!($db->execute($sth))) {
             $db->freeStatement($sth);
             $mtlda->raiseError(get_class($db) .'::execute() returned false!');
             return false;
