@@ -194,6 +194,21 @@ class ConfigController extends DefaultController
         return $this->config['pdf_signing'];
     }
 
+    public function getPdfIndexingConfiguration()
+    {
+        if (
+            !isset($this->config['pdf_indexing']) ||
+            empty($this->config['pdf_indexing']) ||
+            !is_array($this->config['pdf_indexing'])
+        ) {
+
+            return false;
+
+        }
+
+        return $this->config['pdf_signing'];
+    }
+
     public function getTimestampConfiguration()
     {
         if (
@@ -384,6 +399,18 @@ class ConfigController extends DefaultController
         return false;
     }
 
+    public function isPdfIndexingEnabled()
+    {
+        if (
+            isset($this->config['app']['pdf_indexing']) &&
+            !empty($this->config['app']['pdf_indexing']) &&
+            $this->isEnabled($this->config['app']['pdf_indexing'])
+        ) {
+            return true;
+        }
+
+        return false;
+    }
     public function isMailImportEnabled()
     {
         if (!isset($this->config['app']['mail_import'])) {
