@@ -58,7 +58,10 @@
       <div class="item">
        <i class="file text icon"></i>
        <div class="content">
-        <a class="header" href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">{$item->document_file_name}</a>
+        <div class="header">
+         <a href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">{$item->document_file_name}</a>
+         <a class="scan document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-title="{$item->document_title}"><i class="find icon"></i></a>
+        </div>
         <div class="description">Original document (imported {$item->document_time|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-title="{$item->document_title}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
        </div>
       </div>
