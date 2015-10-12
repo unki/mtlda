@@ -29,37 +29,85 @@ class ArchiveModel extends DefaultModel
     public $avail_items = array();
     public $items = array();
 
-    public function __construct($id = null)
+    public function __construct($sort_order = null)
     {
-        parent::__construct($id);
-        $this->load();
+        global $mtlda;
+
+        parent::__construct(null);
+        if (!$this->load($sort_order)) {
+            $mtlda->raiseError(__METHOD__ .'(), load() returned false!', true);
+            return false;
+        }
 
         return true;
     }
 
-    public function load()
+    public function load($sort_order = null)
     {
         global $mtlda, $db;
+
+        $params = array();
+
+        if (isset($sort_order) && !empty($sort_order)) {
+
+            if (!is_array($sort_order)) {
+                $mtlda->raiseError(__METHOD__ .'(), \$sort_order is not an array!');
+                return false;
+            }
+
+            if (
+                !isset($sort_order['by']) ||
+                empty($sort_order['by']) ||
+                !is_string($sort_order['by']) ||
+                !isset($sort_order['order']) ||
+                empty($sort_order['order']) ||
+                !is_string($sort_order['order'])
+            ) {
+                $mtlda->raiseError(__METHOD__ .'(), \$sort_order is invalid!');
+                return false;
+            }
+
+            if (!preg_match('/[a-zA-Z_]/', $sort_order['by'])) {
+                $mtlda->raiseError(__METHOD__ .'(), \$by looks invalid!');
+                return false;
+            }
+
+            if (!in_array(strtoupper($sort_order['order']), array('ASC', 'DESC'))) {
+                $mtlda->raiseError(__METHOD__ .'(), \$order is invalid!');
+                return false;
+            }
+
+            $params = array_values($sort_order);
+        }
 
         $idx_field = $this->column_name ."_idx";
         $guid_field = $this->column_name ."_guid";
         $latest_version_field = $this->column_name ."_latest_version";
 
-        $result = $db->query(
+        $sql =
             "SELECT
                 *
             FROM
                 TABLEPREFIX{$this->table_name}
             WHERE
-                document_version LIKE 1"
-        );
+                document_version LIKE 1";
 
-        if (!$result) {
-            $mtlda->raiseError("Failed to load archive list.");
+        if (!empty($params)) {
+            $sql.= " ORDER BY ? ?";
+        }
+
+        if (!($sth = $db->prepare($sql))) {
+            $mtlda->raiseError(get_class($db) .'::prepare() returned false!');
             return false;
         }
 
-        while ($row = $result->fetch()) {
+        if (!($db->execute($sth, $params))) {
+            $db->freeStatement($sth);
+            $mtlda->raiseError(get_class($db) .'::execute() returned false!');
+            return false;
+        }
+
+        while ($row = $sth->fetch()) {
             $latest_document = $this->getLatestDocumentVersion(
                 $row->$idx_field,
                 $row->$guid_field
@@ -71,6 +119,9 @@ class ArchiveModel extends DefaultModel
             array_push($this->avail_items, $row->$idx_field);
             $this->items[$row->$idx_field] = $row;
         }
+
+        $db->freeStatement($sth);
+        return true;
     }
 
     private function getLatestDocumentVersion($idx, $guid)
