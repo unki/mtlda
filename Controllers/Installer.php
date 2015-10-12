@@ -199,6 +199,7 @@ class InstallerController extends DefaultController
 
             $table_sql = "CREATE TABLE `TABLEPREFIXdocument_indices` (
                 `di_idx` int(11) NOT NULL auto_increment,
+                `di_guid` varchar(255) default NULL,
                 `di_document_idx` int(11) NOT NULL,
                 `di_document_guid` varchar(255) default NULL,
                 `di_text` TEXT default NULL,
@@ -698,6 +699,33 @@ class InstallerController extends DefaultController
         global $db;
 
         $db->setDatabaseSchemaVersion(17);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV18()
+    {
+        global $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXdocument_indices', 'di_guid')) {
+            $db->setDatabaseSchemaVersion(18);
+            return true;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXdocument_indices
+            ADD COLUMN
+                `di_guid` varchar(255) default NULL
+            AFTER
+                di_idx"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(18);
         return true;
     }
 }
