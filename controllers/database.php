@@ -467,8 +467,23 @@ class DatabaseController extends DefaultController
     {
         global $mtlda;
 
-        if (($text = $this->db->quote($text) === false)) {
-            $mtlda->raiseError("PDO driver does not support quote!", true);
+        if (!method_exists($this->db, 'quote')) {
+            $mtlda->raiseError(__METHOD__ .'(), PDO driver does not provide quote method!');
+            return false;
+        }
+
+        if (!is_string($text)) {
+            $mtlda->raiseError(__METHOD__ .'(), \$text is not a string!');
+            return false;
+        }
+
+        if (($quoted = $this->db->quote($text)) === false) {
+            $mtlda->raiseError(__METHOD__ .'(), PDO driver does not support quote!');
+            return false;
+        }
+
+        if (!empty($text) && empty($quoted)) {
+            $mtlda->raiseError(__METHOD__ .'(), something must have gone wrong!');
             return false;
         }
 
