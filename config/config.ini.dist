@@ -54,6 +54,11 @@ embed_icon_to_pdf = 1
 ;
 mail_import = 0
 
+;
+; PDF Indexing, 0 = disabled, 1 = enabled
+;
+pdf_indexing = 1
+
 [database]
 
 ;
