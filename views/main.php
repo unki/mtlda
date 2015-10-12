@@ -43,6 +43,8 @@ class MainView extends DefaultView
 
     private function load()
     {
+        global $mtlda;
+
         try {
             $this->queue = new Models\QueueModel(array(
                 'by' => 'queue_time',
