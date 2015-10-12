@@ -35,15 +35,29 @@ class MainView extends DefaultView
 
         $this->registerPlugin("block", "top10", array(&$this, 'showTop10List'));
 
+        if (!$this->load()) {
+            $mtlda->raiseError(__CLASS__ .', load() returned false!');
+            return false;
+        }
+    }
+
+    private function load()
+    {
         try {
-            $this->queue = new Models\QueueModel;
+            $this->queue = new Models\QueueModel(array(
+                'by' => 'queue_time',
+                'order' => 'DESC'
+            ));
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load QueueModel!", true);
             return false;
         }
 
         try {
-            $this->archive = new Models\ArchiveModel;
+            $this->archive = new Models\ArchiveModel(array(
+                'by' => 'document_time',
+                'order' => 'DESC'
+            ));
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load ArchiveModel!", true);
             return false;
