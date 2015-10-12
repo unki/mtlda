@@ -48,6 +48,7 @@ function autoload($class)
         'Mtlda',
         'fpdi',
         'tcpdf',
+        'Smalot',
     );
 
     $class = str_replace("\\", "/", $class);
@@ -57,10 +58,12 @@ function autoload($class)
         return;
     }
 
-    if ($parts[0] == 'Mtlda') {
+    # only take care outloading of our namespace
+    if (!in_array($parts[0], $prefixes)) {
+        return;
+    }
 
-        // remove leading 'Mtlda'
-        //array_shift($parts);
+    if ($parts[0] == 'Mtlda') {
 
         // remove *Controller from ControllerName
         if (preg_match('/^(.*)Controller$/', $parts[2])) {
