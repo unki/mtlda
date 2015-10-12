@@ -109,6 +109,9 @@ $(document).ready(function() {
     $("a.sign.document").click(function() {
         rpc_object_sign($(this));
     });
+    $("a.scan.document").click(function() {
+        rpc_object_scan($(this));
+    });
     $("a.delete.document").click(function() {
         rpc_object_delete2($(this));
     });
