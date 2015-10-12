@@ -19,6 +19,7 @@
 
 namespace Mtlda\Controllers;
 
+use Mtlda\Models;
 use \Smalot\PdfParser;
 
 class PdfIndexerController extends DefaultController
@@ -83,6 +84,21 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
+        if (!isset($text) || empty($text)) {
+            return true;
+        }
+
+        try {
+            $index = new Models\DocumentIndexModel;
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentIndexModel!');
+            return false;
+        }
+
+        $index->setDocumentIdx($document->getId());
+        $index->setDocumentGuid($document->getGuid());
+        $index->setDocumentText($text);
+        $index->save();
         return true;
     }
 }
