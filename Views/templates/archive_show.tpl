@@ -242,7 +242,7 @@ $(document).ready(function() {
    });
 });
 {/literal}--></script>
-<div class="ui signer modal">
+<div class="ui signer scanner modal">
  <i class="close icon"></i>
  <div class="header">header</div>
  <div class="image content">
