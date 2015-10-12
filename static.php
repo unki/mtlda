@@ -44,65 +44,54 @@ if (!constant('LOG_DEBUG')) {
 
 function autoload($class)
 {
-    require_once "controllers/exception.php";
+    $prefixes = array(
+        'Mtlda',
+        'fpdi',
+        'tcpdf',
+    );
 
     $class = str_replace("\\", "/", $class);
     $parts = explode('/', $class);
 
     if (!is_array($parts) || empty($parts)) {
-        error("failed to extract class names!");
-        exit(1);
-    }
-
-    # only take care outloading of our namespace
-    if ($parts[0] != "MTLDA") {
         return;
     }
 
-    // remove leading 'MTLDA'
-    array_shift($parts);
+    if ($parts[0] == 'Mtlda') {
 
-    // remove *Controller from ControllerName
-    if (preg_match('/^(.*)Controller$/', $parts[1])) {
-        $parts[1] = preg_replace('/^(.*)Controller$/', '$1', $parts[1]);
-    }
-    // remove *View from ViewName
-    if (preg_match('/^(.*)View$/', $parts[1])) {
-        $parts[1] = preg_replace('/^(.*)View$/', '$1', $parts[1]);
-    }
-    // remove *Model from ModelName
-    if (preg_match('/^(.*)Model$/', $parts[1])) {
-        $parts[1] = preg_replace('/^(.*)Model$/', '$1', $parts[1]);
+        // remove leading 'Mtlda'
+        //array_shift($parts);
+
+        // remove *Controller from ControllerName
+        if (preg_match('/^(.*)Controller$/', $parts[2])) {
+            $parts[2] = preg_replace('/^(.*)Controller$/', '$1', $parts[2]);
+        }
+        // remove *View from ViewName
+        if (preg_match('/^(.*)View$/', $parts[2])) {
+            $parts[2] = preg_replace('/^(.*)View$/', '$1', $parts[2]);
+        }
+        // remove *Model from ModelName
+        if (preg_match('/^(.*)Model$/', $parts[2])) {
+            $parts[2] = preg_replace('/^(.*)Model$/', '$1', $parts[2]);
+        }
     }
 
     $filename = MTLDA_BASE;
-    $filename.= "/";
+    $filename.= "/vendor/";
+    if (isset($subdir) || !empty($subdir)) {
+        $filename.= $subdir;
+    }
     $filename.= implode('/', $parts);
     $filename.= '.php';
-    $filename = strtolower($filename);
 
     if (!file_exists($filename)) {
-        error("File ". $filename ." does not exist!");
-        exit(1);
+        return;
     }
     if (!is_readable($filename)) {
-        error("File ". $filename ." is not readable!");
-        exit(1);
+        return;
     }
 
     require_once $filename;
-}
-
-function error($string)
-{
-    print "<br /><br />". $string ."<br /><br />\n";
-
-    try {
-        throw new MTLDA\Controllers\ExceptionController;
-    } catch (ExceptionController $e) {
-        print "<br /><br />\n";
-        $this->write($e, LOG_WARNING);
-    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
