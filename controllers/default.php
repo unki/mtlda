@@ -29,6 +29,32 @@ abstract class DefaultController
     const WORKING_DIRECTORY = self::DATA_DIRECTORY ."/working";
 
     const ARCHIVE_NESTING_DEPTH = 5;
+
+    final public function sendMessage($command, $body, $value = null)
+    {
+        global $mtlda, $mbus;
+
+        if (!isset($command) || empty($command) || !is_string($command)) {
+            $mtlda->raiseError(__METHOD__ .', parameter \$command is mandatory and has to be a string!');
+            return false;
+        }
+        if (!isset($body) || empty($body) || !is_string($body)) {
+            $mtlda->raiseError(__METHOD__ .', parameter \$body is mandatory and has to be a string!');
+            return false;
+        }
+
+        if (isset($value) && !empty($value) && !is_string($value)) {
+            $mtlda->raiseError(__METHOD__ .', parameter \$value has to be a string!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient($command, $body, $value)) {
+            $mtlda->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
