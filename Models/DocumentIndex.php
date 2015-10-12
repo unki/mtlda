@@ -27,6 +27,7 @@ class DocumentIndexModel extends DefaultModel
     public $column_name = 'di';
     public $fields = array(
         'di_idx' => 'integer',
+        'di_guid' => 'string',
         'di_document_idx' => 'integer',
         'di_document_guid' => 'string',
         'di_text' => 'string',
