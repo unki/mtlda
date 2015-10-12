@@ -384,7 +384,6 @@ class MailImportController extends DefaultController
                 return false;
             }
 
-            // just if someone tries to fool us...
             $filename = $attachment['filename'];
 
             // if file is not suffixed by a .pdf, we skip it
@@ -491,16 +490,15 @@ class MailImportController extends DefaultController
             return true;
         }
 
+        $parameters = array();
+
         if (
             isset($part->ifdparameters) &&
             !empty($part->ifdparameters) &&
             isset($part->dparameters) &&
             !empty($part->dparameters)
         ) {
-            if (!$this->parseMimePartParameters($part->dparameters, $attachments, $part->encoding, $id)) {
-                $mtlda->raiseError(__CLASS__ .'::parseMimePartParameters() returned false!');
-                return false;
-            }
+            $this->arrayAppend($parameters, $part->dparameters);
         }
 
         if (
@@ -509,10 +507,17 @@ class MailImportController extends DefaultController
             isset($part->parameters) &&
             !empty($part->parameters)
         ) {
-            if (!$this->parseMimePartParameters($part->parameters, $attachments, $part->encoding, $id)) {
-                $mtlda->raiseError(__CLASS__ .'::parseMimePartParameters() returned false!');
-                return false;
-            }
+            $this->arrayAppend($parameters, $part->parameters);
+        }
+
+        // no parameters? then we are done.
+        if (!isset($parameters) || empty($parameters)) {
+            return true;
+        }
+
+        if (!$this->parseMimePartParameters($parameters, $attachments, $part->encoding, $id)) {
+            $mtlda->raiseError(__CLASS__ .'::parseMimePartParameters() returned false!');
+            return false;
         }
 
         return true;
@@ -537,18 +542,108 @@ class MailImportController extends DefaultController
             return false;
         }
 
+        $info = array();
+
         foreach ($partparam as $param) {
 
-            if (strtolower($param->attribute) != 'filename') {
+            if (
+                !isset($param->attribute) ||
+                empty($param->attribute) ||
+                !is_string($param->attribute)
+            ) {
+                $mtlda->raiseError(__METHOD__ .'(), attribute property is not set!');
+                return false;
+            }
+
+            if (
+                !isset($param->value) ||
+                empty($param->value) ||
+                !is_string($param->value)
+            ) {
+                $mtlda->raiseError(__METHOD__ .'(), value property is not set!');
+                return false;
+            }
+
+            $attribute = strtoupper($param->attribute);
+
+            if (
+                $attribute != 'NAME' &&
+                !preg_match('/^FILENAME([\*].*)/', $attribute)) {
                 continue;
             }
 
-            array_push($attachments, array(
-                'id' => $id,
-                'filename' => basename($param->value),
-                'encoding' => $encoding
-            ));
+            $filename = $param->value;
+
+            // the value may be specially encoded.
+            if (substr($attribute, -1) == '*' || $attribute == 'NAME') {
+
+                // strip of the asterisk from the attributes name
+                if ($attribute == 'FILENAME*') {
+                    $attribute = substr($attribute, 0, -1);
+                }
+
+                if (!($filename_decoded = $this->imapDecodeString($filename))) {
+                    $mtlda->raiseError(__METHOD__ .'(), imapDecodeString() returned false!');
+                    return false;
+                }
+
+                if (
+                    !isset($filename_decoded) ||
+                    empty($filename_decoded) ||
+                    !is_object($filename_decoded) ||
+                    !isset($filename_decoded->text) ||
+                    empty($filename_decoded->text) ||
+                    !isset($filename_decoded->charset) ||
+                    empty($filename_decoded->charset)
+                ) {
+                    $mtlda->raiseError(__METHOD__ .'(), imapDecodeString() returned an invalid object!');
+                    return false;
+                }
+
+                $filename = $filename_decoded->text;
+            }
+
+            // just to be sure...
+            if (!isset($filename) || empty(basename($filename))) {
+                $mtlda->raiseError(__METHOD__ .'(), should get here only if decoding went wrong!');
+                return false;
+            }
+
+            if (isset($info[$attribute])) {
+                $mtlda->raiseError(__METHOD__ ."(), strangly \$info[{$attribute}] is already set!");
+                return false;
+            }
+
+            $info[$attribute] = $filename;
         }
+
+        // if we were unable locating a filename, we skip this mime part
+        if (
+            !isset($info) ||
+            empty($info) ||
+            (
+                !isset($info['NAME']) || empty($info['NAME']) &&
+                !isset($info['FILENAME']) || empty($info['FILENAME'])
+            )
+        ) {
+            return true;
+        }
+
+        // we select NAME over FILENAME attributes
+        if (isset($info['NAME']) && !empty($info['NAME'])) {
+            $filename = $info['NAME'];
+        } elseif (isset($info['FILENAME']) && !empty($info['FILENAME'])) {
+            $filename = $info['FILENAME'];
+        } else {
+            $mtlda->raiseError(__METHOD__ .'(), what shall I do without knowning the filename!');
+            return false;
+        }
+
+        array_push($attachments, array(
+            'id' => $id,
+            'filename' => basename($filename),
+            'encoding' => $encoding
+        ));
 
         return true;
     }
@@ -653,6 +748,66 @@ class MailImportController extends DefaultController
         if (!imap_setflag_full($this->imap_session, $msgno, '\Seen')) {
             $mtlda->raiseError("imap_setflag_full() returned false!". imap_last_error());
             return false;
+        }
+
+        return true;
+    }
+
+    private function imapDecodeString($value)
+    {
+        global $mtlda;
+
+        if (
+            !isset($value) ||
+            empty($value) ||
+            !is_string($value)
+        ) {
+            $mtlda->raiseError(__METHOD__ .'(), \$value is invalid!');
+            return false;
+        }
+
+        $value_decoded = imap_mime_header_decode($value);
+
+        if (
+            !isset($value_decoded) ||
+            !is_array($value_decoded) ||
+            empty($value_decoded) ||
+            !isset($value_decoded[0]) ||
+            empty($value_decoded[0])
+        ) {
+            $mtlda->raiseError('imap_mime_header_decode() has responded invalid!');
+            return false;
+        }
+
+        return $value_decoded[0];
+    }
+
+    private function arrayAppend(&$dst_parameters, &$src_parameters)
+    {
+        global $mtlda;
+
+        if (
+            !isset($dst_parameters) ||
+            !is_array($dst_parameters)
+        ) {
+            $mtlda->raiseError(__METHOD__ .'(), \$dst_parameters is invalid!');
+            return false;
+        }
+
+        if (
+            !isset($src_parameters) ||
+            !is_array($src_parameters)
+        ) {
+            $mtlda->raiseError(__METHOD__ .'(), \$src_parameters is invalid!');
+            return false;
+        }
+
+        if (empty($src_parameters)) {
+            return true;
+        }
+
+        foreach ($src_parameters as $parameter) {
+            $dst_parameters[] = $parameter;
         }
 
         return true;
