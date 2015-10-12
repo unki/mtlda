@@ -320,6 +320,114 @@ function rpc_object_sign(element)
     return true;
 }
 
+function rpc_object_scan(element)
+{
+    if (!(element instanceof jQuery) ){
+        throw "element is not a jQuery object!";
+        return false;
+    }
+
+    if (!(id = element.attr('data-id'))) {
+        alert('no attribute "data-id" found!');
+        return false;
+    }
+
+    if (!(guid = element.attr('data-guid'))) {
+        alert('no attribute "data-guid" found!');
+        return false;
+    }
+
+    if (!(title = element.attr('data-title'))) {
+        alert('no attribute "data-title" found!');
+        return false;
+    }
+
+    wnd = show_modal({
+        blurring : true,
+        closeable : false,
+        header : 'MTLDA is scanning your document "'+ title + '".',
+        icon : 'wait icon',
+        hasActions : false,
+        content : 'Please wait a moment.',
+        onShow : rpc_fetch_jobstatus()
+    }, function() {}, '.ui.scanner.modal');
+
+    progressbar = $('.ui.modal .image.content .description #scannerprogress');
+
+    if (!progressbar) {
+        throw 'Can not find the progress bar in the modal window!';
+        return false;
+    }
+
+    var msg_body = new Object;
+    msg_body.id = safe_string(id);
+    msg_body.guid = safe_string(guid);
+
+    var msg = new MtldaMessage;
+    msg.setCommand('scan-request');
+    msg.setMessage(msg_body);
+
+    if (!mbus.add(msg)) {
+        throw 'MtldaMessageBus.add() returned false!';
+        return false;
+    }
+
+    mbus.subscribe('scanner-replies-handler', 'scan-reply', function(reply) {
+
+        if (!reply) {
+            throw 'reply is empty!';
+            return false;
+        }
+        if (!wnd) {
+            throw 'Have no reference to the modal window!';
+            return false;
+        }
+        if (!progressbar) {
+            throw 'Have no reference to the progressbar!';
+            return false;
+        }
+
+        var newData = new Object;
+
+        if (reply.value && (value = reply.value.match(/([0-9]+)%$/))) {
+            newData.percent = value[1];
+        }
+        if (reply.body) {
+            newData.text = {
+                active : reply.body,
+                success: reply.body
+            };
+        }
+        if (progressbar.hasClass('active')) {
+            progressbar.addClass('active');
+        }
+
+        progressbar.progress(newData);
+        wnd.modal('refresh');
+
+        if (reply.value != '100%') {
+            return true;
+        }
+
+        progressbar.removeClass('active').addClass('success');
+
+        setTimeout(function() {
+            wnd.modal('hide');
+            mbus.unsubscribe('scanner-replies-handler');
+            location.reload();
+        }, 1000);
+        return true;
+
+    }.bind(this));
+
+    if (!mbus.send()) {
+        throw 'MtldaMessageBus.send() returned false!';
+        return false;
+    }
+
+    return true;
+}
+
 function rpc_fetch_jobstatus()
 {
     if (!mbus.poll()) {
