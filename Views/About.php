@@ -17,38 +17,24 @@
  * GNU Affero General Public License for more details.
  */
 
-require_once "static.php";
+namespace Mtlda\Views;
 
-spl_autoload_register("autoload");
+use Mtlda\Controllers;
 
-use Mtlda\Controllers as Controllers;
+class AboutView extends DefaultView
+{
+    public $default_mode = 'show';
+    public $class_name = 'about';
 
-$mode = null;
+    public function show()
+    {
+        global $db;
 
-if (
-    isset($_SERVER) &&
-    isset($_SERVER['argv']) &&
-    isset($_SERVER['argv'][1]) &&
-    $_SERVER['argv'][1] == 'incoming'
-) {
-    $mode = 'queue_only';
+        $this->assign("mtlda_version", Controllers\Mtlda::VERSION);
+        $this->assign("mtlda_schema_version", $db->getDatabaseSchemaVersion());
+
+        return $this->fetch("about.tpl");
+    }
 }
-
-try {
-    $mtlda = new Controllers\Mtlda($mode);
-} catch (Exception $e) {
-    print $e->getMessage();
-    exit(1);
-}
-
-if (!is_null($mode)) {
-    exit(0);
-}
-
-if (!$mtlda->startup()) {
-    exit(1);
-}
-
-exit(0);
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
