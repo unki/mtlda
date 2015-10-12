@@ -180,6 +180,12 @@ class RequirementsController extends DefaultController
                 $missing = true;
                 unset($php_errormsg);
             }
+            @include_once MTLDA_BASE.'/extern/tcpdf/tcpdf_parser.php';
+            if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
+                $mtlda->write("TCPDF_PARSER can not be found!", LOG_ERR);
+                $missing = true;
+                unset($php_errormsg);
+            }
         }
 
         /*@include_once 'Pager.php';
