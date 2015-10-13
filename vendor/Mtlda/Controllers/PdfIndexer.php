@@ -84,21 +84,78 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
-        if (!isset($text) || empty($text)) {
-            return true;
+        if (isset($text) && !empty($text)) {
+
+            try {
+                $index = new Models\DocumentIndexModel;
+            } catch (\Exception $e) {
+                $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentIndexModel!');
+                return false;
+            }
+
+            if (!$index->setDocumentIdx($document->getId())) {
+                $mtlda->raiseError(get_class($index) .'::setDocumentIdx() returned false!');
+                return false;
+            }
+            if (!$index->setDocumentGuid($document->getGuid())) {
+                $mtlda->raiseError(get_class($index) .'::setDocumentGuid() returned false!');
+                return false;
+            }
+            if (!$index->setDocumentText($text)) {
+                $mtlda->raiseError(get_class($index) .'::setDocumentText() returned false!');
+                return false;
+            }
+            if (!$index->save()) {
+                $mtlda->raiseError(get_class($index) .'::save() returned false!');
+                return false;
+            }
         }
 
         try {
-            $index = new Models\DocumentIndexModel;
+            $details  = $pdf->getDetails();
         } catch (\Exception $e) {
-            $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentIndexModel!');
+            $mtlda->raiseError(get_class($pdf) .'::getDetails() returned false!');
             return false;
         }
 
-        $index->setDocumentIdx($document->getId());
-        $index->setDocumentGuid($document->getGuid());
-        $index->setDocumentText($text);
-        $index->save();
+        if (isset($details) && !empty($details)) {
+
+            foreach ($details as $property => $value) {
+
+                if (is_array($value)) {
+                    $value = implode(', ', $value);
+                }
+
+                try {
+                    $pmodel = new Models\DocumentPropertyModel;
+                } catch (\Exception $e) {
+                    $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentPropertyModel!');
+                    return false;
+                }
+
+                if (!$pmodel->setDocumentIdx($document->getId())) {
+                    $mtlda->raiseError(get_class($pmodel) .'::setDocumentIdx() returned false!');
+                    return false;
+                }
+                if (!$pmodel->setDocumentGuid($document->getGuid())) {
+                    $mtlda->raiseError(get_class($pmodel) .'::setDocumentGuid() returned false!');
+                    return false;
+                }
+                if (!$pmodel->setDocumentProperty($property)) {
+                    $mtlda->raiseError(get_class($pmodel) .'::setDocumentProperty() returned false!');
+                    return false;
+                }
+                if (!$pmodel->setDocumentValue($value)) {
+                    $mtlda->raiseError(get_class($pmodel) .'::setDocumentValue() returned false!');
+                    return false;
+                }
+                if (!$pmodel->save()) {
+                    $mtlda->raiseError(get_class($pmodel) .'::save() returned false!');
+                    return false;
+                }
+            }
+        }
+
         return true;
     }
 }
