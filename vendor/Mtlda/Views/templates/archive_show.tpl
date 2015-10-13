@@ -51,6 +51,12 @@
     <div class="two wide column">Size:</div>
     <div class="fourteen wide column">{get_humanreadable_filesize size=$item->document_file_size}</div>
    </div>
+{document_properties}
+   <div class="row">
+    <div class="two wide column">{$property->getDocumentProperty()}:</div>
+    <div class="fourteen wide column">{$property->getDocumentValue()}</div>
+   </div>
+{/document_properties}
    <div class="row">
     <div class="two wide column">Versions:</div>
     <div class="fourteen wide column">
