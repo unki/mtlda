@@ -215,6 +215,25 @@ class InstallerController extends DefaultController
             }
         }
 
+        if (!$db->checkTableExists("TABLEPREFIXdocument_properties")) {
+
+            $table_sql = "CREATE TABLE `TABLEPREFIXdocument_properties` (
+                `dp_idx` int(11) NOT NULL auto_increment,
+                `dp_guid` varchar(255) default NULL,
+                `dp_document_idx` int(11) NOT NULL,
+                `dp_document_guid` varchar(255) default NULL,
+                `dp_property` varchar(255) default NULL,
+                `dp_value` varchar(255) default NULL,
+                PRIMARY KEY  (`dp_idx`),
+                UNIQUE KEY `document_properties` (`dp_document_idx`,`dp_document_guid`)
+                )
+                ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+
+            if ($db->query($table_sql) === false) {
+                $mtlda->raiseError("Failed to create 'document_properties' table");
+                return false;
+            }
+        }
         if (!$db->checkTableExists("TABLEPREFIXmessage_bus")) {
 
             $table_sql = "CREATE TABLE `TABLEPREFIXmessage_bus` (
@@ -726,6 +745,14 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(18);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV19()
+    {
+        global $db;
+
+        $db->setDatabaseSchemaVersion(19);
         return true;
     }
 }
