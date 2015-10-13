@@ -50,7 +50,7 @@ abstract class Templates extends Smarty
         $this->force_compile = true;
         $this->caching = false;
 
-        $this->template_dir = MTLDA_BASE.'/Views/templates';
+        $this->template_dir = MTLDA_BASE.'/vendor/Mtlda/Views/templates';
         $this->compile_dir  = MTLDA_BASE.'/cache/templates_c';
         $this->config_dir   = MTLDA_BASE.'/cache/smarty_config';
         $this->cache_dir    = MTLDA_BASE.'/cache/smarty_cache';
