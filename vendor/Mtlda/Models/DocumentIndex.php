@@ -71,6 +71,73 @@ class DocumentIndexModel extends DefaultModel
         $this->di_text = $text;
         return true;
     }
+
+    public function getDocumentIdx()
+    {
+        global $mtlda;
+
+        if (!isset($this->di_document_idx)) {
+            return false;
+        }
+
+        return $this->di_document_idx;
+    }
+
+    public function getDocumentGuid()
+    {
+        global $mtlda;
+
+        if (!isset($this->di_document_guid)) {
+            return false;
+        }
+
+        return $this->di_document_guid;
+    }
+
+    public function getDocumentText()
+    {
+        global $mtlda;
+
+        if (!isset($this->di_text)) {
+            return false;
+        }
+
+        return $this->di_text;
+    }
+
+    protected function preSave()
+    {
+        global $mtlda, $db;
+
+        if (
+            !($idx = $this->getDocumentIdx()) ||
+            !($guid = $this->getDocumentGuid())
+        ) {
+            return true;
+        }
+
+        $sql =
+            "DELETE FROM
+                TABLEPREFIX{$this->table_name}
+            WHERE
+                {$this->column_name}_document_idx LIKE ?
+            AND
+                {$this->column_name}_document_guid LIKE ?";
+
+        if (!($sth = $db->prepare($sql))) {
+            $mtlda->raiseError(__METHOD__ .'(), failed to prepare query!');
+            return false;
+        }
+
+        if (!($db->execute($sth, array($idx, $guid)))) {
+            $db->freeStatement($sth);
+            $mtlda->raiseError(__METHOD__ .'(), failed to execute query!');
+            return false;
+        }
+
+        $db->freeStatement($sth);
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
