@@ -28,6 +28,7 @@ class ArchiveView extends DefaultView
     public $archive;
     private $item;
     private $keywords;
+    private $document_properties;
 
     public function __construct()
     {
@@ -146,6 +147,18 @@ class ArchiveView extends DefaultView
         $this->assign('keywords', $this->keywords->items);
         $this->assign('assigned_keywords', $assigned_keywords);
         $this->assign("item_safe_link", "document-". $this->item->document_idx ."-". $this->item->document_guid);
+
+        try {
+            $this->document_properties = new Models\DocumentPropertiesModel(
+                $this->item->getId(),
+                $this->item->getGuid()
+            );
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentPropertiesModel!');
+            return false;
+        }
+
+        $this->registerPlugin("block", "document_properties", array(&$this, "listDocumentProperties"), false);
         return parent::showItem($id, $hash);
     }
 
@@ -269,6 +282,33 @@ class ArchiveView extends DefaultView
         if (empty($content)) {
             return false;
         }
+
+        return $content;
+    }
+
+    public function listDocumentProperties($params, $content, &$smarty, &$repeat)
+    {
+        global $mtlda;
+
+        $index = $smarty->getTemplateVars("smarty.IB.properties_list.index");
+
+        if (!isset($index) || empty($index)) {
+            $index = 0;
+        }
+
+        if ($index >= count($this->document_properties->avail_items)) {
+            $repeat = false;
+            return $content;
+        }
+
+        $item_idx = $this->document_properties->avail_items[$index];
+        $item =  $this->document_properties->items[$item_idx];
+
+        $smarty->assign("property", $item);
+
+        $index++;
+        $smarty->assign("smarty.IB.properties_list.index", $index);
+        $repeat = true;
 
         return $content;
     }
