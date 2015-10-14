@@ -129,7 +129,7 @@ class DocumentPropertyModel extends DefaultModel
         return $this->dp_value;
     }
 
-    protected function preSave()
+    protected function clear()
     {
         global $mtlda, $db;
 
