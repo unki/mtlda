@@ -49,6 +49,16 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
+        if (!($idx = $document->getId())) {
+            $mtlda->raiseError(get_class($document) .'::getId() returned false!');
+            return false;
+        }
+
+        if (!($guid = $document->getGuid())) {
+            $mtlda->raiseError(get_class($document) .'::getGuid() returned false!');
+            return false;
+        }
+
         $this->sendMessage('scan-reply', 'Retrieving document from archive.', '40%');
 
         if (!$fqpn = $document->getFilePath()) {
@@ -63,6 +73,33 @@ class PdfIndexerController extends DefaultController
 
         if (!is_readable($fqpn)) {
             $mtlda->raiseError("{$fqpn} is not readable!");
+            return false;
+        }
+
+        //
+        // cleanup existing indices & properties
+        //
+        try {
+            $indices = new Models\DocumentIndicesModel($idx, $guid);
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__CLASS__ .', failed to load DocumentIndicesModel!');
+            return false;
+        }
+
+        if (!$indices->delete()) {
+            $mtlda->raiseError(get_class($indices) .'::delete() returned false!');
+            return false;
+        }
+
+        try {
+            $properties = new Models\DocumentPropertiesModel($idx, $guid);
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__CLASS__ .', failed to load DocumentProperties!');
+            return false;
+        }
+
+        if (!$properties->delete()) {
+            $mtlda->raiseError(get_class($properties) .'::delete() returned false!');
             return false;
         }
 
@@ -85,7 +122,6 @@ class PdfIndexerController extends DefaultController
         }
 
         if (isset($text) && !empty($text)) {
-
             try {
                 $index = new Models\DocumentIndexModel;
             } catch (\Exception $e) {
@@ -119,9 +155,7 @@ class PdfIndexerController extends DefaultController
         }
 
         if (isset($details) && !empty($details)) {
-
             foreach ($details as $property => $value) {
-
                 if (is_array($value)) {
                     $value = implode(', ', $value);
                 }
