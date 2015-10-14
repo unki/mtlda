@@ -69,8 +69,7 @@ class ArchiveView extends DefaultView
         $item_idx = $this->archive->avail_items[$index];
         $item =  $this->archive->items[$item_idx];
 
-        if (
-            isset($item->document_latest_version) &&
+        if (isset($item->document_latest_version) &&
             !empty($item->document_latest_version) &&
             is_array($item->document_latest_version)
         ) {
@@ -143,6 +142,8 @@ class ArchiveView extends DefaultView
             $mtlda->raiseError(__CLASS__ ."::getItemKeywords() returned false!");
             return false;
         }
+
+        $assigned_keywords = implode(',', $assigned_keywords);
 
         $this->assign('latest_document_version', $this->item->getLastestDocumentVersionNumber());
         $this->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
@@ -241,7 +242,6 @@ class ArchiveView extends DefaultView
         $counter = 0;
 
         foreach ($descendants as $item) {
-
             $this->assign('item', $item);
             $this->assign('item_safe_link', 'document-'. $item->document_idx .'-'. $item->document_guid);
 
