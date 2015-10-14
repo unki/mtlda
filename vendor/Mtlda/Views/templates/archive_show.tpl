@@ -51,12 +51,6 @@
     <div class="two wide column">Size:</div>
     <div class="fourteen wide column">{get_humanreadable_filesize size=$item->document_file_size}</div>
    </div>
-{document_properties}
-   <div class="row">
-    <div class="two wide column">{$property->getDocumentProperty()}:</div>
-    <div class="fourteen wide column">{$property->getDocumentValue()}</div>
-   </div>
-{/document_properties}
    <div class="row">
     <div class="two wide column">Versions:</div>
     <div class="fourteen wide column">
@@ -102,7 +96,7 @@
     <div class="twelve wide column">
      <form id="document_description" class="ui form description" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
       <div class="field">
-       <label>Description</label>
+       <label>Description:</label>
        <textarea>{$item->document_description}</textarea>
       </div>
       <button class="circular small ui icon save button" type="submit" data-target="document_description" data-type="document_description" data-id="{$item->document_idx}">
@@ -111,6 +105,22 @@
      </form>
     </div>
    </div>
+   <div class="row">
+    <div class="twelve wide column">
+     <div class="ui container segment">
+      <div class="ui header">PDF Properties:</div>
+      <div class="ui grid">
+{document_properties}
+       <div class="row">
+        <div class="five wide column">{$property->getDocumentProperty()}:</div>
+        <div class="eleven wide column">{$property->getDocumentValue()}</div>
+       </div>
+{/document_properties}
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
  </div>
 </div>
 <script type="text/javascript"><!--{literal}
