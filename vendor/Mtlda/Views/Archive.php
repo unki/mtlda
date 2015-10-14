@@ -124,6 +124,10 @@ class ArchiveView extends DefaultView
             return false;
         }
 
+        if ($config->isPdfIndexingEnabled()) {
+            $this->assign('pdf_indexing_is_enabled', true);
+        }
+
         if ($base_path == '/') {
             $base_path = '';
         }
