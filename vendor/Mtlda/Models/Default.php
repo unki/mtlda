@@ -83,7 +83,6 @@ abstract class DefaultModel
         }
 
         if (method_exists($this, 'preLoad')) {
-
             if (!$this->preLoad()) {
                 $mtlda->raiseError(get_called_class() ."::preLoad() method returned false!");
                 return false;
@@ -95,7 +94,6 @@ abstract class DefaultModel
         $time_field = $this->column_name .'_time';
 
         foreach (array_keys($this->fields) as $key) {
-
             if ($key == $time_field) {
                 $sql.= "UNIX_TIMESTAMP({$key}) as {$key}, ";
             } else {
@@ -172,7 +170,7 @@ abstract class DefaultModel
     /**
      * delete
      */
-    final public function delete()
+    public function delete()
     {
         global $mtlda, $db;
 
@@ -245,7 +243,6 @@ abstract class DefaultModel
         }
 
         foreach (array_keys($srcobj->fields) as $field) {
-
             // check for a matching key in clone's fields array
             if (!in_array($field, array_keys($this->fields))) {
                 continue;
@@ -290,10 +287,8 @@ abstract class DefaultModel
 
         // now check for assigned childrens and duplicate those links too
         if (isset($this->child_names) && !isset($this->ignore_child_on_clone)) {
-
             // loop through all (known) childrens
             foreach (array_keys($this->child_names) as $child) {
-
                 $prefix = $this->child_names[$child];
 
                 // initate an empty child object
@@ -322,14 +317,12 @@ abstract class DefaultModel
                 }
 
                 while ($row = $sth->fetch(PDO::FETCH_ASSOC)) {
-
                     $query = "INSERT INTO TABLEPREFIXassign_
                         {$child_obj->table_name}_to_{$this->table_name} (";
 
                     $values = "";
 
                     foreach (array_keys($row) as $key) {
-
                         $query.= $key .",";
                         $values.= "?,";
                     }
@@ -389,10 +382,8 @@ abstract class DefaultModel
         }
 
         foreach (array_keys($this->fields) as $field) {
-
             // check for a matching key in clone's fields array
-            if (
-                isset($override) &&
+            if (isset($override) &&
                 !empty($override) &&
                 is_array($override) &&
                 in_array($field, array_keys($override))
@@ -459,7 +450,6 @@ abstract class DefaultModel
         $arr_values = array();
 
         foreach (array_keys($this->fields) as $key) {
-
             if (!isset($this->$key)) {
                 continue;
             }
@@ -512,7 +502,6 @@ abstract class DefaultModel
         $this->init_values = array();
 
         foreach (array_keys($this->fields) as $field) {
-
             if (!isset($this->$field)) {
                 continue;
             }
@@ -744,14 +733,9 @@ abstract class DefaultModel
         $idx_field = $this->column_name.'_idx';
         $guid_field = $this->column_name.'_guid';
 
-        if (
-            (
-                !isset($this->$idx_field) || empty($this->$idx_field)
-            ) && (
-                !isset($this->$guid_field) || empty($this->$guid_field)
-            )
+        if ((!isset($this->$idx_field) || empty($this->$idx_field)) &&
+            (!isset($this->$guid_field) || empty($this->$guid_field))
         ) {
-
             $mtlda->raiseError(
                 __METHOD__ ." can't check for duplicates if neither \$idx_field or \$guid_field is set!"
             );
@@ -778,8 +762,7 @@ abstract class DefaultModel
             $arr_values[] = $this->$guid_field;
         }
 
-        if (
-            !isset($where_sql) ||
+        if (!isset($where_sql) ||
             empty($where_sql) ||
             !is_string($where_sql)
         ) {
@@ -843,8 +826,7 @@ abstract class DefaultModel
 
     final public function permitsRpcUpdates()
     {
-        if (
-            !isset($this->permit_rpc_updates) ||
+        if (!isset($this->permit_rpc_updates) ||
             !$this->permit_rpc_updates
         ) {
             return false;
