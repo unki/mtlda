@@ -128,40 +128,6 @@ class DocumentPropertyModel extends DefaultModel
 
         return $this->dp_value;
     }
-
-    protected function clear()
-    {
-        global $mtlda, $db;
-
-        if (
-            !($idx = $this->getDocumentIdx()) ||
-            !($guid = $this->getDocumentGuid())
-        ) {
-            return true;
-        }
-
-        $sql =
-            "DELETE FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-                {$this->column_name}_document_idx LIKE ?
-            AND
-                {$this->column_name}_document_guid LIKE ?";
-
-        if (!($sth = $db->prepare($sql))) {
-            $mtlda->raiseError(__METHOD__ .'(), failed to prepare query!');
-            return false;
-        }
-
-        if (!($db->execute($sth, array($idx, $guid)))) {
-            $db->freeStatement($sth);
-            $mtlda->raiseError(__METHOD__ .'(), failed to execute query!');
-            return false;
-        }
-
-        $db->freeStatement($sth);
-        return true;
-    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
