@@ -19,6 +19,7 @@
 
 namespace Mtlda\Models ;
 
+use Mtlda\Models;
 use Mtlda\Controllers;
 
 class DocumentModel extends DefaultModel
@@ -286,7 +287,6 @@ class DocumentModel extends DefaultModel
         }
 
         for ($i = 0; $i < strlen($guid); $i+=2) {
-
             $guid_part = substr($guid, $i, 2);
 
             if ($guid_part === false) {
@@ -328,6 +328,16 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
+        if (!$this->deleteAllDocumentIndices()) {
+            $mtlda->raiseError(__CLASS__ .'::deleteAllDocumentIndices() returned false!');
+            return false;
+        }
+
+        if (!$this->deleteAllDocumentProperties()) {
+            $mtlda->raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
+            return false;
+        }
+
         if (!$this->deleteFile()) {
             $mtlda->raiseError(__CLASS__ .'::deleteFile() returned false!');
             return false;
@@ -364,8 +374,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (
-            !isset($this->document_file_name) ||
+        if (!isset($this->document_file_name) ||
             empty($this->document_file_name)
         ) {
             $mtlda->raiseError("\$document_file_name must not be empty!");
@@ -377,8 +386,7 @@ class DocumentModel extends DefaultModel
             return true;
         }
 
-        if (
-            !isset($this->init_values['document_file_name']) ||
+        if (!isset($this->init_values['document_file_name']) ||
             empty($this->init_values['document_file_name'])
         ) {
             return true;
@@ -506,8 +514,7 @@ class DocumentModel extends DefaultModel
             'file_hash' => $this->document_file_hash,
         );
 
-        if (
-            isset($this->document_derivation_guid) &&
+        if (isset($this->document_derivation_guid) &&
             !empty($this->document_derivation_guid) &&
             $mtlda->isValidGuidSyntax($this->document_derivation_guid)
         ) {
@@ -551,7 +558,6 @@ class DocumentModel extends DefaultModel
         }
 
         foreach ($values as $value) {
-
             if (!is_numeric($value)) {
                 $mtlda->raiseError("Value '{$value}' requires to be a number!");
                 $db->freeStatement($sth);
@@ -718,8 +724,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (
-            !$db->execute($sth, array(
+        if (!$db->execute($sth, array(
                 $this->document_idx,
                 $this->document_guid,
                 $this->document_idx,
@@ -840,6 +845,50 @@ class DocumentModel extends DefaultModel
                 $mtlda->raiseError(get_class($descendant) .'::delete() returned false!');
                 return false;
             }
+        }
+
+        return true;
+    }
+
+    private function deleteAllDocumentProperties()
+    {
+        global $mtlda;
+
+        try {
+            $properties = new Models\DocumentPropertiesModel(
+                $this->getId(),
+                $this->getGuid()
+            );
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentPropertiesModel!');
+            return false;
+        }
+
+        if (!$properties->delete()) {
+            $mtlda->raiseError(get_class($properties) .'::delete() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    private function deleteAllDocumentIndices()
+    {
+        global $mtlda;
+
+        try {
+            $indices = new Models\DocumentIndicesModel(
+                $this->getId(),
+                $this->getGuid()
+            );
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentIndicesModel!');
+            return false;
+        }
+
+        if (!$indices->delete()) {
+            $mtlda->raiseError(get_class($indices) .'::delete() returned false!');
+            return false;
         }
 
         return true;
