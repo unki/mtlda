@@ -105,6 +105,7 @@
      </form>
     </div>
    </div>
+{if isset($pdf_indexing_is_enabled) && $pdf_indexing_is_enabled}
    <div class="row">
     <div class="twelve wide column">
      <div class="ui container segment">
@@ -120,6 +121,7 @@
      </div>
     </div>
    </div>
+{/if}
   </div>
  </div>
 </div>
