@@ -204,7 +204,7 @@ class InstallerController extends DefaultController
                 `di_document_guid` varchar(255) default NULL,
                 `di_text` TEXT default NULL,
                 PRIMARY KEY  (`di_idx`),
-                UNIQUE KEY `document_indices` (`di_document_idx`,`di_document_guid`),
+                KEY `document_indices` (`di_document_idx`,`di_document_guid`),
                 FULLTEXT KEY `text` (`di_text`)
                 )
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
@@ -753,6 +753,28 @@ class InstallerController extends DefaultController
         global $db;
 
         $db->setDatabaseSchemaVersion(19);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV20()
+    {
+        global $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXdocument_indices
+            DROP KEY
+                document_indices,
+            ADD KEY
+                `document_indices` (`di_document_idx`,`di_document_guid`)"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(20);
         return true;
     }
 }
