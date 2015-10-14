@@ -73,7 +73,6 @@ class InstallerController extends DefaultController
         global $mtlda, $db;
 
         if (!$db->checkTableExists("TABLEPREFIXarchive")) {
-
             $table_sql = "CREATE TABLE `TABLEPREFIXarchive` (
                 `document_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `document_guid` varchar(255) DEFAULT NULL,
@@ -99,7 +98,6 @@ class InstallerController extends DefaultController
         }
 
         if (!$db->checkTableExists("TABLEPREFIXaudit")) {
-
             $table_sql = "CREATE TABLE `TABLEPREFIXaudit` (
                 `audit_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `audit_guid` varchar(255) DEFAULT NULL,
@@ -118,7 +116,6 @@ class InstallerController extends DefaultController
         }
 
         if (!$db->checkTableExists("TABLEPREFIXqueue")) {
-
             $table_sql = "CREATE TABLE `TABLEPREFIXqueue` (
                 `queue_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `queue_guid` varchar(255) DEFAULT NULL,
@@ -139,7 +136,6 @@ class InstallerController extends DefaultController
         }
 
         if (!$db->checkTableExists("TABLEPREFIXmeta")) {
-
             $table_sql = "CREATE TABLE `TABLEPREFIXmeta` (
                 `meta_idx` int(11) NOT NULL auto_increment,
                 `meta_key` varchar(255) default NULL,
@@ -161,7 +157,6 @@ class InstallerController extends DefaultController
         }
 
         if (!$db->checkTableExists("TABLEPREFIXkeywords")) {
-
             $table_sql = "CREATE TABLE `TABLEPREFIXkeywords` (
                 `keyword_idx` int(11) NOT NULL auto_increment,
                 `keyword_name` varchar(255) default NULL,
@@ -177,7 +172,6 @@ class InstallerController extends DefaultController
         }
 
         if (!$db->checkTableExists("TABLEPREFIXassign_keywords_to_document")) {
-
             $table_sql = "CREATE TABLE `TABLEPREFIXassign_keywords_to_document` (
                 `akd_idx` int(11) NOT NULL auto_increment,
                 `akd_guid` varchar(255) default NULL,
@@ -196,7 +190,6 @@ class InstallerController extends DefaultController
         }
 
         if (!$db->checkTableExists("TABLEPREFIXdocument_indices")) {
-
             $table_sql = "CREATE TABLE `TABLEPREFIXdocument_indices` (
                 `di_idx` int(11) NOT NULL auto_increment,
                 `di_guid` varchar(255) default NULL,
@@ -216,7 +209,6 @@ class InstallerController extends DefaultController
         }
 
         if (!$db->checkTableExists("TABLEPREFIXdocument_properties")) {
-
             $table_sql = "CREATE TABLE `TABLEPREFIXdocument_properties` (
                 `dp_idx` int(11) NOT NULL auto_increment,
                 `dp_guid` varchar(255) default NULL,
@@ -225,7 +217,7 @@ class InstallerController extends DefaultController
                 `dp_property` varchar(255) default NULL,
                 `dp_value` varchar(255) default NULL,
                 PRIMARY KEY  (`dp_idx`),
-                UNIQUE KEY `document_properties` (`dp_document_idx`,`dp_document_guid`)
+                KEY `document_properties` (`dp_document_idx`,`dp_document_guid`)
                 )
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
@@ -235,7 +227,6 @@ class InstallerController extends DefaultController
             }
         }
         if (!$db->checkTableExists("TABLEPREFIXmessage_bus")) {
-
             $table_sql = "CREATE TABLE `TABLEPREFIXmessage_bus` (
                 `msg_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `msg_guid` varchar(255) DEFAULT NULL,
@@ -256,7 +247,6 @@ class InstallerController extends DefaultController
         }
 
         if (!$db->checkTableExists("TABLEPREFIXjobs")) {
-
             $table_sql = "CREATE TABLE `TABLEPREFIXjobs` (
                 `job_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `job_guid` varchar(255) DEFAULT NULL,
@@ -302,7 +292,6 @@ class InstallerController extends DefaultController
         }
 
         for ($i = $db_version+1; $i <= $software_version; $i++) {
-
             $method_name = "upgradeDatabaseSchemaV{$i}";
 
             if (!method_exists($this, $method_name)) {
@@ -501,7 +490,6 @@ class InstallerController extends DefaultController
         }
 
         while ($row = $result->fetch()) {
-
             if (!$guid = $mtlda->createGuid()) {
                 $mtlda->raiseError('Mtlda::createGuid() returned no valid GUID!');
                 return false;
@@ -557,8 +545,7 @@ class InstallerController extends DefaultController
     {
         global $mtlda, $db;
 
-        if (
-            $db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_guid') &&
+        if ($db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_guid') &&
             $db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_body')
         ) {
             $db->setDatabaseSchemaVersion(11);
@@ -621,8 +608,7 @@ class InstallerController extends DefaultController
     {
         global $mtlda, $db;
 
-        if (
-            $db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_submit_time') &&
+        if ($db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_submit_time') &&
             $db->checkColumnExists('TABLEPREFIXmessage_bus', 'msg_in_processing')
         ) {
             $db->setDatabaseSchemaVersion(13);
@@ -775,6 +761,28 @@ class InstallerController extends DefaultController
         }
 
         $db->setDatabaseSchemaVersion(20);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV21()
+    {
+        global $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXdocument_properties
+            DROP KEY
+                document_properties,
+            ADD KEY
+                `document_properties` (`dp_document_idx`,`dp_document_guid`)"
+        );
+
+        if ($result === false) {
+            $mtlda->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(21);
         return true;
     }
 }
