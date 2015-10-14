@@ -23,7 +23,7 @@ use PDO;
 
 class DatabaseController extends DefaultController
 {
-    const SCHEMA_VERSION = 20;
+    const SCHEMA_VERSION = 21;
 
     private $db;
     private $db_cfg;
@@ -37,21 +37,25 @@ class DatabaseController extends DefaultController
 
         if (!($dbconfig = $config->getDatabaseConfiguration())) {
             $mtlda->raiseError(
-                "Error - database configuration is missing or incomplete"
+                "Database configuration is missing or incomplete"
                 ." - please check configuration!",
                 true
             );
+            return false;
         }
 
         if (!isset(
-                    $dbconfig['type'],
-                    $dbconfig['host'],
-                    $dbconfig['db_name'],
-                    $dbconfig['db_user'],
-                    $dbconfig['db_pass'])
-           ) {
-            print "Error - incomplete database configuration - please check configuration!";
-            exit(1);
+            $dbconfig['type'],
+            $dbconfig['host'],
+            $dbconfig['db_name'],
+            $dbconfig['db_user'],
+            $dbconfig['db_pass']
+        )) {
+            $mtlda->raiseErrror(
+                "Incomplete database configuration - please check configuration!",
+                true
+            );
+            return false;
         }
 
         $this->db_cfg = $dbconfig;
@@ -78,7 +82,7 @@ class DatabaseController extends DefaultController
                 'portability' => 'DB_PORTABILITY_ALL'
                 );
 
-        switch($this->db_cfg['type']) {
+        switch ($this->db_cfg['type']) {
             default:
             case 'mysql':
                 $dsn = "mysql:dbname=". $this->db_cfg['db_name'] .";host=". $this->db_cfg['host'];
@@ -248,11 +252,10 @@ class DatabaseController extends DefaultController
 
     public function hasTablePrefix()
     {
-        if (
-                isset($this->db_cfg['table_prefix']) &&
-                !empty($this->db_cfg['table_prefix']) &&
-                is_string($this->db_cfg['table_prefix'])
-           ) {
+        if (isset($this->db_cfg['table_prefix']) &&
+            !empty($this->db_cfg['table_prefix']) &&
+            is_string($this->db_cfg['table_prefix'])
+        ) {
             return true;
         }
 
@@ -351,15 +354,14 @@ class DatabaseController extends DefaultController
                 meta_key LIKE 'schema_version'"
         );
 
-        if (
-                !isset($result->meta_value) ||
-                empty($result->meta_value) ||
-                !is_numeric($result->meta_value)
-           ) {
-            return 0;
+        if (isset($result->meta_value) &&
+            !empty($result->meta_value) &&
+            is_numeric($result->meta_value)
+        ) {
+            return $result->meta_value;
         }
 
-        return $result->meta_value;
+        return false;
     }
 
     public function setDatabaseSchemaVersion($version = null)
@@ -407,6 +409,16 @@ class DatabaseController extends DefaultController
             return false;
         }
 
+        if (($this->query("TRUNCATE TABLE TABLEPREFIXjobs")) === false) {
+            $mtlda->raiseError("failed to truncate 'jobs' table!");
+            return false;
+        }
+
+        if (($this->query("TRUNCATE TABLE TABLEPREFIXmessage_bus")) === false) {
+            $mtlda->raiseError("failed to truncate 'message_bus' table!");
+            return false;
+        }
+
         if (($this->query("TRUNCATE TABLE TABLEPREFIXaudit")) === false) {
             $mtlda->raiseError("failed to truncate 'audit' table!");
             return false;
@@ -429,6 +441,16 @@ class DatabaseController extends DefaultController
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXassign_keywords_to_document")) === false) {
             $mtlda->raiseError("failed to truncate 'assign_keywords_to_document' table!");
+            return false;
+        }
+
+        if (($this->query("TRUNCATE TABLE TABLEPREFIXdocument_indices")) === false) {
+            $mtlda->raiseError("failed to truncate 'document_indices' table!");
+            return false;
+        }
+
+        if (($this->query("TRUNCATE TABLE TABLEPREFIXdocument_properties")) === false) {
+            $mtlda->raiseError("failed to truncate 'document_properties' table!");
             return false;
         }
 
@@ -499,8 +521,7 @@ class DatabaseController extends DefaultController
             return false;
         }
 
-        if (
-            !isset($table_name) || empty($table_name) ||
+        if (!isset($table_name) || empty($table_name) ||
             !isset($column) || empty($column)
         ) {
             $mtlda->raiseError(__METHOD__ .'(), incomplete parameters!');
@@ -513,7 +534,6 @@ class DatabaseController extends DefaultController
         }
 
         while ($row = $result->fetch()) {
-
             if (in_array($column, $row)) {
                 return true;
             }
