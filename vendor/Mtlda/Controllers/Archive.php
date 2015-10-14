@@ -60,8 +60,7 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (
-            !isset($queue_item->fields) ||
+        if (!isset($queue_item->fields) ||
             empty($queue_item->fields) ||
             !is_array($queue_item->fields)
         ) {
@@ -71,7 +70,6 @@ class ArchiveController extends DefaultController
 
         // copy fields from QueueItemModel to DocumentModel
         foreach (array_keys($queue_item->fields) as $queue_field) {
-
             // fields we skip
             if (in_array($queue_field, array("queue_idx", "queue_state"))) {
                 continue;
@@ -138,7 +136,6 @@ class ArchiveController extends DefaultController
         }
 
         if ($config->isEmbeddingMtldaIcon()) {
-
             if (!$this->embedMtldaIcon($document)) {
                 $mtlda->raiseError("embedMtldaIcon() returned false!");
                 return false;
@@ -148,6 +145,15 @@ class ArchiveController extends DefaultController
                 return false;
             }
         }
+
+        $mbus->suppressOutboundMessaging(true);
+        if ($config->isPdfIndexingEnabled()) {
+            if (!$this->indexDocument($document)) {
+                $mtlda->raiseError('indexDocument() returned false!');
+                return false;
+            }
+        }
+        $mbus->suppressOutboundMessaging(false);
 
         // if no more actions are necessary, we are done
         if (!$config->isPdfSigningEnabled()) {
@@ -398,7 +404,6 @@ class ArchiveController extends DefaultController
         }
 
         for ($page_no = 1; $page_no <= $page_count; $page_no++) {
-
             // import a page
             $templateId = $pdf->importPage($page_no);
             // get the size of the imported page
@@ -430,7 +435,7 @@ class ArchiveController extends DefaultController
             }
 
             $pdf->Image(
-                MTLDA_BASE.'/public/resources/images/Mtlda_signed.png',
+                MTLDA_BASE.'/public/resources/images/MTLDA_signed.png',
                 $signing_icon_position['x-pos'],
                 $signing_icon_position['y-pos'],
                 16 /* width */,
@@ -593,7 +598,6 @@ class ArchiveController extends DefaultController
         }
 
         for ($page_no = 1; $page_no <= $page_count; $page_no++) {
-
             // import a page
             $templateId = $pdf->importPage($page_no);
             // get the size of the imported page
@@ -681,5 +685,35 @@ class ArchiveController extends DefaultController
 
         return true;
     }
+
+    public function indexDocument(&$document)
+    {
+        global $mtlda, $config, $audit, $mbus;
+
+        if (!$config->isPdfIndexingEnabled()) {
+            $mtlda->raiseError("ConfigController::isPdfIndexingEnabled() returns false!");
+            return false;
+        }
+
+        try {
+            $parser = new Controllers\PdfIndexerController;
+        } catch (Exception $e) {
+            $mtlda->raiseError(__METHOD__ .'(), failed to load PdfIndexerController');
+            return false;
+        }
+
+        if (!$parser) {
+            $mtlda->raiseError(__METHOD__ .'(), \$parser is invalid!');
+            return false;
+        }
+
+        if (!$parser->scan($document)) {
+            $mtlda->raiseError(get_class($parser) .'::scan() returned false!');
+            return false;
+        }
+
+        return true;
+    }
 }
+
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
