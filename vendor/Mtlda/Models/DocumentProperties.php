@@ -101,6 +101,22 @@ class DocumentPropertiesModel extends DefaultModel
         $db->freeStatement($sth);
         return true;
     }
+
+    public function delete()
+    {
+        global $mtlda;
+
+        foreach ($this->items as $item) {
+            if ($item->delete()) {
+                continue;
+            }
+
+            $mtlda->raiseError(get_class($item) .'::delete() returned false!');
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
