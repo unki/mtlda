@@ -126,6 +126,10 @@ class PdfIndexerController extends DefaultController
                     $value = implode(', ', $value);
                 }
 
+                if (empty($property) || empty($value)) {
+                    continue;
+                }
+
                 try {
                     $pmodel = new Models\DocumentPropertyModel;
                 } catch (\Exception $e) {
