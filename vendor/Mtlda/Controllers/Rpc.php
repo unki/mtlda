@@ -37,7 +37,7 @@ class RpcController extends DefaultController
             return false;
         }
 
-        switch($query->action) {
+        switch ($query->action) {
             case 'delete':
                 $this->rpcDeleteObject();
                 break;
@@ -115,9 +115,7 @@ class RpcController extends DefaultController
 
         /* for flushing queue */
         if (preg_match('/(\w+)-flush$/', $id, $parts)) {
-
-            if (
-                !isset($parts) ||
+            if (!isset($parts) ||
                 !is_array($parts) ||
                 !isset($parts[1]) ||
                 $parts[1] != "queueitem"
@@ -387,7 +385,6 @@ class RpcController extends DefaultController
         $input_fields = array('key', 'id', 'value', 'model');
 
         foreach ($input_fields as $field) {
-
             if (!isset($_POST[$field])) {
                 $mtlda->raiseError(__METHOD__ ."'{$field}' isn't set in POST request!");
                 return false;
@@ -511,12 +508,16 @@ class RpcController extends DefaultController
         /* if no values are provided this usually means
            all keywords have been removed from this document.
         */
-        if (
-            !isset($_POST['values']) ||
-            empty($_POST['values']) ||
-            !is_array($_POST['values'])
+        if (!isset($_POST['values']) ||
+            empty($_POST['values'])
         ) {
             $_POST['values'] = array();
+        }
+
+        if (!is_array($_POST['values']) && preg_match('/^([0-9]+)$/', $_POST['values'])) {
+            $_POST['values'] = array($_POST['values']);
+        } elseif (!is_array($_POST['values']) && preg_match('/^([0-9]+),([0-9]+)/', $_POST['values'])) {
+            $_POST['values'] = explode(',', $_POST['values']);
         }
 
         $id = $_POST['id'];
@@ -561,8 +562,7 @@ class RpcController extends DefaultController
         /* if no values are provided this usually means
            all keywords have been removed from this document.
         */
-        if (
-            !isset($_POST['description']) ||
+        if (!isset($_POST['description']) ||
             empty($_POST['description']) ||
             !is_string($_POST['description'])
         ) {
@@ -596,7 +596,6 @@ class RpcController extends DefaultController
         $input_fields = array('id', 'guid');
 
         foreach ($input_fields as $field) {
-
             if (!isset($_POST[$field])) {
                 $mtlda->raiseError(__METHOD__ ."'{$field}' isn't set in POST request!");
                 return false;
@@ -649,8 +648,7 @@ class RpcController extends DefaultController
     {
         global $mtlda, $mbus;
 
-        if (
-            !isset($_POST['messages']) ||
+        if (!isset($_POST['messages']) ||
             empty($_POST['messages']) ||
             !is_string($_POST['messages'])
         ) {
