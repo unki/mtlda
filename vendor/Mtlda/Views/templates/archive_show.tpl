@@ -80,11 +80,17 @@
      <form id="document_keywordѕ" class="ui form keywords" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
       <div class="field">
        <label>Keywords:</label>
-       <select class="ui fluid search labeled dropdown" name="assigned_keywords" multiple="">
+       <div class="ui fluid search dropdown multiple selection" id="keyword_dropdown">
+        <input type="hidden" name="assigned_keywords" value="{$assigned_keywords}">
+        <i class="dropdown icon"></i>
+        <input class="search">
+        <div class="default text"></div>
+        <div class="menu">
 {foreach $keywords as $keyword}
-        <option value="{$keyword->keyword_idx}" {if in_array($keyword->keyword_idx, $assigned_keywords)} selected="selected"{/if}>{$keyword->keyword_name}</option>
+         <div class="item" data-value="{$keyword->keyword_idx}">{$keyword->keyword_name}</div>
 {/foreach}
-       </select>
+        </div>
+       </div>
       </div>
       <button class="circular small ui icon save button" type="submit" data-target="document_keywords" data-type="selected_keywords" data-id="{$item->document_idx}">
        <i class="save icon"></i>
@@ -129,7 +135,7 @@
 
 $(document).ready(function() {
 
-   $('.ui.fluid.search.dropdown').dropdown({
+   $('#keyword_dropdown').dropdown({
       allowAdditions: false,
       apiSettings: {
          method : 'POST',
@@ -225,11 +231,8 @@ $(document).ready(function() {
          window.alert('Failed to fetch data-guid!');
          return false;
       }
-      var selected = $('.ui.form.keywords select[name=assigned_keywords] option').filter(':selected');
-      var values = [];
-      selected.each(function(index, element) {
-         values.push(element.value);
-      });
+      var input = $('.ui.form.keywords input[name=assigned_keywords]');
+      var values = input.val();
 
       $.ajax({
            type: "POST",
