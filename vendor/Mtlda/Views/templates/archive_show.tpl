@@ -84,10 +84,10 @@
         <input type="hidden" name="assigned_keywords" value="{$assigned_keywords}">
         <i class="dropdown icon"></i>
         <input class="search">
-        <div class="default text"></div>
+        <div class="default text">No keywords assigned.</div>
         <div class="menu">
 {foreach $keywords as $keyword}
-         <div class="item" data-value="{$keyword->keyword_idx}">{$keyword->keyword_name}</div>
+         <div class="item" data-value="{$keyword->keyword_idx}" data-text="{$keyword->keyword_name}">{$keyword->keyword_name}</div>
 {/foreach}
         </div>
        </div>
