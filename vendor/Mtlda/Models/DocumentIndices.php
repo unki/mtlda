@@ -70,10 +70,31 @@ class DocumentIndicesModel extends DefaultModel
 
         while ($row = $sth->fetch()) {
             array_push($this->avail_items, $row->$idx_field);
-            $this->items[$row->$idx_field] = $row;
+            try {
+                $this->items[$row->$idx_field] = new DocumentIndexModel($row->$idx_field);
+            } catch (\Exception $e) {
+                $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentProperty!');
+                return false;
+            }
         }
 
         $db->freeStatement($sth);
+        return true;
+    }
+
+    public function delete()
+    {
+        global $mtlda;
+
+        foreach ($this->items as $item) {
+            if ($item->delete()) {
+                continue;
+            }
+
+            $mtlda->raiseError(get_class($item) .'::delete() returned false!');
+            return false;
+        }
+
         return true;
     }
 }
