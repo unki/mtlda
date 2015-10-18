@@ -19,7 +19,7 @@
 
 namespace Mtlda\Controllers;
 
-class InstallerController extends DefaultController
+class InstallerController extends \Thallium\Controllers\InstallerController
 {
     private $schema_version_before;
 
@@ -68,7 +68,7 @@ class InstallerController extends DefaultController
         return true;
     }
 
-    private function createDatabaseTables()
+    protected function createDatabaseTables()
     {
         global $mtlda, $db;
 
@@ -97,24 +97,6 @@ class InstallerController extends DefaultController
             }
         }
 
-        if (!$db->checkTableExists("TABLEPREFIXaudit")) {
-            $table_sql = "CREATE TABLE `TABLEPREFIXaudit` (
-                `audit_idx` int(11) NOT NULL AUTO_INCREMENT,
-                `audit_guid` varchar(255) DEFAULT NULL,
-                `audit_type` varchar(255) DEFAULT NULL,
-                `audit_scene` varchar(255) DEFAULT NULL,
-                `audit_message` text,
-                `audit_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-                PRIMARY KEY (`audit_idx`)
-                    )
-                    ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-
-            if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'audit' table");
-                return false;
-            }
-        }
-
         if (!$db->checkTableExists("TABLEPREFIXqueue")) {
             $table_sql = "CREATE TABLE `TABLEPREFIXqueue` (
                 `queue_idx` int(11) NOT NULL AUTO_INCREMENT,
@@ -131,27 +113,6 @@ class InstallerController extends DefaultController
 
             if ($db->query($table_sql) === false) {
                 $mtlda->raiseError("Failed to create 'queue' table");
-                return false;
-            }
-        }
-
-        if (!$db->checkTableExists("TABLEPREFIXmeta")) {
-            $table_sql = "CREATE TABLE `TABLEPREFIXmeta` (
-                `meta_idx` int(11) NOT NULL auto_increment,
-                `meta_key` varchar(255) default NULL,
-                `meta_value` varchar(255) default NULL,
-                PRIMARY KEY  (`meta_idx`),
-                UNIQUE KEY `meta_key` (`meta_key`)
-                    )
-                    ENGINE=MyISAM DEFAULT CHARSET=utf8;";
-
-            if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'meta' table");
-                return false;
-            }
-
-            if (!$db->setDatabaseSchemaVersion()) {
-                $mtlda->raiseError("Failed to set schema verison!");
                 return false;
             }
         }
@@ -226,90 +187,11 @@ class InstallerController extends DefaultController
                 return false;
             }
         }
-        if (!$db->checkTableExists("TABLEPREFIXmessage_bus")) {
-            $table_sql = "CREATE TABLE `TABLEPREFIXmessage_bus` (
-                `msg_idx` int(11) NOT NULL AUTO_INCREMENT,
-                `msg_guid` varchar(255) DEFAULT NULL,
-                `msg_session_id` varchar(255) NOT NULL,
-                `msg_submit_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-                `msg_scope` varchar(255) DEFAULT NULL,
-                `msg_command` varchar(255) NOT NULL,
-                `msg_body` varchar(255) NOT NULL,
-                `msg_value` varchar(255) DEFAULT NULL,
-                `msg_in_processing` varchar(1) DEFAULT NULL,
-                PRIMARY KEY (`msg_idx`)
-                ) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8";
 
-            if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'message_bus' table");
-                return false;
-            }
-        }
-
-        if (!$db->checkTableExists("TABLEPREFIXjobs")) {
-            $table_sql = "CREATE TABLE `TABLEPREFIXjobs` (
-                `job_idx` int(11) NOT NULL AUTO_INCREMENT,
-                `job_guid` varchar(255) DEFAULT NULL,
-                `job_session_id` varchar(255) NOT NULL,
-                `job_request_guid` varchar(255) DEFAULT NULL,
-                `job_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-                `job_in_processing` varchar(1) DEFAULT NULL,
-                PRIMARY KEY (`job_idx`)
-                ) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8";
-
-            if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'jobs' table");
-                return false;
-            }
-        }
-
-        if (!$db->getDatabaseSchemaVersion()) {
-            if (!$db->setDatabaseSchemaVersion()) {
-                $mtlda->raiseError("DatabaseController:setDatabaseSchemaVersion() returned false!");
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    private function upgradeDatabaseSchema()
-    {
-        global $mtlda, $db;
-
-        if (!$software_version = $db->getSoftwareSchemaVersion()) {
-            $mtlda->raiseError(get_class($db) .'::getSoftwareSchemaVersion() returned false!');
+        if (!parent::createDatabaseTables()) {
+            $this->raiseError(get_class(parent) .'::createDatabaseTables() returned false!');
             return false;
         }
-
-        if (($db_version = $db->getDatabaseSchemaVersion()) === false) {
-            $mtlda->raiseError(get_class($db) .'::getDatabaseSchemaVersion() returned false!');
-            return false;
-        }
-
-        if ($db_version == $software_version) {
-            return true;
-        }
-
-        for ($i = $db_version+1; $i <= $software_version; $i++) {
-            $method_name = "upgradeDatabaseSchemaV{$i}";
-
-            if (!method_exists($this, $method_name)) {
-                continue;
-            }
-
-            if (!$this->$method_name()) {
-                $mtlda->raiseError(__CLASS__ ."::{$method_name} returned false!");
-                return false;
-            }
-        }
-
-        /* final action in this function
-        // disabled for now as of 20150923
-        if (!$db->setDatabaseSchemaVersion()) {
-            $mtlda->raiseError("DatabaseController:setDatabaseSchemaVersion() returned false!");
-            return false;
-        }*/
 
         return true;
     }
