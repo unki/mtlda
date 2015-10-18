@@ -236,8 +236,7 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        if (
-            !isset($this->queue_file_name) ||
+        if (!isset($this->queue_file_name) ||
             empty($this->queue_file_name)
         ) {
             $mtlda->raiseError("\$queue_file_name must not be empty!");
@@ -249,8 +248,7 @@ class QueueItemModel extends DefaultModel
             return true;
         }
 
-        if (
-            !isset($this->init_values['queue_file_name']) ||
+        if (!isset($this->init_values['queue_file_name']) ||
             empty($this->init_values['queue_file_name'])
         ) {
             return true;
@@ -369,7 +367,6 @@ class QueueItemModel extends DefaultModel
         }
 
         for ($i = 0; $i < strlen($guid); $i+=2) {
-
             $guid_part = substr($guid, $i, 2);
 
             if ($guid_part === false) {

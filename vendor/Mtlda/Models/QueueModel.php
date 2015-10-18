@@ -19,12 +19,12 @@
 
 namespace Mtlda\Models ;
 
-class ArchiveModel extends DefaultModel
+class QueueModel extends DefaultModel
 {
-    public $table_name = 'archive';
-    public $column_name = 'document';
+    public $table_name = 'queue';
+    public $column_name = 'queue';
     public $fields = array(
-            'document_idx' => 'integer',
+            'queue_idx' => 'integer',
             );
     public $avail_items = array();
     public $items = array();
@@ -34,8 +34,9 @@ class ArchiveModel extends DefaultModel
         global $mtlda;
 
         parent::__construct(null);
+
         if (!$this->load($sort_order)) {
-            $mtlda->raiseError(__METHOD__ .'(), load() returned false!', true);
+            $mtlda->raiseError(__CLASS__ .', load() returned false!', true);
             return false;
         }
 
@@ -47,14 +48,12 @@ class ArchiveModel extends DefaultModel
         global $mtlda, $db;
 
         if (isset($sort_order) && !empty($sort_order)) {
-
             if (!is_array($sort_order)) {
                 $mtlda->raiseError(__METHOD__ .'(), \$sort_order is not an array!');
                 return false;
             }
 
-            if (
-                !isset($sort_order['by']) ||
+            if (!isset($sort_order['by']) ||
                 empty($sort_order['by']) ||
                 !is_string($sort_order['by']) ||
                 !isset($sort_order['order']) ||
@@ -77,16 +76,12 @@ class ArchiveModel extends DefaultModel
         }
 
         $idx_field = $this->column_name ."_idx";
-        $guid_field = $this->column_name ."_guid";
-        $latest_version_field = $this->column_name ."_latest_version";
 
         $sql =
             "SELECT
                 *
             FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-                document_version LIKE 1";
+                TABLEPREFIX{$this->table_name}";
 
         if (!empty($sort_order)) {
             $sql.=
@@ -107,14 +102,6 @@ class ArchiveModel extends DefaultModel
         }
 
         while ($row = $sth->fetch()) {
-            $latest_document = $this->getLatestDocumentVersion(
-                $row->$idx_field,
-                $row->$guid_field
-            );
-
-            if (!empty($latest_document) && is_array($latest_document)) {
-                $row->$latest_version_field = $latest_document;
-            }
             array_push($this->avail_items, $row->$idx_field);
             $this->items[$row->$idx_field] = $row;
         }
@@ -123,35 +110,60 @@ class ArchiveModel extends DefaultModel
         return true;
     }
 
-    private function getLatestDocumentVersion($idx, $guid)
+    public function flush()
     {
-        global $mtlda, $db;
+        global $mtlda, $db, $audit;
 
+        // delete each QueueItemModel
+        foreach ($this->items as $item) {
+            if (!isset($item->queue_idx) ||
+                empty($item->queue_idx) ||
+                !isset($item->queue_guid) ||
+                empty($item->queue_guid)
+            ) {
+                $mtlda->raiseError("invalid \$item found!");
+                return false;
+            }
+
+            $queueitem = $mtlda->loadModel("queueitem", $item->queue_idx, $item->queue_guid);
+
+            if (!$queueitem) {
+                $mtlda->raiseError(
+                    "Error loading QueueItemModel idx:{$item->queue_idx} guid:{$item->queue_guid}!"
+                );
+                return false;
+            }
+
+            if (!$queueitem->delete()) {
+                $mtlda->raiseError(
+                    "Error deleting QueueItemModel idx:{$item->queue_idx} guid:{$item->queue_guid}!"
+                );
+                return false;
+            }
+        }
+
+        // finally truncate the table
         $result = $db->query(
-            "SELECT
-                document_idx,
-                document_guid
-            FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-                document_derivation LIKE '{$idx}'
-            AND
-                document_derivation_guid LIKE '{$guid}'
-            ORDER BY
-                document_version DESC
-            LIMIT 0,1"
+            "TRUNCATE TABLE TABLEPREFIX{$this->table_name}"
         );
 
-        if (!$result) {
-            $this->mtlda->raiseError("Failed to retrive latest document version");
+        if ($result === false) {
+            $mtlda->raiseError("failed to truncate '{$this->table_name}' table!");
             return false;
         }
 
-        if (!$row = $result->fetch()) {
-            return true;
+        try {
+            $audit->log(
+                "flushing",
+                "flushed",
+                "queue"
+            );
+        } catch (Exception $e) {
+            $mtlda->raiseError("AuditController::log() returned false!");
+            return false;
         }
 
-        return array('idx' => $row->document_idx, 'guid' => $row->document_guid);
+        return true;
     }
 }
 
