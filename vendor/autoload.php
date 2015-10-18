@@ -21,6 +21,10 @@ function autoload($class)
 {
     $prefixes = array(
         'Thallium',
+        'Mtlda',
+        'fpdi',
+        'tcpdf',
+        'Smalot'
     );
 
     $class = str_replace("\\", "/", $class);
