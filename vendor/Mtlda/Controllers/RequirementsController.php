@@ -19,53 +19,15 @@
 
 namespace Mtlda\Controllers;
 
-use PDO;
-
-class RequirementsController extends DefaultController
+class RequirementsController extends \Thallium\Controllers\RequirementsController
 {
-    public function __construct()
-    {
-        if (!constant('MTLDA_BASE')) {
-            print "Erorr - MTLDA_BASE is not defined!";
-            exit(1);
-        }
-    }
-
-    public function check()
-    {
-        $missing = false;
-
-        if (!$this->checkPhp()) {
-            $missing = true;
-        }
-
-        if (!$this->checkDatabaseSupport()) {
-            $missing = true;
-        }
-
-        if (!$this->checkExternalLibraries()) {
-            $missing = true;
-        }
-
-        if (!$this->checkDirectoryPermissions()) {
-            $missing = true;
-        }
-
-        if ($missing) {
-            return false;
-        }
-
-        return true;
-    }
-
     public function checkPhp()
     {
         global $mtlda, $config;
 
         $missing = false;
 
-        if (!(function_exists("microtime"))) {
-            $mtlda->raiseError("microtime() function does not exist!");
+        if (!parent::checkPhp()) {
             $missing = true;
         }
 
@@ -87,7 +49,6 @@ class RequirementsController extends DefaultController
         }
 
         if ($config->isMailImportEnabled()) {
-
             if (!function_exists("imap_open")) {
                 $mtlda->raiseError("IMAP extension is missing (also provides POP3 support)!");
                 $missing = true;
@@ -158,6 +119,10 @@ class RequirementsController extends DefaultController
 
         ini_set('track_errors', 1);
 
+        if (!parent::checkExternalLibraries()) {
+            $missing = true;
+        }
+
         if ($config->isPdfSigningEnabled()) {
             @include_once MTLDA_BASE.'/vendor/tcpdf/tcpdf.php';
             if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
@@ -186,19 +151,6 @@ class RequirementsController extends DefaultController
                 $missing = true;
                 unset($php_errormsg);
             }
-        }
-
-        /*@include_once 'Pager.php';
-        if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
-            print "PEAR Pager package is missing<br />\n";
-            $missing = true;
-            unset($php_errormsg);
-        }*/
-        @include_once 'smarty3/Smarty.class.php';
-        if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
-            $mtlda->write("Smarty3 template engine is missing!", LOG_ERR);
-            $missing = true;
-            unset($php_errormsg);
         }
 
         ini_restore('track_errors');
@@ -231,26 +183,25 @@ class RequirementsController extends DefaultController
         }
 
         $directories = array(
-            $this::CONFIG_DIRECTORY => 'r',
-            $this::CACHE_DIRECTORY => 'w',
-            $this::ARCHIVE_DIRECTORY => 'w',
-            $this::INCOMING_DIRECTORY => 'w',
-            $this::WORKING_DIRECTORY => 'w',
-            $this::CACHE_DIRECTORY.'/image_cache' => 'w',
+            self::CONFIG_DIRECTORY => 'r',
+            self::CACHE_DIRECTORY => 'w',
+            self::ARCHIVE_DIRECTORY => 'w',
+            self::INCOMING_DIRECTORY => 'w',
+            self::WORKING_DIRECTORY => 'w',
+            self::CACHE_DIRECTORY.'/image_cache' => 'w',
         );
 
-        if (!file_exists($this::DATA_DIRECTORY)) {
-            $mtlda->raiseError($this::DATA_DIRECTORY ." does not exist!");
+        if (!file_exists(self::DATA_DIRECTORY)) {
+            $mtlda->raiseError(self::DATA_DIRECTORY ." does not exist!");
             return false;
         }
 
-        if (!is_writeable($this::DATA_DIRECTORY)) {
-            $mtlda->raiseError($this::DATA_DIRECTORY ." is not writeable for {$uid}:{$gid}!");
+        if (!is_writeable(self::DATA_DIRECTORY)) {
+            $mtlda->raiseError(self::DATA_DIRECTORY ." is not writeable for {$uid}:{$gid}!");
             return false;
         }
 
         foreach ($directories as $dir => $perm) {
-
             if (!file_exists($dir) && !mkdir($dir, 0700)) {
                 $mtlda->write("failed to create {$dir} directory!", LOG_ERR);
                 $missing = true;
@@ -277,6 +228,5 @@ class RequirementsController extends DefaultController
         return true;
     }
 }
-
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
