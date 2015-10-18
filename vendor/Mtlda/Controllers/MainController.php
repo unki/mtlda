@@ -23,11 +23,9 @@ use Mtlda\Views;
 use Mtlda\Models;
 use Mtlda\Controllers;
 
-class Mtlda extends DefaultController
+class MainController extends \Thallium\Controller\MainController
 {
     const VERSION = "0.3";
-
-    private $verbosity_level = LOG_WARNING;
 
     public function __construct($mode = null)
     {
@@ -64,7 +62,6 @@ class Mtlda extends DefaultController
         }
 
         if (isset($mode) and $mode == "queue_only") {
-
             $this->loadController("Import", "import");
             global $import;
 
@@ -76,7 +73,6 @@ class Mtlda extends DefaultController
             unset($import);
 
         } elseif (isset($mode) and $mode == "install") {
-
             $this->loadController("Installer", "installer");
             global $installer;
 
@@ -113,7 +109,6 @@ class Mtlda extends DefaultController
 
 
         if ($router->isRpcCall()) {
-
             if (!$this->rpcHandler()) {
                 $this->raiseError("Mtlda::rpcHandler() returned false!");
                 return false;
@@ -121,7 +116,6 @@ class Mtlda extends DefaultController
             return true;
 
         } elseif ($router->isImageCall()) {
-
             if (!$this->imageHandler()) {
                 $this->raiseError("Mtlda::imageHandler() returned false!");
                 return false;
@@ -129,7 +123,6 @@ class Mtlda extends DefaultController
             return true;
 
         } elseif ($router->isDocumentCall()) {
-
             if (!$this->documentHandler()) {
                 $this->raiseError("Mtlda::documentHandler() returned false!");
                 return false;
@@ -137,7 +130,6 @@ class Mtlda extends DefaultController
             return true;
 
         } elseif ($router->isUploadCall()) {
-
             if (!$this->uploadHandler()) {
                 $this->raiseError("Mtlda::uploadHandler() returned false!");
                 return false;
@@ -145,7 +137,6 @@ class Mtlda extends DefaultController
             return true;
 
         } elseif ($page_name = $views->getViewName($query->view)) {
-
             if (!$page = $views->load($page_name)) {
                 $this->raiseError("ViewController:load() returned false!");
                 return false;
@@ -158,94 +149,6 @@ class Mtlda extends DefaultController
         $this->raiseError("Unable to find a view for ". $query->view);
         return false;
     }
-
-    public function raiseError($string, $stop = false)
-    {
-        if (defined('DB_NOERROR')) {
-            $this->last_error = $string;
-            return;
-        }
-
-        print "<br /><br />". $string ."<br /><br />\n";
-
-        try {
-            throw new ExceptionController;
-        } catch (ExceptionController $e) {
-            print "<br /><br />\n";
-            $this->write($e, LOG_WARNING);
-        }
-
-        if ($stop) {
-            die;
-        }
-
-        $this->last_error = $string;
-
-    } // raiseError()
-
-    public function write($logtext, $loglevel = LOG_INFO, $override_output = null, $no_newline = null)
-    {
-        if (isset($this->config->logging)) {
-            $logtype = $this->config->logging;
-        } else {
-            $logtype = 'display';
-        }
-
-        if (isset($override_output) || !empty($override_output)) {
-            $logtype = $override_output;
-        }
-
-        if ($loglevel > $this->getVerbosity()) {
-            return true;
-        }
-
-        switch($logtype) {
-            default:
-            case 'display':
-                print $logtext;
-                if (!$this->isCmdline()) {
-                    print "<br />";
-                } elseif (!isset($no_newline)) {
-                    print "\n";
-                }
-                break;
-            case 'errorlog':
-                error_log($logtext);
-                break;
-            case 'logfile':
-                error_log($logtext, 3, $this->config->log_file);
-                break;
-        }
-
-        return true;
-
-    } // write()
-
-    public function isCmdline()
-    {
-        if (php_sapi_name() == 'cli') {
-            return true;
-        }
-
-        return false;
-
-    } // isCmdline()
-
-    public function setVerbosity($level)
-    {
-        /*if (!in_array($level, array(0 => LOG_INFO, 1 => LOG_WARNING, 2 => LOG_DEBUG))) {
-            $this->raiseError("Unknown verbosity level ". $level);
-        }
-
-        $this->verbosity_level = $level;*/
-
-    } // setVerbosity()
-
-    public function getVerbosity()
-    {
-        return $this->verbosity_level;
-
-    } // getVerbosity()
 
     private function rpcHandler()
     {
@@ -400,7 +303,7 @@ class Mtlda extends DefaultController
     public function loadModel($object_name, $id = null, $guid = null)
     {
         try {
-            switch($object_name) {
+            switch ($object_name) {
                 case 'queue':
                     $obj = new Models\QueueModel;
                     break;
@@ -550,7 +453,6 @@ class Mtlda extends DefaultController
         }
 
         foreach ($messages as $message) {
-
             $message->setProcessingFlag();
 
             if (!$message->save()) {
@@ -576,8 +478,7 @@ class Mtlda extends DefaultController
     {
         global $jobs;
 
-        if (
-            empty($message) ||
+        if (empty($message) ||
             get_class($message) != 'Mtlda\Models\MessageModel'
         ) {
             $this->raiseError(__METHOD__ .' requires a MessageModel reference as parameter!');
@@ -669,8 +570,7 @@ class Mtlda extends DefaultController
     {
         global $mbus;
 
-        if (
-            empty($message) ||
+        if (empty($message) ||
             get_class($message) != 'Mtlda\Models\MessageModel'
         ) {
             $this->raiseError(__METHOD__ .', requires a MessageModel reference as parameter!');
@@ -712,8 +612,7 @@ class Mtlda extends DefaultController
             return false;
         }
 
-        if (
-            !isset($sign_request->id) || empty($sign_request->id) ||
+        if (!isset($sign_request->id) || empty($sign_request->id) ||
             !isset($sign_request->guid) || empty($sign_request->guid)
         ) {
             $this->raiseError(__METHOD__ .', sign-request is incomplete!');
@@ -762,8 +661,7 @@ class Mtlda extends DefaultController
     {
         global $mbus;
 
-        if (
-            empty($message) ||
+        if (empty($message) ||
             get_class($message) != 'Mtlda\Models\MessageModel'
         ) {
             $this->raiseError(__METHOD__ .', requires a MessageModel reference as parameter!');
@@ -836,8 +734,7 @@ class Mtlda extends DefaultController
     {
         global $mbus;
 
-        if (
-            empty($message) ||
+        if (empty($message) ||
             get_class($message) != 'Mtlda\Models\MessageModel'
         ) {
             $this->raiseError(__METHOD__ .', requires a MessageModel reference as parameter!');
@@ -879,8 +776,7 @@ class Mtlda extends DefaultController
             return false;
         }
 
-        if (
-            !isset($scan_request->id) || empty($scan_request->id) ||
+        if (!isset($scan_request->id) || empty($scan_request->id) ||
             !isset($scan_request->guid) || empty($scan_request->guid)
         ) {
             $this->raiseError(__METHOD__ .', scan-request is incomplete!');
