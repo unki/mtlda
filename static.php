@@ -1,10 +1,10 @@
 <?php
 
 /**
- * This file is part of MTLDA.
+ * This file is part of Thallium.
  *
- * MTLDA, a web-based document archive.
- * Copyright (C) <2015>  <Andreas Unterkircher>
+ * Thallium, a PHP-based framework for web applications.
+ * Copyright (C) <2015> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -17,7 +17,7 @@
  * GNU Affero General Public License for more details.
  */
 
-define('MTLDA_BASE', __DIR__);
+define('APP_BASE', __DIR__);
 
 define('SIGN_TOP_LEFT', 1);
 define('SIGN_TOP_CENTER', 2);
@@ -40,61 +40,6 @@ if (!constant('LOG_INFO')) {
 }
 if (!constant('LOG_DEBUG')) {
     define('LOG_DEBUG', 4);
-}
-
-function autoload($class)
-{
-    $prefixes = array(
-        'Mtlda',
-        'fpdi',
-        'tcpdf',
-        'Smalot',
-    );
-
-    $class = str_replace("\\", "/", $class);
-    $parts = explode('/', $class);
-
-    if (!is_array($parts) || empty($parts)) {
-        return;
-    }
-
-    # only take care outloading of our namespace
-    if (!in_array($parts[0], $prefixes)) {
-        return;
-    }
-
-    if ($parts[0] == 'Mtlda') {
-
-        // remove *Controller from ControllerName
-        if (preg_match('/^(.*)Controller$/', $parts[2])) {
-            $parts[2] = preg_replace('/^(.*)Controller$/', '$1', $parts[2]);
-        }
-        // remove *View from ViewName
-        if (preg_match('/^(.*)View$/', $parts[2])) {
-            $parts[2] = preg_replace('/^(.*)View$/', '$1', $parts[2]);
-        }
-        // remove *Model from ModelName
-        if (preg_match('/^(.*)Model$/', $parts[2])) {
-            $parts[2] = preg_replace('/^(.*)Model$/', '$1', $parts[2]);
-        }
-    }
-
-    $filename = MTLDA_BASE;
-    $filename.= "/vendor/";
-    if (isset($subdir) || !empty($subdir)) {
-        $filename.= $subdir;
-    }
-    $filename.= implode('/', $parts);
-    $filename.= '.php';
-
-    if (!file_exists($filename)) {
-        return;
-    }
-    if (!is_readable($filename)) {
-        return;
-    }
-
-    require_once $filename;
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
