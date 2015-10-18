@@ -22,7 +22,7 @@ namespace Mtlda\Controllers;
 use Mtlda\Models;
 use Mtlda\Controllers;
 
-class RpcController extends DefaultController
+class RpcController extends \Thallium\Controllers\RpcController
 {
     public function perform()
     {
@@ -266,39 +266,6 @@ class RpcController extends DefaultController
         return true;
     }
 
-    private function rpcGetContent()
-    {
-        global $mtlda, $views;
-
-        $valid_content = array(
-                'preview',
-        );
-
-        if (!isset($_POST['content'])) {
-            $mtlda->raiseError('No content requested!');
-            return false;
-        }
-
-        if (!in_array($_POST['content'], $valid_content)) {
-            $mtlda->raiseError('unknown content requested: '. htmlentities($_POST['content'], ENT_QUOTES));
-            return false;
-        }
-
-        switch ($_POST['content']) {
-            case 'preview':
-                $content = $views->load('PreviewView', false);
-                break;
-        }
-
-        if (isset($content) && !empty($content)) {
-            print $content;
-            return true;
-        }
-
-        $mtlda->raiseError("No content found!");
-        return false;
-    }
-
     private function rpcFindPrevNextObject()
     {
         global $mtlda, $views;
@@ -375,80 +342,6 @@ class RpcController extends DefaultController
                 break;
         }
 
-        return true;
-    }
-
-    private function rpcUpdateObject()
-    {
-        global $mtlda;
-
-        $input_fields = array('key', 'id', 'value', 'model');
-
-        foreach ($input_fields as $field) {
-            if (!isset($_POST[$field])) {
-                $mtlda->raiseError(__METHOD__ ."'{$field}' isn't set in POST request!");
-                return false;
-            }
-            if (empty($_POST[$field])) {
-                $mtlda->raiseError(__METHOD__ ."'{$field}' is empty!");
-                return false;
-            }
-            if (!is_string($_POST[$field]) && !is_numeric($_POST[$field])) {
-                $mtlda->raiseError(__METHOD__ ."'{$field}' is not from a valid type!");
-                return false;
-            }
-        }
-
-        $key = strtolower($_POST['key']);
-        $id = $_POST['id'];
-        $value = $_POST['value'];
-        $model = $_POST['model'];
-
-        if (!(preg_match("/^([a-z]+)_([a-z_]+)$/", $key, $parts))) {
-            $mtlda->raiseError(__METHOD__ ."key looks invalid!");
-            return false;
-        }
-
-        if ($id != 'new' && !is_numeric($id)) {
-            $mtlda->raiseError(__METHOD__ ."id is invalid!");
-            return false;
-        }
-
-        if (!$mtlda->isValidModel($model)) {
-            $mtlda->raiseError(__METHOD__ ."scope contains an invalid model ({$model})!");
-            return false;
-        }
-
-        if ($id == 'new') {
-            $id = null;
-        }
-
-        if (!($obj = $mtlda->loadModel($model, $id))) {
-            $mtlda->raiseError(__METHOD__ ."Failed to load {$model}!");
-            return false;
-        }
-
-        // check if model permits RPC updates
-        if (!$obj->permitsRpcUpdates()) {
-            $mtlda->raiseError(__METHOD__ ."Model {$model} denys RPC updates!");
-            return false;
-        }
-
-        if (!$obj->permitsRpcUpdateToField($key)) {
-            $mtlda->raiseError(__METHOD__ ."Model {$model} denys RPC updates to field {$key}!");
-            return false;
-        }
-
-        // sanitize input value
-        $value = htmlentities($value, ENT_QUOTES);
-        $obj->$key = stripslashes($value);
-
-        if (!$obj->save()) {
-            $mtlda->raiseError(get_class($obj) ."::save() returned false!");
-            return false;
-        }
-
-        print "ok";
         return true;
     }
 
@@ -641,45 +534,6 @@ class RpcController extends DefaultController
         }
 
         print "ok";
-        return true;
-    }
-
-    private function rpcSubmitToMessageBus()
-    {
-        global $mtlda, $mbus;
-
-        if (!isset($_POST['messages']) ||
-            empty($_POST['messages']) ||
-            !is_string($_POST['messages'])
-        ) {
-            $mtlda->raiseError(__METHOD__ .', no message submited!');
-            return false;
-        }
-
-        if (!$mbus->submit($_POST['messages'])) {
-            $mtlda->raiseError(get_class($mbus) .'::submit() returned false!');
-            return false;
-        }
-
-        print "ok";
-        return true;
-    }
-
-    private function rpcRetrieveFromMessageBus()
-    {
-        global $mtlda, $mbus;
-
-        if (!($messages = $mbus->poll())) {
-            $mtlda->raiseError(get_class($mbus) .'::poll() returned false!');
-            return false;
-        }
-
-        if (!is_string($messages)) {
-            $mtlda->raiseError(get_class($mbus) .'::poll() has not returned a string!');
-            return false;
-        }
-
-        print $messages;
         return true;
     }
 }
