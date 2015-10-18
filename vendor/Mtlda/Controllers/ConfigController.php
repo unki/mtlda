@@ -19,130 +19,8 @@
 
 namespace Mtlda\Controllers;
 
-class ConfigController extends DefaultController
+class ConfigController extends \Thallium\Controller\ConfigController
 {
-    private $config_file_local = "config.ini";
-    private $config_file_dist = "config.ini.dist";
-    private $config;
-
-    public function __construct()
-    {
-        global $mtlda;
-
-        if (!file_exists($this::CONFIG_DIRECTORY)) {
-            $mtlda->raiseError(
-                "Error - configuration directory ". $this::CONFIG_DIRECTORY ." does not exist!"
-            );
-            return false;
-        }
-
-        if (!is_executable($this::CONFIG_DIRECTORY)) {
-            $mtlda->raiseError(
-                "Error - unable to enter config directory ". $this::CONFIG_DIRECTORY ." - please check permissions!"
-            );
-            return false;
-        }
-
-        if (!function_exists("parse_ini_file")) {
-            $mtlda->raiseError(
-                "Error - this PHP installation does not provide required parse_ini_file() function!"
-            );
-            return false;
-        }
-
-        $config_pure = array();
-
-        foreach (array('dist', 'local') as $config) {
-
-            if (!($config_pure[$config] = $this->readConfig($config))) {
-                $mtlda->raiseError("readConfig({$config}) returned false!", true);
-                return false;
-            }
-        }
-
-        if (
-            !isset($config_pure['dist']) ||
-            empty($config_pure['dist']) ||
-            !is_array($config_pure['dist'])
-        ) {
-            $mtlda->raiseError("no valid config.ini.dist available!", true);
-            return false;
-        }
-
-        if (
-            !isset($config_pure['local']) ||
-            !is_array($config_pure['local'])
-        ) {
-            $config_pure['local'] = array();
-        }
-
-        if (!($this->config = array_replace_recursive($config_pure['dist'], $config_pure['local']))) {
-            $mtlda->raiseError("Failed to merge {$this->config_file_local} with {$this->config_file_dist}.");
-            return false;
-        }
-
-        return true;
-    }
-
-    private function readConfig($config_target)
-    {
-        global $mtlda;
-
-        $config_file = "config_file_{$config_target}";
-        $config_fqpn = $this::CONFIG_DIRECTORY ."/". $this->$config_file;
-
-        // missing config.ini is ok
-        if ($config_target == 'local' && !file_exists($config_fqpn)) {
-            return true;
-        }
-
-        if (!file_exists($config_fqpn)) {
-            $mtlda->raiseError("Error - configuration file {$config_fqpn} does not exist!", true);
-            return false;
-        }
-
-        if (!is_readable($config_fqpn)) {
-            $mtlda->raiseError(
-                "Error - unable to read configuration file {$config_fqpn} - please check permissions!",
-                true
-            );
-            return false;
-        }
-
-        if (($config_ary = parse_ini_file($config_fqpn, true)) === false) {
-            $mtlda->raiseError(
-                "Error - parse_ini_file() function failed on {$config_fqpn} - please check syntax!",
-                true
-            );
-            return false;
-        }
-
-        if (empty($config_ary) || !is_array($config_ary)) {
-            $mtlda->raiseError(
-                "Error - invalid configuration retrieved from {$config_fqpn} - please check syntax!",
-                true
-            );
-            exit(1);
-        }
-
-        if (!isset($config_ary['app']) || empty($config_ary['app']) || !array($config_ary['app'])) {
-            $mtlda->raiseError("Mandatory config section [app] is not configured!", true);
-            exit(1);
-        }
-
-        // remove trailing slash from base_web_path if any, but not if base_web_path = /
-        if (
-            isset($config_ary['app']['base_web_path']) &&
-            !empty($config_ary['app']['base_web_path']) &&
-            $config_ary['app']['base_web_path'] != '/'
-        ) {
-
-            $config_ary['app']['base_web_path'] = rtrim($config_ary['app']['base_web_path'], '/');
-        }
-
-        return $config_ary;
-    }
-
     public function isImageCachingEnabled()
     {
         if (!isset($this->config['app']['image_cache'])) {
@@ -164,31 +42,13 @@ class ConfigController extends DefaultController
         return true;
     }
 
-    public function getDatabaseConfiguration()
-    {
-        if (
-            !isset($this->config['database']) ||
-            empty($this->config['database']) ||
-            !is_array($this->config['database'])
-        ) {
-
-            return false;
-
-        }
-
-        return $this->config['database'];
-    }
-
     public function getPdfSigningConfiguration()
     {
-        if (
-            !isset($this->config['pdf_signing']) ||
+        if (!isset($this->config['pdf_signing']) ||
             empty($this->config['pdf_signing']) ||
             !is_array($this->config['pdf_signing'])
         ) {
-
             return false;
-
         }
 
         return $this->config['pdf_signing'];
@@ -196,14 +56,11 @@ class ConfigController extends DefaultController
 
     public function getPdfIndexingConfiguration()
     {
-        if (
-            !isset($this->config['pdf_indexing']) ||
+        if (!isset($this->config['pdf_indexing']) ||
             empty($this->config['pdf_indexing']) ||
             !is_array($this->config['pdf_indexing'])
         ) {
-
             return false;
-
         }
 
         return $this->config['pdf_signing'];
@@ -211,14 +68,11 @@ class ConfigController extends DefaultController
 
     public function getTimestampConfiguration()
     {
-        if (
-            !isset($this->config['timestamp']) ||
+        if (!isset($this->config['timestamp']) ||
             empty($this->config['timestamp']) ||
             !is_array($this->config['timestamp'])
         ) {
-
             return false;
-
         }
 
         return $this->config['timestamp'];
@@ -226,8 +80,7 @@ class ConfigController extends DefaultController
 
     public function getMailImportConfiguration()
     {
-        if (
-            !isset($this->config['mailimport']) ||
+        if (!isset($this->config['mailimport']) ||
             empty($this->config['mailimport']) ||
             !is_array($this->config['mailimport'])
         ) {
@@ -250,7 +103,6 @@ class ConfigController extends DefaultController
         }
 
         switch ($pdf_cfg['sign_position']) {
-
             case SIGN_TOP_LEFT:
             case 'top-left':
                 return SIGN_TOP_LEFT;
@@ -294,71 +146,9 @@ class ConfigController extends DefaultController
         return false;
     }
 
-    public function getDatabaseType()
-    {
-        if ($dbconfig = $this->getDatabaseConfiguration()) {
-
-            if (isset($dbconfig['type']) && !empty($dbconfig['type']) && is_string($dbconfig['type'])) {
-                return $dbconfig['type'];
-            }
-
-        }
-
-        return false;
-    }
-
-    public function getWebPath()
-    {
-        if (
-            !isset($this->config['app']['base_web_path']) ||
-            empty($this->config['app']['base_web_path']) ||
-            !is_string($this->config['app']['base_web_path'])
-        ) {
-            return false;
-        }
-
-        return $this->config['app']['base_web_path'];
-    }
-
-    public function getPageTitle()
-    {
-        if (
-            isset($this->config['app']['page_title']) &&
-            !empty($this->config['app']['page_title']) &&
-            is_string($this->config['app']['page_title'])
-        ) {
-
-            return $this->config['app']['page_title'];
-
-        }
-
-        return false;
-    }
-
-    public function isEnabled($value)
-    {
-
-        if (!in_array($value, array('yes','y','true','on','1'))) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function isDisabled($value)
-    {
-
-        if (!in_array($value, array('no','n','false','off','0'))) {
-            return false;
-        }
-
-        return true;
-    }
-
     public function isPdfSigningEnabled()
     {
-        if (
-            isset($this->config['app']['pdf_signing']) &&
+        if (isset($this->config['app']['pdf_signing']) &&
             !empty($this->config['app']['pdf_signing']) &&
             $this->isEnabled($this->config['app']['pdf_signing'])
         ) {
@@ -374,8 +164,7 @@ class ConfigController extends DefaultController
             return false;
         }
 
-        if (
-            isset($this->config['pdf_signing']['auto_sign_on_import']) &&
+        if (isset($this->config['pdf_signing']['auto_sign_on_import']) &&
             !empty($this->config['pdf_signing']['auto_sign_on_import']) &&
             $this->isEnabled($this->config['pdf_signing']['auto_sign_on_import'])
         ) {
@@ -388,8 +177,7 @@ class ConfigController extends DefaultController
 
     public function isPdfSigningAttachAuditLogEnabled()
     {
-        if (
-            isset($this->config['pdf_signing']['attach_audit_log']) &&
+        if (isset($this->config['pdf_signing']['attach_audit_log']) &&
             !empty($this->config['pdf_signing']['attach_audit_log']) &&
             $this->isEnabled($this->config['pdf_signing']['attach_audit_log'])
         ) {
@@ -401,8 +189,7 @@ class ConfigController extends DefaultController
 
     public function isPdfIndexingEnabled()
     {
-        if (
-            isset($this->config['app']['pdf_indexing']) &&
+        if (isset($this->config['app']['pdf_indexing']) &&
             !empty($this->config['app']['pdf_indexing']) &&
             $this->isEnabled($this->config['app']['pdf_indexing'])
         ) {
