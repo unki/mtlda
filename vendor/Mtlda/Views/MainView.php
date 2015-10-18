@@ -21,7 +21,7 @@ namespace Mtlda\Views;
 
 use Mtlda\Models;
 
-class MainView extends DefaultView
+class MainView extends \Thallium\Views\MainView
 {
     public $class_name = 'main';
     private $queue;
