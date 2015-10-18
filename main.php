@@ -1,10 +1,10 @@
 <?php
 
 /**
- * This file is part of MTLDA.
+ * This file is part of Thallium.
  *
- * MTLDA, a web-based document archive.
- * Copyright (C) <2015>  <Andreas Unterkircher>
+ * Thallium, a PHP-based framework for web applications.
+ * Copyright (C) <2015> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -17,16 +17,14 @@
  * GNU Affero General Public License for more details.
  */
 
-require_once "static.php";
+require_once 'static.php';
+require_once 'vendor/autoload.php';
 
 spl_autoload_register("autoload");
 
-use Mtlda\Controllers as Controllers;
-
 $mode = null;
 
-if (
-    isset($_SERVER) &&
+if (isset($_SERVER) &&
     isset($_SERVER['argv']) &&
     isset($_SERVER['argv'][1]) &&
     $_SERVER['argv'][1] == 'incoming'
@@ -35,7 +33,7 @@ if (
 }
 
 try {
-    $mtlda = new Controllers\Mtlda($mode);
+    $thallium = new \Mtlda\Controllers\MainController($mode);
 } catch (Exception $e) {
     print $e->getMessage();
     exit(1);
@@ -45,7 +43,7 @@ if (!is_null($mode)) {
     exit(0);
 }
 
-if (!$mtlda->startup()) {
+if (!$thallium->startup()) {
     exit(1);
 }
 
