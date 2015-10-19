@@ -19,9 +19,6 @@
 
 namespace Mtlda\Models ;
 
-use Mtlda\Models;
-use Mtlda\Controllers;
-
 class DocumentModel extends DefaultModel
 {
     public $table_name = 'archive';
@@ -268,7 +265,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $fqpn = Controllers\DefaultController::ARCHIVE_DIRECTORY;
+        $fqpn = \Mtlda\Controllers\DefaultController::ARCHIVE_DIRECTORY;
         $fqpn.= '/'. $dir_name .'/';
         $fqpn.= $file_name;
 
@@ -295,7 +292,7 @@ class DocumentModel extends DefaultModel
             }
 
             // stop if we reach nesting depth
-            if (($i/2) > Controllers\DefaultController::ARCHIVE_NESTING_DEPTH) {
+            if (($i/2) > \Mtlda\Controllers\DefaultController::ARCHIVE_NESTING_DEPTH) {
                 break;
             }
 
@@ -357,7 +354,7 @@ class DocumentModel extends DefaultModel
                 "archive",
                 $this->document_guid
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $mtlda->raiseError("AuditController::log() returned false!");
             return false;
         }
@@ -535,7 +532,7 @@ class DocumentModel extends DefaultModel
                 "archive",
                 $this->document_guid
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $queueitem->delete();
             $mtlda->raiseError("AuditController:log() returned false!");
             return false;
@@ -652,7 +649,7 @@ class DocumentModel extends DefaultModel
         global $mtlda;
 
         try {
-            $storage = new Controllers\StorageController;
+            $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load StorageController!");
             return false;
@@ -817,7 +814,7 @@ class DocumentModel extends DefaultModel
         global $mtlda;
 
         // load StorageController
-        $storage = new Controllers\StorageController;
+        $storage = new \Mtlda\Controllers\StorageController;
 
         if (!$storage) {
             $mtlda->raiseError("unable to load StorageController!");
@@ -855,7 +852,7 @@ class DocumentModel extends DefaultModel
         global $mtlda;
 
         try {
-            $properties = new Models\DocumentPropertiesModel(
+            $properties = new \Mtlda\Models\DocumentPropertiesModel(
                 $this->getId(),
                 $this->getGuid()
             );
@@ -877,7 +874,7 @@ class DocumentModel extends DefaultModel
         global $mtlda;
 
         try {
-            $indices = new Models\DocumentIndicesModel(
+            $indices = new \Mtlda\Models\DocumentIndicesModel(
                 $this->getId(),
                 $this->getGuid()
             );

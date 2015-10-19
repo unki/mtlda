@@ -158,7 +158,7 @@ class QueueModel extends DefaultModel
                 "flushed",
                 "queue"
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $mtlda->raiseError("AuditController::log() returned false!");
             return false;
         }

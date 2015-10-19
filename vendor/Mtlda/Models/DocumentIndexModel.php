@@ -19,8 +19,6 @@
 
 namespace Mtlda\Models ;
 
-use Mtlda\Controllers;
-
 class DocumentIndexModel extends DefaultModel
 {
     public $table_name = 'document_indices';

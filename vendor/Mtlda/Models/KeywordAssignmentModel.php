@@ -19,8 +19,6 @@
 
 namespace Mtlda\Models ;
 
-use \PDO;
-
 class KeywordAssignmentModel extends DefaultModel
 {
     public $table_name = 'assign_keywords_to_document';

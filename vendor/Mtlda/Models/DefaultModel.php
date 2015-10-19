@@ -19,8 +19,6 @@
 
 namespace Mtlda\Models ;
 
-use \PDO;
-
 abstract class DefaultModel extends \Thallium\Models\DefaultModel
 {
 }

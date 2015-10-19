@@ -19,8 +19,6 @@
 
 namespace Mtlda\Models ;
 
-use Mtlda\Controllers;
-
 class DocumentPropertiesModel extends DefaultModel
 {
     public $table_name = 'document_properties';

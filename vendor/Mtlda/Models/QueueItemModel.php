@@ -19,8 +19,6 @@
 
 namespace Mtlda\Models ;
 
-use Mtlda\Controllers;
-
 class QueueItemModel extends DefaultModel
 {
     public $table_name = 'queue';
@@ -193,7 +191,7 @@ class QueueItemModel extends DefaultModel
         global $mtlda;
 
         // load StorageController
-        $storage = new Controllers\StorageController;
+        $storage = new \Mtlda\Controllers\StorageController;
 
         if (!$storage) {
             $mtlda->raiseError("unable to load StorageController!");
@@ -219,7 +217,7 @@ class QueueItemModel extends DefaultModel
                 "queue",
                 $this->queue_guid
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $mtlda->raiseError("AuditController::log() returned false!");
             return false;
         }
@@ -312,7 +310,7 @@ class QueueItemModel extends DefaultModel
                 "queue",
                 $this->queue_guid
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $queueitem->delete();
             $mtlda->raiseError("AuditController:log() returned false!");
             return false;
@@ -348,7 +346,7 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $fqpn = Controllers\DefaultController::WORKING_DIRECTORY;
+        $fqpn = \Mtlda\Controllers\DefaultController::WORKING_DIRECTORY;
         $fqpn.= '/'. $dir_name .'/';
         $fqpn.= $file_name;
 
@@ -375,7 +373,7 @@ class QueueItemModel extends DefaultModel
             }
 
             // stop if we reach nesting depth
-            if (($i/2) > Controllers\DefaultController::ARCHIVE_NESTING_DEPTH) {
+            if (($i/2) > \Mtlda\Controllers\DefaultController::ARCHIVE_NESTING_DEPTH) {
                 break;
             }
 
