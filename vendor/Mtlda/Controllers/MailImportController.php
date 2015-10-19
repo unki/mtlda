@@ -372,6 +372,10 @@ class MailImportController extends DefaultController
             }
         }
 
+        if (empty($attachments)) {
+            return true;
+        }
+
         foreach ($attachments as $attachment) {
             if (!isset($attachment['filename']) || empty($attachment['filename'])) {
                 $this->raiseError("Something is wrong. No filename is known for this mime part!");
@@ -398,7 +402,7 @@ class MailImportController extends DefaultController
             $indir_ready = false;
 
             do {
-                $destdir = $this::INCOMING_DIRECTORY .'/'. uniqid();
+                $destdir = self::INCOMING_DIRECTORY .'/'. uniqid();
 
                 if (file_exists($destdir)) {
                     continue;
@@ -418,7 +422,7 @@ class MailImportController extends DefaultController
                 } else {
                     $filename = $filename .'-'. uniqid();
                 }
-                $dest = $this::INCOMING_DIRECTORY .'/'. $filename;
+                $dest = self::INCOMING_DIRECTORY .'/'. $filename;
             }
 
             if (file_exists($dest)) {
@@ -603,8 +607,8 @@ class MailImportController extends DefaultController
         if (!isset($info) ||
             empty($info) ||
             (
-                !isset($info['NAME']) || empty($info['NAME']) &&
-                !isset($info['FILENAME']) || empty($info['FILENAME'])
+                (!isset($info['NAME']) || empty($info['NAME'])) &&
+                (!isset($info['FILENAME']) || empty($info['FILENAME']))
             )
         ) {
             return true;
