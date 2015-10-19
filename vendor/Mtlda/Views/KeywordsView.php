@@ -19,8 +19,6 @@
 
 namespace Mtlda\Views;
 
-use Mtlda\Models;
-
 class KeywordsView extends DefaultView
 {
     public $default_mode = 'list';
@@ -90,18 +88,17 @@ class KeywordsView extends DefaultView
 
     public function showEdit($id = null, $hash = null)
     {
-        global $mtlda;
+        global $mtlda, $tmpl;
 
-        if (
-            !isset($id) &&
+        if (!isset($id) &&
             !empty($id) &&
             isset($guid) &&
             !empty($guid) &&
             $mtlda->isValidGuidSyntax($guid)
         ) {
-            $item = new Models\KeywordModel($id, $guid);
+            $item = new \Mtlda\Models\KeywordModel($id, $guid);
         } else {
-            $item = new Models\KeywordModel;
+            $item = new \Mtlda\Models\KeywordModel;
         }
 
         if (!isset($item) || empty($item)) {
@@ -109,9 +106,9 @@ class KeywordsView extends DefaultView
             return false;
         }
 
-        $this->assign('item', $item);
-        $this->assign("item_safe_link", "keyword-". $item->keyword_idx ."-". $item->keyword_guid);
-        return $this->fetch("keywords_edit.tpl");
+        $tmpl->assign('item', $item);
+        $tmpl->assign("item_safe_link", "keyword-". $item->keyword_idx ."-". $item->keyword_guid);
+        return $tmpl->fetch("keywords_edit.tpl");
     }
 }
 

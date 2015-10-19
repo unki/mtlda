@@ -19,9 +19,6 @@
 
 namespace Mtlda\Views;
 
-use Mtlda\Models;
-use Mtlda\Controllers;
-
 class QueueView extends DefaultView
 {
     public $class_name = 'queue';
@@ -33,7 +30,7 @@ class QueueView extends DefaultView
         global $mtlda;
 
         try {
-            $this->queue = new Models\QueueModel;
+            $this->queue = new \Mtlda\Models\QueueModel;
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load QueueModel!", true);
             return false;
@@ -85,14 +82,14 @@ class QueueView extends DefaultView
         }
 
         try {
-            $item = new Models\QueueItemModel($id, $guid);
+            $item = new \Mtlda\Models\QueueItemModel($id, $guid);
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load QueueItemModel({$id}, {$guid})!");
             return false;
         }
 
         try {
-            $storage = new Controllers\StorageController;
+            $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load StorageController!");
             return false;
@@ -103,9 +100,8 @@ class QueueView extends DefaultView
             return false;
         }
 
-        if (
-            !isset($file) ||
-            empty ($file) ||
+        if (!isset($file) ||
+            empty($file) ||
             !is_array($file) ||
             !isset($file['hash'], $file['content']) ||
             empty($file['hash']) ||

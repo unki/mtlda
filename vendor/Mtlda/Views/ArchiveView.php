@@ -19,8 +19,6 @@
 
 namespace Mtlda\Views;
 
-use Mtlda\Models;
-
 class ArchiveView extends DefaultView
 {
     public $class_name = 'archive';
@@ -32,10 +30,10 @@ class ArchiveView extends DefaultView
 
     public function __construct()
     {
-        global $mtlda;
+        global $mtlda, $tmpl;
 
         try {
-            $this->archive = new Models\ArchiveModel;
+            $this->archive = new \Mtlda\Models\ArchiveModel;
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load ArchiveModel!", true);
             return false;
@@ -43,7 +41,7 @@ class ArchiveView extends DefaultView
 
         parent::__construct();
 
-        $this->registerPlugin("function", "list_versions", array(&$this, "listVersions"), false);
+        $tmpl->registerPlugin("function", "list_versions", array(&$this, "listVersions"), false);
     }
 
     public function showEdit()
@@ -91,7 +89,7 @@ class ArchiveView extends DefaultView
 
     public function showItem($id, $hash)
     {
-        global $mtlda, $config;
+        global $mtlda, $config, $tmpl;
 
         if ($this->item_name != "Document") {
             $mtlda->raiseError(__METHOD__ .' can only work with documents!');
@@ -99,8 +97,8 @@ class ArchiveView extends DefaultView
         }
 
         try {
-            $this->item = new Models\DocumentModel($id, $hash);
-        } catch (Exception $e) {
+            $this->item = new \Mtlda\Models\DocumentModel($id, $hash);
+        } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load DocumentModel!");
             return false;
         }
@@ -124,7 +122,7 @@ class ArchiveView extends DefaultView
         }
 
         if ($config->isPdfIndexingEnabled()) {
-            $this->assign('pdf_indexing_is_enabled', true);
+            $tmpl->assign('pdf_indexing_is_enabled', true);
         }
 
         if ($base_path == '/') {
@@ -132,8 +130,8 @@ class ArchiveView extends DefaultView
         }
 
         try {
-            $this->keywords = new Models\KeywordsModel;
-        } catch (Exception $e) {
+            $this->keywords = new \Mtlda\Models\KeywordsModel;
+        } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load KeywordsModel!");
             return false;
         }
@@ -145,16 +143,16 @@ class ArchiveView extends DefaultView
 
         $assigned_keywords = implode(',', $assigned_keywords);
 
-        $this->assign('latest_document_version', $this->item->getLastestDocumentVersionNumber());
-        $this->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
-        $this->assign('item_versions', $descendants);
-        $this->assign('item', $this->item);
-        $this->assign('keywords', $this->keywords->items);
-        $this->assign('assigned_keywords', $assigned_keywords);
-        $this->assign("item_safe_link", "document-". $this->item->document_idx ."-". $this->item->document_guid);
+        $tmpl->assign('latest_document_version', $this->item->getLastestDocumentVersionNumber());
+        $tmpl->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
+        $tmpl->assign('item_versions', $descendants);
+        $tmpl->assign('item', $this->item);
+        $tmpl->assign('keywords', $this->keywords->items);
+        $tmpl->assign('assigned_keywords', $assigned_keywords);
+        $tmpl->assign("item_safe_link", "document-". $this->item->document_idx ."-". $this->item->document_guid);
 
         try {
-            $this->document_properties = new Models\DocumentPropertiesModel(
+            $this->document_properties = new \Mtlda\Models\DocumentPropertiesModel(
                 $this->item->getId(),
                 $this->item->getGuid()
             );
@@ -163,7 +161,7 @@ class ArchiveView extends DefaultView
             return false;
         }
 
-        $this->registerPlugin("block", "document_properties", array(&$this, "listDocumentProperties"), false);
+        $tmpl->registerPlugin("block", "document_properties", array(&$this, "listDocumentProperties"), false);
         return parent::showItem($id, $hash);
     }
 
@@ -229,6 +227,8 @@ class ArchiveView extends DefaultView
 
     private function buildVersionsList($descendants = null, $level = 0)
     {
+        global $mtlda, $tmpl;
+
         $content = "";
 
         if (!isset($descendants)) {
@@ -242,22 +242,22 @@ class ArchiveView extends DefaultView
         $counter = 0;
 
         foreach ($descendants as $item) {
-            $this->assign('item', $item);
-            $this->assign('item_safe_link', 'document-'. $item->document_idx .'-'. $item->document_guid);
+            $tmpl->assign('item', $item);
+            $tmpl->assign('item_safe_link', 'document-'. $item->document_idx .'-'. $item->document_guid);
 
             if ($item->hasDescendants()) {
-                $this->assign('item_has_descendants', true);
+                $tmpl->assign('item_has_descendants', true);
             } else {
-                $this->assign('item_has_descendants', false);
+                $tmpl->assign('item_has_descendants', false);
             }
 
             if ($level > 0 && $counter == ($len-1)) {
-                $this->assign('item_is_last_descendant', true);
+                $tmpl->assign('item_is_last_descendant', true);
             } else {
-                $this->assign('item_is_last_descendant', false);
+                $tmpl->assign('item_is_last_descendant', false);
             }
 
-            if (!$src = $this->fetch('archive_show_item.tpl')) {
+            if (!$src = $tmpl->fetch('archive_show_item.tpl')) {
                 $mtlda->raiseError(__CLASS__ .'::fetch() returned false!');
                 return false;
             }

@@ -19,8 +19,6 @@
 
 namespace Mtlda\Views;
 
-use Mtlda\Controllers;
-
 class AboutView extends DefaultView
 {
     public $default_mode = 'show';
@@ -28,12 +26,12 @@ class AboutView extends DefaultView
 
     public function show()
     {
-        global $db;
+        global $db, $tmpl;
 
-        $this->assign("mtlda_version", Controllers\Mtlda::VERSION);
-        $this->assign("mtlda_schema_version", $db->getDatabaseSchemaVersion());
+        $tmpl->assign("mtlda_version", \Mtlda\Controllers\MainController::VERSION);
+        $tmpl->assign("mtlda_schema_version", $db->getDatabaseSchemaVersion());
 
-        return $this->fetch("about.tpl");
+        return $tmpl->fetch("about.tpl");
     }
 }
 

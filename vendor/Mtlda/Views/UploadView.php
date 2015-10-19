@@ -19,8 +19,6 @@
 
 namespace Mtlda\Views;
 
-use Mtlda\Models;
-
 class UploadView extends DefaultView
 {
     public $class_name = 'upload';
@@ -30,15 +28,15 @@ class UploadView extends DefaultView
 
     public function show()
     {
-        global $mtlda, $session;
+        global $mtlda, $session, $tmpl;
 
         if (!($token = $session->getOnetimeIdentifierId("upload"))) {
             $mtlda->raiseError("SessionController::getOnetimeIdentifierId() returned false!");
             return false;
         }
     
-        $this->assign('upload_token', $token);
-        return $this->fetch("upload.tpl");
+        $tmpl->assign('upload_token', $token);
+        return $tmpl->fetch("upload.tpl");
     }
 }
 

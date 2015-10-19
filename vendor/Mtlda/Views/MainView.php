@@ -19,8 +19,6 @@
 
 namespace Mtlda\Views;
 
-use Mtlda\Models;
-
 class MainView extends \Thallium\Views\MainView
 {
     public $class_name = 'main';
@@ -29,11 +27,11 @@ class MainView extends \Thallium\Views\MainView
 
     public function __construct()
     {
-        global $mtlda;
+        global $mtlda, $tmpl;
 
         parent::__construct();
 
-        $this->registerPlugin("block", "top10", array(&$this, 'showTop10List'));
+        $tmpl->registerPlugin("block", "top10", array(&$this, 'showTop10List'));
 
         if (!$this->load()) {
             $mtlda->raiseError(__CLASS__ .', load() returned false!');
@@ -41,12 +39,12 @@ class MainView extends \Thallium\Views\MainView
         }
     }
 
-    private function load()
+    protected function load()
     {
-        global $mtlda;
+        global $mtlda, $tmpl;
 
         try {
-            $this->queue = new Models\QueueModel(array(
+            $this->queue = new \Mtlda\Models\QueueModel(array(
                 'by' => 'queue_time',
                 'order' => 'DESC'
             ));
@@ -56,7 +54,7 @@ class MainView extends \Thallium\Views\MainView
         }
 
         try {
-            $this->archive = new Models\ArchiveModel(array(
+            $this->archive = new \Mtlda\Models\ArchiveModel(array(
                 'by' => 'document_time',
                 'order' => 'DESC'
             ));
@@ -66,7 +64,7 @@ class MainView extends \Thallium\Views\MainView
         }
 
         if (count($this->queue->avail_items) > 0) {
-            $this->assign('pending_queue_items', true);
+            $tmpl->assign('pending_queue_items', true);
         }
 
         return true;

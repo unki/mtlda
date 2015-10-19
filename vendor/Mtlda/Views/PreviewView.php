@@ -19,8 +19,6 @@
 
 namespace Mtlda\Views;
 
-use Mtlda\Models;
-
 class PreviewView extends DefaultView
 {
     public $class_name = 'preview';
@@ -28,7 +26,7 @@ class PreviewView extends DefaultView
 
     public function show()
     {
-        global $mtlda, $query, $config;
+        global $mtlda, $query, $config, $tmpl;
 
         if (!isset($query) || !isset($query->params) || empty($query->params)) {
             $mtlda->raiseError("\$query->params not set!");
@@ -50,7 +48,7 @@ class PreviewView extends DefaultView
             return false;
         }
 
-        $queueitem = new Models\QueueItemModel($item->id, $item->guid);
+        $queueitem = new \Mtlda\Models\QueueItemModel($item->id, $item->guid);
         if (!isset($queueitem)) {
             $mtlda->raiseError("Unable to locate QueueItem!");
             return false;
@@ -68,12 +66,12 @@ class PreviewView extends DefaultView
         $img_url = $base_path .'/preview/'. $query->params['id'];
         $img_load = $base_path .'/resources/images/load.gif';
 
-        $this->assign('img_url', $img_url);
-        $this->assign('img_load', $img_load);
-        $this->assign('img_id', $query->params['id']);
-        $this->assign('img_name', $queueitem->queue_file_name);
+        $tmpl->assign('img_url', $img_url);
+        $tmpl->assign('img_load', $img_load);
+        $tmpl->assign('img_id', $query->params['id']);
+        $tmpl->assign('img_name', $queueitem->queue_file_name);
 
-        return $this->fetch("preview.tpl");
+        return $tmpl->fetch("preview.tpl");
     }
 }
 

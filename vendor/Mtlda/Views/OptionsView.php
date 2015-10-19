@@ -19,8 +19,6 @@
 
 namespace Mtlda\Views;
 
-use Mtlda\Controllers;
-
 class OptionsView extends DefaultView
 {
     public $default_mode = 'show';
@@ -28,10 +26,9 @@ class OptionsView extends DefaultView
 
     public function show()
     {
-        global $db, $query;
+        global $db, $query, $tmpl;
 
-        if (
-            isset($query) &&
+        if (isset($query) &&
             !empty($query) &&
             isset($query->params) &&
             !empty($query->params) &&
@@ -43,7 +40,7 @@ class OptionsView extends DefaultView
             return $this->truncate();
         }
 
-        return $this->fetch("options.tpl");
+        return $tmpl->fetch("options.tpl");
     }
 
     private function truncate()
@@ -56,8 +53,8 @@ class OptionsView extends DefaultView
         }
 
         try {
-            $storage = new Controllers\StorageController;
-        } catch (Exception $e) {
+            $storage = new \Mtlda\Controllers\StorageController;
+        } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load StorageController!");
             return false;
         }
@@ -73,8 +70,8 @@ class OptionsView extends DefaultView
         }
 
         try {
-            $import = new Controllers\ImportController;
-        } catch (Exception $e) {
+            $import = new \Mtlda\Controllers\ImportController;
+        } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load ImportController!");
             return false;
         }
