@@ -23,6 +23,8 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
 {
     public function __construct()
     {
+        global $config;
+
         try {
             parent::__construct();
         } catch (\Exception $e) {
@@ -30,7 +32,29 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
             return false;
         }
 
+        if (!($base_path = $config->getWebPath())) {
+            $this->raiseError(get_class($config) .'getWebPath() returned false!', true);
+            return false;
+        }
+
+        if ($base_path == '/') {
+            $base_path = '';
+        }
+
         $this->registerPlugin("function", "get_menu_state", array(&$this, "getMenuState"), false);
+
+        $this->assign('image_arrow_left', $base_path .'/resources/images/arrow-circle-left-4x.png');
+        $this->assign('image_arrow_right', $base_path .'/resources/images/arrow-circle-right-4x.png');
+
+        $this->assign('document_top_left', $base_path .'/resources/images/top_left.png');
+        $this->assign('document_top_center', $base_path .'/resources/images/top_center.png');
+        $this->assign('document_top_right', $base_path .'/resources/images/top_right.png');
+        $this->assign('document_middle_left', $base_path .'/resources/images/middle_left.png');
+        $this->assign('document_middle_center', $base_path .'/resources/images/middle_center.png');
+        $this->assign('document_middle_right', $base_path .'/resources/images/middle_right.png');
+        $this->assign('document_bottom_left', $base_path .'/resources/images/bottom_left.png');
+        $this->assign('document_bottom_center', $base_path .'/resources/images/bottom_center.png');
+        $this->assign('document_bottom_right', $base_path .'/resources/images/bottom_right.png');
     }
 
     public function getMenuState($params, &$smarty)

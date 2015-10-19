@@ -32,32 +32,31 @@ class MailImportController extends DefaultController
         global $mtlda, $config;
 
         if (!$config->isMailImportEnabled()) {
-            $mtlda->raiseError("Mail import isn't enabled in Mtlda configuration!", true);
+            $this->raiseError("Mail import isn't enabled in Mtlda configuration!", true);
             return false;
         }
 
         if (!$this->mail_cfg = $config->getMailImportConfiguration()) {
-            $mtlda->raiseError("Unable to retrieve mail import configuration!", true);
+            $this->raiseError("Unable to retrieve mail import configuration!", true);
             return false;
         }
 
         if (empty($this->mail_cfg) || !is_array($this->mail_cfg)) {
-            $mtlda->raiseError("Invalid mail import configuration retrieved!", true);
+            $this->raiseError("Invalid mail import configuration retrieved!", true);
             return false;
         }
 
-        if (
-            !isset($this->mail_cfg['mbox_server']) || empty($this->mail_cfg['mbox_server']) ||
+        if (!isset($this->mail_cfg['mbox_server']) || empty($this->mail_cfg['mbox_server']) ||
             !isset($this->mail_cfg['mbox_username']) || empty($this->mail_cfg['mbox_username']) ||
             !isset($this->mail_cfg['mbox_password']) || empty($this->mail_cfg['mbox_password']) ||
             !isset($this->mail_cfg['mbox_type']) || empty($this->mail_cfg['mbox_type'])
         ) {
-            $mtlda->raiseError("Incomplete mail import configuration found!", true);
+            $this->raiseError("Incomplete mail import configuration found!", true);
             return false;
         }
 
         if (!in_array(strtolower($this->mail_cfg['mbox_type']), array('imap', 'pop3'))) {
-            $mtlda->raiseError("Mailbox type {$this->mail_cfg['mbox_type']} is not supported!", true);
+            $this->raiseError("Mailbox type {$this->mail_cfg['mbox_type']} is not supported!", true);
             return false;
         }
     }
@@ -82,7 +81,7 @@ class MailImportController extends DefaultController
         }
 
         if (!$this->connect()) {
-            $mtlda->raiseError(__CLASS__ .'::connect() returned false!');
+            $this->raiseError(__CLASS__ .'::connect() returned false!');
             return false;
         }
 
@@ -93,7 +92,7 @@ class MailImportController extends DefaultController
 
 
         if (($msg_cnt = $this->checkForMails()) === false) {
-            $mtlda->raiseError(__CLASS__ .'::checkForMails() returned false!');
+            $this->raiseError(__CLASS__ .'::checkForMails() returned false!');
         }
 
         if (!($msg_cnt > 0)) {
@@ -101,7 +100,7 @@ class MailImportController extends DefaultController
         }
 
         if (!$list = $this->retrieveListOfMails($msg_cnt)) {
-            $mtlda->raiseError(__CLASS__ .'::retrieveListOfMails() returned false!');
+            $this->raiseError(__CLASS__ .'::retrieveListOfMails() returned false!');
         }
 
         // if no mails are pending in the mailbox
@@ -113,14 +112,12 @@ class MailImportController extends DefaultController
         $percentage_step = round((90-20)/$msg_cnt);
 
         foreach ($list as $id => $mail) {
-
             $mail_no = $id+1;
 
-            if (
-                !isset($mail->message_id) || empty($mail->message_id) ||
+            if (!isset($mail->message_id) || empty($mail->message_id) ||
                 !isset($mail->msgno) || empty($mail->msgno)
             ) {
-                $mtlda->raiseError("Fetched mail is incomplete!");
+                $this->raiseError("Fetched mail is incomplete!");
                 break;
             }
 
@@ -134,7 +131,7 @@ class MailImportController extends DefaultController
             }
 
             if (!$msg = $this->retrieveMail($mail->msgno)) {
-                $mtlda->raiseError(__CLASS__ .'::retrieveMail() returned false!');
+                $this->raiseError(__CLASS__ .'::retrieveMail() returned false!');
                 break;
             }
 
@@ -148,26 +145,26 @@ class MailImportController extends DefaultController
             }
 
             if (!$this->parseMail($msg)) {
-                $mtlda->raiseError(__CLASS__ .'::parseMail() returned false!');
+                $this->raiseError(__CLASS__ .'::parseMail() returned false!');
                 break;
             }
 
             if ($config->getMailImportMailDestinyIsDelete()) {
                 if (!$this->deleteMail($mail->msgno)) {
-                    $mtlda->raiseError(__CLASS__ .'::deleteMail() returned false!');
+                    $this->raiseError(__CLASS__ .'::deleteMail() returned false!');
                     return false;
                 }
                 continue;
             }
 
             if (!$this->flagMailSeen($mail->msgno)) {
-                $mtlda->raiseError(__CLASS__ .':flagMailSeen() returned false!');
+                $this->raiseError(__CLASS__ .':flagMailSeen() returned false!');
                 return false;
             }
         }
 
         if (!$this->disconnect()) {
-            $mtlda->raiseError(__CLASS__ .'::disconnect() returned false!');
+            $this->raiseError(__CLASS__ .'::disconnect() returned false!');
             return false;
         }
 
@@ -175,12 +172,12 @@ class MailImportController extends DefaultController
         try {
             $import = new ImportController;
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load ImportController!");
+            $this->raiseError("Failed to load ImportController!");
             return false;
         }
 
         if (!$import->handleQueue()) {
-            $mtlda->raiseError("ImportController::handleQueue() returned false!");
+            $this->raiseError("ImportController::handleQueue() returned false!");
             return false;
         }
 
@@ -199,7 +196,7 @@ class MailImportController extends DefaultController
         }
 
         if (!isset($this->connect_string)) {
-            $mtlda->raiseError("Do not know how to connect!");
+            $this->raiseError("Do not know how to connect!");
             return false;
         }
 
@@ -213,12 +210,12 @@ class MailImportController extends DefaultController
         );
 
         if ($this->imap_session === false) {
-            $mtlda->raiseError("Unable to connect!<br />". imap_last_error());
+            $this->raiseError("Unable to connect!<br />". imap_last_error());
             return false;
         }
 
         if (!is_resource($this->imap_session)) {
-            $mtlda->raiseError("What ever has been opened, it is not a resource!");
+            $this->raiseError("What ever has been opened, it is not a resource!");
             return false;
         }
 
@@ -237,20 +234,19 @@ class MailImportController extends DefaultController
         // for POP3 we are going to actually delete messages,
         // for IMAP it is good enough for us to have them marked
         // deleted without expunging them.
-        if (
-            strtolower($this->mail_cfg['mbox_type']) == 'pop3' ||
+        if (strtolower($this->mail_cfg['mbox_type']) == 'pop3' ||
             ( strtolower($this->mail_cfg['mbox_type']) == 'imap' &&
                 $config->getMailImportImapMailboxExpunge()
             )
         ) {
             if (!imap_expunge($this->imap_session)) {
-                $mtlda->raiseError("imap_expunge() returned false!". imap_last_error());
+                $this->raiseError("imap_expunge() returned false!". imap_last_error());
                 return false;
             }
         }
 
         if (!imap_close($this->imap_session)) {
-            $mtlda->raiseError("imap_close() failed!". imap_last_error());
+            $this->raiseError("imap_close() failed!". imap_last_error());
             return false;
         }
 
@@ -263,22 +259,22 @@ class MailImportController extends DefaultController
         global $mtlda;
 
         if (!$this->isConnected()) {
-            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
         if (!$status = imap_status($this->imap_session, $this->connect_string, SA_UNSEEN)) {
-            $mtlda->raiseError("imap_status() failed!". imap_last_error());
+            $this->raiseError("imap_status() failed!". imap_last_error());
             return false;
         }
 
         if (!isset($status->flags) || $status->flags != SA_UNSEEN) {
-            $mtlda->raiseError("Server responded with something we have not requested!");
+            $this->raiseError("Server responded with something we have not requested!");
             return false;
         }
 
         if (!isset($status->unseen) || !is_numeric($status->unseen)) {
-            $mtlda->raiseError("Server responded invalid!");
+            $this->raiseError("Server responded invalid!");
             return false;
         }
 
@@ -290,7 +286,7 @@ class MailImportController extends DefaultController
         global $mtlda;
 
         if (!$this->isConnected()) {
-            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
@@ -299,12 +295,12 @@ class MailImportController extends DefaultController
         }
 
         if (!$list = imap_fetch_overview($this->imap_session, "1:{$msg_cnt}")) {
-            $mtlda->raiseError("imap_fetch_overview() failed!");
+            $this->raiseError("imap_fetch_overview() failed!");
             return false;
         }
 
         if (!is_array($list)) {
-            $mtlda->raiseError("imap_fetch_overview() returned no array!". imap_last_error());
+            $this->raiseError("imap_fetch_overview() returned no array!". imap_last_error());
             return false;
         }
 
@@ -316,7 +312,7 @@ class MailImportController extends DefaultController
         global $mtlda;
 
         if (!$this->isConnected()) {
-            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
@@ -325,12 +321,12 @@ class MailImportController extends DefaultController
         }
 
         if (!$structure = imap_fetchstructure($this->imap_session, $msgno)) {
-            $mtlda->raiseError("Unable to retrieve structure!". imap_last_error());
+            $this->raiseError("Unable to retrieve structure!". imap_last_error());
             return false;
         }
 
         if (empty($structure) || !is_object($structure)) {
-            $mtlda->raiseError("imap_fetchstructure() hasn't returned an object!". imap_last_error());
+            $this->raiseError("imap_fetchstructure() hasn't returned an object!". imap_last_error());
             return false;
         }
 
@@ -347,7 +343,7 @@ class MailImportController extends DefaultController
         global $mtlda;
 
         if (!is_array($msg)) {
-            $mtlda->raiseError(__METHOD__ .', first parameter should be an array!');
+            $this->raiseError(__METHOD__ .', first parameter should be an array!');
             return false;
         }
 
@@ -362,7 +358,6 @@ class MailImportController extends DefaultController
         $attachments = array();
 
         foreach ($structure->parts as $id => $part) {
-
             // we can skip text-only parts
             if ($part->type == 0) {
                 continue;
@@ -372,15 +367,14 @@ class MailImportController extends DefaultController
             $id+=1;
 
             if (!$this->parseMimePart($part, $id, $attachments)) {
-                $mtlda->raiseError(__CLASS__ .'::parseMimePart() returned false!');
+                $this->raiseError(__CLASS__ .'::parseMimePart() returned false!');
                 return false;
             }
         }
 
         foreach ($attachments as $attachment) {
-
             if (!isset($attachment['filename']) || empty($attachment['filename'])) {
-                $mtlda->raiseError("Something is wrong. No filename is known for this mime part!");
+                $this->raiseError("Something is wrong. No filename is known for this mime part!");
                 return false;
             }
 
@@ -392,12 +386,12 @@ class MailImportController extends DefaultController
             }
 
             if (($attachment_body = $this->fetchMimePartBody($msgno, $attachment)) === false) {
-                $mtlda->raiseError(__CLASS__ .'::fetchMimePartBody() returned false!');
+                $this->raiseError(__CLASS__ .'::fetchMimePartBody() returned false!');
                 return false;
             }
 
             if (empty($attachment_body)) {
-                $mtlda->raiseError("No body fetched for mime part!");
+                $this->raiseError("No body fetched for mime part!");
                 return false;
             }
 
@@ -419,7 +413,6 @@ class MailImportController extends DefaultController
 
             // if $dest is already present, we add a bit random to the filename
             if (file_exists($dest)) {
-
                 if (preg_match('/([[:print:]]+)\.([[:print:]]+)/', $filename, $matches)) {
                     $filename = "{$matches[1]}-". uniqid() .".{$matches[2]}";
                 } else {
@@ -429,14 +422,14 @@ class MailImportController extends DefaultController
             }
 
             if (file_exists($dest)) {
-                $mtlda->raiseError(
+                $this->raiseError(
                     "A file with the name {$file['name']} is already present in the incoming directory!"
                 );
                 return false;
             }
 
             if (!file_put_contents($dest, $attachment_body)) {
-                $mtlda->raiseError("file_put_contents() returned false!");
+                $this->raiseError("file_put_contents() returned false!");
                 return false;
             }
         }
@@ -449,20 +442,18 @@ class MailImportController extends DefaultController
         global $mtlda;
 
         if (!is_object($part)) {
-            $mtlda->raiseError(__METHOD__ .', first parameter should be an object!');
+            $this->raiseError(__METHOD__ .', first parameter should be an object!');
             return false;
         }
 
         if (!is_array($attachments)) {
-            $mtlda->raiseError(__METHOD__ .', third parameter should be an object!');
+            $this->raiseError(__METHOD__ .', third parameter should be an object!');
             return false;
         }
 
         // if we have parts nested in parts, we have to run through recursive
         if (isset($part->parts)) {
-
             foreach ($part->parts as $subid => $subpart) {
-
                 // we can skip text-only parts
                 if ($part->type == 0) {
                     continue;
@@ -471,8 +462,7 @@ class MailImportController extends DefaultController
                 // the actual MIME part id is +1 then the array key
                 $subid+=1;
 
-                if (
-                    isset($part->ifsubtype) &&
+                if (isset($part->ifsubtype) &&
                     $part->ifsubtype &&
                     isset($part->subtype) &&
                     strtoupper($part->subtype) == 'RFC822'
@@ -483,7 +473,7 @@ class MailImportController extends DefaultController
                 }
 
                 if (!$this->parseMimePart($subpart, $nextid, $attachments)) {
-                    $mtlda->raiseError(__CLASS__ .'::parseMimePart() returned false!');
+                    $this->raiseError(__CLASS__ .'::parseMimePart() returned false!');
                     return false;
                 }
             }
@@ -492,8 +482,7 @@ class MailImportController extends DefaultController
 
         $parameters = array();
 
-        if (
-            isset($part->ifdparameters) &&
+        if (isset($part->ifdparameters) &&
             !empty($part->ifdparameters) &&
             isset($part->dparameters) &&
             !empty($part->dparameters)
@@ -501,8 +490,7 @@ class MailImportController extends DefaultController
             $this->arrayAppend($parameters, $part->dparameters);
         }
 
-        if (
-            isset($part->ifparameters) &&
+        if (isset($part->ifparameters) &&
             !empty($part->ifparameters) &&
             isset($part->parameters) &&
             !empty($part->parameters)
@@ -516,7 +504,7 @@ class MailImportController extends DefaultController
         }
 
         if (!$this->parseMimePartParameters($parameters, $attachments, $part->encoding, $id)) {
-            $mtlda->raiseError(__CLASS__ .'::parseMimePartParameters() returned false!');
+            $this->raiseError(__CLASS__ .'::parseMimePartParameters() returned false!');
             return false;
         }
 
@@ -528,46 +516,42 @@ class MailImportController extends DefaultController
         global $mtlda;
 
         if (!is_array($partparam)) {
-            $mtlda->raiseError(__METHOD__ .', first parameter has to be an array!');
+            $this->raiseError(__METHOD__ .', first parameter has to be an array!');
             return false;
         }
 
         if (!is_array($attachments)) {
-            $mtlda->raiseError(__METHOD__ .', second parameter has to be an array!');
+            $this->raiseError(__METHOD__ .', second parameter has to be an array!');
             return false;
         }
 
         if (!is_numeric($encoding)) {
-            $mtlda->raiseError(__METHOD__ .', third parameter has to be a number!');
+            $this->raiseError(__METHOD__ .', third parameter has to be a number!');
             return false;
         }
 
         $info = array();
 
         foreach ($partparam as $param) {
-
-            if (
-                !isset($param->attribute) ||
+            if (!isset($param->attribute) ||
                 empty($param->attribute) ||
                 !is_string($param->attribute)
             ) {
-                $mtlda->raiseError(__METHOD__ .'(), attribute property is not set!');
+                $this->raiseError(__METHOD__ .'(), attribute property is not set!');
                 return false;
             }
 
-            if (
-                !isset($param->value) ||
+            if (!isset($param->value) ||
                 empty($param->value) ||
                 !is_string($param->value)
             ) {
-                $mtlda->raiseError(__METHOD__ .'(), value property is not set!');
+                $this->raiseError(__METHOD__ .'(), value property is not set!');
                 return false;
             }
 
             $attribute = strtoupper($param->attribute);
 
-            if (
-                $attribute != 'NAME' &&
+            if ($attribute != 'NAME' &&
                 !preg_match('/^FILENAME([\*].*)/', $attribute)) {
                 continue;
             }
@@ -576,19 +560,17 @@ class MailImportController extends DefaultController
 
             // the value may be specially encoded.
             if (substr($attribute, -1) == '*' || $attribute == 'NAME') {
-
                 // strip of the asterisk from the attributes name
                 if ($attribute == 'FILENAME*') {
                     $attribute = substr($attribute, 0, -1);
                 }
 
                 if (!($filename_decoded = $this->imapDecodeString($filename))) {
-                    $mtlda->raiseError(__METHOD__ .'(), imapDecodeString() returned false!');
+                    $this->raiseError(__METHOD__ .'(), imapDecodeString() returned false!');
                     return false;
                 }
 
-                if (
-                    !isset($filename_decoded) ||
+                if (!isset($filename_decoded) ||
                     empty($filename_decoded) ||
                     !is_object($filename_decoded) ||
                     !isset($filename_decoded->text) ||
@@ -596,7 +578,7 @@ class MailImportController extends DefaultController
                     !isset($filename_decoded->charset) ||
                     empty($filename_decoded->charset)
                 ) {
-                    $mtlda->raiseError(__METHOD__ .'(), imapDecodeString() returned an invalid object!');
+                    $this->raiseError(__METHOD__ .'(), imapDecodeString() returned an invalid object!');
                     return false;
                 }
 
@@ -605,12 +587,12 @@ class MailImportController extends DefaultController
 
             // just to be sure...
             if (!isset($filename) || empty(basename($filename))) {
-                $mtlda->raiseError(__METHOD__ .'(), should get here only if decoding went wrong!');
+                $this->raiseError(__METHOD__ .'(), should get here only if decoding went wrong!');
                 return false;
             }
 
             if (isset($info[$attribute])) {
-                $mtlda->raiseError(__METHOD__ ."(), strangly \$info[{$attribute}] is already set!");
+                $this->raiseError(__METHOD__ ."(), strangly \$info[{$attribute}] is already set!");
                 return false;
             }
 
@@ -618,8 +600,7 @@ class MailImportController extends DefaultController
         }
 
         // if we were unable locating a filename, we skip this mime part
-        if (
-            !isset($info) ||
+        if (!isset($info) ||
             empty($info) ||
             (
                 !isset($info['NAME']) || empty($info['NAME']) &&
@@ -635,7 +616,7 @@ class MailImportController extends DefaultController
         } elseif (isset($info['FILENAME']) && !empty($info['FILENAME'])) {
             $filename = $info['FILENAME'];
         } else {
-            $mtlda->raiseError(__METHOD__ .'(), what shall I do without knowning the filename!');
+            $this->raiseError(__METHOD__ .'(), what shall I do without knowning the filename!');
             return false;
         }
 
@@ -653,22 +634,22 @@ class MailImportController extends DefaultController
         global $mtlda;
 
         if (!$this->isConnected()) {
-            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
         if (!is_numeric($msgno)) {
-            $mtlda->raiseError(__METHOD__ .', first parameter should be an array!');
+            $this->raiseError(__METHOD__ .', first parameter should be an array!');
             return false;
         }
 
         if (!is_array($attachment)) {
-            $mtlda->raiseError(__METHOD__ .', second parameter should be an array!');
+            $this->raiseError(__METHOD__ .', second parameter should be an array!');
             return false;
         }
 
         if (!$body = imap_fetchbody($this->imap_session, $msgno, $attachment['id'])) {
-            $mtlda->raiseError(
+            $this->raiseError(
                 "imap_fetchbody() returned false!<br />Msgno: {$msgno}<br />".
                 "Attachment: {$attachment['id']}<br />". imap_last_error()
             );
@@ -676,14 +657,14 @@ class MailImportController extends DefaultController
         }
 
         if (empty($body)) {
-            $mtlda->raiseError('imap_fetchbody() returned no valid content!');
+            $this->raiseError('imap_fetchbody() returned no valid content!');
             return false;
         }
 
         // 3 = BASE64
         if ($attachment['encoding'] == 3) {
             if (!$body = base64_decode($body)) {
-                $mtlda->raiseError("base64_decode() returned false!");
+                $this->raiseError("base64_decode() returned false!");
                 return false;
             }
             return $body;
@@ -692,7 +673,7 @@ class MailImportController extends DefaultController
             return quoted_printable_decode($body);
         }
 
-        $mtlda->raiseError("Unsupported encoding: {$attachment['encoding']}!");
+        $this->raiseError("Unsupported encoding: {$attachment['encoding']}!");
         return false;
     }
 
@@ -724,12 +705,12 @@ class MailImportController extends DefaultController
         global $mtlda;
 
         if (!$this->isConnected()) {
-            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
         if (!imap_delete($this->imap_session, $msgno)) {
-            $mtlda->raiseError("imap_delete() returned false!". imap_last_error());
+            $this->raiseError("imap_delete() returned false!". imap_last_error());
             return false;
         }
 
@@ -741,12 +722,12 @@ class MailImportController extends DefaultController
         global $mtlda;
 
         if (!$this->isConnected()) {
-            $mtlda->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
         if (!imap_setflag_full($this->imap_session, $msgno, '\Seen')) {
-            $mtlda->raiseError("imap_setflag_full() returned false!". imap_last_error());
+            $this->raiseError("imap_setflag_full() returned false!". imap_last_error());
             return false;
         }
 
@@ -757,25 +738,23 @@ class MailImportController extends DefaultController
     {
         global $mtlda;
 
-        if (
-            !isset($value) ||
+        if (!isset($value) ||
             empty($value) ||
             !is_string($value)
         ) {
-            $mtlda->raiseError(__METHOD__ .'(), \$value is invalid!');
+            $this->raiseError(__METHOD__ .'(), \$value is invalid!');
             return false;
         }
 
         $value_decoded = imap_mime_header_decode($value);
 
-        if (
-            !isset($value_decoded) ||
+        if (!isset($value_decoded) ||
             !is_array($value_decoded) ||
             empty($value_decoded) ||
             !isset($value_decoded[0]) ||
             empty($value_decoded[0])
         ) {
-            $mtlda->raiseError('imap_mime_header_decode() has responded invalid!');
+            $this->raiseError('imap_mime_header_decode() has responded invalid!');
             return false;
         }
 
@@ -786,19 +765,17 @@ class MailImportController extends DefaultController
     {
         global $mtlda;
 
-        if (
-            !isset($dst_parameters) ||
+        if (!isset($dst_parameters) ||
             !is_array($dst_parameters)
         ) {
-            $mtlda->raiseError(__METHOD__ .'(), \$dst_parameters is invalid!');
+            $this->raiseError(__METHOD__ .'(), \$dst_parameters is invalid!');
             return false;
         }
 
-        if (
-            !isset($src_parameters) ||
+        if (!isset($src_parameters) ||
             !is_array($src_parameters)
         ) {
-            $mtlda->raiseError(__METHOD__ .'(), \$src_parameters is invalid!');
+            $this->raiseError(__METHOD__ .'(), \$src_parameters is invalid!');
             return false;
         }
 

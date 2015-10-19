@@ -35,7 +35,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!in_array($this->config['app']['image_cache'], array('yes','y','true','on','1'))) {
+        if (!$this->isEnabled($this->config['app']['image_cache'])) {
             return false;
         }
 
@@ -204,7 +204,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!in_array($this->config['app']['mail_import'], array('yes','y','true','on','1'))) {
+        if (!$this->isEnabled($this->config['app']['mail_import'])) {
             return false;
         }
 
@@ -229,7 +229,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!in_array($this->config['app']['create_preview_on_import'], array('yes','y','true','on','1'))) {
+        if (!$this->isEnabled($this->config['app']['create_preview_on_import'])) {
             return false;
         }
 
@@ -250,7 +250,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!in_array($this->config['app']['embed_icon_to_pdf'], array('yes','y','true','on','1'))) {
+        if (!$this->isEnabled($this->config['app']['embed_icon_to_pdf'])) {
             return false;
         }
 
@@ -271,7 +271,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!in_array($this->config['mailimport']['mbox_delete_mail'], array('yes','y','true','on','1'))) {
+        if (!$this->isEnabled($this->config['mailimport']['mbox_delete_mail'])) {
             return false;
         }
 
@@ -292,7 +292,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!in_array($this->config['mailimport']['mbox_imap_expunge'], array('yes','y','true','on','1'))) {
+        if (!$this->isEnabled($this->config['mailimport']['mbox_imap_expunge'])) {
             return false;
         }
 

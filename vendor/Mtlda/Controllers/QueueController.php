@@ -19,8 +19,6 @@
 
 namespace Mtlda\Controllers;
 
-use Mtlda\Models;
-
 class QueueController extends DefaultController
 {
     public function archive($id, $guid)
@@ -28,61 +26,61 @@ class QueueController extends DefaultController
         global $mtlda;
 
         if (empty($id) || !is_numeric($id)) {
-            $mtlda->raiseError("id is invalid!");
+            $this->raiseError("id is invalid!");
             return false;
         }
 
         if (empty($guid) || !$mtlda->isValidGuidSyntax($guid)) {
-            $mtlda->raiseError("guid is invalid!");
+            $this->raiseError("guid is invalid!");
             return false;
         }
 
         if (!($obj = $mtlda->loadModel("queueitem", $id, $guid))) {
-            $mtlda->raiseError("Unable to load model for {$id}, {$guid}");
+            $this->raiseError("Unable to load model for {$id}, {$guid}");
             return false;
         }
 
         if (!isset($obj->queue_file_hash) || empty($obj->queue_file_hash)) {
-            $mtlda->raiseError("Found no file hash for QueueItemModel {$id}, {$guid}!");
+            $this->raiseError("Found no file hash for QueueItemModel {$id}, {$guid}!");
             return false;
         }
 
         try {
             $archive = new ArchiveController;
-        } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load ArchiveController!");
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load ArchiveController!");
             return false;
         }
 
         if (!$archive) {
-            $mtlda->raiseError("Unable to load ArchiveController!");
+            $this->raiseError("Unable to load ArchiveController!");
             return false;
         }
 
         if (($dupl_item = $archive->checkForDuplicateFileByHash($obj->queue_file_hash)) === false) {
-            $mtlda->raiseError("ArchiveController::checkForDuplicateFileByHash returned false!");
+            $this->raiseError("ArchiveController::checkForDuplicateFileByHash returned false!");
             return false;
         }
 
         if (!empty($dupl_item)) {
-            $mtlda->raiseError("There is already an item with the same file hash in the archive!");
+            $this->raiseError("There is already an item with the same file hash in the archive!");
             return false;
         }
 
         try {
             $archive = new ArchiveController;
-        } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load ArchiveController!");
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load ArchiveController!");
             return false;
         }
 
         if (!$archive) {
-            $mtlda->raiseError("Unable to load ArchiveController!");
+            $this->raiseError("Unable to load ArchiveController!");
             return false;
         }
 
         if (!$archive->archive($obj)) {
-            $mtlda->raiseError("ArchiveController::archive() exited with an error!");
+            $this->raiseError("ArchiveController::archive() exited with an error!");
             return false;
         }
 
@@ -94,9 +92,9 @@ class QueueController extends DefaultController
         global $mtlda;
 
         try {
-            $queue = new Models\QueueModel;
-        } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load QueueModel");
+            $queue = new \Mtlda\Models\QueueModel;
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load QueueModel");
             return false;
         }
 

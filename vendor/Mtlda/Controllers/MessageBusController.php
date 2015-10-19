@@ -19,8 +19,6 @@
 
 namespace Mtlda\Controllers;
 
-use Mtlda\Models;
-
 class MessageBusController extends \Thallium\Controllers\MessageBusController
 {
 }

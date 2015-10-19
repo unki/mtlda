@@ -19,8 +19,6 @@
 
 namespace Mtlda\Controllers;
 
-use Mtlda\Models;
-
 class ImageController extends DefaultController
 {
     private $image_cache;
@@ -35,7 +33,7 @@ class ImageController extends DefaultController
         global $mtlda, $query;
 
         if (!isset($query->view) || empty($query->view)) {
-            $mtlda->raiseError("\$query->view is not set!");
+            $this->raiseError("\$query->view is not set!");
             return false;
         }
 
@@ -51,39 +49,37 @@ class ImageController extends DefaultController
         global $mtlda, $query;
 
         if (!isset($query->params) || !isset($query->params[0]) || empty($query->params[0])) {
-            $mtlda->raiseError("\$query->params is not set!");
+            $this->raiseError("\$query->params is not set!");
             return false;
         }
 
         $id = $query->params[0];
 
         if (!$mtlda->isValidId($id)) {
-            $mtlda->raiseError("\$id is invalid!");
+            $this->raiseError("\$id is invalid!");
             return false;
         }
 
         if (($id = $mtlda->parseId($id)) === false) {
-            $mtlda->raiseError("unable to parse id!");
+            $this->raiseError("unable to parse id!");
             return false;
         }
 
         if (!$mtlda->isValidGuidSyntax($id->guid)) {
-            $mtlda->raiseError("GUID syntax is invalid!");
+            $this->raiseError("GUID syntax is invalid!");
             return false;
         }
 
         if ($id->model == "queueitem") {
-
-            $item = new Models\QueueItemModel($id->id, $id->guid);
+            $item = new \Mtlda\Models\QueueItemModel($id->id, $id->guid);
             if (!$item) {
-                $mtlda->raiseError("Unable to load a QueueItemModel!");
+                $this->raiseError("Unable to load a QueueItemModel!");
                 return false;
             }
-
         }
 
         if (!($image = $this->createPreviewImage($item))) {
-            $mtlda->raiseError("createPreviewImage() returned false!");
+            $this->raiseError("createPreviewImage() returned false!");
             return false;
         }
 
@@ -99,27 +95,27 @@ class ImageController extends DefaultController
         global $mtlda, $config, $audit;
 
         if (!isset($item) || empty($item)) {
-            $mtlda->raiseError("createPreviewImage() invalid parameter!");
+            $this->raiseError("createPreviewImage() invalid parameter!");
             return false;
         }
 
         if (!isset($item->queue_idx, $item->queue_guid, $item->queue_file_name)) {
-            $mtlda->raiseError("createPreviewImage() parameter incomplete!");
+            $this->raiseError("createPreviewImage() parameter incomplete!");
             return false;
         }
 
         if (!$src = $item->getFilePath()) {
-            $mtlda->raiseError(get_class($item) ."::getFilePath() returned false!");
+            $this->raiseError(get_class($item) ."::getFilePath() returned false!");
             return false;
         }
 
         if (!file_exists($src)) {
-            $mtlda->raiseError("Source does not exist!");
+            $this->raiseError("Source does not exist!");
             return false;
         }
 
         if (!is_readable($src)) {
-            $mtlda->raiseError("Source is not readable!");
+            $this->raiseError("Source is not readable!");
             return false;
         }
 
@@ -134,15 +130,15 @@ class ImageController extends DefaultController
                 "queue",
                 $item->getGuid()
             );
-        } catch (Exception $e) {
-            $mtlda->raiseError("AuditController::log() raised an exception!");
+        } catch (\Exception $e) {
+            $this->raiseError("AuditController::log() raised an exception!");
             return false;
         }
 
         try {
             $im = new \Imagick($src .'[0]');
         } catch (ImagickException $e) {
-            $mtlda->raiseError("Unable to load imagick class!");
+            $this->raiseError("Unable to load imagick class!");
             return false;
         }
 
@@ -151,12 +147,12 @@ class ImageController extends DefaultController
         }
 
         if (!$im->setImageFormat('jpg')) {
-            $mtlda->raiseError("Unable to set jpg image format!");
+            $this->raiseError("Unable to set jpg image format!");
             return false;
         }
 
         if (!$im->scaleImage(300, 300, true)) {
-            $mtlda->raiseError("Unable to scale image!");
+            $this->raiseError("Unable to scale image!");
             return false;
         }
 
@@ -165,7 +161,7 @@ class ImageController extends DefaultController
         }
 
         if (!($content = $im->getImageBlob())) {
-            $mtlda->raiseError("imagick returned nothing!");
+            $this->raiseError("imagick returned nothing!");
             return false;
         }
 
@@ -178,7 +174,6 @@ class ImageController extends DefaultController
 
     public function updateProgress()
     {
-
     }
 
     private function isCachedImageAvailable($id, $guid, $prefix)
@@ -199,7 +194,7 @@ class ImageController extends DefaultController
         $file = "{$this->image_cache}/{$prefix}_{$id}_{$guid}.jpg";
 
         if (($content = file_get_contents($file)) === false) {
-            $mtlda->raiseError("Unable to read file {$file}!");
+            $this->raiseError("Unable to read file {$file}!");
             return false;
         }
 
@@ -213,12 +208,12 @@ class ImageController extends DefaultController
         $file = "{$this->image_cache}/{$prefix}_{$id}_{$guid}.jpg";
 
         if (($fp = fopen($file, 'w')) === false) {
-            $mtlda->raiseError("Unable to write to {$file}");
+            $this->raiseError("Unable to write to {$file}");
             return false;
         }
 
         if (fwrite($fp, $im->getImageBlob()) === false) {
-            $mtlda->raiseError("fwrite() returned unsuccessful");
+            $this->raiseError("fwrite() returned unsuccessful");
             return false;
         }
     }

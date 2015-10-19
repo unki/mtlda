@@ -19,10 +19,6 @@
 
 namespace Mtlda\Controllers;
 
-use Mtlda\Views;
-use Mtlda\Models;
-use Mtlda\Controllers;
-
 class MainController extends \Thallium\Controllers\MainController
 {
     const VERSION = "0.3";
@@ -155,7 +151,7 @@ class MainController extends \Thallium\Controllers\MainController
         return false;
     }
 
-    private function rpcHandler()
+    protected function rpcHandler()
     {
         $this->loadController("Rpc", "rpc");
         global $rpc;
@@ -184,7 +180,7 @@ class MainController extends \Thallium\Controllers\MainController
         return true;
     }
 
-    private function imageHandler()
+    protected function imageHandler()
     {
         $this->loadController("Image", "image");
         global $image;
@@ -198,7 +194,7 @@ class MainController extends \Thallium\Controllers\MainController
         return true;
     }
 
-    private function documentHandler()
+    protected function documentHandler()
     {
         $this->loadController("Document", "document");
         global $document;
@@ -212,7 +208,7 @@ class MainController extends \Thallium\Controllers\MainController
         return true;
     }
 
-    private function uploadHandler()
+    protected function uploadHandler()
     {
         $this->loadController("Upload", "upload");
         global $upload;
@@ -310,16 +306,16 @@ class MainController extends \Thallium\Controllers\MainController
         try {
             switch ($object_name) {
                 case 'queue':
-                    $obj = new Models\QueueModel;
+                    $obj = new \Mtlda\Models\QueueModel;
                     break;
                 case 'queueitem':
-                    $obj = new Models\QueueItemModel($id, $guid);
+                    $obj = new \Mtlda\Models\QueueItemModel($id, $guid);
                     break;
                 case 'document':
-                    $obj = new Models\DocumentModel($id, $guid);
+                    $obj = new \Mtlda\Models\DocumentModel($id, $guid);
                     break;
                 case 'keyword':
-                    $obj = new Models\KeywordModel($id, $guid);
+                    $obj = new \Mtlda\Models\KeywordModel($id, $guid);
                     break;
             }
         } catch (\Exception $e) {
@@ -382,7 +378,7 @@ class MainController extends \Thallium\Controllers\MainController
             return true;
         }
 
-        $controller = 'Mtlda\\Controllers\\'.$controller.'Controller';
+        $controller = '\\Mtlda\\Controllers\\'.$controller.'Controller';
 
         if (!class_exists($controller, true)) {
             $this->raiseError("{$controller} class is not available!", true);
@@ -391,7 +387,7 @@ class MainController extends \Thallium\Controllers\MainController
 
         try {
             $GLOBALS[$global_name] =& new $controller;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->raiseError("Failed to load {$controller_name}! ". $e->getMessage(), true);
             return false;
         }
@@ -444,7 +440,7 @@ class MainController extends \Thallium\Controllers\MainController
         return false;
     }
 
-    private function performActions()
+    protected function performActions()
     {
         global $mbus;
 
@@ -479,12 +475,12 @@ class MainController extends \Thallium\Controllers\MainController
         return true;
     }
 
-    private function handleMessage(&$message)
+    protected function handleMessage(&$message)
     {
         global $jobs;
 
         if (empty($message) ||
-            get_class($message) != 'Mtlda\Models\MessageModel'
+            get_class($message) != 'Thallium\Models\MessageModel'
         ) {
             $this->raiseError(__METHOD__ .' requires a MessageModel reference as parameter!');
             return false;
@@ -571,12 +567,12 @@ class MainController extends \Thallium\Controllers\MainController
         return true;
     }
 
-    private function handleSignRequest(&$message)
+    protected function handleSignRequest(&$message)
     {
         global $mbus;
 
         if (empty($message) ||
-            get_class($message) != 'Mtlda\Models\MessageModel'
+            get_class($message) != 'Thallium\Models\MessageModel'
         ) {
             $this->raiseError(__METHOD__ .', requires a MessageModel reference as parameter!');
             return false;
@@ -640,7 +636,7 @@ class MainController extends \Thallium\Controllers\MainController
         }
 
         try {
-            $document = new Models\DocumentModel(
+            $document = new \Mtlda\Models\DocumentModel(
                 $sign_request->id,
                 $sign_request->guid
             );
@@ -662,12 +658,12 @@ class MainController extends \Thallium\Controllers\MainController
         return true;
     }
 
-    private function handleMailImportRequest(&$message)
+    protected function handleMailImportRequest(&$message)
     {
         global $mbus;
 
         if (empty($message) ||
-            get_class($message) != 'Mtlda\Models\MessageModel'
+            get_class($message) != 'Thallium\Models\MessageModel'
         ) {
             $this->raiseError(__METHOD__ .', requires a MessageModel reference as parameter!');
             return false;
@@ -686,12 +682,12 @@ class MainController extends \Thallium\Controllers\MainController
         try {
             $importer = new MailImportController;
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load MailImportController!");
+            $this->raiseError("Failed to load MailImportController!");
             return false;
         }
 
         if (!$importer->fetch()) {
-            $mtlda->raiseError("MailImportController::fetch() returned false!");
+            $this->raiseError("MailImportController::fetch() returned false!");
             return false;
         }
 
@@ -716,7 +712,7 @@ class MainController extends \Thallium\Controllers\MainController
         }
 
         try {
-            $archive = new Controllers\ArchiveController;
+            $archive = new \Mtlda\Controllers\ArchiveController;
         } catch (\Exception $e) {
             $this->raiseError("Failed to load ArchiveController!");
             return false;
@@ -740,7 +736,7 @@ class MainController extends \Thallium\Controllers\MainController
         global $mbus;
 
         if (empty($message) ||
-            get_class($message) != 'Mtlda\Models\MessageModel'
+            get_class($message) != 'Thallium\Models\MessageModel'
         ) {
             $this->raiseError(__METHOD__ .', requires a MessageModel reference as parameter!');
             return false;
@@ -804,7 +800,7 @@ class MainController extends \Thallium\Controllers\MainController
         }
 
         try {
-            $document = new Models\DocumentModel(
+            $document = new \Mtlda\Models\DocumentModel(
                 $scan_request->id,
                 $scan_request->guid
             );
@@ -839,7 +835,7 @@ class MainController extends \Thallium\Controllers\MainController
         }
 
         try {
-            $parser = new Controllers\PdfIndexerController;
+            $parser = new \Mtlda\Controllers\PdfIndexerController;
         } catch (\Exception $e) {
             $this->raiseError("Failed to load PdfIndexerController!");
             return false;

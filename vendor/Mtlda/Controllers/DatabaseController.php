@@ -28,52 +28,52 @@ class DatabaseController extends \Thallium\Controllers\DatabaseController
         global $mtlda;
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXmeta")) === false) {
-            $mtlda->raiseError("failed to truncate 'meta' table!");
+            $this->raiseError("failed to truncate 'meta' table!");
             return false;
         }
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXjobs")) === false) {
-            $mtlda->raiseError("failed to truncate 'jobs' table!");
+            $this->raiseError("failed to truncate 'jobs' table!");
             return false;
         }
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXmessage_bus")) === false) {
-            $mtlda->raiseError("failed to truncate 'message_bus' table!");
+            $this->raiseError("failed to truncate 'message_bus' table!");
             return false;
         }
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXaudit")) === false) {
-            $mtlda->raiseError("failed to truncate 'audit' table!");
+            $this->raiseError("failed to truncate 'audit' table!");
             return false;
         }
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXqueue")) === false) {
-            $mtlda->raiseError("failed to truncate 'queue' table!");
+            $this->raiseError("failed to truncate 'queue' table!");
             return false;
         }
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXarchive")) === false) {
-            $mtlda->raiseError("failed to truncate 'archive' table!");
+            $this->raiseError("failed to truncate 'archive' table!");
             return false;
         }
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXkeywords")) === false) {
-            $mtlda->raiseError("failed to truncate 'keywords' table!");
+            $this->raiseError("failed to truncate 'keywords' table!");
             return false;
         }
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXassign_keywords_to_document")) === false) {
-            $mtlda->raiseError("failed to truncate 'assign_keywords_to_document' table!");
+            $this->raiseError("failed to truncate 'assign_keywords_to_document' table!");
             return false;
         }
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXdocument_indices")) === false) {
-            $mtlda->raiseError("failed to truncate 'document_indices' table!");
+            $this->raiseError("failed to truncate 'document_indices' table!");
             return false;
         }
 
         if (($this->query("TRUNCATE TABLE TABLEPREFIXdocument_properties")) === false) {
-            $mtlda->raiseError("failed to truncate 'document_properties' table!");
+            $this->raiseError("failed to truncate 'document_properties' table!");
             return false;
         }
 

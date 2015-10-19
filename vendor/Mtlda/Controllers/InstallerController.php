@@ -21,7 +21,7 @@ namespace Mtlda\Controllers;
 
 class InstallerController extends \Thallium\Controllers\InstallerController
 {
-    private $schema_version_before;
+    protected $schema_version_before;
 
     public function setup()
     {
@@ -29,7 +29,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
 
         if ($db->checkTableExists("TABLEPREFIXmeta")) {
             if (($this->schema_version_before = $db->getDatabaseSchemaVersion()) === false) {
-                $mtlda->raiseError("DatabaseController::getDatabaseSchemaVersion() returned false!");
+                $this->raiseError("DatabaseController::getDatabaseSchemaVersion() returned false!");
                 return false;
             }
         }
@@ -40,14 +40,14 @@ class InstallerController extends \Thallium\Controllers\InstallerController
 
         if ($this->schema_version_before < $db->getSoftwareSchemaVersion()) {
             if (!$this->createDatabaseTables()) {
-                $mtlda->raiseError("InstallerController::createDatabaseTables() returned false!");
+                $this->raiseError("InstallerController::createDatabaseTables() returned false!");
                 return false;
             }
         }
 
         if ($db->getDatabaseSchemaVersion() < $db->getSoftwareSchemaVersion()) {
             if (!$this->upgradeDatabaseSchema()) {
-                $mtlda->raiseError("InstallerController::upgradeDatabaseSchema() returned false!");
+                $this->raiseError("InstallerController::upgradeDatabaseSchema() returned false!");
                 return false;
             }
         }
@@ -59,7 +59,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         print "Database schema version after upgrade: {$db->getDatabaseSchemaVersion()}<br />\n";
 
         if (!($base_path = $config->getWebPath())) {
-            $mtlda->raiseError("ConfigController::getWebPath() returned false!");
+            $this->raiseError("ConfigController::getWebPath() returned false!");
             return false;
         }
 
@@ -92,7 +92,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                     ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'archive' table");
+                $this->raiseError("Failed to create 'archive' table");
                 return false;
             }
         }
@@ -112,7 +112,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                     ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'queue' table");
+                $this->raiseError("Failed to create 'queue' table");
                 return false;
             }
         }
@@ -127,7 +127,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'keywords' table");
+                $this->raiseError("Failed to create 'keywords' table");
                 return false;
             }
         }
@@ -145,7 +145,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'assign_keywords_to_document' table");
+                $this->raiseError("Failed to create 'assign_keywords_to_document' table");
                 return false;
             }
         }
@@ -164,7 +164,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'document_indices' table");
+                $this->raiseError("Failed to create 'document_indices' table");
                 return false;
             }
         }
@@ -183,7 +183,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $mtlda->raiseError("Failed to create 'document_properties' table");
+                $this->raiseError("Failed to create 'document_properties' table");
                 return false;
             }
         }
@@ -209,7 +209,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -239,7 +239,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -270,7 +270,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -301,7 +301,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -325,7 +325,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         ");
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -355,7 +355,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -367,13 +367,13 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ .' failed!');
+            $this->raiseError(__METHOD__ .' failed!');
             return false;
         }
 
         while ($row = $result->fetch()) {
             if (!$guid = $mtlda->createGuid()) {
-                $mtlda->raiseError('Mtlda::createGuid() returned no valid GUID!');
+                $this->raiseError('Mtlda::createGuid() returned no valid GUID!');
                 return false;
             }
 
@@ -386,7 +386,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                     akd_idx LIKE '{$row->akd_idx}'"
             );
             if ($res === false) {
-                $mtlda->raiseError(__METHOD__ .', update failed!');
+                $this->raiseError(__METHOD__ .', update failed!');
                 return false;
             }
         }
@@ -415,7 +415,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -448,7 +448,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -478,7 +478,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -511,7 +511,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -538,7 +538,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -573,7 +573,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -608,7 +608,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -638,7 +638,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -660,7 +660,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $mtlda->raiseError(__METHOD__ ." failed!");
+            $this->raiseError(__METHOD__ ." failed!");
             return false;
         }
 

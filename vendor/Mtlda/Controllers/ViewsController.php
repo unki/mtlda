@@ -19,8 +19,6 @@
 
 namespace Mtlda\Controllers;
 
-use Mtlda\Views;
-
 class ViewsController extends \Thallium\Controllers\ViewsController
 {
     public $page_map = array(

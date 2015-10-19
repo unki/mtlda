@@ -19,9 +19,6 @@
 
 namespace Mtlda\Controllers;
 
-use Mtlda\Models;
-use \Smalot\PdfParser;
-
 class PdfIndexerController extends DefaultController
 {
     private $parser;
@@ -33,7 +30,7 @@ class PdfIndexerController extends DefaultController
         try {
             $this->parser = new \Smalot\PdfParser\Parser();
         } catch (\Exception $e) {
-            $mtlda->raiseError('Failed to load PdfParser!', true);
+            $this->raiseError('Failed to load PdfParser!', true);
             return false;
         }
 
@@ -45,34 +42,34 @@ class PdfIndexerController extends DefaultController
         global $mtlda;
 
         if (!is_a($document, 'Mtlda\Models\DocumentModel')) {
-            $mtlda->raiseError(__METHOD__ .' only supports DocumentModels!');
+            $this->raiseError(__METHOD__ .' only supports DocumentModels!');
             return false;
         }
 
         if (!($idx = $document->getId())) {
-            $mtlda->raiseError(get_class($document) .'::getId() returned false!');
+            $this->raiseError(get_class($document) .'::getId() returned false!');
             return false;
         }
 
         if (!($guid = $document->getGuid())) {
-            $mtlda->raiseError(get_class($document) .'::getGuid() returned false!');
+            $this->raiseError(get_class($document) .'::getGuid() returned false!');
             return false;
         }
 
         $this->sendMessage('scan-reply', 'Retrieving document from archive.', '40%');
 
         if (!$fqpn = $document->getFilePath()) {
-            $mtlda->raiseError(get_class($document) .'::getFilePath() returned false!');
+            $this->raiseError(get_class($document) .'::getFilePath() returned false!');
             return false;
         }
 
         if (!file_exists($fqpn)) {
-            $mtlda->raiseError("{$fqpn} does not exist!");
+            $this->raiseError("{$fqpn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqpn)) {
-            $mtlda->raiseError("{$fqpn} is not readable!");
+            $this->raiseError("{$fqpn} is not readable!");
             return false;
         }
 
@@ -80,26 +77,26 @@ class PdfIndexerController extends DefaultController
         // cleanup existing indices & properties
         //
         try {
-            $indices = new Models\DocumentIndicesModel($idx, $guid);
+            $indices = new \Mtlda\Models\DocumentIndicesModel($idx, $guid);
         } catch (\Exception $e) {
-            $mtlda->raiseError(__CLASS__ .', failed to load DocumentIndicesModel!');
+            $this->raiseError(__CLASS__ .', failed to load DocumentIndicesModel!');
             return false;
         }
 
         if (!$indices->delete()) {
-            $mtlda->raiseError(get_class($indices) .'::delete() returned false!');
+            $this->raiseError(get_class($indices) .'::delete() returned false!');
             return false;
         }
 
         try {
-            $properties = new Models\DocumentPropertiesModel($idx, $guid);
+            $properties = new \Mtlda\Models\DocumentPropertiesModel($idx, $guid);
         } catch (\Exception $e) {
-            $mtlda->raiseError(__CLASS__ .', failed to load DocumentProperties!');
+            $this->raiseError(__CLASS__ .', failed to load DocumentProperties!');
             return false;
         }
 
         if (!$properties->delete()) {
-            $mtlda->raiseError(get_class($properties) .'::delete() returned false!');
+            $this->raiseError(get_class($properties) .'::delete() returned false!');
             return false;
         }
 
@@ -108,7 +105,7 @@ class PdfIndexerController extends DefaultController
         try {
             $pdf = $this->parser->parseFile($fqpn);
         } catch (\Exception $e) {
-            $mtlda->raiseError(get_class($this->parser) .'::parseFile() returned false! '. $e->getMessage());
+            $this->raiseError(get_class($this->parser) .'::parseFile() returned false! '. $e->getMessage());
             return false;
         }
 
@@ -117,32 +114,32 @@ class PdfIndexerController extends DefaultController
         try {
             $text = $pdf->getText();
         } catch (\Exception $e) {
-            $mtlda->raiseError(get_class($pdf) .'::getText() returned false!');
+            $this->raiseError(get_class($pdf) .'::getText() returned false!');
             return false;
         }
 
         if (isset($text) && !empty($text)) {
             try {
-                $index = new Models\DocumentIndexModel;
+                $index = new \Mtlda\Models\DocumentIndexModel;
             } catch (\Exception $e) {
-                $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentIndexModel!');
+                $this->raiseError(__METHOD__ .'(), failed to load DocumentIndexModel!');
                 return false;
             }
 
             if (!$index->setDocumentIdx($document->getId())) {
-                $mtlda->raiseError(get_class($index) .'::setDocumentIdx() returned false!');
+                $this->raiseError(get_class($index) .'::setDocumentIdx() returned false!');
                 return false;
             }
             if (!$index->setDocumentGuid($document->getGuid())) {
-                $mtlda->raiseError(get_class($index) .'::setDocumentGuid() returned false!');
+                $this->raiseError(get_class($index) .'::setDocumentGuid() returned false!');
                 return false;
             }
             if (!$index->setDocumentText($text)) {
-                $mtlda->raiseError(get_class($index) .'::setDocumentText() returned false!');
+                $this->raiseError(get_class($index) .'::setDocumentText() returned false!');
                 return false;
             }
             if (!$index->save()) {
-                $mtlda->raiseError(get_class($index) .'::save() returned false!');
+                $this->raiseError(get_class($index) .'::save() returned false!');
                 return false;
             }
         }
@@ -150,7 +147,7 @@ class PdfIndexerController extends DefaultController
         try {
             $details  = $pdf->getDetails();
         } catch (\Exception $e) {
-            $mtlda->raiseError(get_class($pdf) .'::getDetails() returned false!');
+            $this->raiseError(get_class($pdf) .'::getDetails() returned false!');
             return false;
         }
 
@@ -165,30 +162,30 @@ class PdfIndexerController extends DefaultController
                 }
 
                 try {
-                    $pmodel = new Models\DocumentPropertyModel;
+                    $pmodel = new \Mtlda\Models\DocumentPropertyModel;
                 } catch (\Exception $e) {
-                    $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentPropertyModel!');
+                    $this->raiseError(__METHOD__ .'(), failed to load DocumentPropertyModel!');
                     return false;
                 }
 
                 if (!$pmodel->setDocumentIdx($document->getId())) {
-                    $mtlda->raiseError(get_class($pmodel) .'::setDocumentIdx() returned false!');
+                    $this->raiseError(get_class($pmodel) .'::setDocumentIdx() returned false!');
                     return false;
                 }
                 if (!$pmodel->setDocumentGuid($document->getGuid())) {
-                    $mtlda->raiseError(get_class($pmodel) .'::setDocumentGuid() returned false!');
+                    $this->raiseError(get_class($pmodel) .'::setDocumentGuid() returned false!');
                     return false;
                 }
                 if (!$pmodel->setDocumentProperty($property)) {
-                    $mtlda->raiseError(get_class($pmodel) .'::setDocumentProperty() returned false!');
+                    $this->raiseError(get_class($pmodel) .'::setDocumentProperty() returned false!');
                     return false;
                 }
                 if (!$pmodel->setDocumentValue($value)) {
-                    $mtlda->raiseError(get_class($pmodel) .'::setDocumentValue() returned false!');
+                    $this->raiseError(get_class($pmodel) .'::setDocumentValue() returned false!');
                     return false;
                 }
                 if (!$pmodel->save()) {
-                    $mtlda->raiseError(get_class($pmodel) .'::save() returned false!');
+                    $this->raiseError(get_class($pmodel) .'::save() returned false!');
                     return false;
                 }
             }

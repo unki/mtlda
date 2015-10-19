@@ -19,9 +19,6 @@
 
 namespace Mtlda\Controllers;
 
-use Mtlda\Controllers;
-use Mtlda\Models;
-
 class ArchiveController extends DefaultController
 {
     public function archive(&$queue_item)
@@ -30,21 +27,21 @@ class ArchiveController extends DefaultController
 
         // verify QueueItemModel is ok()
         if (!$queue_item->verify()) {
-            $mtlda->raiseError("QueueItemModel::verify() returned false!");
+            $this->raiseError("QueueItemModel::verify() returned false!");
             return false;
         }
 
         try {
-            $document = new Models\DocumentModel;
-        } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load DocumentModel!");
+            $document = new \Mtlda\Models\DocumentModel;
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load DocumentModel!");
             return false;
         }
 
         try {
-            $storage = new StorageController;
-        } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load StorageController!");
+            $storage = new \Mtlda\Controllers\StorageController;
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load StorageController!");
             return false;
         }
 
@@ -55,8 +52,8 @@ class ArchiveController extends DefaultController
                 "storage",
                 $queue_item->queue_guid
             );
-        } catch (Exception $e) {
-            $mtlda->raiseError("AuditController::log() returned false!");
+        } catch (\Exception $e) {
+            $this->raiseError("AuditController::log() returned false!");
             return false;
         }
 
@@ -64,7 +61,7 @@ class ArchiveController extends DefaultController
             empty($queue_item->fields) ||
             !is_array($queue_item->fields)
         ) {
-            $mtlda->raiseError("\$queue_item->fields not set!");
+            $this->raiseError("\$queue_item->fields not set!");
             return false;
         }
 
@@ -85,18 +82,18 @@ class ArchiveController extends DefaultController
         $document->document_derivation_guid = '';
 
         if (!$fqfn_src = $queue_item->getFilePath()) {
-            $mtlda->raiseError(get_class($queue_item) .'::getFilePath() returned false!');
+            $this->raiseError(get_class($queue_item) .'::getFilePath() returned false!');
             return false;
         }
 
         if (!($fqfn_dst = $document->getFilePath())) {
-            $mtlda->raiseError(get_class($queue_item) .'::getFilePath() returned false!');
+            $this->raiseError(get_class($queue_item) .'::getFilePath() returned false!');
             return false;
         }
 
         // create the target directory structure
         if (!$storage->createDirectoryStructure(dirname($fqfn_dst))) {
-            $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
+            $this->raiseError("StorageController::createDirectoryStructure() returned false!");
             return false;
         }
 
@@ -107,41 +104,41 @@ class ArchiveController extends DefaultController
                 "storage",
                 $queue_item->queue_guid
             );
-        } catch (Exception $e) {
-            $mtlda->raiseError("AuditController::log() returned false!");
+        } catch (\Exception $e) {
+            $this->raiseError("AuditController::log() returned false!");
             return false;
         }
 
         if (!$storage->copyFile($fqfn_src, $fqfn_dst)) {
-            $mtlda->raiseError("StorageController::copyFile() returned false!");
+            $this->raiseError("StorageController::copyFile() returned false!");
             return false;
         }
 
         // safe DocumentModel to database, remove the file from archive again
         if (!$document->save()) {
-            $mtlda->raiseError("DocumentModel::save() returned false!");
+            $this->raiseError("DocumentModel::save() returned false!");
             if (!$storage->deleteItemFile($document)) {
-                $mtlda->raiseError("StorageController::deleteItemFile() returned false!");
+                $this->raiseError("StorageController::deleteItemFile() returned false!");
             }
             return false;
         }
 
         // delete QueueItemModel from database, if that fails revert
         if (!$queue_item->delete()) {
-            $mtlda->raiseError("DocumentModel::delete() returned false!");
+            $this->raiseError("DocumentModel::delete() returned false!");
             if (!$document->delete()) {
-                $mtlda->raiseError("QueueItemModel::delete() returned false!");
+                $this->raiseError("QueueItemModel::delete() returned false!");
             }
             return false;
         }
 
         if ($config->isEmbeddingMtldaIcon()) {
             if (!$this->embedMtldaIcon($document)) {
-                $mtlda->raiseError("embedMtldaIcon() returned false!");
+                $this->raiseError("embedMtldaIcon() returned false!");
                 return false;
             }
             if (!$document->refresh()) {
-                $mtlda->raiseError("DocumentModel::refresh() returned false!");
+                $this->raiseError("DocumentModel::refresh() returned false!");
                 return false;
             }
         }
@@ -149,7 +146,7 @@ class ArchiveController extends DefaultController
         $mbus->suppressOutboundMessaging(true);
         if ($config->isPdfIndexingEnabled()) {
             if (!$this->indexDocument($document)) {
-                $mtlda->raiseError('indexDocument() returned false!');
+                $this->raiseError('indexDocument() returned false!');
                 return false;
             }
         }
@@ -167,7 +164,7 @@ class ArchiveController extends DefaultController
 
         $mbus->suppressOutboundMessaging(true);
         if (!$this->sign($document)) {
-            $mtlda->raiseError(__CLASS__ ."::sign() returned false!");
+            $this->raiseError(__CLASS__ ."::sign() returned false!");
             return false;
         }
         $mbus->suppressOutboundMessaging(false);
@@ -180,38 +177,38 @@ class ArchiveController extends DefaultController
         global $mtlda, $config, $audit, $mbus;
 
         if (!$config->isPdfSigningEnabled()) {
-            $mtlda->raiseError("ConfigController::isPdfSigningEnabled() returns false!");
+            $this->raiseError("ConfigController::isPdfSigningEnabled() returns false!");
             return false;
         }
 
         try {
-            $signer = new Controllers\PdfSigningController;
-        } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load PdfSigningController");
+            $signer = new \Mtlda\Controllers\PdfSigningController;
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load PdfSigningController");
             return false;
         }
 
         try {
-            $storage = new Controllers\StorageController;
-        } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load StorageController!");
+            $storage = new \Mtlda\Controllers\StorageController;
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load StorageController!");
             return false;
         }
 
         try {
-            $signing_item = new Models\DocumentModel;
-        } catch (Exception $e) {
-            $mtlda->raiseError("Failed to load DocumentModel!");
+            $signing_item = new \Mtlda\Models\DocumentModel;
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load DocumentModel!");
             return false;
         }
 
         if (!$mbus->sendMessageToClient('sign-request', 'Deriving copy of orignal document', '30%')) {
-            $mtlda->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (!($signing_item->createClone($src_item))) {
-            $mtlda->raiseError(__METHOD__ ." unable to clone DocumentModel!");
+            $this->raiseError(__METHOD__ ." unable to clone DocumentModel!");
             return false;
         }
 
@@ -222,15 +219,15 @@ class ArchiveController extends DefaultController
                 "archive",
                 $src_item->document_guid
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $signing_item->delete();
-            $mtlda->raiseError("AuditController::log() raised an exception!");
+            $this->raiseError("AuditController::log() raised an exception!");
             return false;
         }
 
         // we need to save once so the database id is written back to the document_idx field.
         if (!$signing_item->save()) {
-            $mtlda->raiseError(get_class($signing_item) .'::save() returned false!');
+            $this->raiseError(get_class($signing_item) .'::save() returned false!');
             return false;
         }
 
@@ -240,32 +237,32 @@ class ArchiveController extends DefaultController
         $signing_item->document_derivation_guid = $src_item->document_guid;
 
         if (!$signing_item->save()) {
-            $mtlda->raiseError(get_class($signing_item) .'::save() returned false!');
+            $this->raiseError(get_class($signing_item) .'::save() returned false!');
             return false;
         }
 
         if ($config->isPdfSigningAttachAuditLogEnabled()) {
             if (!$this->attachAuditLogToDocument($signing_item)) {
                 $signing_item->delete();
-                $mtlda->raiseError(__CLASS__ .'::attachAuditLogToDocument() returned false!');
+                $this->raiseError(__CLASS__ .'::attachAuditLogToDocument() returned false!');
                 return false;
             }
         }
 
         if (!$signer->signDocument($signing_item)) {
             $signing_item->delete();
-            $mtlda->raiseError("PdfSigningController::ѕignDocument() returned false!");
+            $this->raiseError("PdfSigningController::ѕignDocument() returned false!");
             return false;
         }
 
         if (!$mbus->sendMessageToClient('sign-request', 'Refreshing document information', '90%')) {
-            $mtlda->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (!$signing_item->refresh()) {
             $signing_item->delete();
-            $mtlda->raiseError("refresh() returned false!");
+            $this->raiseError("refresh() returned false!");
             return false;
         }
 
@@ -273,7 +270,7 @@ class ArchiveController extends DefaultController
 
         if (!$signing_item->save()) {
             $signing_item->delete();
-            $mtlda->raiseError("save() returned false!");
+            $this->raiseError("save() returned false!");
             return false;
         }
 
@@ -284,9 +281,9 @@ class ArchiveController extends DefaultController
                 "archive",
                 $signing_item->document_guid
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $signing_item->delete();
-            $mtlda->raiseError("AuditController::log() raised an exception!");
+            $this->raiseError("AuditController::log() raised an exception!");
             return false;
         }
 
@@ -298,7 +295,7 @@ class ArchiveController extends DefaultController
         global $mtlda, $db;
 
         if (!isset($file_hash) || empty($file_hash)) {
-            $mtlda->raiseError("Require a valid file hash!");
+            $this->raiseError("Require a valid file hash!");
             return false;
         }
 
@@ -320,7 +317,7 @@ class ArchiveController extends DefaultController
         }
 
         if (!$db->execute($sth, array($file_hash))) {
-            $mtlda->raiseError("Failed to execute query!");
+            $this->raiseError("Failed to execute query!");
             return false;
         }
 
@@ -333,7 +330,7 @@ class ArchiveController extends DefaultController
         }
 
         if (count($rows) > 1) {
-            $mtlda->raiseError("There are multiple documents with the same file hash! This should not happend!");
+            $this->raiseError("There are multiple documents with the same file hash! This should not happend!");
             return false;
         }
 
@@ -345,26 +342,26 @@ class ArchiveController extends DefaultController
         global $mtlda;
 
         if (!is_a($src_document, 'Mtlda\Models\DocumentModel')) {
-            $mtlda->raiseError(__METHOD__ .' can only operate on DocumentModels!');
+            $this->raiseError(__METHOD__ .' can only operate on DocumentModels!');
             return false;
         }
 
         try {
             $pdf = new \FPDI();
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load FPDI!");
+            $this->raiseError("Failed to load FPDI!");
             return false;
         }
 
         try {
-            $logo_doc = new Models\DocumentModel;
+            $logo_doc = new \Mtlda\Models\DocumentModel;
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load DocumentModel!");
+            $this->raiseError("Failed to load DocumentModel!");
             return false;
         }
 
         if (!$logo_doc->createClone($src_document)) {
-            $mtlda->raiseError(get_class($logo_doc) .'::createClone() returned false!');
+            $this->raiseError(get_class($logo_doc) .'::createClone() returned false!');
             return false;
         }
 
@@ -372,34 +369,34 @@ class ArchiveController extends DefaultController
         $logo_doc->document_derivation_guid = $src_document->document_guid;
 
         if (!$logo_doc->save()) {
-            $mtlda->raiseError(get_class($logo_doc) .'::save() returned false!');
+            $this->raiseError(get_class($logo_doc) .'::save() returned false!');
             return false;
         }
 
         if (!($fqfn = $logo_doc->getFilePath())) {
-            $mtlda->raiseError("DocumentModel::getFilePath() returned false!");
+            $this->raiseError("DocumentModel::getFilePath() returned false!");
             return false;
         }
 
         if (!isset($fqfn) || empty($fqfn)) {
-            $mtlda->raiseError("DocumentModel::getFilePath() returned an invalid file name!");
+            $this->raiseError("DocumentModel::getFilePath() returned an invalid file name!");
             return false;
         }
 
         if (!file_exists($fqfn)) {
-            $mtlda->raiseError("File {$fqfn} does not exist!");
+            $this->raiseError("File {$fqfn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqfn)) {
-            $mtlda->raiseError("File {$fqfn} is not readable!");
+            $this->raiseError("File {$fqfn} is not readable!");
             return false;
         }
 
         try {
             $page_count = $pdf->setSourceFile($fqfn);
         } catch (\Exception $e) {
-            $mtlda->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            $this->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
@@ -430,7 +427,7 @@ class ArchiveController extends DefaultController
             );
 
             if (!$signing_icon_position) {
-                $mtlda->raiseError("getSigningIconPosition() returned false!");
+                $this->raiseError("getSigningIconPosition() returned false!");
                 return false;
             }
 
@@ -471,19 +468,19 @@ class ArchiveController extends DefaultController
         try {
             $pdf->Output($fqfn, 'F');
         } catch (\Exception $e) {
-            $mtlda->raiseError(get_class($pdf) .'::Output() has thrown an exception! '. $e->getMessage());
+            $this->raiseError(get_class($pdf) .'::Output() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
         try {
             @$pdf->cleanUp();
         } catch (\Exception $e) {
-            $mtlda->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+            $this->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
         if (!$logo_doc->refresh()) {
-            $mtlda->raiseError(get_class($logo_doc) .'::refresh() returned false!');
+            $this->raiseError(get_class($logo_doc) .'::refresh() returned false!');
             return false;
         }
 
@@ -552,7 +549,7 @@ class ArchiveController extends DefaultController
                 $y = $page_height - 50;
                 break;
             default:
-                $mtlda->raiseError("Unkown ѕigning icon position {$icon_position}");
+                $this->raiseError("Unkown ѕigning icon position {$icon_position}");
                 return false;
         }
 
@@ -567,33 +564,33 @@ class ArchiveController extends DefaultController
         global $mtlda, $audit;
 
         if (empty($mtlda) || !get_class($document) == 'DocumentModel') {
-            $mtlda->raiseError(__METHOD__ .' can only work with DocmentModels!');
+            $this->raiseError(__METHOD__ .' can only work with DocmentModels!');
             return false;
         }
 
         if (!$fqfn = $document->getFilePath()) {
-            $mtlda->raiseError(get_class($document) .'::getFilePath() returned false!');
+            $this->raiseError(get_class($document) .'::getFilePath() returned false!');
             return false;
         }
 
         try {
             $pdf = new \FPDI();
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load FPDI!");
+            $this->raiseError("Failed to load FPDI!");
             return false;
         }
 
         try {
             $storage = new StorageController;
         } catch (\Exception $e) {
-            $mtlda->raiseError('Failed to load StorageController!');
+            $this->raiseError('Failed to load StorageController!');
             return false;
         }
 
         try {
             $page_count = $pdf->setSourceFile($fqfn);
         } catch (\Exception $e) {
-            $mtlda->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            $this->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
@@ -615,29 +612,29 @@ class ArchiveController extends DefaultController
         }
 
         if (!$audittxt = $audit->retrieveAuditLog($document->getGuid())) {
-            $mtlda->raiseError(get_class($audit) .'::retrieveAuditLog() returned false!');
+            $this->raiseError(get_class($audit) .'::retrieveAuditLog() returned false!');
             return false;
         }
 
         if (empty($audittxt)) {
-            $mtlda->raiseError(__METHOD__ .' audit log is empty!');
+            $this->raiseError(__METHOD__ .' audit log is empty!');
             return false;
         }
 
         if (!$tmpdir = $storage->createTempDir()) {
-            $mtlda->raiseError(get_class($storage) .'::createTempDir() returned false!');
+            $this->raiseError(get_class($storage) .'::createTempDir() returned false!');
             return false;
         }
 
         $auditlog = $tmpdir .'/AuditLog.txt';
 
         if (file_exists($auditlog)) {
-            $mtlda->raiseError('Strangle there is already an AuditLog.txt in my temporary directory! '. $auditlog);
+            $this->raiseError('Strangle there is already an AuditLog.txt in my temporary directory! '. $auditlog);
             return false;
         }
 
         if (!file_put_contents($auditlog, $audittxt)) {
-            $mtlda->raiseError('file_put_contents() returned false!');
+            $this->raiseError('file_put_contents() returned false!');
             return false;
         }
 
@@ -657,7 +654,7 @@ class ArchiveController extends DefaultController
         } catch (\Exception $e) {
             unlink($auditlog);
             rmdir($tmpdir);
-            $mtlda->raiseError(get_class($pdf) .'::Annotation() has thrown an exception! '. $e->getMessage());
+            $this->raiseError(get_class($pdf) .'::Annotation() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
@@ -667,19 +664,19 @@ class ArchiveController extends DefaultController
         try {
             $pdf->Output($fqfn, 'F');
         } catch (\Exception $e) {
-            $mtlda->raiseError(get_class($pdf) .'::Output() has thrown an exception! '. $e->getMessage());
+            $this->raiseError(get_class($pdf) .'::Output() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
         try {
             @$pdf->cleanUp();
         } catch (\Exception $e) {
-            $mtlda->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+            $this->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
         if (!$document->refresh()) {
-            $mtlda->raiseError(get_class($document) .'::refresh() returned false!');
+            $this->raiseError(get_class($document) .'::refresh() returned false!');
             return false;
         }
 
@@ -691,24 +688,24 @@ class ArchiveController extends DefaultController
         global $mtlda, $config, $audit, $mbus;
 
         if (!$config->isPdfIndexingEnabled()) {
-            $mtlda->raiseError("ConfigController::isPdfIndexingEnabled() returns false!");
+            $this->raiseError("ConfigController::isPdfIndexingEnabled() returns false!");
             return false;
         }
 
         try {
-            $parser = new Controllers\PdfIndexerController;
-        } catch (Exception $e) {
-            $mtlda->raiseError(__METHOD__ .'(), failed to load PdfIndexerController');
+            $parser = new \Mtlda\Controllers\PdfIndexerController;
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load PdfIndexerController');
             return false;
         }
 
         if (!$parser) {
-            $mtlda->raiseError(__METHOD__ .'(), \$parser is invalid!');
+            $this->raiseError(__METHOD__ .'(), \$parser is invalid!');
             return false;
         }
 
         if (!$parser->scan($document)) {
-            $mtlda->raiseError(get_class($parser) .'::scan() returned false!');
+            $this->raiseError(get_class($parser) .'::scan() returned false!');
             return false;
         }
 

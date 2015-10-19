@@ -21,12 +21,6 @@ namespace Mtlda\Controllers;
 
 class RequirementsController extends \Thallium\Controllers\RequirementsController
 {
-    const DATA_DIRECTORY = APP_BASE ."/data";
-    const ARCHIVE_DIRECTORY = self::DATA_DIRECTORY ."/archive";
-    const INCOMING_DIRECTORY = self::DATA_DIRECTORY ."/incoming";
-    const WORKING_DIRECTORY = self::DATA_DIRECTORY ."/working";
-    const ARCHIVE_NESTING_DEPTH = 5;
-
     public function checkPhp()
     {
         global $mtlda, $config;
@@ -38,25 +32,25 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         }
 
         if (!(function_exists("curl_init"))) {
-            $mtlda->raiseError("cURL support is missing!");
+            $this->raiseError("cURL support is missing!");
             $missing = true;
         }
 
         if ($config->isPdfSigningEnabled()) {
             if (!(function_exists("openssl_pkey_get_private"))) {
-                $mtlda->raiseError("OpenSSL support is missing!");
+                $this->raiseError("OpenSSL support is missing!");
                 $missing = true;
             }
 
             if (!class_exists("SoapClient")) {
-                $mtlda->raiseError("SOAP support is missing!");
+                $this->raiseError("SOAP support is missing!");
                 $missing = true;
             }
         }
 
         if ($config->isMailImportEnabled()) {
             if (!function_exists("imap_open")) {
-                $mtlda->raiseError("IMAP extension is missing (also provides POP3 support)!");
+                $this->raiseError("IMAP extension is missing (also provides POP3 support)!");
                 $missing = true;
             }
         }
@@ -75,7 +69,7 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         $missing = false;
 
         if (!($dbtype = $config->getDatabaseType())) {
-            $mtlda->raiseError("Error - incomplete configuration found, can not check requirements!");
+            $this->raiseError("Error - incomplete configuration found, can not check requirements!");
             return false;
         }
 
@@ -179,31 +173,33 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         $missing = false;
 
         if (!$uid = $mtlda->getProcessUserId()) {
-            $mtlda->raiseError("Mtlda::getProcessUserId() returned false!");
+            $this->raiseError("Mtlda::getProcessUserId() returned false!");
             return false;
         }
 
         if (!$gid = $mtlda->getProcessGroupId()) {
-            $mtlda->raiseError("Mtlda::getProcessGroupId() returned false!");
+            $this->raiseError("Mtlda::getProcessGroupId() returned false!");
             return false;
         }
 
         $directories = array(
-            self::CONFIG_DIRECTORY => 'r',
-            self::CACHE_DIRECTORY => 'w',
-            self::ARCHIVE_DIRECTORY => 'w',
-            self::INCOMING_DIRECTORY => 'w',
-            self::WORKING_DIRECTORY => 'w',
-            self::CACHE_DIRECTORY.'/image_cache' => 'w',
+            \Mtlda\Controllers\DefaultController::CONFIG_DIRECTORY => 'r',
+            \Mtlda\Controllers\DefaultController::CACHE_DIRECTORY => 'w',
+            \Mtlda\Controllers\DefaultController::ARCHIVE_DIRECTORY => 'w',
+            \Mtlda\Controllers\DefaultController::INCOMING_DIRECTORY => 'w',
+            \Mtlda\Controllers\DefaultController::WORKING_DIRECTORY => 'w',
+            \Mtlda\Controllers\DefaultController::CACHE_DIRECTORY.'/image_cache' => 'w',
         );
 
-        if (!file_exists(self::DATA_DIRECTORY)) {
-            $mtlda->raiseError(self::DATA_DIRECTORY ." does not exist!");
+        if (!file_exists(\Mtlda\Controllers\DefaultController::DATA_DIRECTORY)) {
+            $this->raiseError(\Mtlda\Controllers\DefaultController::DATA_DIRECTORY ." does not exist!");
             return false;
         }
 
-        if (!is_writeable(self::DATA_DIRECTORY)) {
-            $mtlda->raiseError(self::DATA_DIRECTORY ." is not writeable for {$uid}:{$gid}!");
+        if (!is_writeable(\Mtlda\Controllers\DefaultController::DATA_DIRECTORY)) {
+            $this->raiseError(
+                \Mtlda\Controllers\DefaultController::DATA_DIRECTORY ." is not writeable for {$uid}:{$gid}!"
+            );
             return false;
         }
 

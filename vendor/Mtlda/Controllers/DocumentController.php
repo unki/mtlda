@@ -19,9 +19,6 @@
 
 namespace Mtlda\Controllers;
 
-use Mtlda\Models;
-use Mtlda\Controllers;
-
 class DocumentController extends DefaultController
 {
     public function perform()
@@ -29,54 +26,54 @@ class DocumentController extends DefaultController
         global $mtlda, $query, $router;
 
         if (!isset($query->view) || empty($query->view)) {
-            $mtlda->raiseError("\$query->view is not set!");
+            $this->raiseError("\$query->view is not set!");
             return false;
         }
 
         if ($query->view != "document") {
-            $mtlda->raiseError("\$query->view should be document but isn't so!");
+            $this->raiseError("\$query->view should be document but isn't so!");
             return false;
         }
 
         if (!$params = $router->parseQueryParams()) {
-            $mtlda->raiseError("HttpRouterController::parseQueryParams() returned false!");
+            $this->raiseError("HttpRouterController::parseQueryParams() returned false!");
             return false;
         }
 
         if (empty($params) || !is_array($params)) {
-            $mtlda->raiseError("HttpRouterController::parseQueryParams() return an invalid format!");
+            $this->raiseError("HttpRouterController::parseQueryParams() return an invalid format!");
             return false;
         }
 
         if (!isset($query->params[0]) || empty($query->params[0])) {
-            $mtlda->raiseError("Action is not set!");
+            $this->raiseError("Action is not set!");
             return false;
         }
 
         if (!in_array($query->params[0], array('show'))) {
-            $mtlda->raiseError("Invalid action!");
+            $this->raiseError("Invalid action!");
             return false;
         }
 
         if (!isset($query->params[1]) || empty($query->params[1])) {
-            $mtlda->raiseError("Object id is not set!");
+            $this->raiseError("Object id is not set!");
             return false;
         }
 
         if (!$mtlda->isValidId($query->params[1])) {
-            $mtlda->raiseError("Object id is invalid!");
+            $this->raiseError("Object id is invalid!");
             return false;
         }
 
         if (!($id = $mtlda->parseId($query->params[1]))) {
-            $mtlda->raiseError("Object id can not be parsed!");
+            $this->raiseError("Object id can not be parsed!");
             return false;
         }
 
         if ($query->params[0] == "show") {
             $this->loadDocument($id);
         } else {
-            $mtlda->raiseError("Unknown action found!");
+            $this->raiseError("Unknown action found!");
             return false;
         }
 
@@ -88,14 +85,14 @@ class DocumentController extends DefaultController
         global $mtlda;
 
         if (!$mtlda->isValidGuidSyntax($id->guid)) {
-            $mtlda->raiseError("GUID syntax is invalid!");
+            $this->raiseError("GUID syntax is invalid!");
             return false;
         }
 
         if ($id->model == "document") {
             $content = $this->getArchiveDocumentContent($id);
             if (!isset($content) || empty($content)) {
-                $mtlda->raiseError("No valid document content returned!");
+                $this->raiseError("No valid document content returned!");
                 return false;
             }
             header('Content-Type: application/pdf');
@@ -104,7 +101,7 @@ class DocumentController extends DefaultController
             return true;
         }
 
-        $mtlda->raiseError("Unsupported model requested");
+        $this->raiseError("Unsupported model requested");
         return false;
     }
 
@@ -112,19 +109,18 @@ class DocumentController extends DefaultController
     {
         global $mtlda;
 
-        $document = new Models\DocumentModel($id->id, $id->guid);
+        $document = new \Mtlda\Models\DocumentModel($id->id, $id->guid);
 
         if (!$document) {
-            $mtlda->raiseError("Unable to load a DocumentModel!");
+            $this->raiseError("Unable to load a DocumentModel!");
             return false;
         }
 
         // don't rembmer the purpose of this code
         /*if ($document->document_version != 1 && $document->document_derivation != 0) {
-
-            $descent = new Models\DocumentModel($document->document_derivation);
+            $descent = new \Mtlda\Models\DocumentModel($document->document_derivation);
             if (!$descent) {
-                $mtlda->raiseError("Unable to load parent DocumentModel!");
+                $this->raiseError("Unable to load parent DocumentModel!");
                 return false;
             }
         }*/
@@ -132,29 +128,28 @@ class DocumentController extends DefaultController
         $storage = new StorageController;
 
         if (!($file = $storage->retrieveFile($document))) {
-            $mtlda->raiseError("StorageController::retrieveFile() returned false");
+            $this->raiseError("StorageController::retrieveFile() returned false");
             return false;
         }
 
-        if (
-            !isset($file) ||
-            empty ($file) ||
+        if (!isset($file) ||
+            empty($file) ||
             !is_array($file) ||
             !isset($file['hash'], $file['content']) ||
             empty($file['hash']) ||
             empty($file['content'])
         ) {
-            $mtlda->raiseError("StorageController::retireveFile() returned an invalid file");
+            $this->raiseError("StorageController::retireveFile() returned an invalid file");
             return false;
         }
 
         if (strlen($file['content']) != $document->document_file_size) {
-            $mtlda->raiseError("File size of retrieved file does not match archive record!");
+            $this->raiseError("File size of retrieved file does not match archive record!");
             return false;
         }
 
         if ($file['hash'] != $document->document_file_hash) {
-            $mtlda->raiseError("File hash of retrieved file does not match archive record!");
+            $this->raiseError("File hash of retrieved file does not match archive record!");
             return false;
         }
 
