@@ -21,6 +21,12 @@ namespace Mtlda\Controllers;
 
 class RequirementsController extends \Thallium\Controllers\RequirementsController
 {
+    const DATA_DIRECTORY = APP_BASE ."/data";
+    const ARCHIVE_DIRECTORY = self::DATA_DIRECTORY ."/archive";
+    const INCOMING_DIRECTORY = self::DATA_DIRECTORY ."/incoming";
+    const WORKING_DIRECTORY = self::DATA_DIRECTORY ."/working";
+    const ARCHIVE_NESTING_DEPTH = 5;
+
     public function checkPhp()
     {
         global $mtlda, $config;
@@ -99,7 +105,7 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         }
 
         // check for PDO database support support
-        if ((array_search($db_pdo_name, PDO::getAvailableDrivers())) === false) {
+        if ((array_search($db_pdo_name, \PDO::getAvailableDrivers())) === false) {
             $mtlda->write("PDO {$db_pdo_name} support not available", LOG_ERR);
             $missing = true;
         }
@@ -124,13 +130,13 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         }
 
         if ($config->isPdfSigningEnabled()) {
-            @include_once MTLDA_BASE.'/vendor/tcpdf/tcpdf.php';
+            @include_once APP_BASE.'/vendor/tcpdf/tcpdf.php';
             if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
                 $mtlda->write("TCPDF can not be found!", LOG_ERR);
                 $missing = true;
                 unset($php_errormsg);
             }
-            @include_once MTLDA_BASE ."/vendor/fpdi/fpdi.php";
+            @include_once APP_BASE ."/vendor/fpdi/fpdi.php";
             if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
                 $mtlda->write("FPDI can not be found!", LOG_ERR);
                 $missing = true;
@@ -139,13 +145,13 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         }
 
         if ($config->isPdfIndexingEnabled()) {
-            @include_once MTLDA_BASE ."/vendor/Smalot/PdfParser/Parser.php";
+            @include_once APP_BASE ."/vendor/Smalot/PdfParser/Parser.php";
             if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
                 $mtlda->write("PdfParser can not be found!", LOG_ERR);
                 $missing = true;
                 unset($php_errormsg);
             }
-            @include_once MTLDA_BASE.'/vendor/tcpdf/tcpdf_parser.php';
+            @include_once APP_BASE.'/vendor/tcpdf/tcpdf_parser.php';
             if (isset($php_errormsg) && preg_match('/Failed opening.*for inclusion/i', $php_errormsg)) {
                 $mtlda->write("TCPDF_PARSER can not be found!", LOG_ERR);
                 $missing = true;

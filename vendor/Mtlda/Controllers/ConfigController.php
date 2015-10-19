@@ -19,7 +19,7 @@
 
 namespace Mtlda\Controllers;
 
-class ConfigController extends \Thallium\Controller\ConfigController
+class ConfigController extends \Thallium\Controllers\ConfigController
 {
     public function isImageCachingEnabled()
     {

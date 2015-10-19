@@ -97,7 +97,7 @@ class RpcController extends \Thallium\Controllers\RpcController
         return true;
     }
 
-    private function rpcDeleteObject()
+    protected function rpcDeleteObject()
     {
         global $mtlda;
 
@@ -189,7 +189,7 @@ class RpcController extends \Thallium\Controllers\RpcController
 
     }
 
-    private function rpcArchiveObject()
+    protected function rpcArchiveObject()
     {
         global $mtlda;
 
@@ -266,7 +266,7 @@ class RpcController extends \Thallium\Controllers\RpcController
         return true;
     }
 
-    private function rpcFindPrevNextObject()
+    protected function rpcFindPrevNextObject()
     {
         global $mtlda, $views;
 
@@ -345,7 +345,7 @@ class RpcController extends \Thallium\Controllers\RpcController
         return true;
     }
 
-    private function rpcGetKeywords()
+    protected function rpcGetKeywords()
     {
         global $mtlda;
 
@@ -379,7 +379,7 @@ class RpcController extends \Thallium\Controllers\RpcController
         return true;
     }
 
-    private function rpcSaveKeywords()
+    protected function rpcSaveKeywords()
     {
         global $mtlda;
 
@@ -433,7 +433,7 @@ class RpcController extends \Thallium\Controllers\RpcController
         return true;
     }
 
-    private function rpcSaveDescription()
+    protected function rpcSaveDescription()
     {
         global $mtlda;
 

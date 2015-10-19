@@ -21,7 +21,7 @@ namespace Mtlda\Controllers;
 
 abstract class DefaultController extends \Thallium\Controllers\DefaultController
 {
-    const DATA_DIRECTORY = MTLDA_BASE ."/data";
+    const DATA_DIRECTORY = APP_BASE ."/data";
     const ARCHIVE_DIRECTORY = self::DATA_DIRECTORY ."/archive";
     const INCOMING_DIRECTORY = self::DATA_DIRECTORY ."/incoming";
     const WORKING_DIRECTORY = self::DATA_DIRECTORY ."/working";

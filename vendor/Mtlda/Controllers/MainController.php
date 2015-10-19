@@ -23,12 +23,17 @@ use Mtlda\Views;
 use Mtlda\Models;
 use Mtlda\Controllers;
 
-class MainController extends \Thallium\Controller\MainController
+class MainController extends \Thallium\Controllers\MainController
 {
     const VERSION = "0.3";
 
     public function __construct($mode = null)
     {
+        if (!$this->setNamespacePrefix('Mtlda')) {
+            $this->raiseError('Unable to set namespace prefix!', true);
+            return false;
+        }
+
         $GLOBALS['mtlda'] =& $this;
 
         $this->loadController("Config", "config");

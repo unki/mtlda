@@ -21,6 +21,34 @@ namespace Mtlda\Controllers;
 
 class TemplatesController extends \Thallium\Controllers\TemplatesController
 {
+    public function __construct()
+    {
+        try {
+            parent::__construct();
+        } catch (\Exception $e) {
+            $this->raiseError(get_class($parent) .'::__construct() failed!', true, $e);
+            return false;
+        }
+
+        $this->registerPlugin("function", "get_menu_state", array(&$this, "getMenuState"), false);
+    }
+
+    public function getMenuState($params, &$smarty)
+    {
+        global $query;
+
+        if (!array_key_exists('page', $params)) {
+            $this->raiseError("getMenuState: missing 'page' parameter", E_USER_WARNING);
+            $repeat = false;
+            return false;
+        }
+
+        if ($params['page'] == $query->view) {
+            return "active";
+        }
+
+        return null;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:

@@ -435,7 +435,7 @@ class ArchiveController extends DefaultController
             }
 
             $pdf->Image(
-                MTLDA_BASE.'/public/resources/images/MTLDA_signed.png',
+                APP_BASE.'/public/resources/images/MTLDA_signed.png',
                 $signing_icon_position['x-pos'],
                 $signing_icon_position['y-pos'],
                 16 /* width */,

@@ -23,7 +23,7 @@ use Mtlda\Views;
 
 class ViewsController extends \Thallium\Controllers\ViewsController
 {
-    private $page_map = array(
+    public $page_map = array(
         '/^$/' => 'MainView',
         '/^main$/' => 'MainView',
         '/^queue$/' => 'QueueView',
