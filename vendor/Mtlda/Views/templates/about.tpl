@@ -37,4 +37,5 @@ Your MTLDA installation bundles further software and libraries:<br />
 <div class="item">Semantic UI,&nbsp;<a href="http://semantic-ui.com" target="_blank">http://semantic-ui.com</a></div>
 <div class="item">Forge,&nbsp;<a href="https://github.com/digitalbazaar/forge" target="_blank">https://github.com/digitalbazaar/forge</a></div>
 <div class="item">PdfParser,&nbsp;<a href="http://www.pdfparser.org" target="_blank">http://www.pdfparser.org</a></div>
+<div class="item">Thallium,&nbsp;<a href="http://oss.netshadow.net" target="_blank">http://oss.netshadow.net</a></div>
 </div>
