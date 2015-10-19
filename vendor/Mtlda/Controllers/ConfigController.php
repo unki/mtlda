@@ -56,14 +56,14 @@ class ConfigController extends \Thallium\Controllers\ConfigController
 
     public function getPdfIndexingConfiguration()
     {
-        if (!isset($this->config['pdf_indexing']) ||
-            empty($this->config['pdf_indexing']) ||
-            !is_array($this->config['pdf_indexing'])
+        if (!isset($this->config['pdfindexing']) ||
+            empty($this->config['pdfindexing']) ||
+            !is_array($this->config['pdfindexing'])
         ) {
             return false;
         }
 
-        return $this->config['pdf_signing'];
+        return $this->config['pdfindexing'];
     }
 
     public function getTimestampConfiguration()
