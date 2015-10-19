@@ -22,6 +22,7 @@ function autoload($class)
     $prefixes = array(
         'Thallium',
         'Mtlda',
+        'TesseractOCR',
         'fpdi',
         'tcpdf',
         'Smalot'
