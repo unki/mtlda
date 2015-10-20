@@ -621,7 +621,7 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!$tmpdir = $storage->createTempDir()) {
+        if (!$tmpdir = $storage->createTempDir('auditlog_')) {
             $this->raiseError(get_class($storage) .'::createTempDir() returned false!');
             return false;
         }
