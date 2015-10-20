@@ -1,4 +1,5 @@
 <?php
+
 /**
  * A wrapper to work with TesseractOCR inside PHP
  *
@@ -20,8 +21,6 @@
  * @license  http://opensource.org/licenses/MIT MIT
  * @link     https://github.com/thiagoalessio/tesseract-ocr-for-php
  */
-
-namespace TesseractOCT;
 
 class TesseractOCR
 {
