@@ -432,11 +432,15 @@ class StorageController extends DefaultController
         return true;
     }
 
-    public function createTempDir()
+    public function createTempDir($prefix = null)
     {
         global $mtlda;
 
         $tmpdir_created = false;
+
+        if (!isset($prefix) || empty($prefix)) {
+            $prefix = 'mtlda_';
+        }
 
         if (!file_exists(self::CACHE_DIRECTORY)) {
             $this->raiseError(self::CACHE_DIRECTORY .' does not exist!');
@@ -449,7 +453,7 @@ class StorageController extends DefaultController
         }
 
         do {
-            $dir_name = 'auditlog_'. uniqid();
+            $dir_name = $prefix . uniqid();
             $fqpn = self::CACHE_DIRECTORY .'/'. $dir_name;
 
             if (file_exists($fqpn)) {
