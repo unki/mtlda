@@ -85,12 +85,10 @@ class DocumentIndicesModel extends DefaultModel
         global $mtlda;
 
         foreach ($this->items as $item) {
-            if ($item->delete()) {
-                continue;
+            if (!$item->delete()) {
+                $mtlda->raiseError(get_class($item) .'::delete() returned false!');
+                return false;
             }
-
-            $mtlda->raiseError(get_class($item) .'::delete() returned false!');
-            return false;
         }
 
         return true;
