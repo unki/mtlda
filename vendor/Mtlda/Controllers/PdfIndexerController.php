@@ -92,7 +92,7 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
-        $this->sendMessage('scan-reply', 'Retrieving document from archive.', '40%');
+        $this->sendMessage('scan-reply', 'Retrieving document from archive.', '10%');
 
         if (!$fqpn = $document->getFilePath()) {
             $this->raiseError(get_class($document) .'::getFilePath() returned false!');
@@ -136,7 +136,7 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
-        $this->sendMessage('scan-reply', 'Parsing document.', '50%');
+        $this->sendMessage('scan-reply', 'Parsing document.', '30%');
 
         if (($this->isPlainTextIndexingEnabled() ||
             $this->isOcrIndexingEnabled()) &&
@@ -145,6 +145,8 @@ class PdfIndexerController extends DefaultController
             $this->raiseError(__CLASS__ .'::parsePdf() returned false!');
             return false;
         }
+
+        $this->sendMessage('scan-reply', 'Extracting text parts.', '50%');
 
         if ($this->isPlainTextIndexingEnabled() &&
             ($info = $this->extractPdfText()) === false
@@ -176,6 +178,8 @@ class PdfIndexerController extends DefaultController
                 }
             }
         }
+
+        $this->sendMessage('scan-reply', 'Starting OCR recogination.', '50%');
 
         if ($this->isOcrIndexingEnabled() &&
             ($text_ary = $this->runOcr()) === false
