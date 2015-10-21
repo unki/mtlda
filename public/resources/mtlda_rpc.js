@@ -17,7 +17,7 @@
 
 function rpc_object_delete(element, del_id)
 {
-    if(del_id == undefined || del_id == '') {
+    if (del_id == undefined || del_id == '') {
         alert('invalid "del_id" parameter found!');
         return;
     }
@@ -30,17 +30,17 @@ function rpc_object_delete(element, del_id)
             action : 'delete',
             id : del_id
         }),
-        beforeSend: function() {
+        beforeSend: function () {
             // change row color to red
             element.parent().parent().animate({backgroundColor: '#fbc7c7' }, 'fast');
         },
-        error: function(XMLHttpRequest, textStatus, errorThrown) {
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
         },
-        success: function(data){
-            if(data == 'ok') {
+        success: function (data) {
+            if (data == 'ok') {
                 // on flushing, reload the page
-                if(del_id.match(/-flush$/)) {
+                if (del_id.match(/-flush$/)) {
                     location.reload();
                     return;
                 }
@@ -60,7 +60,7 @@ function rpc_object_delete(element, del_id)
 
 function rpc_object_archive(element, obj_id, state)
 {
-    if(obj_id == undefined || obj_id == '') {
+    if (obj_id == undefined || obj_id == '') {
         alert('parameter "obj_id" is invalid!');
         return;
     }
@@ -73,30 +73,30 @@ function rpc_object_archive(element, obj_id, state)
             action : 'archive',
             id : obj_id
         }),
-        beforeSend: function() {
+        beforeSend: function () {
             // change row color to red
-            if(!obj_id.match(/-all$/)) {
+            if (!obj_id.match(/-all$/)) {
                 element.parent().parent().animate({backgroundColor: '#fbc7c7' }, 'fast');
             } else {
                 $('tr.queueitem').animate({backgroundColor: '#fbc7c7' }, 'fast');
             }
             return;
-            if(state) {
+            if (state) {
                 state.text('Processing');
             }
         },
-        error: function(XMLHttpRequest, textStatus, errorThrown) {
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
-            if(state) {
+            if (state) {
                 state.text('Failure');
             }
         },
-        success: function(data){
-            if(data == 'ok') {
-                if(state) {
+        success: function (data) {
+            if (data == 'ok') {
+                if (state) {
                     state.text('Done');
                 }
-                if(!obj_id.match(/-all$/)) {
+                if (!obj_id.match(/-all$/)) {
                     element.parent().parent().animate({ opacity: 'hide' }, 'fast');
                 } else {
                     $('tr.queueitem').animate({ opacity: 'hide' }, 'fast');
@@ -104,7 +104,7 @@ function rpc_object_archive(element, obj_id, state)
                 return;
             }
             // change row color back to white
-            if(!obj_id.match(/-all$/)) {
+            if (!obj_id.match(/-all$/)) {
                 element.parent().parent().animate({backgroundColor: '#ffffff' }, 'fast');
             } else {
                 $('tr.queueitem').animate({backgroundColor: '#ffffff' }, 'fast');
@@ -120,14 +120,14 @@ function rpc_object_archive(element, obj_id, state)
 
 function rpc_object_update(element)
 {
-    if (!(element instanceof jQuery) ){
+    if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
         return false;
     }
 
     var target = element.attr('data-target');
 
-    if(target == undefined || target == '') {
+    if (target == undefined || target == '') {
         alert('no attribute "data-target" found!');
         return false;
     }
@@ -168,7 +168,7 @@ function rpc_object_update(element)
     id = safe_string(id);
     value = safe_string(value);
 
-    if(
+    if (
         window.location.pathname != undefined &&
         window.location.pathname != '' &&
         !window.location.pathname.match(/\/$/)
@@ -189,15 +189,15 @@ function rpc_object_update(element)
             key    : key,
             value  : value
         }),
-        error: function(XMLHttpRequest, textStatus, errorThrown) {
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
         },
         success: function (data) {
-            if(data != 'ok') {
+            if (data != 'ok') {
                 alert('Server returned: ' + data + ', length ' + data.length);
                 return;
             }
-            if(action == 'add') {
+            if (action == 'add') {
                 location.reload();
                 return;
             }
@@ -210,7 +210,7 @@ function rpc_object_update(element)
 
 function rpc_object_sign(element)
 {
-    if (!(element instanceof jQuery) ){
+    if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
         return false;
     }
@@ -240,16 +240,14 @@ function rpc_object_sign(element)
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
-    }, function() {}, '.ui.signer.modal');
+    }, function () {}, '.ui.signer.modal');
 
-    progressbar = $('.ui.modal .image.content .description #signingprogress');
+    progressbar = $('.ui.modal .image.content .description #progressbar');
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
         return false;
     }
-
-    //progressbar.progress();
 
     var msg_body = new Object;
     msg_body.id = safe_string(id);
@@ -264,8 +262,7 @@ function rpc_object_sign(element)
         return false;
     }
 
-    mbus.subscribe('signing-replies-handler', 'sign-reply', function(reply) {
-
+    mbus.subscribe('signing-replies-handler', 'sign-reply', function (reply) {
         if (!reply) {
             throw 'reply is empty!';
             return false;
@@ -290,7 +287,7 @@ function rpc_object_sign(element)
                 success: reply.body
             };
         }
-        if (progressbar.hasClass('active')) {
+        if (!progressbar.hasClass('active')) {
             progressbar.addClass('active');
         }
 
@@ -303,7 +300,7 @@ function rpc_object_sign(element)
 
         progressbar.removeClass('active').addClass('success');
 
-        setTimeout(function() {
+        setTimeout(function () {
             wnd.modal('hide');
             mbus.unsubscribe('signing-replies-handler');
             location.reload();
@@ -322,7 +319,7 @@ function rpc_object_sign(element)
 
 function rpc_object_scan(element)
 {
-    if (!(element instanceof jQuery) ){
+    if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
         return false;
     }
@@ -350,9 +347,9 @@ function rpc_object_scan(element)
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
-    }, function() {}, '.ui.scanner.modal');
+    }, function () {}, '.ui.scanner.modal');
 
-    progressbar = $('.ui.modal .image.content .description #scannerprogress');
+    progressbar = $('.ui.modal .image.content .description #progressbar');
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
@@ -372,8 +369,7 @@ function rpc_object_scan(element)
         return false;
     }
 
-    mbus.subscribe('scanner-replies-handler', 'scan-reply', function(reply) {
-
+    mbus.subscribe('scanner-replies-handler', 'scan-reply', function (reply) {
         if (!reply) {
             throw 'reply is empty!';
             return false;
@@ -398,7 +394,7 @@ function rpc_object_scan(element)
                 success: reply.body
             };
         }
-        if (progressbar.hasClass('active')) {
+        if (!progressbar.hasClass('active')) {
             progressbar.addClass('active');
         }
 
@@ -411,7 +407,7 @@ function rpc_object_scan(element)
 
         progressbar.removeClass('active').addClass('success');
 
-        setTimeout(function() {
+        setTimeout(function () {
             wnd.modal('hide');
             mbus.unsubscribe('scanner-replies-handler');
             location.reload();
@@ -438,7 +434,7 @@ function rpc_fetch_jobstatus()
 
 function rpc_object_delete2(element)
 {
-    if (!(element instanceof jQuery) ){
+    if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
         return false;
     }
@@ -456,7 +452,7 @@ function rpc_object_delete2(element)
     id = safe_string(id);
     guid = safe_string(guid);
 
-    if(
+    if (
         window.location.pathname != undefined &&
         window.location.pathname != '' &&
         !window.location.pathname.match(/\/$/)
@@ -475,11 +471,11 @@ function rpc_object_delete2(element)
             id     : id,
             guid   : guid
         }),
-        error: function(XMLHttpRequest, textStatus, errorThrown) {
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
         },
         success: function (data) {
-            if(data != 'ok') {
+            if (data != 'ok') {
                 alert('Server returned: ' + data + ', length ' + data.length);
                 return;
             }
@@ -493,7 +489,7 @@ function rpc_object_delete2(element)
 
 function rpc_mail_import(element)
 {
-    if (!(element instanceof jQuery) ){
+    if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
         return false;
     }
@@ -506,7 +502,7 @@ function rpc_mail_import(element)
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
-    }, function() {}, '.ui.import.modal');
+    }, function () {}, '.ui.import.modal');
 
     progressbar = $('.ui.import.modal .image.content .description #importprogress');
 
@@ -523,8 +519,7 @@ function rpc_mail_import(element)
         return false;
     }
 
-    mbus.subscribe('mailimport-replies-handler', 'mailimport-reply', function(reply) {
-
+    mbus.subscribe('mailimport-replies-handler', 'mailimport-reply', function (reply) {
         if (!reply) {
             throw 'reply is empty!';
             return false;
@@ -549,7 +544,7 @@ function rpc_mail_import(element)
                 success: reply.body
             };
         }
-        if (progressbar.hasClass('active')) {
+        if (!progressbar.hasClass('active')) {
             progressbar.addClass('active');
         }
 
@@ -562,7 +557,7 @@ function rpc_mail_import(element)
 
         progressbar.removeClass('active').addClass('success');
 
-        setTimeout(function() {
+        setTimeout(function () {
             wnd.modal('hide');
             mbus.unsubscribe('mailimport-replies-handler');
             location.reload();
