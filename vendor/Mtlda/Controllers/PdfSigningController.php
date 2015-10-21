@@ -93,7 +93,7 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
-        $this->sendMessage('sign-request', 'Retrieving document copy from archive.', '40%');
+        $this->sendMessage('sign-reply', 'Retrieving document copy from archive.', '40%');
 
         if (!$fqpn = $src_document->getFilePath()) {
             $this->raiseError(get_class($src_document) .'::getFilePath() returned false!');
@@ -145,7 +145,7 @@ class PdfSigningController extends DefaultController
         }
 
         $this->sendMessage(
-            'sign-request',
+            'sign-reply',
             'Sending SOAP request to signing server '. $this->pdf_cfg['dss_url'] .'.',
             '50%'
         );
@@ -239,7 +239,7 @@ class PdfSigningController extends DefaultController
         $document->absolutePath = $fqpn;
 
         $this->sendMessage(
-            'sign-request',
+            'sign-reply',
             'Submitting document to signing server '. $this->pdf_cfg['dss_url'],
             '60%'
         );
@@ -291,7 +291,7 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
-        $this->sendMessage('sign-request', 'Now signing the signing servers response digest.', '70%');
+        $this->sendMessage('sign-reply', 'Now signing the signing servers response digest.', '70%');
 
         try {
             $result = $dss->signDocument(array(
@@ -322,7 +322,7 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
-        $this->sendMessage('sign-request', 'Transfering the signed document into archive.', '80%');
+        $this->sendMessage('sign-reply', 'Transfering the signed document into archive.', '80%');
 
         if (file_put_contents($fqpn, $result->response->bytes) === false) {
             $this->raiseError("Failed to write signed document into {$fqpn}!");
