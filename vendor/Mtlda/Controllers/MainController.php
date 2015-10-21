@@ -853,6 +853,41 @@ class MainController extends \Thallium\Controllers\MainController
 
         return true;
     }
+
+    public function isBelowDirectory($dir, $topmost = null)
+    {
+        if (empty($dir)) {
+            $this->raiseError("\$dir can not be empty!");
+            return false;
+        }
+
+        if (empty($topmost)) {
+            $topmost = self::DATA_DIRECTORY;
+        }
+
+        $dir = strtolower(realpath($dir));
+        $dir_top = strtolower(realpath($topmost));
+
+        $dir_top_reg = preg_quote($dir_top, '/');
+
+        // check if $dir is within $dir_top
+        if (!preg_match('/^'. preg_quote($dir_top, '/') .'/', $dir)) {
+            return false;
+        }
+
+        if ($dir == $dir_top) {
+            return false;
+        }
+
+        $cnt_dir = count(explode('/', $dir));
+        $cnt_dir_top = count(explode('/', $dir_top));
+
+        if ($cnt_dir > $cnt_dir_top) {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
