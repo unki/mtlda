@@ -23,8 +23,6 @@ class StorageController extends DefaultController
 {
     public function createDirectoryStructure($fqpn)
     {
-        global $mtlda;
-
         if (empty($fqpn)) {
             return false;
         }
@@ -48,8 +46,6 @@ class StorageController extends DefaultController
 
     public function copyFile($fqpn_src, $fqpn_dst)
     {
-        global $mtlda;
-
         if (!file_exists($fqpn_src)) {
             $this->raiseError(__METHOD__ .", {$fqpn_src} does not exist!");
             return false;
@@ -75,7 +71,7 @@ class StorageController extends DefaultController
 
     public function deleteItemFile(&$item)
     {
-        global $mtlda, $audit;
+        global $audit;
 
         if (!isset($item) || empty($item)) {
             $this->raiseError("\$item is not set!");
@@ -145,8 +141,6 @@ class StorageController extends DefaultController
 
     public function retrieveFile(&$document)
     {
-        global $mtlda;
-
         if (!is_object($document)) {
             $this->raiseError(__METHOD__ .', first parameter should be an object!');
             return false;
@@ -220,13 +214,13 @@ class StorageController extends DefaultController
             return false;
         }
 
-        if (!$this->isBelowDirectory(dirname($fqfn), self::DATA_DIRECTORY)) {
-            $this->raiseError(__METHOD__ .", will only handle requested within ". $this::DATA_DIRECTORY ."!");
+        if (!$mtlda->isBelowDirectory(dirname($fqfn), self::DATA_DIRECTORY)) {
+            $this->raiseError(__METHOD__ ."(), will only handle requested within ". $this::DATA_DIRECTORY ."!");
             return false;
         }
 
         if (!unlink($fqfn)) {
-            $this->raiseError(__METHOD__ .", unlink({$fqfn}) returned false!");
+            $this->raiseError(__METHOD__ ."(), unlink({$fqfn}) returned false!");
             return false;
         }
 
@@ -235,8 +229,6 @@ class StorageController extends DefaultController
 
     public function flushArchive()
     {
-        global $mtlda;
-
         if (!file_exists($this::ARCHIVE_DIRECTORY)) {
             $this->raiseError($this::ARCHIVE_DIRECTORY ." does not exist!");
             return false;
@@ -257,8 +249,6 @@ class StorageController extends DefaultController
 
     public function flushQueue()
     {
-        global $mtlda;
-
         if (!file_exists($this::WORKING_DIRECTORY)) {
             $this->raiseError($this::WORKING_DIRECTORY ." does not exist!");
             return false;
@@ -295,7 +285,7 @@ class StorageController extends DefaultController
                 return false;
             }
 
-            if (!$this->isBelowDirectory(dirname($fqfn), self::DATA_DIRECTORY)) {
+            if (!$mtlda->isBelowDirectory(dirname($fqfn), self::DATA_DIRECTORY)) {
                 $this->raiseError("will only handle requested within ". $this::DATA_DIRECTORY ."!");
                 return false;
             }
@@ -320,47 +310,8 @@ class StorageController extends DefaultController
         return true;
     }
 
-    private function isBelowDirectory($dir, $topmost = null)
-    {
-        global $mtlda;
-
-        if (empty($dir)) {
-            $this->raiseError("\$dir can not be empty!");
-            return false;
-        }
-
-        if (empty($topmost)) {
-            $topmost = self::DATA_DIRECTORY;
-        }
-
-        $dir = strtolower(realpath($dir));
-        $dir_top = strtolower(realpath($topmost));
-
-        $dir_top_reg = preg_quote($dir_top, '/');
-
-        // check if $dir is within $dir_top
-        if (!preg_match('/^'. preg_quote($dir_top, '/') .'/', $dir)) {
-            return false;
-        }
-
-        if ($dir == $dir_top) {
-            return false;
-        }
-
-        $cnt_dir = count(explode('/', $dir));
-        $cnt_dir_top = count(explode('/', $dir_top));
-
-        if ($cnt_dir > $cnt_dir_top) {
-            return true;
-        }
-
-        return false;
-    }
-
     public function checkIfDirectoryEmpty($path)
     {
-        global $mtlda;
-
         if (empty($path) && !is_string($path)) {
             $this->raiseError(__METHOD__ .', first parameter needs to be a path!');
             return false;
@@ -409,7 +360,7 @@ class StorageController extends DefaultController
         }
 
         // avoid traversing too much up the hierarchy
-        if (!$this->isBelowDirectory($path, $upperpath)) {
+        if (!$mtlda->isBelowDirectory($path, $upperpath)) {
             return true;
         }
 
@@ -434,8 +385,6 @@ class StorageController extends DefaultController
 
     public function createTempDir($prefix = null)
     {
-        global $mtlda;
-
         $tmpdir_created = false;
 
         if (!isset($prefix) || empty($prefix)) {
