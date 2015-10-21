@@ -598,7 +598,7 @@ class MainController extends \Thallium\Controllers\MainController
             return false;
         }
 
-        if (!$mbus->sendMessageToClient('sign-request', 'Preparing', '10%')) {
+        if (!$mbus->sendMessageToClient('sign-reply', 'Preparing', '10%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
@@ -630,7 +630,7 @@ class MainController extends \Thallium\Controllers\MainController
             return false;
         }
 
-        if (!$mbus->sendMessageToClient('sign-request', 'Loading document', '20%')) {
+        if (!$mbus->sendMessageToClient('sign-reply', 'Loading document', '20%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
@@ -650,7 +650,7 @@ class MainController extends \Thallium\Controllers\MainController
             return false;
         }
 
-        if (!$mbus->sendMessageToClient('sign-request', 'Done', '100%')) {
+        if (!$mbus->sendMessageToClient('sign-reply', 'Done', '100%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
