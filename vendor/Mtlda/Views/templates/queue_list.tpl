@@ -22,8 +22,12 @@
  </div>
  <div class="six wide column">
   <div class="right aligned container">
+{if isset($http_upload_is_enabled) }
    <a href="{get_url page=upload}"><i class="upload icon"></i>Upload</a>&nbsp;
+{/if}
+{if isset($mail_import_is_enabled) }
    <a class="mail import"><i class="mail outline icon"></i>Mailimport</a>
+{/if}
   </div>
  </div>
 </div>
