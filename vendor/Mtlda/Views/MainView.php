@@ -19,7 +19,7 @@
 
 namespace Mtlda\Views;
 
-class MainView extends \Thallium\Views\MainView
+class MainView extends DefaultView
 {
     public $class_name = 'main';
     private $queue;
@@ -29,14 +29,15 @@ class MainView extends \Thallium\Views\MainView
     {
         global $mtlda, $tmpl;
 
-        parent::__construct();
-
         $tmpl->registerPlugin("block", "top10", array(&$this, 'showTop10List'));
 
         if (!$this->load()) {
             $mtlda->raiseError(__CLASS__ .', load() returned false!');
             return false;
         }
+
+        parent::__construct();
+        return true;
     }
 
     protected function load()
