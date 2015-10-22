@@ -23,12 +23,19 @@ class UploadController extends DefaultController
 {
     public function __construct()
     {
-        global $mtlda, $session;
+        global $session, $config;
 
-        if (!$session) {
-            $this->raiseError(__METHOD__ ." requires SessionController to be initialized!");
+        if (!$config->isHttpUploadEnabled()) {
+            $this->raiseError(__CLASS__ .', HTTP upload is not enabled in configuration!', true);
             return false;
         }
+
+        if (!$session) {
+            $this->raiseError(__CLASS__ .', requires SessionController to be initialized first!', true);
+            return false;
+        }
+
+        return true;
     }
 
     public function perform()
@@ -97,8 +104,6 @@ class UploadController extends DefaultController
 
     public function handleUploadedFile($file)
     {
-        global $mtlda;
-
         if (empty($file) || !is_array($file)) {
             $this->raiseError("\$file is invalid!");
             return false;
