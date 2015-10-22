@@ -22,7 +22,9 @@
  <a href="{get_url page=archive}" class="item {get_menu_state page=archive}">Archive</a>
  <a href="{get_url page=keywords}" class="item {get_menu_state page=keywords}">Keywords</a>
  <a href="{get_url page=queue}" class="item {get_menu_state page=queue}">Queue</a>
+{if isset($http_upload_is_enabled) }
  <a href="{get_url page=upload}" class="item {get_menu_state page=upload}">Upload</a>
+{/if}
  <a href="{get_url page=options}" class="item {get_menu_state page=options}">Options</a>
  <a href="{get_url page=about}" class="item {get_menu_state page=about}">About</a>
  <div class="right menu container">
