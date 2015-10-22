@@ -26,6 +26,19 @@ class UploadView extends DefaultView
     public $default_mode = 'show';
     public $queue;
 
+    public function __construct()
+    {
+        global $mtlda, $config;
+
+        if (!$config->isHttpUploadEnabled()) {
+            $mtlda->raiseError(__CLASS__ .', HTTP uploading is not enabled in configuration!', true);
+            return false;
+        }
+
+        parent::__construct();
+        return true;
+    }
+
     public function show()
     {
         global $mtlda, $session, $tmpl;
