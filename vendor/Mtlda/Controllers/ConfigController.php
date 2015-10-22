@@ -198,6 +198,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
 
         return false;
     }
+
     public function isMailImportEnabled()
     {
         if (!isset($this->config['app']['mail_import'])) {
@@ -205,6 +206,19 @@ class ConfigController extends \Thallium\Controllers\ConfigController
         }
 
         if (!$this->isEnabled($this->config['app']['mail_import'])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function isHttpUploadEnabled()
+    {
+        if (!isset($this->config['app']['http_upload'])) {
+            return false;
+        }
+
+        if (!$this->isEnabled($this->config['app']['http_upload'])) {
             return false;
         }
 
