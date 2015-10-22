@@ -21,6 +21,21 @@ namespace Mtlda\Views ;
 
 abstract class DefaultView extends \Thallium\Views\DefaultView
 {
+    public function __construct()
+    {
+        global $config, $tmpl;
+
+        if ($config->isHttpUploadEnabled()) {
+            $tmpl->assign('http_upload_is_enabled', true);
+        }
+
+        if ($config->isMailImportEnabled()) {
+            $tmpl->assign('mail_import_is_enabled', true);
+        }
+
+        parent::__construct();
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:

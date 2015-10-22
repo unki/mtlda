@@ -27,7 +27,7 @@ class QueueView extends DefaultView
 
     public function __construct()
     {
-        global $mtlda;
+        global $mtlda, $tmpl;
 
         try {
             $this->queue = new \Mtlda\Models\QueueModel;
@@ -41,8 +41,6 @@ class QueueView extends DefaultView
 
     public function queueList($params, $content, &$smarty, &$repeat)
     {
-        global $mtlda;
-
         $index = $smarty->getTemplateVars('smarty.IB.item_list.index');
 
         if (!isset($index) || empty($index)) {
