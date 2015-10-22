@@ -111,28 +111,28 @@ class MainController extends \Thallium\Controllers\MainController
 
         if ($router->isRpcCall()) {
             if (!$this->rpcHandler()) {
-                $this->raiseError("Mtlda::rpcHandler() returned false!");
+                $this->raiseError("MainController::rpcHandler() returned false!");
                 return false;
             }
             return true;
 
         } elseif ($router->isImageCall()) {
             if (!$this->imageHandler()) {
-                $this->raiseError("Mtlda::imageHandler() returned false!");
+                $this->raiseError("MainController::imageHandler() returned false!");
                 return false;
             }
             return true;
 
         } elseif ($router->isDocumentCall()) {
             if (!$this->documentHandler()) {
-                $this->raiseError("Mtlda::documentHandler() returned false!");
+                $this->raiseError("MainController::documentHandler() returned false!");
                 return false;
             }
             return true;
 
         } elseif ($router->isUploadCall()) {
             if (!$this->uploadHandler()) {
-                $this->raiseError("Mtlda::uploadHandler() returned false!");
+                $this->raiseError("MainController::uploadHandler() returned false!");
                 return false;
             }
             return true;
