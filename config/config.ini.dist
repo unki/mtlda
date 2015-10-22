@@ -50,6 +50,11 @@ pdf_signing = 0
 embed_icon_to_pdf = 1
 
 ;
+; HTTP uploads, 0 = disabled, 1 = enabled
+;
+http_upload = 1
+
+;
 ; Mail imports, 0 = disabled, 1 = enabled
 ;
 mail_import = 0
