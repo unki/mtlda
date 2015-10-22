@@ -86,7 +86,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `document_version` varchar(255) DEFAULT NULL,
                 `document_derivation` int(11) DEFAULT NULL,
                 `document_derivation_guid` varchar(255) DEFAULT NULL,
-                `document_signed_copy` varchar(1) DEFAULT NULL
+                `document_signed_copy` varchar(1) DEFAULT NULL,
                 PRIMARY KEY (`document_idx`)
                     )
                     ENGINE=InnoDB DEFAULT CHARSET=utf8;";
