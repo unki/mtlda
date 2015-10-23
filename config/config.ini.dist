@@ -195,6 +195,13 @@ mbox_delete_mail = 1
 ;
 mbox_imap_expunge = 0
 
+;
+; use e-mail body as document description
+; (security hint - malicious code can be imported by this too!)
+;    0 = disabled, 1 = enabled
+;
+use_email_body_as_description = 0
+
 [pdfindexing]
 ;
 ; parse the document for Text parts
