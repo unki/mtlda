@@ -104,6 +104,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `queue_file_name` varchar(255) DEFAULT NULL,
                 `queue_file_hash` varchar(255) DEFAULT NULL,
                 `queue_file_size` int(11) DEFAULT NULL,
+                `queue_description` TEXT DEFAULT NULL,
                 `queue_signing_icon_position` int(11) DEFAULT NULL,
                 `queue_state` varchar(255) DEFAULT NULL,
                 `queue_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
@@ -665,6 +666,33 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         }
 
         $db->setDatabaseSchemaVersion(21);
+        return true;
+    }
+
+    private function upgradeDatabaseSchemaV22()
+    {
+        global $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXqueue', 'queue_description')) {
+            $db->setDatabaseSchemaVersion(22);
+            return true;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXqueue
+            ADD COLUMN
+                `queue_description` TEXT DEFAULT NULL
+            AFTER
+                queue_file_size"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(22);
         return true;
     }
 }
