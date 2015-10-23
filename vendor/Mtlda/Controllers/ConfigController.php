@@ -273,6 +273,10 @@ class ConfigController extends \Thallium\Controllers\ConfigController
 
     public function getMailImportMailDestinyIsDelete()
     {
+        if (!$this->isMailImportEnabled()) {
+            return false;
+        }
+
         if (!isset($this->config['mailimport']['mbox_delete_mail'])) {
             return false;
         }
@@ -294,6 +298,10 @@ class ConfigController extends \Thallium\Controllers\ConfigController
 
     public function getMailImportImapMailboxExpunge()
     {
+        if (!$this->isMailImportEnabled()) {
+            return false;
+        }
+
         if (!isset($this->config['mailimport']['mbox_imap_expunge'])) {
             return false;
         }
@@ -307,6 +315,25 @@ class ConfigController extends \Thallium\Controllers\ConfigController
         }
 
         if (!$this->isEnabled($this->config['mailimport']['mbox_imap_expunge'])) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function isUseEmailBodyAsDescription()
+    {
+        if (!$this->isMailImportEnabled()) {
+            return false;
+        }
+
+        if (!isset($this->config['mailimport']['use_email_body_as_description']) ||
+            empty($this->config['mailimport']['use_email_body_as_description'])
+        ) {
+            return false;
+        }
+
+        if (!$this->isEnabled($this->config['mailimport']['use_email_body_as_description'])) {
             return false;
         }
 
