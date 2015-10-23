@@ -53,6 +53,12 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
                 $this->raiseError("IMAP extension is missing (also provides POP3 support)!");
                 $missing = true;
             }
+            if ($config->isUseEmailBodyAsDescription()) {
+                if (!function_exists("mb_convert_encoding")) {
+                    $this->raiseError("Multibyte string support is missing!");
+                    $missing = true;
+                }
+            }
         }
 
         if ($missing) {
