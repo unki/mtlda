@@ -29,7 +29,7 @@ class MailImportController extends DefaultController
 
     public function __construct()
     {
-        global $mtlda, $config;
+        global $config;
 
         if (!$config->isMailImportEnabled()) {
             $this->raiseError("Mail import isn't enabled in Mtlda configuration!", true);
@@ -73,7 +73,7 @@ class MailImportController extends DefaultController
 
     public function fetch()
     {
-        global $mtlda, $config, $mbus;
+        global $config, $mbus;
 
         if (!$mbus->sendMessageToClient('mailimport-reply', 'Establishing connection to mailbox.', '10%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
@@ -89,7 +89,6 @@ class MailImportController extends DefaultController
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
-
 
         if (($msg_cnt = $this->checkForMails()) === false) {
             $this->raiseError(__CLASS__ .'::checkForMails() returned false!');
@@ -187,8 +186,6 @@ class MailImportController extends DefaultController
 
     private function connect()
     {
-        global $mtlda;
-
         if (strtolower($this->mail_cfg['mbox_type']) == 'imap') {
             $this->connect_string = "{{$this->mail_cfg['mbox_server']}:143}INBOX";
         } elseif (strtolower($this->mail_cfg['mbox_type']) == 'pop3') {
@@ -225,7 +222,7 @@ class MailImportController extends DefaultController
 
     private function disconnect()
     {
-        global $mtlda, $config;
+        global $config;
 
         if (!$this->isConnected()) {
             return true;
@@ -256,8 +253,6 @@ class MailImportController extends DefaultController
 
     private function checkForMails()
     {
-        global $mtlda;
-
         if (!$this->isConnected()) {
             $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
@@ -283,8 +278,6 @@ class MailImportController extends DefaultController
 
     private function retrieveListOfMails($msg_cnt)
     {
-        global $mtlda;
-
         if (!$this->isConnected()) {
             $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
@@ -309,8 +302,6 @@ class MailImportController extends DefaultController
 
     private function retrieveMail($msgno)
     {
-        global $mtlda;
-
         if (!$this->isConnected()) {
             $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
@@ -340,10 +331,10 @@ class MailImportController extends DefaultController
 
     private function parseMail(&$msg)
     {
-        global $mtlda;
+        global $config;
 
         if (!is_array($msg)) {
-            $this->raiseError(__METHOD__ .', first parameter should be an array!');
+            $this->raiseError(__METHOD__ .'(), first parameter should be an array!');
             return false;
         }
 
@@ -356,84 +347,42 @@ class MailImportController extends DefaultController
         }
 
         $attachments = array();
+        $descriptions = array();
 
         foreach ($structure->parts as $id => $part) {
-            // we can skip text-only parts
-            if ($part->type == 0) {
-                continue;
-            }
-
             // the actual MIME part id is +1 then the array key
             $id+=1;
 
-            if (!$this->parseMimePart($part, $id, $attachments)) {
+            if ($part->type == 0 && $config->isUseEmailBodyAsDescription()) {
+                if (!$this->parseMimeText($part, $id, $descriptions)) {
+                    $this->raiseError(__METHOD__ .'(), parseMimeText() returned false!');
+                    return false;
+                }
+                continue;
+            }
+
+            if (!$this->parseMimePart($part, $id, $attachments, $descriptions)) {
                 $this->raiseError(__CLASS__ .'::parseMimePart() returned false!');
                 return false;
             }
         }
 
-        if (empty($attachments)) {
+        if (empty($attachments) && empty($descriptions)) {
             return true;
         }
 
-        foreach ($attachments as $attachment) {
-            if (!isset($attachment['filename']) || empty($attachment['filename'])) {
-                $this->raiseError("Something is wrong. No filename is known for this mime part!");
+        $description = array();
+
+        if (!empty($descriptions)) {
+            if (($description = $this->fetchDescriptions($msgno, $descriptions)) === false) {
+                $this->raiseError(__METHOD__ .'(), fetchDescriptions() returned false!');
                 return false;
             }
+        }
 
-            $filename = $attachment['filename'];
-
-            // if file is not suffixed by a .pdf, we skip it
-            if (!preg_match('/\.pdf$/i', $filename)) {
-                continue;
-            }
-
-            if (($attachment_body = $this->fetchMimePartBody($msgno, $attachment)) === false) {
-                $this->raiseError(__CLASS__ .'::fetchMimePartBody() returned false!');
-                return false;
-            }
-
-            if (empty($attachment_body)) {
-                $this->raiseError("No body fetched for mime part!");
-                return false;
-            }
-
-            $indir_ready = false;
-
-            do {
-                $destdir = self::INCOMING_DIRECTORY .'/'. uniqid();
-
-                if (file_exists($destdir)) {
-                    continue;
-                }
-
-                if (!mkdir($destdir, 0700)) {
-                    continue;
-                }
-            } while (!file_exists($destdir));
-
-            $dest = $destdir .'/'. $filename;
-
-            // if $dest is already present, we add a bit random to the filename
-            if (file_exists($dest)) {
-                if (preg_match('/([[:print:]]+)\.([[:print:]]+)/', $filename, $matches)) {
-                    $filename = "{$matches[1]}-". uniqid() .".{$matches[2]}";
-                } else {
-                    $filename = $filename .'-'. uniqid();
-                }
-                $dest = self::INCOMING_DIRECTORY .'/'. $filename;
-            }
-
-            if (file_exists($dest)) {
-                $this->raiseError(
-                    "A file with the name {$file['name']} is already present in the incoming directory!"
-                );
-                return false;
-            }
-
-            if (!file_put_contents($dest, $attachment_body)) {
-                $this->raiseError("file_put_contents() returned false!");
+        if (!empty($attachments)) {
+            if (!$this->fetchAttachments($msgno, $attachments, $description)) {
+                $this->raiseError(__METHOD__ .'(), fetchAttachments() returned false!');
                 return false;
             }
         }
@@ -441,30 +390,40 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function parseMimePart(&$part, $id, &$attachments)
+    private function parseMimePart(&$part, $id, &$attachments, &$descriptions)
     {
-        global $mtlda;
+        global $config;
 
         if (!is_object($part)) {
-            $this->raiseError(__METHOD__ .', first parameter should be an object!');
+            $this->raiseError(__METHOD__ .'(), first parameter should be an object!');
             return false;
         }
 
         if (!is_array($attachments)) {
-            $this->raiseError(__METHOD__ .', third parameter should be an object!');
+            $this->raiseError(__METHOD__ .'(), third parameter should be an array!');
+            return false;
+        }
+
+        if (!is_array($descriptions)) {
+            $this->raiseError(__METHOD__ .'(), forth parameter should be an array!');
             return false;
         }
 
         // if we have parts nested in parts, we have to run through recursive
         if (isset($part->parts)) {
             foreach ($part->parts as $subid => $subpart) {
-                // we can skip text-only parts
-                if ($part->type == 0) {
-                    continue;
-                }
-
                 // the actual MIME part id is +1 then the array key
                 $subid+=1;
+
+                if ($config->isUseEmailBodyAsDescription() &&
+                    $part->type == 0
+                ) {
+                    if (!$this->parseMimeText($part, $subid, $descriptions)) {
+                        $this->raiseError(__METHOD__ .'(), parseMimeText() returned false!');
+                        return false;
+                    }
+                    continue;
+                }
 
                 if (isset($part->ifsubtype) &&
                     $part->ifsubtype &&
@@ -476,7 +435,7 @@ class MailImportController extends DefaultController
                     $nextid = $id .'.'. $subid;
                 }
 
-                if (!$this->parseMimePart($subpart, $nextid, $attachments)) {
+                if (!$this->parseMimePart($subpart, $nextid, $attachments, $descriptions)) {
                     $this->raiseError(__CLASS__ .'::parseMimePart() returned false!');
                     return false;
                 }
@@ -517,20 +476,18 @@ class MailImportController extends DefaultController
 
     private function parseMimePartParameters(&$partparam, &$attachments, $encoding, $id)
     {
-        global $mtlda;
-
         if (!is_array($partparam)) {
-            $this->raiseError(__METHOD__ .', first parameter has to be an array!');
+            $this->raiseError(__METHOD__ .'(), first parameter has to be an array!');
             return false;
         }
 
         if (!is_array($attachments)) {
-            $this->raiseError(__METHOD__ .', second parameter has to be an array!');
+            $this->raiseError(__METHOD__ .'(), second parameter has to be an array!');
             return false;
         }
 
         if (!is_numeric($encoding)) {
-            $this->raiseError(__METHOD__ .', third parameter has to be a number!');
+            $this->raiseError(__METHOD__ .'(), third parameter has to be a number!');
             return false;
         }
 
@@ -635,20 +592,18 @@ class MailImportController extends DefaultController
 
     private function fetchMimePartBody($msgno, $attachment)
     {
-        global $mtlda;
-
         if (!$this->isConnected()) {
             $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
         }
 
         if (!is_numeric($msgno)) {
-            $this->raiseError(__METHOD__ .', first parameter should be an array!');
+            $this->raiseError(__METHOD__ .'(), first parameter should be an array!');
             return false;
         }
 
         if (!is_array($attachment)) {
-            $this->raiseError(__METHOD__ .', second parameter should be an array!');
+            $this->raiseError(__METHOD__ .'(), second parameter should be an array!');
             return false;
         }
 
@@ -681,6 +636,68 @@ class MailImportController extends DefaultController
         return false;
     }
 
+    private function fetchMimeTextBody($msgno, $description)
+    {
+        if (!$this->isConnected()) {
+            $this->raiseError("Need to be connected to the mail server to proceed!");
+            return false;
+        }
+
+        if (!is_numeric($msgno)) {
+            $this->raiseError(__METHOD__ .'(), first parameter should be an array!');
+            return false;
+        }
+
+        if (!is_array($description)) {
+            $this->raiseError(__METHOD__ .'(), second parameter should be an array!');
+            return false;
+        }
+
+        if (!$body = imap_fetchbody($this->imap_session, $msgno, $description['id'])) {
+            $this->raiseError(
+                "imap_fetchbody() returned false!<br />Msgno: {$msgno}<br />".
+                "Attachment: {$description['id']}<br />". imap_last_error()
+            );
+            return false;
+        }
+
+        if (empty($body)) {
+            $this->raiseError('imap_fetchbody() returned no valid content!');
+            return false;
+        }
+
+        // 3 = BASE64
+        if ($description['encoding'] == 3) {
+            if (!$body = base64_decode($body)) {
+                $this->raiseError("base64_decode() returned false!");
+                return false;
+            }
+        // 4 = QUOTED-PRINTABLE
+        } elseif ($description['encoding'] == 4) {
+            $body = quoted_printable_decode($body);
+        }
+
+        if (strtolower($description['charset']) == 'utf-8' ||
+            strtolower($description['charset']) == 'utf8'
+        ) {
+            return $body;
+        }
+
+        try {
+            $body = mb_convert_encoding($body, 'UTF-8', $description['charset']);
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), mb_convert_encoding() raised an error!', false, $e);
+            return false;
+        }
+
+        if (empty($body)) {
+            $this->raiseError(__METHOD__ .'(), mb_convert_encoding() was unsuccessful on recording body to UTF-8!');
+            return false;
+        }
+
+        return $body;
+    }
+
     private function isConnected()
     {
         if (!isset($this->is_connected) || empty($this->is_connected)) {
@@ -706,8 +723,6 @@ class MailImportController extends DefaultController
 
     private function deleteMail($msgno)
     {
-        global $mtlda;
-
         if (!$this->isConnected()) {
             $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
@@ -723,8 +738,6 @@ class MailImportController extends DefaultController
 
     private function flagMailSeen($msgno)
     {
-        global $mtlda;
-
         if (!$this->isConnected()) {
             $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
@@ -740,8 +753,6 @@ class MailImportController extends DefaultController
 
     private function imapDecodeString($value)
     {
-        global $mtlda;
-
         if (!isset($value) ||
             empty($value) ||
             !is_string($value)
@@ -767,8 +778,6 @@ class MailImportController extends DefaultController
 
     private function arrayAppend(&$dst_parameters, &$src_parameters)
     {
-        global $mtlda;
-
         if (!isset($dst_parameters) ||
             !is_array($dst_parameters)
         ) {
@@ -792,6 +801,217 @@ class MailImportController extends DefaultController
         }
 
         return true;
+    }
+
+    private function parseMimeText(&$part, $id, &$descriptions)
+    {
+        if (!is_object($part)) {
+            $this->raiseError(__METHOD__ .'(), first parameter should be an object!');
+            return false;
+        }
+
+        if (!is_array($descriptions)) {
+            $this->raiseError(__METHOD__ .'(), third parameter should be an object!');
+            return false;
+        }
+
+        $parameters = array();
+
+        if (isset($part->ifdparameters) &&
+            !empty($part->ifdparameters) &&
+            isset($part->dparameters) &&
+            !empty($part->dparameters)
+        ) {
+            $this->arrayAppend($parameters, $part->dparameters);
+        }
+
+        if (isset($part->ifparameters) &&
+            !empty($part->ifparameters) &&
+            isset($part->parameters) &&
+            !empty($part->parameters)
+        ) {
+            $this->arrayAppend($parameters, $part->parameters);
+        }
+
+        // no parameters? then we are done.
+        if (!isset($parameters) || empty($parameters)) {
+            return true;
+        }
+
+        if (!$this->parseMimeTextParameters($parameters, $descriptions, $part->encoding, $id)) {
+            $this->raiseError(__CLASS__ .'::parseMimePartParameters() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    private function parseMimeTextParameters(&$partparam, &$descriptions, $encoding, $id)
+    {
+        if (!is_array($partparam)) {
+            $this->raiseError(__METHOD__ .'(), first parameter has to be an array!');
+            return false;
+        }
+
+        if (!is_array($descriptions)) {
+            $this->raiseError(__METHOD__ .'(), second parameter has to be an array!');
+            return false;
+        }
+
+        if (!is_numeric($encoding)) {
+            $this->raiseError(__METHOD__ .'(), third parameter has to be a number!');
+            return false;
+        }
+
+        $info = array();
+
+        foreach ($partparam as $param) {
+            if (!isset($param->attribute) ||
+                empty($param->attribute) ||
+                !is_string($param->attribute)
+            ) {
+                $this->raiseError(__METHOD__ .'(), attribute property is not set!');
+                return false;
+            }
+
+            if (!isset($param->value) ||
+                empty($param->value) ||
+                !is_string($param->value)
+            ) {
+                $this->raiseError(__METHOD__ .'(), value property is not set!');
+                return false;
+            }
+
+            $attribute = strtoupper($param->attribute);
+
+            if ($attribute != 'CHARSET') {
+                continue;
+            }
+
+            $info[$attribute] = $param->value;
+        }
+
+        // if we were unable locating a charset, we skip this mime part
+        if (!isset($info) ||
+            empty($info) ||
+            (!isset($info['CHARSET']) || empty($info['CHARSET']))
+        ) {
+            return true;
+        }
+
+        array_push($descriptions, array(
+            'id' => $id,
+            'charset' => $info['CHARSET'],
+            'encoding' => $encoding,
+        ));
+
+        return true;
+    }
+
+    protected function fetchAttachments(&$msgno, &$attachments, $description)
+    {
+        foreach ($attachments as $attachment) {
+            if (!isset($attachment['filename']) || empty($attachment['filename'])) {
+                $this->raiseError("Something is wrong. No filename is known for this mime part!");
+                return false;
+            }
+
+            $filename = $attachment['filename'];
+
+            // if file is not suffixed by a .pdf, we skip it
+            if (!preg_match('/\.pdf$/i', $filename)) {
+                continue;
+            }
+
+            if (($attachment_body = $this->fetchMimePartBody($msgno, $attachment)) === false) {
+                $this->raiseError(__CLASS__ .'::fetchMimePartBody() returned false!');
+                return false;
+            }
+
+            if (empty($attachment_body)) {
+                $this->raiseError("No body fetched for mime part!");
+                return false;
+            }
+
+            $indir_ready = false;
+
+            do {
+                $destdir = self::INCOMING_DIRECTORY .'/'. uniqid();
+
+                if (file_exists($destdir)) {
+                    continue;
+                }
+
+                if (!mkdir($destdir, 0700)) {
+                    continue;
+                }
+            } while (!file_exists($destdir));
+
+            $dest = $destdir .'/'. $filename;
+
+            // if $dest is already present, we add a bit random to the filename
+            if (file_exists($dest)) {
+                if (preg_match('/([[:print:]]+)\.([[:print:]]+)/', $filename, $matches)) {
+                    $filename = "{$matches[1]}-". uniqid() .".{$matches[2]}";
+                } else {
+                    $filename = $filename .'-'. uniqid();
+                }
+                $dest = self::INCOMING_DIRECTORY .'/'. $filename;
+            }
+
+            if (file_exists($dest)) {
+                $this->raiseError(
+                    "A file with the name {$file['name']} is already present in the incoming directory!"
+                );
+                return false;
+            }
+
+            if (!file_put_contents($dest, $attachment_body)) {
+                $this->raiseError(__METHOD__ .'(), file_put_contents() failed on saving attachment!');
+                return false;
+            }
+
+            if (empty($description) || !is_array($description)) {
+                continue;
+            }
+
+            $text = implode($description);
+            if (!($dest = preg_replace('/\.pdf$/i', '.dsc', $dest))) {
+                $this->raiseError(__METHOD__ .'(), preg_replace() failed!');
+                return false;
+            }
+            if (!file_put_contents($dest, $text)) {
+                $this->raiseError(__METHOD__ .'(), file_put_contents() failed on saving description!');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected function fetchDescriptions(&$msgno, &$descriptions)
+    {
+        $body = array();
+
+        foreach ($descriptions as $description) {
+            if (!isset($description['charset']) || empty($description['charset'])) {
+                $this->raiseError(__METHOD__ .'(), something is wrong. No charset is known for this mime part!');
+                return false;
+            }
+
+            if (($description_body = $this->fetchMimeTextBody($msgno, $description)) === false) {
+                $this->raiseError(__CLASS__ .'::fetchMimeTextBody() returned false!');
+                return false;
+            }
+
+            if (empty($description_body)) {
+                $this->raiseError(__METHOD__ .'(), no body fetched for mime part!');
+                return false;
+            }
+
+            array_push($body, $description_body);
+        }
+
+        return $body;
     }
 }
 
