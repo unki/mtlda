@@ -94,10 +94,27 @@ class ImportController extends DefaultController
 
             $in_file = $file['fqpn'];
             $in_dir = dirname($in_file);
+            if (!($dsc_file = preg_replace('/\.pdf$/i', '.dsc', $in_file))) {
+                $this->raiseError(__METHOD__ .'(), preg_replace() returned false!');
+                return false;
+            }
 
             if (!$work_file = $queueitem->getFilePath()) {
                 $this->raiseError("QueueItem::getFilePath() returned false!");
                 return false;
+            }
+
+            if (isset($dsc_file) && !empty($dsc_file) && file_exists($dsc_file)) {
+                if (!($description = file_get_contents($dsc_file))) {
+                    $this->raiseError(__METHOD__ ."(), file_get_contents({$dsc_file}) returned false!");
+                    return false;
+                }
+                if (isset($description) &&
+                    !empty($description) &&
+                    is_string($description)
+                ) {
+                    $queueitem->queue_description = $description;
+                }
             }
 
             // create the target directory structure
@@ -117,14 +134,13 @@ class ImportController extends DefaultController
                 return false;
             }
 
-            if (!unlink($in_file)) {
+            /*if (!unlink($in_file)) {
                 $this->raiseError("Failed to remove {$in_file}!");
                 return false;
-            }
+            }*/
 
-            if ($in_dir != $this::INCOMING_DIRECTORY &&
-                !rmdir($in_dir)) {
-                $this->raiseError("Failed to cleanup incoming directory {$in_dir}!");
+            if (!$this->unlinkDirectory($in_dir)) {
+                $this->raiseError(__CLASS__ .'::unlinkDirectory() returned false!');
                 return false;
             }
 
@@ -199,6 +215,10 @@ class ImportController extends DefaultController
             $file['filename'] = basename($item);
             $file['fqpn'] = $path .'/'. $file['filename'];
 
+            // right now we only care about PDF files.
+            if (!preg_match('/\.pdf$/i', $file['filename'])) {
+                continue;
+            }
 
             if (!file_exists($file['fqpn'])) {
                 $this->raiseError("File {$file['fqpn']} does not exist!");
