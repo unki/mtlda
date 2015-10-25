@@ -87,7 +87,8 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `document_derivation` int(11) DEFAULT NULL,
                 `document_derivation_guid` varchar(255) DEFAULT NULL,
                 `document_signed_copy` varchar(1) DEFAULT NULL,
-                PRIMARY KEY (`document_idx`)
+                PRIMARY KEY (`document_idx`),
+                FULLTEXT KEY `text` (`document_description`)
                     )
                     ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
@@ -108,7 +109,8 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `queue_signing_icon_position` int(11) DEFAULT NULL,
                 `queue_state` varchar(255) DEFAULT NULL,
                 `queue_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-                PRIMARY KEY (`queue_idx`)
+                PRIMARY KEY (`queue_idx`),
+                FULLTEXT KEY `text` (`queue_description`)
                     )
                     ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
@@ -693,6 +695,33 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         }
 
         $db->setDatabaseSchemaVersion(22);
+        return true;
+    }
+
+    protected function upgradeDatabaseSchemaV23()
+    {
+        global $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXarchive
+            ADD
+                FULLTEXT KEY `text` (`document_description`)"
+        );
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXqueue
+            ADD
+                FULLTEXT KEY `text` (`queue_description`)"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(23);
         return true;
     }
 }
