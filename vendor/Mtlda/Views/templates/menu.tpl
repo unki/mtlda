@@ -32,10 +32,12 @@
    <a href="logout.html" class="item">Logout</a>
   </div>
   <div class="item">
-   <div class="ui icon input">
-    <input type="text" placeholder="Search...">
-    <i class="search link icon"></i>
-   </div>
+   <form class="ui form search" method="POST" action="{get_url page=search}">
+    <div class="ui icon input">
+     <input type="text" name="search" placeholder="Search...">
+     <i class="search link icon"></i>
+    </div>
+   </form>
   </div>
  </div>
 </div>
