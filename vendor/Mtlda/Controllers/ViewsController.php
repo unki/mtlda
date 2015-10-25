@@ -30,6 +30,7 @@ class ViewsController extends \Thallium\Controllers\ViewsController
         '/^keywords$/' => 'KeywordsView',
         '/^about$/' => 'AboutView',
         '/^options$/' => 'OptionsView',
+        '/^search$/' => 'SearchView',
     );
 }
 
