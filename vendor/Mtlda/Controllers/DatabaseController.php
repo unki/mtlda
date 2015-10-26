@@ -21,7 +21,7 @@ namespace Mtlda\Controllers;
 
 class DatabaseController extends \Thallium\Controllers\DatabaseController
 {
-    const SCHEMA_VERSION = 23;
+    const SCHEMA_VERSION = 24;
 
     public function truncateDatabaseTables()
     {
