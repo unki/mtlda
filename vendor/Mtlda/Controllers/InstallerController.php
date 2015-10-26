@@ -83,6 +83,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `document_file_size` int(11) DEFAULT NULL,
                 `document_signing_icon_position` int(11) DEFAULT NULL,
                 `document_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+                `document_custom_time` timestamp NULL DEFAULT NULL,
                 `document_version` varchar(255) DEFAULT NULL,
                 `document_derivation` int(11) DEFAULT NULL,
                 `document_derivation_guid` varchar(255) DEFAULT NULL,
@@ -722,6 +723,33 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         }
 
         $db->setDatabaseSchemaVersion(23);
+        return true;
+    }
+
+    protected function upgradeDatabaseSchemaV24()
+    {
+        global $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXarchive', 'document_custom_time')) {
+            $db->setDatabaseSchemaVersion(24);
+            return true;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXarchive
+            ADD COLUMN
+                `document_custom_time` timestamp NULL DEFAULT NULL
+            AFTER
+                document_time"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(24);
         return true;
     }
 }
