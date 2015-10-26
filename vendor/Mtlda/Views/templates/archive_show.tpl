@@ -44,14 +44,6 @@
  <div class="column">
   <div class="ui grid">
    <div class="row">
-    <div class="two wide column">Filename:</div>
-    <div class="fourteen wide column">{$item->document_file_name}</div>
-   </div>
-   <div class="row">
-    <div class="two wide column">Size:</div>
-    <div class="fourteen wide column">{get_humanreadable_filesize size=$item->document_file_size}</div>
-   </div>
-   <div class="row">
     <div class="two wide column">Versions:</div>
     <div class="fourteen wide column">
      <div class="ui very relaxed divided selection list">
@@ -115,8 +107,16 @@
    <div class="row">
     <div class="twelve wide column">
      <div class="ui container segment">
-      <div class="ui header">PDF Properties:</div>
+      <div class="ui header">Document Properties:</div>
       <div class="ui grid">
+       <div class="row">
+        <div class="five wide column">Filename:</div>
+        <div class="eleven wide column">{$item->document_file_name}</div>
+       </div>
+       <div class="row">
+        <div class="five wide column">Size:</div>
+        <div class="eleven wide column">{get_humanreadable_filesize size=$item->document_file_size}</div>
+       </div>
 {document_properties}
        <div class="row">
         <div class="five wide column">{$property->getDocumentProperty()}:</div>
