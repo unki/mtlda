@@ -33,6 +33,7 @@ class DocumentModel extends DefaultModel
             'document_file_size' => 'integer',
             'document_signing_icon_position' => 'integer',
             'document_time' => 'timestamp',
+            'document_custom_time' => 'timestamp',
             'document_version' => 'integer',
             'document_derivation' => 'integer',
             'document_derivation_guid' => 'string',
@@ -44,7 +45,7 @@ class DocumentModel extends DefaultModel
 
     public function __construct($id = null, $guid = null)
     {
-        global $mtlda, $db;
+        global $db;
 
         // are we creating a new item?
         if (!isset($id) && !isset($guid)) {
@@ -81,22 +82,22 @@ class DocumentModel extends DefaultModel
         };
 
         if (!($sth = $db->prepare($sql))) {
-            $mtlda->raiseError("Failed to prepare query");
+            $this->raiseError("Failed to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, $arr_query)) {
-            $mtlda->raiseError("Failed to execute query");
+            $this->raiseError("Failed to execute query");
             return false;
         }
 
         if (!($row = $sth->fetch())) {
-            $mtlda->raiseError("Unable to find archive item with guid value {$guid}");
+            $this->raiseError("Unable to find archive item with guid value {$guid}");
             return false;
         }
 
         if (!isset($row->document_idx) || empty($row->document_idx)) {
-            $mtlda->raiseError("Unable to find archive item with guid value {$guid}");
+            $this->raiseError("Unable to find archive item with guid value {$guid}");
             return false;
         }
 
@@ -104,7 +105,7 @@ class DocumentModel extends DefaultModel
         parent::__construct($row->document_idx);
 
         if (!$this->permitRpcUpdates(true)) {
-            $mtlda->raiseError("permitRpcUpdates() returned false!");
+            $this->raiseError("permitRpcUpdates() returned false!");
             return false;
         }
 
@@ -114,7 +115,7 @@ class DocumentModel extends DefaultModel
             $this->addRpcEnabledField('document_file_name');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
+            $this->raiseError("Failed on invoking addRpcEnabledField() method");
             return false;
         }
 
@@ -123,10 +124,8 @@ class DocumentModel extends DefaultModel
 
     public function postLoad()
     {
-        global $mtlda;
-
         if (!$this->loadDescendants()) {
-            $mtlda->raiseError(__CLASS__ .'::loadDescendants() returned false!');
+            $this->raiseError(__CLASS__ .'::loadDescendants() returned false!');
             return false;
         }
 
@@ -135,7 +134,7 @@ class DocumentModel extends DefaultModel
 
     private function loadDescendants()
     {
-        global $mtlda, $db;
+        global $db;
 
         $idx_field = $this->column_name ."_idx";
         $guid_field = $this->column_name ."_guid";
@@ -153,12 +152,12 @@ class DocumentModel extends DefaultModel
                 document_derivation_guid LIKE ?";
 
         if (!$sth = $db->prepare($sql)) {
-            $mtlda->raiseError("Failed to prepare query");
+            $this->raiseError("Failed to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, array($this->$idx_field, $this->$guid_field))) {
-            $mtlda->raiseError("Failed to execute query");
+            $this->raiseError("Failed to execute query");
             return false;
         }
 
@@ -169,7 +168,7 @@ class DocumentModel extends DefaultModel
                     $row->document_guid
                 );
             } catch (\Exception $e) {
-                $mtlda->raiseError("Failed to load DocumentModel({$id}, {$guid})!");
+                $this->raiseError("Failed to load DocumentModel({$id}, {$guid})!");
                 return false;
             }
         }
@@ -180,40 +179,38 @@ class DocumentModel extends DefaultModel
 
     public function verify()
     {
-        global $mtlda;
-
         if (!isset($this->document_file_name)) {
-            $mtlda->raiseError("document_file_name is not set!");
+            $this->raiseError("document_file_name is not set!");
             return false;
         }
 
         if (!isset($this->document_file_hash)) {
-            $mtlda->raiseError("document_file_hash is not set!");
+            $this->raiseError("document_file_hash is not set!");
             return false;
         }
 
         if (!$fqpn = $this->getFilePath()) {
-            $mtlda->raiseError("getFilePath() returned false!");
+            $this->raiseError("getFilePath() returned false!");
             return false;
         }
 
         if (!file_exists($fqpn)) {
-            $mtlda->raiseError("File {$fqpn} does not exist!");
+            $this->raiseError("File {$fqpn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqpn)) {
-            $mtlda->raiseError("File {$fqpn} is not readable!");
+            $this->raiseError("File {$fqpn} is not readable!");
             return false;
         }
 
         if (($file_hash = sha1_file($fqpn)) === false) {
-            $mtlda->raiseError("Unable to calculate SHA1 hash of file {$fqpn}!");
+            $this->raiseError("Unable to calculate SHA1 hash of file {$fqpn}!");
             return false;
         }
 
         if ($this->document_file_hash != $file_hash) {
-            $mtlda->raiseError("Hash value of ${file} does not match!");
+            $this->raiseError("Hash value of ${file} does not match!");
             return false;
         }
 
@@ -241,27 +238,27 @@ class DocumentModel extends DefaultModel
     public function getFilePath()
     {
         if (!($guid = $this->getGuid())) {
-            $mtlda->raiseError(__CLASS__ ."::getGuid() returned false!");
+            $this->raiseError(__CLASS__ ."::getGuid() returned false!");
             return false;
         }
 
         if (!($dir_name = $this->generateDirectoryName($guid))) {
-            $mtlda->raiseError(__CLASS__ ."::generateDirectoryName() returned false!");
+            $this->raiseError(__CLASS__ ."::generateDirectoryName() returned false!");
             return false;
         }
 
         if (!isset($dir_name) || empty($dir_name)) {
-            $mtlda->raiseError("Unable to get directory name!");
+            $this->raiseError("Unable to get directory name!");
             return false;
         }
 
         if (!($file_name = $this->getFileName())) {
-            $mtlda->raiseError(__CLASS__ ."::getFileName() returned false!");
+            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
             return false;
         }
 
         if (!isset($file_name) || empty($file_name)) {
-            $mtlda->raiseError("Unable to get file name!");
+            $this->raiseError("Unable to get file name!");
             return false;
         }
 
@@ -274,12 +271,10 @@ class DocumentModel extends DefaultModel
 
     public function generateDirectoryName($guid)
     {
-        global $mtlda;
-
         $dir_name = "";
 
         if (empty($guid)) {
-            $mtlda->raiseError("guid is empty!");
+            $this->raiseError("guid is empty!");
             return false;
         }
 
@@ -287,7 +282,7 @@ class DocumentModel extends DefaultModel
             $guid_part = substr($guid, $i, 2);
 
             if ($guid_part === false) {
-                $mtlda->raiseError("substr() returned false!");
+                $this->raiseError("substr() returned false!");
                 return false;
             }
 
@@ -311,32 +306,32 @@ class DocumentModel extends DefaultModel
 
     protected function preDelete()
     {
-        global $mtlda, $db;
+        global $db;
 
         if ($this->hasDescendants()) {
             if (!$this->deleteAllDescendants()) {
-                $mtlda->raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
+                $this->raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
                 return false;
             }
         }
 
         if (!$this->deleteAllAssignedKeywords()) {
-            $mtlda->raiseError(__CLASS__ .'::deleteAllAssignedKeywords() returned false!');
+            $this->raiseError(__CLASS__ .'::deleteAllAssignedKeywords() returned false!');
             return false;
         }
 
         if (!$this->deleteAllDocumentIndices()) {
-            $mtlda->raiseError(__CLASS__ .'::deleteAllDocumentIndices() returned false!');
+            $this->raiseError(__CLASS__ .'::deleteAllDocumentIndices() returned false!');
             return false;
         }
 
         if (!$this->deleteAllDocumentProperties()) {
-            $mtlda->raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
+            $this->raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
             return false;
         }
 
         if (!$this->deleteFile()) {
-            $mtlda->raiseError(__CLASS__ .'::deleteFile() returned false!');
+            $this->raiseError(__CLASS__ .'::deleteFile() returned false!');
             return false;
         }
 
@@ -345,7 +340,7 @@ class DocumentModel extends DefaultModel
 
     public function postDelete()
     {
-        global $mtlda, $audit;
+        global $audit;
 
         try {
             $audit->log(
@@ -355,7 +350,7 @@ class DocumentModel extends DefaultModel
                 $this->document_guid
             );
         } catch (\Exception $e) {
-            $mtlda->raiseError("AuditController::log() returned false!");
+            $this->raiseError("AuditController::log() returned false!");
             return false;
         }
 
@@ -364,17 +359,15 @@ class DocumentModel extends DefaultModel
 
     public function preSave()
     {
-        global $mtlda;
-
         if ($this->isDuplicate()) {
-            $mtlda->raiseError("Duplicated record detected!");
+            $this->raiseError("Duplicated record detected!");
             return false;
         }
 
         if (!isset($this->document_file_name) ||
             empty($this->document_file_name)
         ) {
-            $mtlda->raiseError("\$document_file_name must not be empty!");
+            $this->raiseError("\$document_file_name must not be empty!");
             return false;
         }
 
@@ -395,19 +388,19 @@ class DocumentModel extends DefaultModel
         }
 
         if ($this->document_version == 1) {
-            $mtlda->raiseError("Change the filename of the root document is not allowed!");
+            $this->raiseError("Change the filename of the root document is not allowed!");
             return false;
         }
 
         if (!$fqpn = $this->getFilePath()) {
-            $mtlda->raiseError(__CLASS__ ."::getFilePath() returned false!");
+            $this->raiseError(__CLASS__ ."::getFilePath() returned false!");
             return false;
         }
 
         $path = dirname($fqpn);
 
         if (empty($path)) {
-            $mtlda->raiseError("why is \$path empty?");
+            $this->raiseError("why is \$path empty?");
             return false;
         }
 
@@ -415,12 +408,12 @@ class DocumentModel extends DefaultModel
         $new_file = $path .'/'. basename($this->document_file_name);
 
         if (file_exists($new_file)) {
-            $mtlda->raiseError("Unable to rename {$old_file} to {$new_file} - destination already exists!");
+            $this->raiseError("Unable to rename {$old_file} to {$new_file} - destination already exists!");
             return false;
         }
 
         if (rename($old_file, $new_file) === false) {
-            $mtlda->raiseError("rename() returned false!");
+            $this->raiseError("rename() returned false!");
             return false;
         }
 
@@ -429,42 +422,40 @@ class DocumentModel extends DefaultModel
 
     public function refresh()
     {
-        global $mtlda;
-
         if (!$fqpn = $this->getFilePath()) {
-            $mtlda->raiseError("getFilePath() returned false!");
+            $this->raiseError("getFilePath() returned false!");
             return false;
         }
 
         if (!file_exists($fqpn)) {
-            $mtlda->raiseError("File {$fqpn} does not exist!");
+            $this->raiseError("File {$fqpn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqpn)) {
-            $mtlda->raiseError("File {$fqpn} is not readable!");
+            $this->raiseError("File {$fqpn} is not readable!");
             return false;
         }
 
         clearstatcache(true, $fqpn);
 
         if (($hash = sha1_file($fqpn)) === false) {
-            $mtlda->raiseError(__METHOD__ ." SHA1 value of {$fqpn} can not be calculated!");
+            $this->raiseError(__METHOD__ ." SHA1 value of {$fqpn} can not be calculated!");
             return false;
         }
 
         if (empty($hash)) {
-            $mtlda->raiseError(__METHOD__ ." sha1_file() returned an empty hash value!");
+            $this->raiseError(__METHOD__ ." sha1_file() returned an empty hash value!");
             return false;
         }
 
         if (($size = filesize($fqpn)) === false) {
-            $mtlda->raiseError(__METHOD__ ." filesize of {$fqpn} is not available!");
+            $this->raiseError(__METHOD__ ." filesize of {$fqpn} is not available!");
             return false;
         }
 
         if (empty($size) || !is_numeric($size) || ($size <= 0)) {
-            $mtlda->raiseError(__METHOD__ ." fizesize of {$fqpn} is invalid!");
+            $this->raiseError(__METHOD__ ." fizesize of {$fqpn} is invalid!");
             return false;
         }
 
@@ -521,7 +512,7 @@ class DocumentModel extends DefaultModel
         $json_str = json_encode($json_ary);
 
         if (!$json_str) {
-            $mtlda->raiseError("json_encode() returned false!");
+            $this->raiseError("json_encode() returned false!");
             return false;
         }
 
@@ -534,7 +525,7 @@ class DocumentModel extends DefaultModel
             );
         } catch (\Exception $e) {
             $queueitem->delete();
-            $mtlda->raiseError("AuditController:log() returned false!");
+            $this->raiseError("AuditController:log() returned false!");
             return false;
         }
 
@@ -543,20 +534,20 @@ class DocumentModel extends DefaultModel
 
     public function setKeywords($values)
     {
-        global $mtlda, $db;
+        global $db;
 
         if (!is_array($values)) {
             $values = array($values);
         }
 
         if (!$this->removeAssignedKeywords()) {
-            $mtlda->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false');
+            $this->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false');
             return false;
         }
 
         foreach ($values as $value) {
             if (!is_numeric($value)) {
-                $mtlda->raiseError("Value '{$value}' requires to be a number!");
+                $this->raiseError("Value '{$value}' requires to be a number!");
                 $db->freeStatement($sth);
                 return false;
             }
@@ -564,22 +555,22 @@ class DocumentModel extends DefaultModel
             try {
                 $keyword = new KeywordAssignmentModel;
             } catch (\Exception $e) {
-                $mtlda->raiseError("Failed to load KeywordAssignmentModel!");
+                $this->raiseError("Failed to load KeywordAssignmentModel!");
                 return false;
             }
 
             if (!$keyword->setArchive($this->document_idx)) {
-                $mtlda->raiseError("KeywordAssignmentModel::setArchive() returned false!");
+                $this->raiseError("KeywordAssignmentModel::setArchive() returned false!");
                 return false;
             }
 
             if (!$keyword->setKeyword($value)) {
-                $mtlda->raiseError("KeywordAssignmentModel::setKeyword() returned false!");
+                $this->raiseError("KeywordAssignmentModel::setKeyword() returned false!");
                 return false;
             }
 
             if (!$keyword->save()) {
-                $mtlda->raiseError("KeywordAssignmentModel::save() returned false!");
+                $this->raiseError("KeywordAssignmentModel::save() returned false!");
                 return false;
             }
         }
@@ -589,10 +580,10 @@ class DocumentModel extends DefaultModel
 
     public function setDescription($description)
     {
-        global $mtlda, $db;
+        global $db;
 
         if (!is_string($description)) {
-            $mtlda->raiseError("A string must be provided as parameter to this method");
+            $this->raiseError("A string must be provided as parameter to this method");
             return false;
         }
 
@@ -606,12 +597,12 @@ class DocumentModel extends DefaultModel
         );
 
         if (!$sth) {
-            $mtlda->raiseError("Unable to prepare query!");
+            $this->raiseError("Unable to prepare query!");
             return false;
         }
 
         if (!$db->execute($sth, array($description, $this->document_idx))) {
-            $mtlda->raiseError("Failed to execute query!");
+            $this->raiseError("Failed to execute query!");
             $db->freeStatement($sth);
             return false;
         }
@@ -622,20 +613,18 @@ class DocumentModel extends DefaultModel
 
     public function preClone()
     {
-        global $mtlda;
-
         if (!isset($this->document_version) || empty($this->document_version)) {
             $this->document_version = 1;
             return true;
         }
 
         if (!$latest = $this->getLastestDocumentVersionNumber()) {
-            $mtlda->raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned false');
+            $this->raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned false');
             return false;
         }
 
         if (empty($latest)) {
-            $mtlda->raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned an invalid number!');
+            $this->raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned an invalid number!');
             return false;
         }
 
@@ -646,37 +635,35 @@ class DocumentModel extends DefaultModel
 
     public function postClone(&$srcobj)
     {
-        global $mtlda;
-
         try {
             $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load StorageController!");
+            $this->raiseError("Failed to load StorageController!");
             return false;
         }
 
         if (!$guid = $this->getGuid()) {
-            $mtlda->raiseError(__CLASS__ .'::getGuid() returned false!');
+            $this->raiseError(__CLASS__ .'::getGuid() returned false!');
             return false;
         }
 
         if (!$src_file = $srcobj->getFilePath()) {
-            $mtlda->raiseError(__METHOD__ .', unable to retrieve source objects full qualified path name!');
+            $this->raiseError(__METHOD__ .', unable to retrieve source objects full qualified path name!');
             return false;
         }
 
         if (!$dst_file = $this->getFilePath()) {
-            $mtlda->raiseError(__CLASS__ .'::getFilePath() returned false!');
+            $this->raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
 
         if (!$storage->createDirectoryStructure(dirname($dst_file))) {
-            $mtlda->raiseError("StorageController::createDirectoryStructure() returned false!");
+            $this->raiseError("StorageController::createDirectoryStructure() returned false!");
             return false;
         }
 
         if (!$storage->copyFile($src_file, $dst_file)) {
-            $mtlda->raiseError("StorageController::copyFile() returned false!");
+            $this->raiseError("StorageController::copyFile() returned false!");
             return false;
         }
 
@@ -685,15 +672,15 @@ class DocumentModel extends DefaultModel
 
     public function getLastestDocumentVersionNumber()
     {
-        global $mtlda, $db;
+        global $db;
 
         if (!isset($this->document_idx) || empty($this->document_idx)) {
-            $mtlda->raiseError("Unable to lookup latest document version without known \$document_idx");
+            $this->raiseError("Unable to lookup latest document version without known \$document_idx");
             return false;
         }
 
         if (!isset($this->document_guid) || empty($this->document_guid)) {
-            $mtlda->raiseError("Unable to lookup latest document version without known \$document_guid");
+            $this->raiseError("Unable to lookup latest document version without known \$document_guid");
             return false;
         }
 
@@ -717,7 +704,7 @@ class DocumentModel extends DefaultModel
         );
 
         if (!$sth) {
-            $mtlda->raiseError("Failed to prepare query");
+            $this->raiseError("Failed to prepare query");
             return false;
         }
 
@@ -728,7 +715,7 @@ class DocumentModel extends DefaultModel
                 $this->document_guid
             ))
         ) {
-            $mtlda->raiseError("Failed to execute query");
+            $this->raiseError("Failed to execute query");
             return false;
         }
 
@@ -736,27 +723,27 @@ class DocumentModel extends DefaultModel
         $db->freeStatement($sth);
 
         if ($rows === false) {
-            $mtlda->raiseError("PDO::fetchAll() returned false!");
+            $this->raiseError("PDO::fetchAll() returned false!");
             return false;
         }
 
         if (!is_array($rows)) {
-            $mtlda->raiseError("PDO::fetchAll() has not returned an array!");
+            $this->raiseError("PDO::fetchAll() has not returned an array!");
             return false;
         }
 
         if (count($rows) > 1) {
-            $mtlda->raiseError("Strangly more than one result has been returned by query!");
+            $this->raiseError("Strangly more than one result has been returned by query!");
             return false;
         }
 
         if (!isset($rows[0]['max_version']) || empty($rows[0]['max_version'])) {
-            $mtlda->raiseError("failed to retrieve latest version number!");
+            $this->raiseError("failed to retrieve latest version number!");
             return false;
         };
 
         if (!is_numeric($rows[0]['max_version'])) {
-            $mtlda->raiseError("\$max_version returned from database isn't a number!");
+            $this->raiseError("\$max_version returned from database isn't a number!");
             return false;
         }
 
@@ -765,7 +752,7 @@ class DocumentModel extends DefaultModel
 
     private function removeAssignedKeywords()
     {
-        global $mtlda, $db;
+        global $db;
 
         $sth = $db->prepare(
             "DELETE FROM
@@ -777,12 +764,12 @@ class DocumentModel extends DefaultModel
         );
 
         if (!$sth) {
-            $mtlda->raiseError("Unable to prepare query!");
+            $this->raiseError("Unable to prepare query!");
             return false;
         }
 
         if (!$db->execute($sth, array($this->document_idx))) {
-            $mtlda->raiseError("Unable to execute query!");
+            $this->raiseError("Unable to execute query!");
             return false;
         }
 
@@ -792,7 +779,7 @@ class DocumentModel extends DefaultModel
 
     private function deleteAllAssignedKeywords()
     {
-        global $mtlda, $db;
+        global $db;
 
         $result = $db->query(
             "DELETE FROM
@@ -802,7 +789,7 @@ class DocumentModel extends DefaultModel
         );
 
         if ($result === false) {
-            $mtlda->raiseError("Deleting keyword assignments failed!");
+            $this->raiseError("Deleting keyword assignments failed!");
             return false;
         }
 
@@ -811,18 +798,16 @@ class DocumentModel extends DefaultModel
 
     private function deleteFile()
     {
-        global $mtlda;
-
         // load StorageController
         $storage = new \Mtlda\Controllers\StorageController;
 
         if (!$storage) {
-            $mtlda->raiseError("unable to load StorageController!");
+            $this->raiseError("unable to load StorageController!");
             return false;
         }
 
         if (!$storage->deleteItemFile($this)) {
-            $mtlda->raiseError("StorageController::deleteItemFile() returned false!");
+            $this->raiseError("StorageController::deleteItemFile() returned false!");
             return false;
         }
 
@@ -831,15 +816,13 @@ class DocumentModel extends DefaultModel
 
     private function deleteAllDescendants()
     {
-        global $mtlda;
-
         if (!$this->hasDescendants()) {
             return true;
         }
 
         foreach ($this->getDescendants() as $descendant) {
             if (!$descendant->delete()) {
-                $mtlda->raiseError(get_class($descendant) .'::delete() returned false!');
+                $this->raiseError(get_class($descendant) .'::delete() returned false!');
                 return false;
             }
         }
@@ -849,20 +832,18 @@ class DocumentModel extends DefaultModel
 
     private function deleteAllDocumentProperties()
     {
-        global $mtlda;
-
         try {
             $properties = new \Mtlda\Models\DocumentPropertiesModel(
                 $this->getId(),
                 $this->getGuid()
             );
         } catch (\Exception $e) {
-            $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentPropertiesModel!');
+            $this->raiseError(__METHOD__ .'(), failed to load DocumentPropertiesModel!');
             return false;
         }
 
         if (!$properties->delete()) {
-            $mtlda->raiseError(get_class($properties) .'::delete() returned false!');
+            $this->raiseError(get_class($properties) .'::delete() returned false!');
             return false;
         }
 
@@ -871,20 +852,18 @@ class DocumentModel extends DefaultModel
 
     private function deleteAllDocumentIndices()
     {
-        global $mtlda;
-
         try {
             $indices = new \Mtlda\Models\DocumentIndicesModel(
                 $this->getId(),
                 $this->getGuid()
             );
         } catch (\Exception $e) {
-            $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentIndicesModel!');
+            $this->raiseError(__METHOD__ .'(), failed to load DocumentIndicesModel!');
             return false;
         }
 
         if (!$indices->delete()) {
-            $mtlda->raiseError(get_class($indices) .'::delete() returned false!');
+            $this->raiseError(get_class($indices) .'::delete() returned false!');
             return false;
         }
 
@@ -910,8 +889,6 @@ class DocumentModel extends DefaultModel
 
     public function getParent()
     {
-        global $mtlda;
-
         if (!$this->hasParent()) {
             return false;
         }
@@ -922,7 +899,7 @@ class DocumentModel extends DefaultModel
                 $this->document_derivation_guid
             );
         } catch (\Exception $e) {
-            $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentModel!');
+            $this->raiseError(__METHOD__ .'(), failed to load DocumentModel!');
             return false;
         }
 
@@ -938,6 +915,41 @@ class DocumentModel extends DefaultModel
         }
 
         return $this->document_version;
+    }
+
+    public function setCustomDate($date)
+    {
+        if (!isset($date) ||
+            empty($date) ||
+            (!is_string($date) && !is_numeric($date))
+        ) {
+            $this->raiseError(__METHOD__ .'(), \$date parameter is invalid!');
+            return false;
+        }
+
+        $this->document_custom_time = $date;
+        return true;
+    }
+
+    public function hasCustomDate()
+    {
+        if (!isset($date) ||
+            empty($date)
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getCustomDate()
+    {
+        if (!$this->hasCustomDate()) {
+            $this->raiseError(__CLASS__ .'::hasCustomDate() returned false!');
+            return false;
+        }
+
+        return $this->document_custom_time;
     }
 }
 
