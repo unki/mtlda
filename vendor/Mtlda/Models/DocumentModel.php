@@ -113,6 +113,7 @@ class DocumentModel extends DefaultModel
             $this->addRpcEnabledField('document_title');
             $this->addRpcEnabledField('document_description');
             $this->addRpcEnabledField('document_file_name');
+            $this->addRpcEnabledField('document_custom_time');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $this->raiseError("Failed on invoking addRpcEnabledField() method");
