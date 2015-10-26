@@ -890,6 +890,55 @@ class DocumentModel extends DefaultModel
 
         return true;
     }
+
+    public function hasParent()
+    {
+        global $mtlda;
+
+        if (!isset($this->document_derivation) ||
+            empty($this->document_derivation) ||
+            !$mtlda->isValidId($this->document_derivation) ||
+            !isset($this->document_derivation_guid) ||
+            empty($this->document_derivation_guid) ||
+            !$mtlda->isValidGuidSyntax($this->document_derivation_guid)
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getParent()
+    {
+        global $mtlda;
+
+        if (!$this->hasParent()) {
+            return false;
+        }
+
+        try {
+            $parent = new \Mtlda\Models\DocumentModel(
+                $this->document_derivation,
+                $this->document_derivation_guid
+            );
+        } catch (\Exception $e) {
+            $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentModel!');
+            return false;
+        }
+
+        return $parent;
+    }
+
+    public function getVersion()
+    {
+        if (!isset($this->document_version) ||
+            empty($this->document_version)
+        ) {
+            return false;
+        }
+
+        return $this->document_version;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
