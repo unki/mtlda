@@ -31,11 +31,9 @@ class ArchiveModel extends DefaultModel
 
     public function __construct($sort_order = null)
     {
-        global $mtlda;
-
         parent::__construct(null);
         if (!$this->load($sort_order)) {
-            $mtlda->raiseError(__METHOD__ .'(), load() returned false!', true);
+            $this->raiseError(__METHOD__ .'(), load() returned false!', true);
             return false;
         }
 
@@ -44,11 +42,11 @@ class ArchiveModel extends DefaultModel
 
     public function load($sort_order = null)
     {
-        global $mtlda, $db;
+        global $db;
 
         if (isset($sort_order) && !empty($sort_order)) {
             if (!is_array($sort_order)) {
-                $mtlda->raiseError(__METHOD__ .'(), \$sort_order is not an array!');
+                $this->raiseError(__METHOD__ .'(), \$sort_order is not an array!');
                 return false;
             }
 
@@ -59,17 +57,17 @@ class ArchiveModel extends DefaultModel
                 empty($sort_order['order']) ||
                 !is_string($sort_order['order'])
             ) {
-                $mtlda->raiseError(__METHOD__ .'(), \$sort_order is invalid!');
+                $this->raiseError(__METHOD__ .'(), \$sort_order is invalid!');
                 return false;
             }
 
             if (!preg_match('/[a-zA-Z_]/', $sort_order['by'])) {
-                $mtlda->raiseError(__METHOD__ .'(), \$by looks invalid!');
+                $this->raiseError(__METHOD__ .'(), \$by looks invalid!');
                 return false;
             }
 
             if (!in_array(strtoupper($sort_order['order']), array('ASC', 'DESC'))) {
-                $mtlda->raiseError(__METHOD__ .'(), \$order is invalid!');
+                $this->raiseError(__METHOD__ .'(), \$order is invalid!');
                 return false;
             }
         }
@@ -80,7 +78,8 @@ class ArchiveModel extends DefaultModel
 
         $sql =
             "SELECT
-                *
+                {$idx_field},
+                {$guid_field}
             FROM
                 TABLEPREFIX{$this->table_name}
             WHERE
@@ -94,62 +93,33 @@ class ArchiveModel extends DefaultModel
         }
 
         if (!($sth = $db->prepare($sql))) {
-            $mtlda->raiseError(get_class($db) .'::prepare() returned false!');
+            $this->raiseError(get_class($db) .'::prepare() returned false!');
             return false;
         }
 
         if (!($db->execute($sth))) {
             $db->freeStatement($sth);
-            $mtlda->raiseError(get_class($db) .'::execute() returned false!');
+            $this->raiseError(get_class($db) .'::execute() returned false!');
             return false;
         }
 
         while ($row = $sth->fetch()) {
-            $latest_document = $this->getLatestDocumentVersion(
-                $row->$idx_field,
-                $row->$guid_field
-            );
-
-            if (!empty($latest_document) && is_array($latest_document)) {
-                $row->$latest_version_field = $latest_document;
+            try {
+                $document = new \Mtlda\Models\DocumentModel(
+                    $row->$idx_field,
+                    $row->$guid_field
+                );
+            } catch (\Exception $e) {
+                $this->raiseError(__METHOD__ .'(), failed to load DocumentModel!');
+                return false;
             }
-            array_push($this->avail_items, $row->$idx_field);
-            $this->items[$row->$idx_field] = $row;
+
+            array_push($this->avail_items, $document->getId());
+            $this->items[$document->getId()] = $document;
         }
 
         $db->freeStatement($sth);
         return true;
-    }
-
-    private function getLatestDocumentVersion($idx, $guid)
-    {
-        global $mtlda, $db;
-
-        $result = $db->query(
-            "SELECT
-                document_idx,
-                document_guid
-            FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-                document_derivation LIKE '{$idx}'
-            AND
-                document_derivation_guid LIKE '{$guid}'
-            ORDER BY
-                document_version DESC
-            LIMIT 0,1"
-        );
-
-        if (!$result) {
-            $this->mtlda->raiseError("Failed to retrive latest document version");
-            return false;
-        }
-
-        if (!$row = $result->fetch()) {
-            return true;
-        }
-
-        return array('idx' => $row->document_idx, 'guid' => $row->document_guid);
     }
 }
 
