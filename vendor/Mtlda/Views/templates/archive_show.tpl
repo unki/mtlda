@@ -286,7 +286,7 @@ $(document).ready(function() {
    });
 
    var curdate = $('#document_custom_date_form input[type="text"][name="document_custom_date"]').val();
-   if (!curdate) {
+   if (!curdate || curdate == '0000-00-00') {
       curdate = null;
    }
 
@@ -323,6 +323,11 @@ $(document).ready(function() {
             return true;
          }
 
+         var curdate = $('#document_custom_date_form input[type="text"][name="document_custom_date"]').val();
+         if (!curdate || curdate == '' || curdate == '0000-00-00') {
+            $('#document_custom_date_picker').datepicker('setDate', new Date());
+         }
+         $('#document_custom_date_form input').trigger('input');
          $('#document_custom_date_form').transition('fly down');
          return true;
       }
