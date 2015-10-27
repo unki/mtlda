@@ -118,7 +118,7 @@ function rpc_object_archive(element, obj_id, state)
 
 } // rpc_archive_object()
 
-function rpc_object_update(element)
+function rpc_object_update(element, successMethod)
 {
     if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
@@ -201,6 +201,10 @@ function rpc_object_update(element)
                 location.reload();
                 return;
             }
+            if (!successMethod) {
+                return;
+            }
+            successMethod(data);
             return;
         }
     });
