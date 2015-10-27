@@ -33,7 +33,7 @@ class DocumentModel extends DefaultModel
             'document_file_size' => 'integer',
             'document_signing_icon_position' => 'integer',
             'document_time' => 'timestamp',
-            'document_custom_time' => 'timestamp',
+            'document_custom_date' => 'date',
             'document_version' => 'integer',
             'document_derivation' => 'integer',
             'document_derivation_guid' => 'string',
@@ -113,7 +113,7 @@ class DocumentModel extends DefaultModel
             $this->addRpcEnabledField('document_title');
             $this->addRpcEnabledField('document_description');
             $this->addRpcEnabledField('document_file_name');
-            $this->addRpcEnabledField('document_custom_time');
+            $this->addRpcEnabledField('document_custom_date');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $this->raiseError("Failed on invoking addRpcEnabledField() method");
@@ -928,14 +928,15 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_custom_time = $date;
+        $this->document_custom_date = $date;
         return true;
     }
 
     public function hasCustomDate()
     {
-        if (!isset($date) ||
-            empty($date)
+        if (!isset($this->document_custom_date) ||
+            empty($this->document_custom_date) ||
+            $this->document_custom_date == '0000-00-00'
         ) {
             return false;
         }
@@ -950,7 +951,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        return $this->document_custom_time;
+        return $this->document_custom_date;
     }
 }
 
