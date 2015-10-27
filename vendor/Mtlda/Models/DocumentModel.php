@@ -139,7 +139,6 @@ class DocumentModel extends DefaultModel
 
         $idx_field = $this->column_name ."_idx";
         $guid_field = $this->column_name ."_guid";
-        $version_field = $this->column_name ."_version";
 
         $sql =
             "SELECT
@@ -486,7 +485,10 @@ class DocumentModel extends DefaultModel
 
     public function hasDescendants()
     {
-        if (!isset($this->descendants) || empty($this->descendants)) {
+        if (!isset($this->descendants) ||
+            empty($this->descendants) ||
+            !is_array($this->descendants) ||
+            count($this->descendants) < 1) {
             return false;
         }
 
@@ -952,6 +954,40 @@ class DocumentModel extends DefaultModel
         }
 
         return $this->document_custom_date;
+    }
+
+    public function getLastestVersion()
+    {
+        global $db;
+
+        if (!$this->hasDescendants()) {
+            return false;
+        }
+
+        if (($childs = $this->getDescendants()) === false) {
+            $this->raiseError(__CLASS__ .'::getDescendants() returned false!');
+            return false;
+        }
+
+        if (($version = $this->getVersion()) === false) {
+            $this->raiseError(__CLASS__ .'::getVersion() returned false!');
+            return false;
+        }
+
+        foreach ($childs as $child) {
+            if ($version >= $child->getVersion()) {
+                continue;
+            }
+
+            $version = $child->getVersion();
+            $latest = $child;
+        }
+
+        if (isset($latest) && !empty($latest)) {
+            return $latest;
+        }
+
+        return $this;
     }
 }
 
