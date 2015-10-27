@@ -67,12 +67,20 @@ class ArchiveView extends DefaultView
         $item_idx = $this->archive->avail_items[$index];
         $item =  $this->archive->items[$item_idx];
 
-        if (isset($item->document_latest_version) &&
-            !empty($item->document_latest_version) &&
-            is_array($item->document_latest_version)
-        ) {
-            $latest = $item->document_latest_version;
-            $smarty->assign("document_safe_link", "document-{$latest['idx']}-{$latest['guid']}");
+        if ($item->hasDescendants()) {
+            if (($latest = $item->getLastestVersion()) === false) {
+                $this->raiseError(get_class($item) .'::getLastestVersion() returned false!');
+                return false;
+            }
+            if (!($idx = $latest->getId())) {
+                $this->raiseError(get_class($latest) .'::getId() returned false!');
+                return false;
+            }
+            if (!($guid = $latest->getGuid())) {
+                $this->raiseError(get_class($latest) .'::getGuid() returned false!');
+                return false;
+            }
+            $smarty->assign("document_safe_link", "document-{$idx}-{$guid}");
             unset($latest);
         } else {
             $smarty->assign("document_safe_link", "document-{$item->document_idx}-{$item->document_guid}");
