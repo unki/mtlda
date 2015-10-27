@@ -61,6 +61,29 @@
      </div>
     </div>
    </div>
+   <div class="row">
+    <div class="two wide column">&nbsp;</div>
+    <div class="fourteen wide column">
+     <div class="ui toggle checkbox" name="document_custom_date_checkbox">
+      <input type="checkbox" name="use_document_custom_date" {if $item->hasCustomDate()}checked{/if} />
+      <label>Assign custom date to document.</label>
+     </div><br /><br />
+     <form id="document_custom_date_form" class="ui form" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-target="document_custom_date" onsubmit="return false;" style="{if !$item->hasCustomDate()}display: none;{/if}">
+      <div class="fields">
+       <div class="field ui input">
+        <input type="text" name="document_custom_date" value="{$item->document_custom_date}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->document_idx}" />
+       </div>
+       <div class="field">
+        <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
+       </div>
+       <div class="field">
+        <button class="circular ui icon button cancel"><i class="cancel icon"></i></button>
+       </div>
+      </div>
+      <div id="document_custom_date_picker"></div>
+     </form>
+    </div>
+   </div>
   </div>
  </div>
 
@@ -261,6 +284,69 @@ $(document).ready(function() {
 
        return true;
    });
+
+   var curdate = $('#document_custom_date_form input[type="text"][name="document_custom_date"]').val();
+   if (!curdate) {
+      curdate = null;
+   }
+
+   $('#document_custom_date_picker').datepicker({
+      defaultDate: curdate,
+      changeMonth: true,
+      changeYear: true,
+      numberOfMonths: 1,
+      dateFormat: 'yy-mm-dd',
+      showOtherMonths: true,
+      showWeek: true,
+      selectOtherMonths: true,
+      showButtonPanel: true,
+      firstDay: 1,
+      altFormat: 'yy-mm-dd',
+      altField: 'input[type="text"][name="document_custom_date"]',
+      onSelect: function () {
+         curval = $('#document_custom_date_form input[type="text"][name="document_custom_date"]').val();
+         newval = $(this).datepicker('getDate');
+         if (curval && newval && curval == newval) {
+            return true;
+         }
+         $('#document_custom_date_form input[type="text"][name="document_custom_date"]').trigger('input');
+      }
+   });
+
+   $('.ui.toggle.checkbox[name="document_custom_date_checkbox"]').checkbox({
+      onChange : function () {
+
+         if ($('.ui.toggle.checkbox[name="document_custom_date_checkbox"]').checkbox('is unchecked')) {
+            $('#document_custom_date_form').transition('fly up');
+            $('#document_custom_date_form input[type="text"][name="document_custom_date"]').val('0000-00-00');
+            $('#document_custom_date_form').trigger('submit');
+            return true;
+         }
+
+         $('#document_custom_date_form').transition('fly down');
+         return true;
+      }
+   });
+
+   $('#document_custom_date_form input').on('input', function() {
+      savebutton = $('#document_custom_date_form button.save');
+      if(!savebutton.hasClass('red shape')) {
+         savebutton.addClass('red shape');
+         savebutton.transition('bounce');
+      }
+   });
+
+   $('#document_custom_date_form').on('submit', function() {
+      rpc_object_update($(this), function (data) {
+         if(data != "ok") {
+            return;
+         }
+         $('#document_custom_date_form button.save')
+            .transition('tada')
+            .removeClass('red shape');
+            return;
+      });
+   });
 });
 {/literal}--></script>
 <div class="ui signer scanner modal">
@@ -288,6 +374,6 @@ $(document).ready(function() {
    <div class="ui green basic inverted button approve">
     <i class="checkmark icon"></i>Yes
    </div>
-  </div>
+ </div>
  </div>
 </div>
