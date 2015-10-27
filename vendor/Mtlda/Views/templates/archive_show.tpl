@@ -115,7 +115,7 @@
   <div class="ui grid">
    <div class="row">
     <div class="twelve wide column">
-     <form id="document_keywordѕ" class="ui form keywords" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
+     <form id="document_keyword" class="ui form keywords" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
       <div class="field">
        <label>Keywords:</label>
        <div class="ui fluid search dropdown multiple selection" id="keyword_dropdown">
