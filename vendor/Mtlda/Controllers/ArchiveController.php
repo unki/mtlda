@@ -23,7 +23,7 @@ class ArchiveController extends DefaultController
 {
     public function archive(&$queue_item)
     {
-        global $mtlda, $config, $audit, $mbus;
+        global $config, $audit, $mbus;
 
         // verify QueueItemModel is ok()
         if (!$queue_item->verify()) {
@@ -174,7 +174,7 @@ class ArchiveController extends DefaultController
 
     public function sign(&$src_item)
     {
-        global $mtlda, $config, $audit, $mbus;
+        global $config, $audit, $mbus;
 
         if (!$config->isPdfSigningEnabled()) {
             $this->raiseError("ConfigController::isPdfSigningEnabled() returns false!");
@@ -292,7 +292,7 @@ class ArchiveController extends DefaultController
 
     public function checkForDuplicateFileByHash($file_hash)
     {
-        global $mtlda, $db;
+        global $db;
 
         if (!isset($file_hash) || empty($file_hash)) {
             $this->raiseError("Require a valid file hash!");
@@ -339,8 +339,6 @@ class ArchiveController extends DefaultController
 
     private function embedMtldaIcon(&$src_document)
     {
-        global $mtlda;
-
         if (!is_a($src_document, 'Mtlda\Models\DocumentModel')) {
             $this->raiseError(__METHOD__ .' can only operate on DocumentModels!');
             return false;
@@ -489,8 +487,6 @@ class ArchiveController extends DefaultController
 
     private function getSigningIconPosition($icon_position, $page_width, $page_height)
     {
-        global $mtlda;
-
         if (empty($icon_position)) {
             return false;
         }
@@ -561,9 +557,12 @@ class ArchiveController extends DefaultController
 
     private function attachAuditLogToDocument($document)
     {
-        global $mtlda, $audit;
+        global $audit;
 
-        if (empty($mtlda) || !get_class($document) == 'DocumentModel') {
+        if (!isset($document) ||
+            empty($document) ||
+            !get_class($document) == 'Mtlda\Models\DocumentModel'
+        ) {
             $this->raiseError(__METHOD__ .' can only work with DocmentModels!');
             return false;
         }
@@ -685,7 +684,7 @@ class ArchiveController extends DefaultController
 
     public function indexDocument(&$document)
     {
-        global $mtlda, $config, $audit, $mbus;
+        global $config, $audit, $mbus;
 
         if (!$config->isPdfIndexingEnabled()) {
             $this->raiseError("ConfigController::isPdfIndexingEnabled() returns false!");
@@ -707,6 +706,44 @@ class ArchiveController extends DefaultController
         if (!$parser->scan($document)) {
             $this->raiseError(get_class($parser) .'::scan() returned false!');
             return false;
+        }
+
+        return true;
+    }
+
+    public function deleteExpiredDocuments()
+    {
+        try {
+            $archive = new \Mtlda\Models\ArchiveModel;
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load ArchiveModel!');
+            return false;
+        }
+
+        if (($documents = $archive->getExpiredDocuments()) === false) {
+            $this->raiseError(get_class($archive) .'::getExpiredDocuments() returned false!');
+            return false;
+        }
+
+        if (empty($documents)) {
+            return true;
+        }
+
+        if (!is_array($documents)) {
+            $this->raiseError(__METHOD__ .'(), ArchiveController::getExpiredDocuments() has not returned an array!');
+            return false;
+        }
+
+        foreach ($documents as $document) {
+            if (get_class($document) != 'Mtlda\Models\DocumentModel') {
+                $this->raiseError(__METHOD__ .'(), provided object is not an DocumentModel!');
+                return false;
+            }
+
+            if (!$document->delete()) {
+                $this->raiseError(get_class($document) .'::delete() returned false!');
+                return false;
+            }
         }
 
         return true;
