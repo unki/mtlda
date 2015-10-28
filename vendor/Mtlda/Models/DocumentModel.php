@@ -34,6 +34,7 @@ class DocumentModel extends DefaultModel
             'document_signing_icon_position' => 'integer',
             'document_time' => 'timestamp',
             'document_custom_date' => 'date',
+            'document_expiry_date' => 'date',
             'document_version' => 'integer',
             'document_derivation' => 'integer',
             'document_derivation_guid' => 'string',
@@ -114,6 +115,7 @@ class DocumentModel extends DefaultModel
             $this->addRpcEnabledField('document_description');
             $this->addRpcEnabledField('document_file_name');
             $this->addRpcEnabledField('document_custom_date');
+            $this->addRpcEnabledField('document_expiry_date');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $this->raiseError("Failed on invoking addRpcEnabledField() method");
@@ -988,6 +990,42 @@ class DocumentModel extends DefaultModel
         }
 
         return $this;
+    }
+
+    public function setExpiryDate($date)
+    {
+        if (!isset($date) ||
+            empty($date) ||
+            (!is_string($date) && !is_numeric($date))
+        ) {
+            $this->raiseError(__METHOD__ .'(), \$date parameter is invalid!');
+            return false;
+        }
+
+        $this->document_expiry_date = $date;
+        return true;
+    }
+
+    public function hasExpiryDate()
+    {
+        if (!isset($this->document_expiry_date) ||
+            empty($this->document_expiry_date) ||
+            $this->document_expiry_date == '0000-00-00'
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getExpiryDate()
+    {
+        if (!$this->hasExpiryDate()) {
+            $this->raiseError(__CLASS__ .'::hasExpiryDate() returned false!');
+            return false;
+        }
+
+        return $this->document_expiry_date;
     }
 }
 
