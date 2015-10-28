@@ -32,38 +32,7 @@ class MainController extends \Thallium\Controllers\MainController
 
         $GLOBALS['mtlda'] =& $this;
 
-        $this->loadController("Config", "config");
-        $this->loadController("Requirements", "requirements");
-
-        global $requirements;
-
-        if (!$requirements->check()) {
-            $this->raiseError("Error - not all Mtlda requirements are met. Please check!", true);
-        }
-
-        // no longer needed
-        unset($requirements);
-
-        $this->loadController("Audit", "audit");
-        $this->loadController("Database", "db");
-
-        if (!$this->isCmdline()) {
-            $this->loadController("HttpRouter", "router");
-            global $router;
-            if (($GLOBALS['query'] = $router->select()) === false) {
-                $this->raiseError(__METHOD__ .'(), HttpRouterController::select() returned false!');
-                return false;
-            }
-            global $query;
-        }
-
-        if (isset($query) && isset($query->view) && $query->view == "install") {
-            $mode = "install";
-        }
-
-        if ($mode != "install" && $this->checkUpgrade()) {
-            return false;
-        }
+        parent::__construct();
 
         if (isset($mode) and $mode == "queue_only") {
             $this->loadController("Import", "import");
@@ -75,27 +44,8 @@ class MainController extends \Thallium\Controllers\MainController
             }
 
             unset($import);
-
-        } elseif (isset($mode) and $mode == "install") {
-            $this->loadController("Installer", "installer");
-            global $installer;
-
-            if (!$installer->setup()) {
-                exit(1);
-            }
-
-            unset($installer);
-            exit(0);
         }
 
-        $this->loadController("Session", "session");
-        $this->loadController("Jobs", "jobs");
-        $this->loadController("MessageBus", "mbus");
-
-        if (!$this->performActions()) {
-            $this->raiseError(__CLASS__ .'::performActions() returned false!', true);
-            return false;
-        }
         return true;
     }
 
@@ -110,7 +60,6 @@ class MainController extends \Thallium\Controllers\MainController
 
         $this->loadController("Views", "views");
         global $views;
-
 
         if ($router->isRpcCall()) {
             if (!$this->rpcHandler()) {
@@ -154,35 +103,6 @@ class MainController extends \Thallium\Controllers\MainController
         return false;
     }
 
-    protected function rpcHandler()
-    {
-        $this->loadController("Rpc", "rpc");
-        global $rpc;
-
-        ob_start();
-        if (!$rpc->perform()) {
-            $this->raiseError("RpcController::perform() returned false!");
-            return false;
-        }
-        unset($rpc);
-
-        $size = ob_get_length();
-        header("Content-Length: $size");
-        header('Connection: close');
-        ob_end_flush();
-        ob_flush();
-        session_write_close();
-
-        // invoke the MessageBus processor so pending tasks can
-        // be handled. but suppress any output.
-        if (!$this->performActions()) {
-            $this->raiseError('performActions() returned false!');
-            return false;
-        }
-
-        return true;
-    }
-
     protected function imageHandler()
     {
         $this->loadController("Image", "image");
@@ -208,273 +128,6 @@ class MainController extends \Thallium\Controllers\MainController
         }
 
         unset($document);
-        return true;
-    }
-
-    protected function uploadHandler()
-    {
-        $this->loadController("Upload", "upload");
-        global $upload;
-
-        if (!$upload->perform()) {
-            $this->raiseError("UploadController::perform() returned false!");
-            return false;
-        }
-
-        unset($upload);
-        return true;
-    }
-
-    public function isValidId($id)
-    {
-        // disable for now, 20150809
-        /*$id = (int) $id;
-
-        if (is_numeric($id)) {
-            return true;
-        }
-
-        return false;*/
-        return true;
-    }
-
-    public function isValidModel($model)
-    {
-        $valid_models = array(
-            'queue',
-            'queueitem',
-            'document',
-            'keyword',
-        );
-
-        if (in_array($model, $valid_models)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public function isValidGuidSyntax($guid)
-    {
-        if (strlen($guid) == 64) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public function parseId($id)
-    {
-        if (!isset($id) || empty($id)) {
-            return false;
-        }
-
-        $parts = array();
-
-        if (preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts) === false) {
-            return false;
-        }
-
-        if (!isset($parts) || empty($parts) || count($parts) != 4) {
-            return false;
-        }
-
-        $id_obj = new \stdClass();
-        $id_obj->original_id = $parts[0];
-        $id_obj->model = $parts[1];
-        $id_obj->id = $parts[2];
-        $id_obj->guid = $parts[3];
-
-        return $id_obj;
-    }
-
-    public function createGuid()
-    {
-        if (!function_exists("openssl_random_pseudo_bytes")) {
-            $guid = uniqid(rand(0, 32766), true);
-            return $guid;
-        }
-
-        if (($guid = openssl_random_pseudo_bytes("32")) === false) {
-            $this->raiseError("openssl_random_pseudo_bytes() returned false!");
-            return false;
-        }
-
-        $guid = bin2hex($guid);
-        return $guid;
-    }
-
-    public function loadModel($object_name, $id = null, $guid = null)
-    {
-        try {
-            switch ($object_name) {
-                case 'queue':
-                    $obj = new \Mtlda\Models\QueueModel;
-                    break;
-                case 'queueitem':
-                    $obj = new \Mtlda\Models\QueueItemModel($id, $guid);
-                    break;
-                case 'document':
-                    $obj = new \Mtlda\Models\DocumentModel($id, $guid);
-                    break;
-                case 'keyword':
-                    $obj = new \Mtlda\Models\KeywordModel($id, $guid);
-                    break;
-            }
-        } catch (\Exception $e) {
-            $this->raiseError("Failed to load model {$object_name}! ". $e->getMessage());
-            return false;
-        }
-
-        if (isset($obj)) {
-            return $obj;
-        }
-
-        return false;
-    }
-
-    public function checkUpgrade()
-    {
-        global $db, $config;
-
-        if (!($base_path = $config->getWebPath())) {
-            $this->raiseError("ConfigController::getWebPath() returned false!");
-            return false;
-        }
-
-        if ($base_path == '/') {
-            $base_path = '';
-        }
-
-        if (!$db->checkTableExists("TABLEPREFIXmeta")) {
-            $this->raiseError(
-                "You are missing meta table in database! "
-                ."You may run <a href=\"{$base_path}/install\">"
-                ."Installer</a> to fix this.",
-                true
-            );
-            return true;
-        }
-
-        if ($db->getDatabaseSchemaVersion() < $db::SCHEMA_VERSION) {
-            $this->raiseError(
-                "The local schema version ({$db->getDatabaseSchemaVersion()}) is lower "
-                ."than the programs schema version (". $db::SCHEMA_VERSION ."). "
-                ."You may run <a href=\"{$base_path}/install\">Installer</a> "
-                ."again to upgrade.",
-                true
-            );
-            return true;
-        }
-
-        return false;
-    }
-
-    public function loadController($controller, $global_name)
-    {
-        if (empty($controller)) {
-            $this->raiseError("\$controller must not be empty!", true);
-            return false;
-        }
-
-        if (isset($GLOBALS[$global_name]) && !empty($GLOBALS[$global_name])) {
-            return true;
-        }
-
-        $controller = '\\Mtlda\\Controllers\\'.$controller.'Controller';
-
-        if (!class_exists($controller, true)) {
-            $this->raiseError("{$controller} class is not available!", true);
-            return false;
-        }
-
-        try {
-            $GLOBALS[$global_name] =& new $controller;
-        } catch (\Exception $e) {
-            $this->raiseError("Failed to load {$controller_name}! ". $e->getMessage(), true);
-            return false;
-        }
-
-        return true;
-    }
-
-    public function getProcessUserId()
-    {
-        if ($uid = posix_getuid()) {
-            return $uid;
-        }
-
-        return false;
-    }
-
-    public function getProcessGroupId()
-    {
-        if ($gid = posix_getgid()) {
-            return $gid;
-        }
-
-        return false;
-    }
-
-    public function getProcessUserName()
-    {
-        if (!$uid = $this->getProcessUserId()) {
-            return false;
-        }
-
-        if ($user = posix_getpwuid($uid)) {
-            return $user['name'];
-        }
-
-        return false;
-
-    }
-
-    public function getProcessGroupName()
-    {
-        if (!$uid = $this->getProcessGroupId()) {
-            return false;
-        }
-
-        if ($group = posix_getgrgid($uid)) {
-            return $group['name'];
-        }
-
-        return false;
-    }
-
-    protected function performActions()
-    {
-        global $mbus;
-
-        if (!($messages = $mbus->getRequestMessages()) || empty($messages)) {
-            return true;
-        }
-
-        if (!is_array($messages)) {
-            $this->raiseError(get_class($mbus) .'::getRequestMessages() has not returned an array!');
-            return false;
-        }
-
-        foreach ($messages as $message) {
-            $message->setProcessingFlag();
-
-            if (!$message->save()) {
-                $this->raiseError(get_class($message) .'::save() returned false!');
-                return false;
-            }
-
-            if (!$this->handleMessage($message)) {
-                $this->raiseError('handleMessage() returned false!');
-                return false;
-            }
-
-            if (!$message->delete()) {
-                $this->raiseError(get_class($message) .'::delete() returned false!');
-                return false;
-            }
-        }
-
         return true;
     }
 
@@ -857,39 +510,13 @@ class MainController extends \Thallium\Controllers\MainController
         return true;
     }
 
-    public function isBelowDirectory($dir, $topmost = null)
+    public function isBelowDirectory($dir, $topmost = self::DATA_DIRECTORY)
     {
-        if (empty($dir)) {
-            $this->raiseError("\$dir can not be empty!");
+        if (!(parent::isBelowDirectory($dir, $topmost))) {
             return false;
         }
 
-        if (empty($topmost)) {
-            $topmost = self::DATA_DIRECTORY;
-        }
-
-        $dir = strtolower(realpath($dir));
-        $dir_top = strtolower(realpath($topmost));
-
-        $dir_top_reg = preg_quote($dir_top, '/');
-
-        // check if $dir is within $dir_top
-        if (!preg_match('/^'. preg_quote($dir_top, '/') .'/', $dir)) {
-            return false;
-        }
-
-        if ($dir == $dir_top) {
-            return false;
-        }
-
-        $cnt_dir = count(explode('/', $dir));
-        $cnt_dir_top = count(explode('/', $dir_top));
-
-        if ($cnt_dir > $cnt_dir_top) {
-            return true;
-        }
-
-        return false;
+        return true;
     }
 }
 
