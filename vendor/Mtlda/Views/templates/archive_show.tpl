@@ -84,6 +84,29 @@
      </form>
     </div>
    </div>
+   <div class="row">
+    <div class="two wide column">&nbsp;</div>
+    <div class="fourteen wide column">
+     <div class="ui toggle checkbox" name="document_expiry_date_checkbox">
+      <input type="checkbox" name="use_document_expiry_date" {if $item->hasExpiryDate()}checked{/if} />
+      <label>Assign expiry date to document.</label>
+     </div><br /><br />
+     <form id="document_expiry_date_form" class="ui form" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-target="document_expiry_date" onsubmit="return false;" style="{if !$item->hasExpiryDate()}display: none;{/if}">
+      <div class="fields">
+       <div class="field ui input">
+        <input type="text" name="document_expiry_date" value="{$item->document_expiry_date}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$item->document_idx}" />
+       </div>
+       <div class="field">
+        <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
+       </div>
+       <div class="field">
+        <button class="circular ui icon button cancel"><i class="cancel icon"></i></button>
+       </div>
+      </div>
+      <div id="document_expiry_date_picker"></div>
+     </form>
+    </div>
+   </div>
   </div>
  </div>
 
@@ -285,13 +308,18 @@ $(document).ready(function() {
        return true;
    });
 
-   var curdate = $('#document_custom_date_form input[type="text"][name="document_custom_date"]').val();
-   if (!curdate || curdate == '0000-00-00') {
-      curdate = null;
+   var current_custom_date = $('#document_custom_date_form input[type="text"][name="document_custom_date"]').val();
+   if (!current_custom_date || current_custom_date == '0000-00-00') {
+      current_custom_date = null;
+   }
+
+   var current_expiry_date = $('#document_expiry_date_form input[type="text"][name="document_expiry_date"]').val();
+   if (!current_expiry_date || current_expiry_date == '0000-00-00') {
+      current_expiry_date = null;
    }
 
    $('#document_custom_date_picker').datepicker({
-      defaultDate: curdate,
+      defaultDate: current_custom_date,
       changeMonth: true,
       changeYear: true,
       numberOfMonths: 1,
@@ -313,6 +341,29 @@ $(document).ready(function() {
       }
    });
 
+   $('#document_expiry_date_picker').datepicker({
+      defaultDate: current_expiry_date,
+      changeMonth: true,
+      changeYear: true,
+      numberOfMonths: 1,
+      dateFormat: 'yy-mm-dd',
+      showOtherMonths: true,
+      showWeek: true,
+      selectOtherMonths: true,
+      showButtonPanel: true,
+      firstDay: 1,
+      altFormat: 'yy-mm-dd',
+      altField: 'input[type="text"][name="document_expiry_date"]',
+      onSelect: function () {
+         curval = $('#document_expiry_date_form input[type="text"][name="document_expiry_date"]').val();
+         newval = $(this).datepicker('getDate');
+         if (curval && newval && curval == newval) {
+            return true;
+         }
+         $('#document_expiry_date_form input[type="text"][name="document_expiry_date"]').trigger('input');
+      }
+   });
+
    $('.ui.toggle.checkbox[name="document_custom_date_checkbox"]').checkbox({
       onChange : function () {
 
@@ -323,8 +374,8 @@ $(document).ready(function() {
             return true;
          }
 
-         var curdate = $('#document_custom_date_form input[type="text"][name="document_custom_date"]').val();
-         if (!curdate || curdate == '' || curdate == '0000-00-00') {
+         var current_custom_date = $('#document_custom_date_form input[type="text"][name="document_custom_date"]').val();
+         if (!current_custom_date || current_custom_date == '' || current_custom_date == '0000-00-00') {
             $('#document_custom_date_picker').datepicker('setDate', new Date());
          }
          $('#document_custom_date_form input').trigger('input');
@@ -333,8 +384,36 @@ $(document).ready(function() {
       }
    });
 
+   $('.ui.toggle.checkbox[name="document_expiry_date_checkbox"]').checkbox({
+      onChange : function () {
+
+         if ($('.ui.toggle.checkbox[name="document_expiry_date_checkbox"]').checkbox('is unchecked')) {
+            $('#document_expiry_date_form').transition('fly up');
+            $('#document_expiry_date_form input[type="text"][name="document_expiry_date"]').val('0000-00-00');
+            $('#document_expiry_date_form').trigger('submit');
+            return true;
+         }
+
+         var current_expiry_date = $('#document_expiry_date_form input[type="text"][name="document_expiry_date"]').val();
+         if (!current_expiry_date || current_expiry_date == '' || current_expiry_date == '0000-00-00') {
+            $('#document_expiry_date_picker').datepicker('setDate', new Date());
+         }
+         $('#document_expiry_date_form input').trigger('input');
+         $('#document_expiry_date_form').transition('fly down');
+         return true;
+      }
+   });
+
    $('#document_custom_date_form input').on('input', function() {
       savebutton = $('#document_custom_date_form button.save');
+      if(!savebutton.hasClass('red shape')) {
+         savebutton.addClass('red shape');
+         savebutton.transition('bounce');
+      }
+   });
+
+   $('#document_expiry_date_form input').on('input', function() {
+      savebutton = $('#document_expiry_date_form button.save');
       if(!savebutton.hasClass('red shape')) {
          savebutton.addClass('red shape');
          savebutton.transition('bounce');
@@ -352,6 +431,19 @@ $(document).ready(function() {
             return;
       });
    });
+
+   $('#document_expiry_date_form').on('submit', function() {
+      rpc_object_update($(this), function (data) {
+         if(data != "ok") {
+            return;
+         }
+         $('#document_expiry_date_form button.save')
+            .transition('tada')
+            .removeClass('red shape');
+            return;
+      });
+   });
+
 });
 {/literal}--></script>
 <div class="ui signer scanner modal">
