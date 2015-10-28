@@ -21,7 +21,7 @@ namespace Mtlda\Controllers;
 
 class MainController extends \Thallium\Controllers\MainController
 {
-    const VERSION = "0.6";
+    const VERSION = "0.7";
 
     public function __construct($mode = null)
     {
