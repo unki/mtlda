@@ -30,6 +30,23 @@ class MainController extends \Thallium\Controllers\MainController
             return false;
         }
 
+        try {
+            $this->registerModel('archive', 'ArchiveModel');
+            $this->registerModel('documentindex', 'DocumentIndexModel');
+            $this->registerModel('documentindices', 'DocumentIndicesModel');
+            $this->registerModel('document', 'DocumentModel');
+            $this->registerModel('documentproperties', 'DocumentPropertiesModel');
+            $this->registerModel('documentproperty', 'DocumentPropertyModel');
+            $this->registerModel('keywordassignment', 'KeywordAssignmentModel');
+            $this->registerModel('keyword', 'KeywordModel');
+            $this->registerModel('keywords', 'KeywordsModel');
+            $this->registerModel('queueitem', 'QueueItemModel');
+            $this->registerModel('queue', 'QueueModel');
+        } catch (\Exception $e) {
+            $this->raiseError(__CLASS__ .'::__construct(), error on registering models!"', true);
+            return false;
+        }
+
         $GLOBALS['mtlda'] =& $this;
 
         parent::__construct();
@@ -135,57 +152,13 @@ class MainController extends \Thallium\Controllers\MainController
     {
         global $jobs;
 
-        if (empty($message) ||
-            get_class($message) != 'Thallium\Models\MessageModel'
-        ) {
-            $this->raiseError(__METHOD__ .' requires a MessageModel reference as parameter!');
+        if (!($result = parent::handleMessage($message))) {
+            $this->raiseError(get_class(parent) .'::handleMessage() returned false!');
             return false;
         }
 
-        if (!$message->isClientMessage()) {
-            $this->raiseError(__METHOD__ .' can only handle client requests!');
-            return false;
-        }
-
-        if (!($command = $message->getCommand())) {
-            $this->raiseError(get_class($message) .'::getCommand() returned false!');
-            return false;
-        }
-
-        if (!is_string($command)) {
-            $this->raiseError(get_class($message) .'::getCommand() has not returned a string!');
-            return false;
-        }
-
-        if (!($sessionid = $message->getSessionId())) {
-            $this->raiseError(get_class($message) .'::getSessionId() returned false!');
-            return false;
-        }
-
-        if (!($msg_guid = $message->getGuid()) || !$this->isValidGuidSyntax($msg_guid)) {
-            $this->raiseError(get_class($message) .'::getGuid() has not returned a valid GUID!');
-            return false;
-        }
-
-        if (!($job = $jobs->createJob($sessionid, $msg_guid))) {
-            $this->raiseError(get_class($jobs) .'::createJob() returned false!');
-            return false;
-        }
-
-        if (isset($job) && (empty($job) || !$this->isValidGuidSyntax($job))) {
-            $this->raiseError(get_class($jobs) .'::createJob() has not returned a valid GUID!');
-            return false;
-        }
-
-        if (!$jobs->setCurrentJob($job)) {
-            $this->raiseError(get_class($jobs) .'::setCurrentJob() returned false!');
-            return false;
-        }
-
-        if (!$jobs->setJobInProcessing($job)) {
-            $this->raiseError(get_class($jobs) .'::setJobInProcessing() returned false!');
-            return false;
-        }
+        $command = $result['command'];
+        $job = $result['job'];
 
         switch ($command) {
             default:
