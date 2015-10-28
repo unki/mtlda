@@ -121,6 +121,55 @@ class ArchiveModel extends DefaultModel
         $db->freeStatement($sth);
         return true;
     }
+
+    public function getExpiredDocuments()
+    {
+        if (!isset($this->items)) {
+            $this->raiseError(__METHOD__ .'(), $this->items not correctly set!');
+            return false;
+        }
+
+        if (empty($this->items) || !is_array($this->items)) {
+            return array();
+        }
+
+        $expired = array();
+        $current_date = time();
+
+        if (empty($current_date) && !is_numeric($current_date)) {
+            $this->raiseError(__METHOD__ .'(), failed to get current date!');
+            return false;
+        }
+
+        foreach ($this->items as $document) {
+            if (!$document->hasExpiryDate()) {
+                continue;
+            }
+
+            if (($expiry_date = $document->getExpiryDate()) === false) {
+                $this->raiseError(get_class($document) .'::getExpiryDate() returned false!');
+                return false;
+            }
+
+            if (($expiry_date = strtotime($expiry_date)) === false) {
+                $this->raiseError(__METHOD__ .'(), strtotime() returned false!');
+                return false;
+            }
+
+            if (empty($expiry_date) || !is_numeric($expiry_date)) {
+                $this->raiseError(__METHOD__ .'(), strotime() has not returned a valid timestamp!');
+                return false;
+            }
+
+            if ($expiry_date > $current_date) {
+                continue;
+            }
+
+            array_push($expired, $document);
+        }
+
+        return $expired;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
