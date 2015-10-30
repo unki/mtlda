@@ -23,52 +23,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
 {
     protected $schema_version_before;
 
-    public function setup()
-    {
-        global $mtlda, $db, $config;
-
-        if ($db->checkTableExists("TABLEPREFIXmeta")) {
-            if (($this->schema_version_before = $db->getDatabaseSchemaVersion()) === false) {
-                $this->raiseError("DatabaseController::getDatabaseSchemaVersion() returned false!");
-                return false;
-            }
-        }
-
-        if (!isset($this->schema_version_before)) {
-            $this->schema_version_before = 0;
-        }
-
-        if ($this->schema_version_before < $db->getSoftwareSchemaVersion()) {
-            if (!$this->createDatabaseTables()) {
-                $this->raiseError("InstallerController::createDatabaseTables() returned false!");
-                return false;
-            }
-        }
-
-        if ($db->getDatabaseSchemaVersion() < $db->getSoftwareSchemaVersion()) {
-            if (!$this->upgradeDatabaseSchema()) {
-                $this->raiseError("InstallerController::upgradeDatabaseSchema() returned false!");
-                return false;
-            }
-        }
-
-        if (!empty($this->schema_version_before)) {
-            print "Database schema version before upgrade: {$this->schema_version_before}<br />\n";
-        }
-        print "Software supported schema version: {$db->getSoftwareSchemaVersion()}<br />\n";
-        print "Database schema version after upgrade: {$db->getDatabaseSchemaVersion()}<br />\n";
-
-        if (!($base_path = $config->getWebPath())) {
-            $this->raiseError("ConfigController::getWebPath() returned false!");
-            return false;
-        }
-
-        print "<a href='{$base_path}'>Return to application</a><br />\n";
-
-        return true;
-    }
-
-    protected function createDatabaseTables()
+    protected function createApplicationDatabaseTables()
     {
         global $mtlda, $db;
 
@@ -201,7 +156,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV3()
+    protected function upgradeApplicationDatabaseSchemaV3()
     {
         global $mtlda, $db;
 
@@ -222,7 +177,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV4()
+    protected function upgradeApplicationDatabaseSchemaV4()
     {
         global $mtlda, $db;
 
@@ -252,7 +207,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV5()
+    protected function upgradeApplicationDatabaseSchemaV5()
     {
         global $mtlda, $db;
 
@@ -283,7 +238,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV6()
+    protected function upgradeApplicationDatabaseSchemaV6()
     {
         global $mtlda, $db;
 
@@ -314,7 +269,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV7()
+    protected function upgradeApplicationDatabaseSchemaV7()
     {
         global $mtlda, $db;
 
@@ -338,7 +293,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV8()
+    protected function upgradeApplicationDatabaseSchemaV8()
     {
         global $mtlda, $db;
 
@@ -400,7 +355,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV10()
+    protected function upgradeApplicationDatabaseSchemaV10()
     {
         global $mtlda, $db;
 
@@ -428,7 +383,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV11()
+    protected function upgradeApplicationDatabaseSchemaV11()
     {
         global $mtlda, $db;
 
@@ -461,7 +416,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV12()
+    protected function upgradeApplicationDatabaseSchemaV12()
     {
         global $mtlda, $db;
 
@@ -491,7 +446,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV13()
+    protected function upgradeApplicationDatabaseSchemaV13()
     {
         global $mtlda, $db;
 
@@ -524,7 +479,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV14()
+    protected function upgradeApplicationDatabaseSchemaV14()
     {
         global $mtlda, $db;
 
@@ -551,7 +506,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV15()
+    protected function upgradeApplicationDatabaseSchemaV15()
     {
         global $db;
 
@@ -559,7 +514,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV16()
+    protected function upgradeApplicationDatabaseSchemaV16()
     {
         global $db;
 
@@ -586,7 +541,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV17()
+    protected function upgradeApplicationDatabaseSchemaV17()
     {
         global $db;
 
@@ -594,7 +549,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV18()
+    protected function upgradeApplicationDatabaseSchemaV18()
     {
         global $db;
 
@@ -621,7 +576,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV19()
+    protected function upgradeApplicationDatabaseSchemaV19()
     {
         global $db;
 
@@ -629,7 +584,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV20()
+    protected function upgradeApplicationDatabaseSchemaV20()
     {
         global $db;
 
@@ -651,7 +606,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV21()
+    protected function upgradeApplicationDatabaseSchemaV21()
     {
         global $db;
 
@@ -673,7 +628,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV22()
+    protected function upgradeApplicationDatabaseSchemaV22()
     {
         global $db;
 
@@ -700,7 +655,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV23()
+    protected function upgradeApplicationDatabaseSchemaV23()
     {
         global $db;
 
@@ -727,7 +682,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV24()
+    protected function upgradeApplicationDatabaseSchemaV24()
     {
         global $db;
 
@@ -754,7 +709,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV25()
+    protected function upgradeApplicationDatabaseSchemaV25()
     {
         global $db;
 
@@ -779,7 +734,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         return true;
     }
 
-    protected function upgradeDatabaseSchemaV26()
+    protected function upgradeApplicationDatabaseSchemaV26()
     {
         global $db;
 
