@@ -81,6 +81,9 @@ class RpcController extends \Thallium\Controllers\RpcController
             case 'retrieve-messages':
                 $this->rpcRetrieveFromMessageBus();
                 break;
+            case 'delete-expired-documents':
+                $this->rpcDeleteExpiredDocuments();
+                break;
             case 'idle':
                 // just do nothing, for debugging
                 print "ok";
@@ -531,6 +534,23 @@ class RpcController extends \Thallium\Controllers\RpcController
         }
 
         print "ok";
+        return true;
+    }
+
+    protected function rpcDeleteExpiredDocuments()
+    {
+        try {
+            $archive = new \Mtlda\Controllers\ArchiveController;
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .', failed to load ArchiveController!');
+            return false;
+        }
+
+        if (!($archive->deleteExpiredDocuments())) {
+            $this->raiseError(get_class($archive) .'::deleteExpiredDocuments() returned false!');
+            return false;
+        }
+
         return true;
     }
 }
