@@ -39,6 +39,7 @@ class DocumentModel extends DefaultModel
             'document_derivation' => 'integer',
             'document_derivation_guid' => 'string',
             'document_signed_copy' => 'string',
+            'document_deleted' => 'string',
             );
     public $avail_items = array();
     public $items = array();
