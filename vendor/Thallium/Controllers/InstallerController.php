@@ -101,7 +101,7 @@ class InstallerController extends DefaultController
         return true;
     }
 
-    protected function createFrameworkDatabaseTables()
+    final protected function createFrameworkDatabaseTables()
     {
         global $db;
 
@@ -235,12 +235,17 @@ class InstallerController extends DefaultController
             return false;
         }
 
+        if ($software_version < 1) {
+            $this->raiseError(__METHOD__ .'(), invalid framework schema version found!');
+            return false;
+        }
+
         if (($db_version = $db->getApplicationDatabaseSchemaVersion()) === false) {
             $this->raiseError(get_class($db) .'::getApplicationDatabaseSchemaVersion() returned false!');
             return false;
         }
 
-        if ($db_version == $software_version) {
+        if ($db_version >= $software_version) {
             return true;
         }
 
@@ -248,7 +253,10 @@ class InstallerController extends DefaultController
             $method_name = "upgradeApplicationDatabaseSchemaV{$i}";
 
             if (!method_exists($this, $method_name)) {
-                continue;
+                $this->raiseError(__METHOD__ .'(), no upgrade method found for version '. $i);
+                return false;
+            } else {
+                print "Invoking {$method_name}().<br />\n";
             }
 
             if (!$this->$method_name()) {
@@ -260,7 +268,7 @@ class InstallerController extends DefaultController
         return true;
     }
 
-    protected function upgradeFrameworkDatabaseSchema()
+    final protected function upgradeFrameworkDatabaseSchema()
     {
         global $db;
 
@@ -269,12 +277,17 @@ class InstallerController extends DefaultController
             return false;
         }
 
+        if ($software_version < 1) {
+            $this->raiseError(__METHOD__ .'(), invalid framework schema version found!');
+            return false;
+        }
+
         if (($db_version = $db->getFrameworkDatabaseSchemaVersion()) === false) {
             $this->raiseError(get_class($db) .'::getFrameworkDatabaseSchemaVersion() returned false!');
             return false;
         }
 
-        if ($db_version == $software_version) {
+        if ($db_version >= $software_version) {
             return true;
         }
 
@@ -282,7 +295,10 @@ class InstallerController extends DefaultController
             $method_name = "upgradeFrameworkDatabaseSchemaV{$i}";
 
             if (!method_exists($this, $method_name)) {
-                continue;
+                $this->raiseError(__METHOD__ .'(), no upgrade method found for version '. $i);
+                return false;
+            } else {
+                print "Invoking {$method_name}().<br />\n";
             }
 
             if (!$this->$method_name()) {
