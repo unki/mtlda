@@ -23,7 +23,8 @@
 <br /><br />
 MTLDA Version: {$mtlda_version}
 <br />
-MTLDA Database Schema: {$mtlda_schema_version}
+MTLDA Database Schema: {$mtlda_schema_version}<br />
+Thallium Database Schema: {$framework_schema_version}
 </div>
 <div class="ui segment">
 <h4 class="ui header">Appreciation</h4>

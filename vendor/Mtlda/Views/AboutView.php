@@ -29,7 +29,8 @@ class AboutView extends DefaultView
         global $db, $tmpl;
 
         $tmpl->assign("mtlda_version", \Mtlda\Controllers\MainController::VERSION);
-        $tmpl->assign("mtlda_schema_version", $db->getDatabaseSchemaVersion());
+        $tmpl->assign("mtlda_schema_version", $db->getApplicationDatabaseSchemaVersion());
+        $tmpl->assign("framework_schema_version", $db->getFrameworkDatabaseSchemaVersion());
 
         return $tmpl->fetch("about.tpl");
     }
