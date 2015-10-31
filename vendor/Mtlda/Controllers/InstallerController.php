@@ -44,6 +44,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `document_derivation` int(11) DEFAULT NULL,
                 `document_derivation_guid` varchar(255) DEFAULT NULL,
                 `document_signed_copy` varchar(1) DEFAULT NULL,
+                `document_deleted` varchar(1) DEFAULT NULL,
                 PRIMARY KEY (`document_idx`),
                 FULLTEXT KEY `text` (`document_description`)
                     )
@@ -148,7 +149,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
             }
         }
 
-        if (!parent::createDatabaseTables()) {
+        if (!parent::createApplicationDatabaseTables()) {
             $this->raiseError(get_class(parent) .'::createDatabaseTables() returned false!');
             return false;
         }
@@ -758,6 +759,33 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         }
 
         $db->setDatabaseSchemaVersion(26);
+        return true;
+    }
+
+    protected function upgradeApplicationDatabaseSchemaV27()
+    {
+        global $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXarchive', 'document_deleted')) {
+            $db->setDatabaseSchemaVersion(27);
+            return true;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXarchive
+            ADD COLUMN
+                `document_deleted` varchar(1) DEFAULT NULL
+            AFTER
+                document_signed_copy"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(27);
         return true;
     }
 }
