@@ -64,6 +64,12 @@ mail_import = 0
 ;
 pdf_indexing = 1
 
+;
+; keep-and-hide documents if they get deleted
+;    0 = disabled, 1 = enabled
+;
+document_no_delete = 1
+
 [database]
 
 ;
