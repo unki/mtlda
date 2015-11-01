@@ -307,7 +307,35 @@ class DocumentModel extends DefaultModel
         return $dir_name;
     }
 
-    protected function preDelete()
+    public function delete()
+    {
+        if (!$this->isNoDeleteEnabled()) {
+            return parent::delete();
+        }
+
+        if (!$this->setDeleted(true)) {
+            $this->raiseError(__CLASS__ .'::setDeleted() returned false!');
+            return false;
+        }
+
+        if (!$this->save()) {
+            $this->raiseError(__CLASS__ .'::save() returned false!');
+            return false;
+        }
+
+        if (!$this->hasDescendants()) {
+            return true;
+        }
+
+        if (!$this->deleteAllDescendants()) {
+            $this->raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function preDelete()
     {
         global $db;
 
@@ -331,6 +359,10 @@ class DocumentModel extends DefaultModel
         if (!$this->deleteAllDocumentProperties()) {
             $this->raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
             return false;
+        }
+
+        if ($this->isNoDeleteEnabled()) {
+            return true;
         }
 
         if (!$this->deleteFile()) {
@@ -1027,6 +1059,35 @@ class DocumentModel extends DefaultModel
         }
 
         return $this->document_expiry_date;
+    }
+
+    public function isNoDeleteEnabled()
+    {
+        global $config;
+
+        if (!$config->isDocumentNoDeleteEnabled()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function setDeleted($value = true)
+    {
+        if (!isset($value) ||
+            !is_bool($value)
+        ) {
+            $this->raiseError(__METHOD__ .'(), $value is invalid!');
+            return false;
+        }
+
+        if ($value == true) {
+            $this->document_deleted = 'Y';
+        } else {
+            $this->document_deleted = 'N';
+        }
+
+        return true;
     }
 }
 
