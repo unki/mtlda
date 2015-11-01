@@ -46,7 +46,7 @@
 {keywords_list}
  <tr>
   <td>
-   <a name="keyword_{$item->keyword_idx}" class="inline editable content" data-orig-value="{$item->keyword_name}">{$item->keyword_name}</a>
+   <div name="keyword_{$item->keyword_idx}" class="inline editable content" data-orig-value="{$item->keyword_name}" style="float: left;">{$item->keyword_name}</div>&nbsp;
    <a name="keyword_{$item->keyword_idx}" class="inline editable edit link" data-inline-name="keyword_{$item->keyword_idx}"><i class="tiny edit icon"></i></a>
    <div name="keyword_{$item->keyword_idx}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
