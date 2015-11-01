@@ -308,7 +308,12 @@ class ArchiveController extends DefaultController
             WHERE
                 document_file_hash
             LIKE
-                ?"
+                ?
+            AND (
+                document_deleted <> 'Y'
+            OR
+                document_deleted IS NULL
+            )"
         );
 
         if (!$sth) {
