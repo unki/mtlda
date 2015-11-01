@@ -339,6 +339,21 @@ class ConfigController extends \Thallium\Controllers\ConfigController
 
         return true;
     }
+
+    public function isDocumentNoDeleteEnabled()
+    {
+        if (!isset($this->config['app']['document_no_delete']) ||
+            empty($this->config['app']['document_no_delete'])
+        ) {
+            return false;
+        }
+
+        if (!$this->isEnabled($this->config['app']['document_no_delete'])) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
