@@ -346,8 +346,8 @@ class DocumentModel extends DefaultModel
             }
         }
 
-        if (!$this->deleteAllAssignedKeywords()) {
-            $this->raiseError(__CLASS__ .'::deleteAllAssignedKeywords() returned false!');
+        if (!$this->removeAssignedKeywords()) {
+            $this->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false!');
             return false;
         }
 
@@ -812,25 +812,6 @@ class DocumentModel extends DefaultModel
         }
 
         $db->freeStatement($sth);
-        return true;
-    }
-
-    private function deleteAllAssignedKeywords()
-    {
-        global $db;
-
-        $result = $db->query(
-            "DELETE FROM
-                TABLEPREFIXassign_keywords_to_document
-            WHERE
-                akd_archive_idx LIKE '{$this->document_idx}'"
-        );
-
-        if ($result === false) {
-            $this->raiseError("Deleting keyword assignments failed!");
-            return false;
-        }
-
         return true;
     }
 
