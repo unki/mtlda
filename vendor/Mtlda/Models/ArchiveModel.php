@@ -83,7 +83,12 @@ class ArchiveModel extends DefaultModel
             FROM
                 TABLEPREFIX{$this->table_name}
             WHERE
-                document_version LIKE 1";
+                document_version LIKE 1
+            AND (
+                document_deleted <> 'Y'
+            OR
+                document_deleted IS NULL
+            )";
 
         if (!empty($sort_order)) {
             $sql.=
