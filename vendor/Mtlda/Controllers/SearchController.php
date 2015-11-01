@@ -115,7 +115,7 @@ class SearchController extends DefaultController
                     a.document_idx=dp.dp_document_idx AND
                     a.document_guid=dp.dp_document_guid
                 )
-                WHERE
+                WHERE (
                     a.document_title LIKE :searchwild
                 OR
                     a.document_file_name LIKE :searchwild
@@ -124,12 +124,20 @@ class SearchController extends DefaultController
                 OR
                     MATCH (document_description) AGAINST (:search)
                 OR
-                    MATCH (di.di_text) AGAINST (:search)";
+                    MATCH (di.di_text) AGAINST (:search)
+                )";
 
         } elseif ($query['type'] == 'timestamp') {
             $sql.=
                 " document_time LIKE :search";
         }
+
+        $sql.=
+            " AND (
+                    document_deleted <> 'Y'
+                OR
+                    document_deleted IS NULL
+            )";
 
         if (!($sth = $db->prepare($sql))) {
             $this->raiseError(get_class($db) .'::prepare() returned false!');
