@@ -40,6 +40,7 @@ class KeywordModel extends DefaultModel
 
         try {
             $this->addRpcEnabledField('keyword_name');
+            $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
             return false;
