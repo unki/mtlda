@@ -94,6 +94,12 @@ class ImportController extends DefaultController
 
             $in_file = $file['fqpn'];
             $in_dir = dirname($in_file);
+
+            if (!file_exists($in_file)) {
+                $this->raiseError(__METHOD__ ."(), file {$in_file} does not exist!");
+                return false;
+            }
+
             if (!($dsc_file = preg_replace('/\.pdf$/i', '.dsc', $in_file))) {
                 $this->raiseError(__METHOD__ .'(), preg_replace() returned false!');
                 return false;
