@@ -33,6 +33,14 @@ class QueueModel extends DefaultModel
     {
         global $mtlda;
 
+        try {
+            $this->permitRpcUpdates(true);
+            $this->addRpcAction('flush');
+        } catch (\Exception $e) {
+            $this->raiseError(__CLASS__ .', failed to set RPC parameters!', true, $e);
+            return false;
+        }
+
         parent::__construct(null);
 
         if (!$this->load($sort_order)) {
