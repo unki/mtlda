@@ -45,15 +45,15 @@
  <tbody>
 {queue_list}
  <tr class="queueitem">
-  <td><a href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->queue_idx}</a></td>
+  <td><a href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getId()}</a></td>
   <td>
-   <a name="filename_{$item->queue_idx}" class="inline editable content" data-orig-value="{$item->queue_file_name}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->queue_file_name}</a>
-   <a name="filename_{$item->queue_idx}" class="inline editable edit link" data-inline-name="filename_{$item->queue_idx}"><i class="tiny edit icon"></i></a>
-   <div name="filename_{$item->queue_idx}" class="inline editable formsrc" style="display: none;">
+   <a name="filename_{$item->getId()}" class="inline editable content" data-orig-value="{$item->getFileName()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getFileName()}</a>
+   <a name="filename_{$item->getId()}" class="inline editable edit link" data-inline-name="filename_{$item->getId()}"><i class="tiny edit icon"></i></a>
+   <div name="filename_{$item->getId()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
      <div class="fields">
       <div class="field small ui input">
-       <input type="text" name="filename_{$item->queue_idx}" value="{$item->queue_file_name}" data-action="update" data-model="queueitem" data-key="queue_file_name" data-id="{$item->queue_idx}" />
+       <input type="text" name="filename_{$item->getId()}" value="{$item->getFileName()}" data-action="update" data-model="queueitem" data-key="queue_file_name" data-id="{$item->getId()}" />
       </div>
       <div class="field">
        <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
@@ -65,13 +65,13 @@
     </form>
    </div>
   </td>
-  <td>{$item->queue_file_size}</td>
-  <td class="state" id="queueitem-{$item_safe_link}">{$item->queue_state}</td>
-  <td>{$item->queue_time|date_format:"%Y.%m.%d %H:%M"}</td>
+  <td>{$item->getFileSize()}</td>
+  <td class="state" id="queueitem-{$item_safe_link}">{$item->getState()}</td>
+  <td>{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
   <td><a class="preview" title="archive" id="queueitem-{$item_safe_link}"><i class="search icon"></i>Preview</a></td>
   <td><a class="archive" title="archive" id="queueitem-{$item_safe_link}"><i class="archive icon"></i>Archive</a></td>
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}"><i class="edit icon"></i>Edit</a></td>
-  <td><a class="delete item" title="Delete {$item->queue_file_name|escape}" id="queueitem-{$item_safe_link}"><i class="remove circle icon"></i>Delete</a></td>
+  <td><a class="delete item" title="Delete {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/queue_list}
  </tbody>
@@ -80,7 +80,7 @@
    <th colspan="9">
     <div class="ui left floated">
      <a class="archive" title="archive" id="queueitem-all">Archive all</a>,&nbsp;
-     <a class="delete item" title="Flush Queue" data-modal-text="Do you really want to delete all items from queue?" id="queueitem-flush">Flush queue</a>
+     <a class="delete item" title="Flush Queue" data-modal-text="Do you really want to delete all items from queue?" data-id="flush" data-guid="flush" data-model="queue">Flush queue</a>
     </div>
     <div class="ui right floated pagination menu">
      <a class="icon item"><i class="left chevron icon"></i></a>
