@@ -29,10 +29,12 @@ class KeywordsModel extends DefaultModel
     public $avail_items = array();
     public $items = array();
 
-    public function __construct($id = null)
+    public function __construct()
     {
-        parent::__construct($id);
-        $this->load();
+        if (!$this->load()) {
+            $this->raiseError(__CLASS__ .'::load() returned false!', true);
+            return false;
+        }
 
         return true;
     }
@@ -42,12 +44,14 @@ class KeywordsModel extends DefaultModel
         global $db;
 
         $idx_field = $this->column('idx');
+        $guid_field = $this->column('guid');
 
         $result = $db->query(
             "SELECT
-            *
+                {$idx_field},
+                {$guid_field}
             FROM
-            TABLEPREFIX{$this->table_name}"
+                TABLEPREFIX{$this->table_name}"
         );
 
         if ($result === false) {
@@ -56,8 +60,17 @@ class KeywordsModel extends DefaultModel
         }
 
         while ($row = $result->fetch()) {
+            try {
+                $keyword = new \Mtlda\Models\KeywordModel(
+                    $row->$idx_field,
+                    $row->$guid_field
+                );
+            } catch (\Exception $e) {
+                $this->raiseError(__METHOD__ .'(), failed to load KeywordModel!');
+                return false;
+            }
             array_push($this->avail_items, $row->$idx_field);
-            $this->items[$row->$idx_field] = $row;
+            $this->items[$row->$idx_field] = $keyword;
         }
 
         return true;
