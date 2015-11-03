@@ -23,8 +23,6 @@ class KeywordsView extends DefaultView
 {
     public $default_mode = 'list';
     public $class_name = 'keywords';
-    public $avail_items = array();
-    public $items = array();
 
     public function __construct()
     {
@@ -32,22 +30,11 @@ class KeywordsView extends DefaultView
 
         parent::__construct();
 
-
-        $result = $db->query(
-            "SELECT
-                *
-            FROM
-                TABLEPREFIXkeywords"
-        );
-
-        if ($result === false) {
-            $mtlda->raiseError("failed to fetch keywords!");
+        try {
+            $this->keywords = new \Mtlda\Models\KeywordsModel;
+        } catch (\Exception $e) {
+            $this->raiseError(__CLASS_ .', failed to load KeywordsModel', true);
             return false;
-        }
-
-        while ($row = $result->fetch()) {
-            array_push($this->avail_items, $row->keyword_idx);
-            $this->items[$row->keyword_idx] = $row;
         }
 
         return true;
@@ -68,13 +55,13 @@ class KeywordsView extends DefaultView
             $index = 0;
         }
 
-        if ($index >= count($this->avail_items)) {
+        if ($index >= count($this->keywords->avail_items)) {
             $repeat = false;
             return $content;
         }
 
-        $item_idx = $this->avail_items[$index];
-        $item =  $this->items[$item_idx];
+        $item_idx = $this->keywords->avail_items[$index];
+        $item =  $this->keywords->items[$item_idx];
 
         $smarty->assign("item", $item);
         $smarty->assign("item_safe_link", "keyword-{$item->keyword_idx}-{$item->keyword_guid}");
