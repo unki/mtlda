@@ -36,10 +36,7 @@ class RpcController extends \Thallium\Controllers\RpcController
 
         switch ($query->action) {
             case 'delete':
-                $this->rpcDeleteObject();
-                break;
-            case 'delete-document':
-                $this->rpcDeleteDocument();
+                $this->rpcDelete();
                 break;
             case 'archive':
                 $this->rpcArchiveObject();
@@ -95,98 +92,6 @@ class RpcController extends \Thallium\Controllers\RpcController
         }
 
         return true;
-    }
-
-    protected function rpcDeleteObject()
-    {
-        global $mtlda;
-
-        if (!isset($_POST['id'])) {
-            $this->raiseError("id is missing!");
-            return false;
-        }
-
-        if (!$mtlda->isValidId($_POST['id'])) {
-            $this->raiseError("id looks invalid!");
-            return false;
-        }
-
-        $id = $_POST['id'];
-
-        /* for flushing queue */
-        if (preg_match('/(\w+)-flush$/', $id, $parts)) {
-            if (!isset($parts) ||
-                !is_array($parts) ||
-                !isset($parts[1]) ||
-                $parts[1] != "queueitem"
-            ) {
-                $this->raiseError("flushing only supported for queueitems!");
-                return false;
-            }
-
-            if (!($queue = $mtlda->loadModel('queue'))) {
-                $this->raiseError("unable to locate model for QueueModel!");
-                return false;
-            }
-
-            if (!$queue->flush()) {
-                $this->raiseError("QueueModel::flush() returned false!");
-                return false;
-            }
-
-            print "ok";
-            return true;
-        }
-
-        $parts = array();
-        if (!preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts)) {
-            $this->raiseError("id in incorrect format!");
-            return false;
-        }
-
-        /* $parts() should now contain
-         * [0] = original id
-         * [1] = object (queueitem, etc.)
-         * [2] = queue_idx
-         * [3] = guid
-         */
-        if (!array($parts) || empty($parts) || count($parts) != 4) {
-            $this->raiseError("id does not contain all required information!");
-            return false;
-        }
-
-        if (!isset($parts[1]) || !$mtlda->isValidModel($parts[1])) {
-            $this->raiseError("id contains an invalid model!");
-            return false;
-        }
-
-        if (!isset($parts[2]) || !is_numeric($parts[2])) {
-            $this->raiseError("id contains an invalid idx!");
-            return false;
-        }
-
-        if (!isset($parts[3]) || !$mtlda->isValidGuidSyntax($parts[3])) {
-            $this->raiseError("id contains an invalid guid!");
-            return false;
-        }
-
-        $request_object = $parts[1];
-        $id = $parts[2];
-        $guid = $parts[3];
-
-        if (!($obj = $mtlda->loadModel($request_object, $id, $guid))) {
-            $this->raiseError("unable to locate model for {$request_object}!");
-            return false;
-        }
-
-        if ($obj->delete()) {
-            print "ok";
-            return true;
-        }
-
-        $this->raiseError("unknown error!");
-        return false;
-
     }
 
     protected function rpcArchiveObject()
@@ -482,11 +387,11 @@ class RpcController extends \Thallium\Controllers\RpcController
         return true;
     }
 
-    protected function rpcDeleteDocument()
+    protected function rpcDelete()
     {
         global $mtlda;
 
-        $input_fields = array('id', 'guid');
+        $input_fields = array('id', 'guid', 'model');
 
         foreach ($input_fields as $field) {
             if (!isset($_POST[$field])) {
@@ -505,6 +410,7 @@ class RpcController extends \Thallium\Controllers\RpcController
 
         $id = $_POST['id'];
         $guid = $_POST['guid'];
+        $model = $_POST['model'];
 
         if (!$mtlda->isValidId($id)) {
             $this->raiseError(__METHOD__ .', \$id is invalid!');
@@ -516,20 +422,28 @@ class RpcController extends \Thallium\Controllers\RpcController
             return false;
         }
 
-        try {
-            $document = new \Mtlda\Models\DocumentModel($id, $guid);
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .", unable to load DocumentModel!");
+        if (($model_name = $mtlda->getModelByNick($model)) === false) {
+            $this->raiseError(get_class($mtlda) .'::getModelNameByNick() returned false!');
             return false;
         }
 
-        if (!$document->permitsRpcActions('delete')) {
-            $this->raiseError(get_class($document) .' does not permit "delete" via a RPC call!');
+        if (($obj = $mtlda->loadModel($model_name, $id, $guid)) === false) {
+            $this->raiseError(get_class($mtlda) .'::loadModel() returned false!');
             return false;
         }
 
-        if (!$document->delete()) {
-            $this->raiseError(__CLASS__ .'::delete() returned false!');
+        if (!method_exists($obj, 'delete')) {
+            $this->raiseError(__METHOD__ ."(), model {$model_name} does not provide a delete() method!");
+            return false;
+        }
+
+        if (!$obj->permitsRpcActions('delete')) {
+            $this->raiseError(get_class($obj) .' does not permit "delete" via a RPC call!');
+            return false;
+        }
+
+        if (!$obj->delete()) {
+            $this->raiseError(get_class($obj) .'::delete() returned false!');
             return false;
         }
 
