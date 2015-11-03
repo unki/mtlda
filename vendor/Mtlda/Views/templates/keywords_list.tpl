@@ -46,13 +46,13 @@
 {keywords_list}
  <tr>
   <td>
-   <div name="keyword_{$item->keyword_idx}" class="inline editable content" data-orig-value="{$item->keyword_name}" style="float: left;">{$item->keyword_name}</div>&nbsp;
-   <a name="keyword_{$item->keyword_idx}" class="inline editable edit link" data-inline-name="keyword_{$item->keyword_idx}"><i class="tiny edit icon"></i></a>
-   <div name="keyword_{$item->keyword_idx}" class="inline editable formsrc" style="display: none;">
+   <div name="keyword_{$item->getId()}" class="inline editable content" data-orig-value="{$item->getName()}" style="float: left;">{$item->getName()}</div>&nbsp;
+   <a name="keyword_{$item->getId()}" class="inline editable edit link" data-inline-name="keyword_{$item->getId()}"><i class="tiny edit icon"></i></a>
+   <div name="keyword_{$item->getId()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
      <div class="fields">
       <div class="field small ui input">
-       <input type="text" name="keyword_{$item->keyword_idx}" value="{$item->keyword_name}" data-action="update" data-model="keyword" data-key="keyword_name" data-id="{$item->keyword_idx}" />
+       <input type="text" name="keyword_{$item->getId()}" value="{$item->getName()}" data-action="update" data-model="keyword" data-key="keyword_name" data-id="{$item->getId()}" />
       </div>
       <div class="field">
        <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
@@ -64,7 +64,7 @@
     </form>
    </div>
   </td>
-  <td><a class="delete item" title="Delete {$item->keyword_name|escape}" id="keyword-{$item_safe_link}"><i class="remove circle icon"></i>Delete</a></td>
+  <td><a class="delete item" title="Delete {$item->getName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="keyword"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/keywords_list}
  </tbody>
