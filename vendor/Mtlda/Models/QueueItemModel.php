@@ -41,8 +41,6 @@ class QueueItemModel extends DefaultModel
     {
         global $mtlda, $db;
 
-        $this->permitRpcUpdates(true);
-
         if (!$this->permitRpcUpdates(true)) {
             $mtlda->raiseError("permitRpcUpdates() returned false!");
             return false;
@@ -50,6 +48,7 @@ class QueueItemModel extends DefaultModel
 
         try {
             $this->addRpcEnabledField('queue_file_name');
+            $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
             return false;
@@ -185,6 +184,15 @@ class QueueItemModel extends DefaultModel
         }
 
         return $this->queue_file_name;
+    }
+
+    public function getFileSize()
+    {
+        if (!isset($this->queue_file_size)) {
+            return false;
+        }
+
+        return $this->queue_file_size;
     }
 
     public function preDelete()
@@ -389,6 +397,24 @@ class QueueItemModel extends DefaultModel
         $dir_name = rtrim($dir_name, '/');
 
         return $dir_name;
+    }
+
+    public function getState()
+    {
+        if (!isset($this->queue_state)) {
+            return false;
+        }
+
+        return $this->queue_state;
+    }
+
+    public function getTime()
+    {
+        if (!isset($this->queue_time)) {
+            return false;
+        }
+
+        return $this->queue_time;
     }
 }
 
