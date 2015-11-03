@@ -76,10 +76,12 @@ class QueueModel extends DefaultModel
         }
 
         $idx_field = $this->column_name ."_idx";
+        $guid_field = $this->column_name ."_guid";
 
         $sql =
             "SELECT
-                *
+                {$idx_field},
+                {$guid_field}
             FROM
                 TABLEPREFIX{$this->table_name}";
 
@@ -102,8 +104,18 @@ class QueueModel extends DefaultModel
         }
 
         while ($row = $sth->fetch()) {
+            try {
+                $item = new \Mtlda\Models\QueueItemModel(
+                    $row->$idx_field,
+                    $row->$guid_field
+                );
+            } catch (\Exception $e) {
+                $this->raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
+                return false;
+            }
+
             array_push($this->avail_items, $row->$idx_field);
-            $this->items[$row->$idx_field] = $row;
+            $this->items[$row->$idx_field] = $item;
         }
 
         $db->freeStatement($sth);
