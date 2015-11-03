@@ -412,12 +412,12 @@ class RpcController extends \Thallium\Controllers\RpcController
         $guid = $_POST['guid'];
         $model = $_POST['model'];
 
-        if (!$mtlda->isValidId($id)) {
+        if (!$mtlda->isValidId($id) && $id != 'flush') {
             $this->raiseError(__METHOD__ .', \$id is invalid!');
             return false;
         }
 
-        if (!$mtlda->isValidGuidSyntax($guid)) {
+        if (!$mtlda->isValidGuidSyntax($guid) && $guid != 'flush') {
             $this->raiseError(__METHOD__ .', \$guid is invalid!');
             return false;
         }
@@ -425,6 +425,29 @@ class RpcController extends \Thallium\Controllers\RpcController
         if (($model_name = $mtlda->getModelByNick($model)) === false) {
             $this->raiseError(get_class($mtlda) .'::getModelNameByNick() returned false!');
             return false;
+        }
+
+        /* special delete operation 'flush' */
+        if ($id == 'flush' && $guid == 'flush') {
+            if (($obj = $mtlda->loadModel($model_name)) === false) {
+                $this->raiseError(get_class($mtlda) .'::loadModel() returned false!');
+                return false;
+            }
+
+            if (!method_exists($obj, 'flush')) {
+                $this->raiseError(__METHOD__ ."(), model {$model_name} does not provide a flush() method!");
+                return false;
+            }
+            if (!$obj->permitsRpcActions('flush')) {
+                $this->raiseError(__METHOD__ ."(), model {$model_name} does not support flush-opertions!");
+                return false;
+            }
+            if (!$obj->flush()) {
+                $this->raiseError(get_class($obj) .'::flush() returned false!');
+                return false;
+            }
+            print "ok";
+            return true;
         }
 
         if (($obj = $mtlda->loadModel($model_name, $id, $guid)) === false) {
