@@ -436,7 +436,7 @@ function rpc_fetch_jobstatus()
     }
 }
 
-function rpc_object_delete2(element)
+function rpc_object_delete(element)
 {
     if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
@@ -453,8 +453,14 @@ function rpc_object_delete2(element)
         return false;
     }
 
+    if (!(model = element.attr('data-model'))) {
+        alert('no attribute "data-model" found!');
+        return false;
+    }
+
     id = safe_string(id);
     guid = safe_string(guid);
+    model = safe_string(model);
 
     if (
         window.location.pathname != undefined &&
@@ -471,9 +477,10 @@ function rpc_object_delete2(element)
         url: url,
         data: ({
             type   : 'rpc',
-            action : 'delete-document',
+            action : 'delete',
             id     : id,
-            guid   : guid
+            guid   : guid,
+            model  : model
         }),
         error: function (XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
