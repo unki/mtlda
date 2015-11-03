@@ -64,7 +64,7 @@
     </form>
    </div>
   </td>
-  <td><a class="delete" title="delete" id="keyword-{$item_safe_link}"><i class="remove circle icon"></i>Delete</a></td>
+  <td><a class="delete item" title="Delete {$item->keyword_name|escape}" id="keyword-{$item_safe_link}"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/keywords_list}
  </tbody>
