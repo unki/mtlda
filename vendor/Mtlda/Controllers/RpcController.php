@@ -21,45 +21,17 @@ namespace Mtlda\Controllers;
 
 class RpcController extends \Thallium\Controllers\RpcController
 {
-    public function perform()
+    public function performApplicationSpecifc()
     {
         global $mtlda, $router, $query;
 
-        if (!isset($query->action)) {
-            $this->raiseError("No action specified!");
-        }
-
-        if (!$router->isValidRpcAction($query->action)) {
-            $this->raiseError("Invalid RPC action: ". htmlentities($query->action, ENT_QUOTES));
-            return false;
-        }
-
         switch ($query->action) {
-            case 'delete':
-                $this->rpcDelete();
-                break;
             case 'archive':
                 $this->rpcArchiveObject();
-                break;
-            case 'add':
-            case 'update':
-                $this->rpcUpdateObject();
                 break;
             case 'find-prev-next':
                 $this->rpcFindPrevNextObject();
                 break;
-            /*case 'toggle':
-                $this->rpc_toggle_object_status();
-                break;
-            case 'clone':
-                $this->rpc_clone_object();
-                break;
-            case 'alter-position':
-                $this->rpc_alter_position();
-                break;
-            case 'get-sub-menu':
-                $this->rpc_get_sub_menu();
-                break;*/
             case 'get-content':
                 $this->rpcGetContent();
                 break;
@@ -81,12 +53,7 @@ class RpcController extends \Thallium\Controllers\RpcController
             case 'delete-expired-documents':
                 $this->rpcDeleteExpiredDocuments();
                 break;
-            case 'idle':
-                // just do nothing, for debugging
-                print "ok";
-                break;
             default:
-                $this->raiseError("Unknown RPC action\n");
                 return false;
                 break;
         }
