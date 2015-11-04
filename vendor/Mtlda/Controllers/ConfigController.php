@@ -23,23 +23,22 @@ class ConfigController extends \Thallium\Controllers\ConfigController
 {
     public function isImageCachingEnabled()
     {
-        if (!isset($this->config['app']['image_cache'])) {
+        if (!isset($this->config['app']['image_cache']) ||
+            empty($this->config['app']['image_cache'])
+        ) {
             return false;
         }
 
-        if (empty($this->config['app']['image_cache'])) {
+        if ($this->isDisabled($this->config['app']['image_cache'])) {
             return false;
         }
 
-        if (!$this->config['app']['image_cache']) {
-            return false;
+        if ($this->isEnabled($this->config['app']['image_cache'])) {
+            return true;
         }
 
-        if (!$this->isEnabled($this->config['app']['image_cache'])) {
-            return false;
-        }
-
-        return true;
+        $this->raiseError(__METHOD__ .'(), "image_cache" configuration option in [app] section is invalid!', true);
+        return false;
     }
 
     public function getPdfSigningConfiguration()
@@ -148,13 +147,21 @@ class ConfigController extends \Thallium\Controllers\ConfigController
 
     public function isPdfSigningEnabled()
     {
-        if (isset($this->config['app']['pdf_signing']) &&
-            !empty($this->config['app']['pdf_signing']) &&
-            $this->isEnabled($this->config['app']['pdf_signing'])
+        if (!isset($this->config['app']['pdf_signing']) ||
+            empty($this->config['app']['pdf_signing'])
         ) {
+            return false;
+        }
+
+        if ($this->isDisabled($this->config['app']['pdf_signing'])) {
+            return false;
+        }
+
+        if ($this->isEnabled($this->config['app']['pdf_signing'])) {
             return true;
         }
 
+        $this->raiseError(__METHOD__ .'(), "pdf_signing" configuration option in [app] section is invalid!', true);
         return false;
     }
 
@@ -164,65 +171,117 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (isset($this->config['pdf_signing']['auto_sign_on_import']) &&
-            !empty($this->config['pdf_signing']['auto_sign_on_import']) &&
-            $this->isEnabled($this->config['pdf_signing']['auto_sign_on_import'])
+        if (!isset($this->config['pdf_signing']['auto_sign_on_import']) ||
+            empty($this->config['pdf_signing']['auto_sign_on_import'])
         ) {
+            return false;
+        }
+
+        if ($this->isDisabled($this->config['pdf_signing']['auto_sign_on_import'])) {
+            return false;
+        }
+
+        if ($this->isEnabled($this->config['pdf_signing']['auto_sign_on_import'])) {
             return true;
         }
 
+        $this->raiseError(
+            __METHOD__ .'(), "auto_sign_on_import" configuration option in [pdf_signing] section is invalid!',
+            true
+        );
         return false;
-
     }
 
     public function isPdfSigningAttachAuditLogEnabled()
     {
-        if (isset($this->config['pdf_signing']['attach_audit_log']) &&
-            !empty($this->config['pdf_signing']['attach_audit_log']) &&
-            $this->isEnabled($this->config['pdf_signing']['attach_audit_log'])
+        if (!isset($this->config['pdf_signing']['attach_audit_log']) ||
+            empty($this->config['pdf_signing']['attach_audit_log'])
         ) {
+            return false;
+        }
+
+        if ($this->isDisabled($this->config['pdf_signing']['attach_audit_log'])) {
+            return false;
+        }
+
+        if ($this->isEnabled($this->config['pdf_signing']['attach_audit_log'])) {
             return true;
         }
 
+        $this->raiseError(
+            __METHOD__ .'(), "attach_audit_log" configuration option in [pdf_signing] section is invalid!',
+            true
+        );
         return false;
     }
 
     public function isPdfIndexingEnabled()
     {
-        if (isset($this->config['app']['pdf_indexing']) &&
-            !empty($this->config['app']['pdf_indexing']) &&
-            $this->isEnabled($this->config['app']['pdf_indexing'])
+        if (!isset($this->config['app']['pdf_indexing']) ||
+            empty($this->config['app']['pdf_indexing'])
         ) {
+            return false;
+        }
+
+        if ($this->isDisabled($this->config['app']['pdf_indexing'])) {
+            return false;
+        }
+
+        if ($this->isEnabled($this->config['app']['pdf_indexing'])) {
             return true;
         }
 
+        $this->raiseError(
+            __METHOD__ .'(), "pdf_indexing" configuration option in [app] section is invalid!',
+            true
+        );
         return false;
     }
 
     public function isMailImportEnabled()
     {
-        if (!isset($this->config['app']['mail_import'])) {
+        if (!isset($this->config['app']['mail_import']) ||
+            empty($this->config['app']['mail_import'])
+        ) {
             return false;
         }
 
-        if (!$this->isEnabled($this->config['app']['mail_import'])) {
+        if ($this->isDisabled($this->config['app']['mail_import'])) {
             return false;
         }
 
-        return true;
+        if ($this->isEnabled($this->config['app']['mail_import'])) {
+            return true;
+        }
+
+        $this->raiseError(
+            __METHOD__ .'(), "mail_import" configuration option in [app] section is invalid!',
+            true
+        );
+        return false;
     }
 
     public function isHttpUploadEnabled()
     {
-        if (!isset($this->config['app']['http_upload'])) {
+        if (!isset($this->config['app']['http_upload']) ||
+            empty($this->config['app']['http_upload'])
+        ) {
             return false;
         }
 
-        if (!$this->isEnabled($this->config['app']['http_upload'])) {
+        if ($this->isDisabled($this->config['app']['http_upload'])) {
             return false;
         }
 
-        return true;
+        if ($this->isEnabled($this->config['app']['http_upload'])) {
+            return true;
+        }
+
+        $this->raiseError(
+            __METHOD__ .'(), "http_upload" configuration option in [app] section is invalid!',
+            true
+        );
+        return false;
     }
 
     public function isCreatePreviewImageOnImport()
@@ -231,44 +290,48 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!isset($this->config['app']['create_preview_on_import'])) {
+        if (!isset($this->config['app']['create_preview_on_import']) ||
+            empty($this->config['app']['create_preview_on_import'])
+        ) {
             return false;
         }
 
-        if (empty($this->config['app']['create_preview_on_import'])) {
+        if ($this->isDisabled($this->config['app']['create_preview_on_import'])) {
             return false;
         }
 
-        if (!$this->config['app']['create_preview_on_import']) {
-            return false;
+        if ($this->isEnabled($this->config['app']['create_preview_on_import'])) {
+            return true;
         }
 
-        if (!$this->isEnabled($this->config['app']['create_preview_on_import'])) {
-            return false;
-        }
-
-        return true;
+        $this->raiseError(
+            __METHOD__ .'(), "create_preview_on_import" configuration option in [app] section is invalid!',
+            true
+        );
+        return false;
     }
 
     public function isEmbeddingMtldaIcon()
     {
-        if (!isset($this->config['app']['embed_icon_to_pdf'])) {
+        if (!isset($this->config['app']['embed_icon_to_pdf']) ||
+            empty($this->config['app']['embed_icon_to_pdf'])
+        ) {
             return false;
         }
 
-        if (empty($this->config['app']['embed_icon_to_pdf'])) {
+        if ($this->isDisabled($this->config['app']['embed_icon_to_pdf'])) {
             return false;
         }
 
-        if (!$this->config['app']['embed_icon_to_pdf']) {
-            return false;
+        if ($this->isEnabled($this->config['app']['embed_icon_to_pdf'])) {
+            return true;
         }
 
-        if (!$this->isEnabled($this->config['app']['embed_icon_to_pdf'])) {
-            return false;
-        }
-
-        return true;
+        $this->raiseError(
+            __METHOD__ .'(), "embed_icon_to_pdf" configuration option in [app] section is invalid!',
+            true
+        );
+        return false;
     }
 
     public function getMailImportMailDestinyIsDelete()
@@ -277,23 +340,25 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!isset($this->config['mailimport']['mbox_delete_mail'])) {
+        if (!isset($this->config['mailimport']['mbox_delete_mail']) ||
+            empty($this->config['mailimport']['mbox_delete_mail'])
+        ) {
             return false;
         }
 
-        if (empty($this->config['mailimport']['mbox_delete_mail'])) {
+        if ($this->isDisabled($this->config['mailimport']['mbox_delete_mail'])) {
             return false;
         }
 
-        if (!$this->config['mailimport']['mbox_delete_mail']) {
-            return false;
+        if ($this->isEnabled($this->config['mailimport']['mbox_delete_mail'])) {
+            return true;
         }
 
-        if (!$this->isEnabled($this->config['mailimport']['mbox_delete_mail'])) {
-            return false;
-        }
-
-        return true;
+        $this->raiseError(
+            __METHOD__ .'(), "mbox_delete_mail" configuration option in [mailimport] section is invalid!',
+            true
+        );
+        return false;
     }
 
     public function getMailImportImapMailboxExpunge()
@@ -302,23 +367,25 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!isset($this->config['mailimport']['mbox_imap_expunge'])) {
+        if (!isset($this->config['mailimport']['mbox_imap_expunge']) ||
+            empty($this->config['mailimport']['mbox_imap_expunge'])
+        ) {
             return false;
         }
 
-        if (empty($this->config['mailimport']['mbox_imap_expunge'])) {
+        if ($this->isDisabled($this->config['mailimport']['mbox_imap_expunge'])) {
             return false;
         }
 
-        if (!$this->config['mailimport']['mbox_imap_expunge']) {
-            return false;
+        if ($this->isEnabled($this->config['mailimport']['mbox_imap_expunge'])) {
+            return true;
         }
 
-        if (!$this->isEnabled($this->config['mailimport']['mbox_imap_expunge'])) {
-            return false;
-        }
-
-        return true;
+        $this->raiseError(
+            __METHOD__ .'(), "mbox_imap_expunge" configuration option in [mailimport] section is invalid!',
+            true
+        );
+        return false;
     }
 
     public function isUseEmailBodyAsDescription()
@@ -333,11 +400,19 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!$this->isEnabled($this->config['mailimport']['use_email_body_as_description'])) {
+        if ($this->isDisabled($this->config['mailimport']['use_email_body_as_description'])) {
             return false;
         }
 
-        return true;
+        if ($this->isEnabled($this->config['mailimport']['use_email_body_as_description'])) {
+            return true;
+        }
+
+        $this->raiseError(
+            __METHOD__ .'(), "use_email_body_as_description" configuration option in [mailimport] section is invalid!',
+            true
+        );
+        return false;
     }
 
     public function isDocumentNoDeleteEnabled()
@@ -348,11 +423,19 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return false;
         }
 
-        if (!$this->isEnabled($this->config['app']['document_no_delete'])) {
+        if ($this->isDisabled($this->config['app']['document_no_delete'])) {
             return false;
         }
 
-        return true;
+        if ($this->isEnabled($this->config['app']['document_no_delete'])) {
+            return true;
+        }
+
+        $this->raiseError(
+            __METHOD__ .'(), "document_no_delete" configuration option in [app] section is invalid!',
+            true
+        );
+        return false;
     }
 }
 
