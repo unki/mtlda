@@ -25,7 +25,7 @@
   <div class="header">
    <a name="filename_{$item->document_idx}" class="inline editable content" data-orig-value="{$item->document_file_name}" href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">{$item->document_file_name}</a>&nbsp;&nbsp;
    <a name="filename_{$item->document_idx}" class="inline editable edit link" data-inline-name="filename_{$item->document_idx}"><i class="tiny edit icon"></i></a>
-   <a class="delete document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}"><i class="remove circle icon"></i></a>
+   <a class="delete item" title="Delete {$item->getFileName()|escape}" data-model="document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}"><i class="remove circle icon"></i></a>
    <div name="filename_{$item->document_idx}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
      <div class="fields">
@@ -45,7 +45,7 @@
   <div class="description">Version {$item->document_version} (created {$item->document_time|date_format:"%Y.%m.%d %H:%M"})</div>
 {if $item->document_signed_copy != 'Y' }
   <br />
-  <a class="sign document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-title="{$item->document_title}"><i class="protect icon"></i>Click to digitally sign document</a>.
+  <a class="sign document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-title="{$item->getTitle()}"><i class="protect icon"></i>Click to digitally sign document</a>.
 {/if}
  </div>
 </div>
