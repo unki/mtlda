@@ -1053,6 +1053,19 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
+    public function isDeleted()
+    {
+        if (!isset($this->document_deleted) || empty($this->document_deleted)) {
+            return false;
+        }
+
+        if ($this->document_deleted != 'Y') {
+            return false;
+        }
+
+        return true;
+    }
+
     public function setDeleted($value = true)
     {
         if (!isset($value) ||
