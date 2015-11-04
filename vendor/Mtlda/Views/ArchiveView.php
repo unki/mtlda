@@ -27,6 +27,8 @@ class ArchiveView extends DefaultView
     private $item;
     private $keywords;
     private $document_properties;
+    private $avail_items = array();
+    private $items = array();
 
     public function __construct()
     {
@@ -37,6 +39,14 @@ class ArchiveView extends DefaultView
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed to load ArchiveModel!", true);
             return false;
+        }
+
+        foreach ($this->archive->avail_items as $item_idx) {
+            if ($this->archive->items[$item_idx]->isDeleted()) {
+                continue;
+            }
+            $this->avail_items[] = $item_idx;
+            $this->items[$item_idx] = $this->archive->items[$item_idx];
         }
 
         parent::__construct();
@@ -59,13 +69,13 @@ class ArchiveView extends DefaultView
             $index = 0;
         }
 
-        if ($index >= count($this->archive->avail_items)) {
+        if ($index >= count($this->avail_items)) {
             $repeat = false;
             return $content;
         }
 
-        $item_idx = $this->archive->avail_items[$index];
-        $item =  $this->archive->items[$item_idx];
+        $item_idx = $this->avail_items[$index];
+        $item =  $this->items[$item_idx];
 
         if ($item->hasDescendants()) {
             if (($latest = $item->getLastestVersion()) === false) {
@@ -225,7 +235,7 @@ class ArchiveView extends DefaultView
 
         $content = "";
 
-        if (!$content = $this->buildVersionsList()) {
+        if (($content = $this->buildVersionsList()) === false) {
             $mtlda->raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
             return false;
         }
@@ -250,6 +260,9 @@ class ArchiveView extends DefaultView
         $counter = 0;
 
         foreach ($descendants as $item) {
+            if ($item->isDeleted()) {
+                continue;
+            }
             $tmpl->assign('item', $item);
             $tmpl->assign('item_safe_link', 'document-'. $item->document_idx .'-'. $item->document_guid);
 
@@ -282,17 +295,13 @@ class ArchiveView extends DefaultView
                 return false;
             }
 
-            if (!$item_content = $this->buildVersionsList($item_descendants, $level+1)) {
+            if (($item_content = $this->buildVersionsList($item_descendants, $level+1)) === false) {
                 $mtlda->raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
                 return false;
             }
 
             $content.= $item_content;
             $counter+=1;
-        }
-
-        if (empty($content)) {
-            return false;
         }
 
         return $content;
