@@ -30,6 +30,12 @@ base_web_path = /mtlda/
 page_title = "My Tiny Little Document Archive"
 
 ;
+; Maintenance Mode
+;   0 = disabled, 1 = enabled
+;
+maintenance_mode = 0
+
+;
 ; Image caching, 0 = disabled, 1 = enabled
 ;
 image_cache = 1
