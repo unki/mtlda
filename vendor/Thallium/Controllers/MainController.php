@@ -21,7 +21,7 @@ namespace Thallium\Controllers;
 
 class MainController extends DefaultController
 {
-    const VERSION = "1.0";
+    const FRAMEWORK_VERSION = "1.1";
 
     protected $verbosity_level = LOG_WARNING;
     protected $override_namespace_prefix;
@@ -39,6 +39,13 @@ class MainController extends DefaultController
         $GLOBALS['thallium'] =& $this;
 
         $this->loadController("Config", "config");
+        global $config;
+
+        if ($config->inMaintenanceMode()) {
+            print "This application is in maintenance mode. Please try again later!";
+            exit(0);
+        }
+
         $this->loadController("Requirements", "requirements");
 
         global $requirements;
