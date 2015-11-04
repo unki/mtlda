@@ -1070,6 +1070,26 @@ class DocumentModel extends DefaultModel
 
         return true;
     }
+
+    public function getTitle()
+    {
+        if (!isset($this->document_title)) {
+            return false;
+        }
+
+        return $this->document_title;
+    }
+
+    public function setTitle($title)
+    {
+        if (!isset($title) || empty($titel)) {
+            $this->raiseError(__METHOD__ .'(), $title parameter is invalid!');
+            return false;
+        }
+
+        $this->document_title = $title;
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
