@@ -123,11 +123,11 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
 
         $missing = false;
 
-        ini_set('track_errors', 1);
-
         if (!parent::checkExternalLibraries()) {
             $missing = true;
         }
+
+        ini_set('track_errors', 1);
 
         if ($config->isPdfSigningEnabled()) {
             @include_once APP_BASE.'/vendor/tcpdf/tcpdf.php';
