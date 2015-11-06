@@ -36,6 +36,19 @@ abstract class DefaultView extends \Thallium\Views\DefaultView
         parent::__construct();
         return true;
     }
+
+    public function raiseError($string, $stop_execution = false, $exception = null)
+    {
+        global $mtlda;
+
+        $mtlda->raiseError(
+            $string,
+            $stop_execution,
+            $exception
+        );
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
