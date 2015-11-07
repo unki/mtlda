@@ -172,6 +172,19 @@ class PagingController extends DefaultController
         return $this->currentPage;
     }
 
+    public function isCurrentPage($pageno)
+    {
+        if (($curpage = $this->getCurrentPage()) === false) {
+            return false;
+        }
+
+        if ($pageno != $curpage) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function setCurrentPage($pageno)
     {
         if (!isset($pageno) ||
@@ -226,7 +239,7 @@ class PagingController extends DefaultController
 
         $data = array_slice(
             $this->pagingData,
-            $page*$items_per_page,
+            ($page-1)*$items_per_page,
             $items_per_page
         );
 
@@ -297,6 +310,20 @@ class PagingController extends DefaultController
         }
 
         return $page-1;
+    }
+
+    public function getFirstPageNumber()
+    {
+        return 1;
+    }
+
+    public function getLastPageNumber()
+    {
+        if (($pages = $this->getNumberOfPages()) === false) {
+            return false;
+        }
+
+        return $pages;
     }
 
     public function getPageNumbers()
