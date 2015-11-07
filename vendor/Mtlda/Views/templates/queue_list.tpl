@@ -82,14 +82,7 @@
      <a class="archive" title="archive" id="queueitem-all">Archive all</a>,&nbsp;
      <a class="delete item" title="Flush Queue" data-modal-text="Do you really want to delete all items from queue?" data-id="flush" data-guid="flush" data-model="queue">Flush queue</a>
     </div>
-    <div class="ui right floated pagination menu">
-     <a class="icon item"><i class="left chevron icon"></i></a>
-     <a class="item">1</a>
-     <a class="item">2</a>
-     <a class="item">3</a>
-     <a class="item">4</a>
-     <a class="icon item"><i class="right chevron icon"></i></a>
-    </div>
+{include file='pager.tpl' pager=$pager view=queue}
    </th>
   </tr>
  </tfoot>
