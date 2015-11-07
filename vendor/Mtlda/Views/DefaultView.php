@@ -49,6 +49,40 @@ abstract class DefaultView extends \Thallium\Views\DefaultView
 
         return true;
     }
+
+    protected function isKnownMode($mode)
+    {
+        if (parent::isKnownMode($mode)) {
+            return true;
+        }
+
+        if (preg_match('/^list-([0-9]+).html$/', $mode)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function show()
+    {
+        global $query;
+
+        if (isset($query->params) &&
+            !empty($query->params) &&
+            is_array($query->params) &&
+            isset($query->params[0]) &&
+            preg_match('/^list-([0-9]+).html$/', $query->params[0], $parts) &&
+            isset($parts) &&
+            !empty($parts) &&
+            is_array($parts) &&
+            isset($parts[1]) &&
+            is_numeric($parts[1])
+        ) {
+            return $this->showList($parts[1]);
+        }
+
+        return parent::show();
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
