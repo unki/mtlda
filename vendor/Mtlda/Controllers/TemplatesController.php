@@ -73,6 +73,21 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
 
         return null;
     }
+
+    public function getUrl($params, &$smarty)
+    {
+        if (($url = parent::getUrl($params, $smarty)) === false) {
+            $this->raiseError(get_class($parent) .'::getUrl() returned false!');
+            return false;
+        }
+
+        if (!array_key_exists('number', $params)) {
+            return $url;
+        }
+
+        $url.= "list-{$params['number']}.html";
+        return $url;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
