@@ -27,12 +27,10 @@ class QueueView extends DefaultView
 
     public function __construct()
     {
-        global $mtlda, $tmpl;
-
         try {
             $this->queue = new \Mtlda\Models\QueueModel;
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load QueueModel!", true);
+            $this->raiseError("Failed to load QueueModel!", true);
             return false;
         }
 
@@ -47,13 +45,13 @@ class QueueView extends DefaultView
             $index = 0;
         }
 
-        if ($index >= count($this->queue->avail_items)) {
+        if ($index >= count($this->avail_items)) {
             $repeat = false;
             return $content;
         }
 
-        $item_idx = $this->queue->avail_items[$index];
-        $item =  $this->queue->items[$item_idx];
+        $item_idx = $this->avail_items[$index];
+        $item =  $this->items[$item_idx];
 
         $smarty->assign("item", $item);
         $smarty->assign("item_safe_link", $item->queue_idx ."-". $item->queue_guid);
@@ -70,31 +68,31 @@ class QueueView extends DefaultView
         global $mtlda;
 
         if (empty($id) || !$mtlda->isValidId($id)) {
-            $mtlda->raiseError("Require a valid \$id to show!");
+            $this->raiseError("Require a valid \$id to show!");
             return false;
         }
 
         if (empty($guid) || !$mtlda->isValidGuidSyntax($guid)) {
-            $mtlda->raiseError("Require a valid \$guid to show!");
+            $this->raiseError("Require a valid \$guid to show!");
             return false;
         }
 
         try {
             $item = new \Mtlda\Models\QueueItemModel($id, $guid);
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load QueueItemModel({$id}, {$guid})!");
+            $this->raiseError("Failed to load QueueItemModel({$id}, {$guid})!");
             return false;
         }
 
         try {
             $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load StorageController!");
+            $this->raiseError("Failed to load StorageController!");
             return false;
         }
 
         if (!$file = $storage->retrieveFile($item)) {
-            $mtlda->raiseError("StorageController::retrieveFile() returned false!");
+            $this->raiseError("StorageController::retrieveFile() returned false!");
             return false;
         }
 
@@ -105,17 +103,17 @@ class QueueView extends DefaultView
             empty($file['hash']) ||
             empty($file['content'])
         ) {
-            $mtlda->raiseError("StorageController::retireveFile() returned an invalid file");
+            $this->raiseError("StorageController::retireveFile() returned an invalid file");
             return false;
         }
 
         if (strlen($file['content']) != $item->queue_file_size) {
-            $mtlda->raiseError("File size of retrieved file does not match archive record!");
+            $this->raiseError("File size of retrieved file does not match archive record!");
             return false;
         }
 
         if ($file['hash'] != $item->queue_file_hash) {
-            $mtlda->raiseError("File hash of retrieved file does not match archive record!");
+            $this->raiseError("File hash of retrieved file does not match archive record!");
             return false;
         }
 
@@ -123,6 +121,58 @@ class QueueView extends DefaultView
         header('Content-Length: '. strlen($file['content']));
         print $file['content'];
         return true;
+    }
+
+    public function showList($pageno = null)
+    {
+        global $session;
+
+        if (!isset($pageno) ||
+            empty($pageno) ||
+            !is_numeric($pageno)
+        ) {
+            if (($current_page = $session->getVariable("{$this->class_name}_current_page")) === false) {
+                $current_page = 1;
+            }
+        } else {
+            $current_page = $pageno;
+        }
+
+        try {
+            $pager = new \Mtlda\Controllers\PagingController(array(
+                'items_per_page' => 10,
+                'delta' => 2,
+            ));
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load PagingController!');
+            return false;
+        }
+
+        $pager->setPagingData($this->queue->items);
+        $pager->setCurrentPage($current_page);
+
+        global $tmpl;
+        $tmpl->assign('pager', $pager);
+
+        if (($data = $pager->getPageData()) === false) {
+            $this->raiseError(get_class($pager) .'::getPageData() returned false!');
+            return false;
+        }
+
+        if (!isset($data) || empty($data) || !is_array($data)) {
+            $this->raiseError(get_class($pager) .'::getPageData() returned invalid data!');
+            return false;
+        }
+
+        $this->avail_items = array_keys($data);
+        $this->items = $data;
+
+        if (!$session->setVariable("{$this->class_name}_current_page", $current_page)) {
+            $this->raiseError(get_class($session) .'::setVariable() returned false!');
+            return false;
+        }
+
+        return parent::showList();
     }
 }
 
