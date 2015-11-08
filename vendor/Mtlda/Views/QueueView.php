@@ -45,6 +45,11 @@ class QueueView extends DefaultView
             $index = 0;
         }
 
+        if (!isset($this->avail_items) || empty($this->avail_items)) {
+            $repeat = false;
+            return $content;
+        }
+
         if ($index >= count($this->avail_items)) {
             $repeat = false;
             return $content;
@@ -138,6 +143,10 @@ class QueueView extends DefaultView
             $current_page = $pageno;
         }
 
+        if (empty($this->queue->items)) {
+            return parent::showList();
+        }
+
         try {
             $pager = new \Mtlda\Controllers\PagingController(array(
                 'items_per_page' => 10,
@@ -148,8 +157,15 @@ class QueueView extends DefaultView
             return false;
         }
 
-        $pager->setPagingData($this->queue->items);
-        $pager->setCurrentPage($current_page);
+        if (!$pager->setPagingData($this->queue->items)) {
+            $this->raiseError(get_class($pager) .'::setPagingData() returned false!');
+            return false;
+        }
+
+        if (!$pager->setCurrentPage($current_page)) {
+            $this->raiseError(get_class($pager) .'::setCurrentPage() returned false!');
+            return false;
+        }
 
         global $tmpl;
         $tmpl->assign('pager', $pager);
