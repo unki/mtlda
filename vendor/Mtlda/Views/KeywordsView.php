@@ -26,7 +26,7 @@ class KeywordsView extends DefaultView
 
     public function __construct()
     {
-        global $mtlda, $db;
+        global $db;
 
         parent::__construct();
 
@@ -40,28 +40,73 @@ class KeywordsView extends DefaultView
         return true;
     }
 
-    public function showList()
+    public function showList($pageno = null)
     {
+        global $session;
+
+        if (!isset($pageno) ||
+            empty($pageno) ||
+            !is_numeric($pageno)
+        ) {
+            if (($current_page = $session->getVariable("{$this->class_name}_current_page")) === false) {
+                $current_page = 1;
+            }
+        } else {
+            $current_page = $pageno;
+        }
+
+        try {
+            $pager = new \Mtlda\Controllers\PagingController(array(
+                'items_per_page' => 10,
+                'delta' => 2,
+            ));
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load PagingController!');
+            return false;
+        }
+
+        $pager->setPagingData($this->keywords->items);
+        $pager->setCurrentPage($current_page);
+
+        global $tmpl;
+        $tmpl->assign('pager', $pager);
+
+        if (($data = $pager->getPageData()) === false) {
+            $this->raiseError(get_class($pager) .'::getPageData() returned false!');
+            return false;
+        }
+
+        if (!isset($data) || empty($data) || !is_array($data)) {
+            $this->raiseError(get_class($pager) .'::getPageData() returned invalid data!');
+            return false;
+        }
+
+        $this->avail_items = array_keys($data);
+        $this->items = $data;
+
+        if (!$session->setVariable("{$this->class_name}_current_page", $current_page)) {
+            $this->raiseError(get_class($session) .'::setVariable() returned false!');
+            return false;
+        }
+
         return parent::showList();
     }
 
     public function keywordsList($params, $content, &$smarty, &$repeat)
     {
-        global $mtlda;
-
         $index = $smarty->getTemplateVars('smarty.IB.item_list.index');
 
         if (!isset($index) || empty($index)) {
             $index = 0;
         }
 
-        if ($index >= count($this->keywords->avail_items)) {
+        if ($index >= count($this->avail_items)) {
             $repeat = false;
             return $content;
         }
 
-        $item_idx = $this->keywords->avail_items[$index];
-        $item =  $this->keywords->items[$item_idx];
+        $item_idx = $this->avail_items[$index];
+        $item =  $this->items[$item_idx];
 
         $smarty->assign("item", $item);
         $smarty->assign("item_safe_link", "keyword-{$item->keyword_idx}-{$item->keyword_guid}");
@@ -89,7 +134,7 @@ class KeywordsView extends DefaultView
         }
 
         if (!isset($item) || empty($item)) {
-            $mtlda->raiseError("Failed to load KeywordModel!");
+            $this->raiseError("Failed to load KeywordModel!");
             return false;
         }
 
