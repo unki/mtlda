@@ -82,7 +82,9 @@
      <a class="archive" title="archive" id="queueitem-all">Archive all</a>,&nbsp;
      <a class="delete item" title="Flush Queue" data-modal-text="Do you really want to delete all items from queue?" data-id="flush" data-guid="flush" data-model="queue">Flush queue</a>
     </div>
+{if isset($pager)}
 {include file='pager.tpl' pager=$pager view=queue}
+{/if}
    </th>
   </tr>
  </tfoot>
