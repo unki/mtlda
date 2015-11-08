@@ -71,7 +71,9 @@
  <tfoot>
   <tr>
    <th colspan="2">
+{if isset($pager)}
 {include file='pager.tpl' pager=$pager view=keywords}
+{/if}
    </th>
   </tr>
  </tfoot>
