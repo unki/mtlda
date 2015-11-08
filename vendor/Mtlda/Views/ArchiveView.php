@@ -67,6 +67,11 @@ class ArchiveView extends DefaultView
             $index = 0;
         }
 
+        if (!isset($this->avail_items) || empty($this->avail_items)) {
+            $repeat = false;
+            return $content;
+        }
+
         if ($index >= count($this->avail_items)) {
             $repeat = false;
             return $content;
@@ -345,6 +350,10 @@ class ArchiveView extends DefaultView
             $current_page = $pageno;
         }
 
+        if (empty($this->archive->items)) {
+            return parent::showList();
+        }
+
         try {
             $pager = new \Mtlda\Controllers\PagingController(array(
                 'items_per_page' => 10,
@@ -355,8 +364,15 @@ class ArchiveView extends DefaultView
             return false;
         }
 
-        $pager->setPagingData($this->archive->items);
-        $pager->setCurrentPage($current_page);
+        if (!$pager->setPagingData($this->archive->items)) {
+            $this->raiseError(get_class($pager) .'::setPagingData() returned false!');
+            return false;
+        }
+
+        if (!$pager->setCurrentPage($current_page)) {
+            $this->raiseError(get_class($pager) .'::setCurrentPage() returned false!');
+            return false;
+        }
 
         global $tmpl;
         $tmpl->assign('pager', $pager);
