@@ -57,7 +57,9 @@
  <tfoot>
   <tr>
    <th colspan="6">
+{if isset($pager)}
 {include file='pager.tpl' pager=$pager view=archive}
+{/if}
    </th>
   </tr>
  </tfoot>
