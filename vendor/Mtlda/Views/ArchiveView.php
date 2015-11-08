@@ -32,12 +32,12 @@ class ArchiveView extends DefaultView
 
     public function __construct()
     {
-        global $mtlda, $tmpl;
+        global $tmpl;
 
         try {
             $this->archive = new \Mtlda\Models\ArchiveModel;
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load ArchiveModel!", true);
+            $this->raiseError("Failed to load ArchiveModel!", true);
             return false;
         }
 
@@ -61,8 +61,6 @@ class ArchiveView extends DefaultView
 
     public function archiveList($params, $content, &$smarty, &$repeat)
     {
-        global $mtlda;
-
         $index = $smarty->getTemplateVars('smarty.IB.item_list.index');
 
         if (!isset($index) || empty($index)) {
@@ -107,17 +105,17 @@ class ArchiveView extends DefaultView
 
     public function showItem($id, $hash)
     {
-        global $mtlda, $config, $tmpl;
+        global $config, $tmpl;
 
         if ($this->item_name != "Document") {
-            $mtlda->raiseError(__METHOD__ .' can only work with documents!');
+            $this->raiseError(__METHOD__ .' can only work with documents!');
             return false;
         }
 
         try {
             $this->item = new \Mtlda\Models\DocumentModel($id, $hash);
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load DocumentModel!");
+            $this->raiseError("Failed to load DocumentModel!");
             return false;
         }
 
@@ -129,13 +127,13 @@ class ArchiveView extends DefaultView
 
         if ($this->item->hasDescendants()) {
             if (!$descendants = $this->item->getDescendants()) {
-                $mtlda->raiseError(get_class($this->item) .'::getDescendants() returned false!');
+                $this->raiseError(get_class($this->item) .'::getDescendants() returned false!');
                 return false;
             }
         }
 
         if (!($base_path = $config->getWebPath())) {
-            $mtlda->raiseError("Web path is missing!");
+            $this->raiseError("Web path is missing!");
             return false;
         }
 
@@ -150,12 +148,12 @@ class ArchiveView extends DefaultView
         try {
             $this->keywords = new \Mtlda\Models\KeywordsModel;
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load KeywordsModel!");
+            $this->raiseError("Failed to load KeywordsModel!");
             return false;
         }
 
         if (($assigned_keywords = $this->getItemKeywords($this->item->document_idx)) === false) {
-            $mtlda->raiseError(__CLASS__ ."::getItemKeywords() returned false!");
+            $this->raiseError(__CLASS__ ."::getItemKeywords() returned false!");
             return false;
         }
 
@@ -175,7 +173,7 @@ class ArchiveView extends DefaultView
                 $this->item->getGuid()
             );
         } catch (\Exception $e) {
-            $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentPropertiesModel!');
+            $this->raiseError(__METHOD__ .'(), failed to load DocumentPropertiesModel!');
             return false;
         }
 
@@ -185,7 +183,7 @@ class ArchiveView extends DefaultView
 
     private function getItemKeywords($item_idx)
     {
-        global $mtlda, $db;
+        global $db;
 
         $sth = $db->prepare(
             "SELECT
@@ -197,24 +195,24 @@ class ArchiveView extends DefaultView
         );
 
         if (!$sth) {
-            $mtlda->raiseError(__METHOD__ .", failed to prepare query!");
+            $this->raiseError(__METHOD__ .", failed to prepare query!");
             return false;
         }
 
         if (!$db->execute($sth, array($item_idx))) {
-            $mtlda->raiseError(__METHOD__ .", failed to execute query!");
+            $this->raiseError(__METHOD__ .", failed to execute query!");
             return false;
         }
 
         $rows = $sth->fetchAll(\PDO::FETCH_COLUMN);
 
         if ($rows === false) {
-            $mtlda->raiseError(__METHOD__ .", failed to fetch result!");
+            $this->raiseError(__METHOD__ .", failed to fetch result!");
             return false;
         }
 
         if (!is_array($rows)) {
-            $mtlda->raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
+            $this->raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
             return false;
         }
 
@@ -227,7 +225,7 @@ class ArchiveView extends DefaultView
 
     public function listVersions($params, &$smarty)
     {
-        global $mtlda, $query;
+        global $query;
 
         if (!$this->item->hasDescendants()) {
             return true;
@@ -236,7 +234,7 @@ class ArchiveView extends DefaultView
         $content = "";
 
         if (($content = $this->buildVersionsList()) === false) {
-            $mtlda->raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
+            $this->raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
             return false;
         }
 
@@ -245,13 +243,13 @@ class ArchiveView extends DefaultView
 
     private function buildVersionsList($descendants = null, $level = 0)
     {
-        global $mtlda, $tmpl;
+        global $tmpl;
 
         $content = "";
 
         if (!isset($descendants)) {
             if (!$descendants = $this->item->getDescendants()) {
-                $mtlda->raiseError(get_class($this->item) .'::getDescendants() returned false!');
+                $this->raiseError(get_class($this->item) .'::getDescendants() returned false!');
                 return false;
             }
         }
@@ -279,7 +277,7 @@ class ArchiveView extends DefaultView
             }
 
             if (!$src = $tmpl->fetch('archive_show_item.tpl')) {
-                $mtlda->raiseError(__CLASS__ .'::fetch() returned false!');
+                $this->raiseError(__CLASS__ .'::fetch() returned false!');
                 return false;
             }
 
@@ -291,12 +289,12 @@ class ArchiveView extends DefaultView
             }
 
             if (!$item_descendants = $item->getDescendants()) {
-                $mtlda->raiseError(get_class($item) .'::getDescendants() returned false!');
+                $this->raiseError(get_class($item) .'::getDescendants() returned false!');
                 return false;
             }
 
             if (($item_content = $this->buildVersionsList($item_descendants, $level+1)) === false) {
-                $mtlda->raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
+                $this->raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
                 return false;
             }
 
@@ -309,8 +307,6 @@ class ArchiveView extends DefaultView
 
     public function listDocumentProperties($params, $content, &$smarty, &$repeat)
     {
-        global $mtlda;
-
         $index = $smarty->getTemplateVars("smarty.IB.properties_list.index");
 
         if (!isset($index) || empty($index)) {
@@ -332,6 +328,58 @@ class ArchiveView extends DefaultView
         $repeat = true;
 
         return $content;
+    }
+
+    public function showList($pageno = null)
+    {
+        global $session;
+
+        if (!isset($pageno) ||
+            empty($pageno) ||
+            !is_numeric($pageno)
+        ) {
+            if (($current_page = $session->getVariable("{$this->class_name}_current_page")) === false) {
+                $current_page = 1;
+            }
+        } else {
+            $current_page = $pageno;
+        }
+
+        try {
+            $pager = new \Mtlda\Controllers\PagingController(array(
+                'items_per_page' => 10,
+                'delta' => 2,
+            ));
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load PagingController!');
+            return false;
+        }
+
+        $pager->setPagingData($this->archive->items);
+        $pager->setCurrentPage($current_page);
+
+        global $tmpl;
+        $tmpl->assign('pager', $pager);
+
+        if (($data = $pager->getPageData()) === false) {
+            $this->raiseError(get_class($pager) .'::getPageData() returned false!');
+            return false;
+        }
+
+        if (!isset($data) || empty($data) || !is_array($data)) {
+            $this->raiseError(get_class($pager) .'::getPageData() returned invalid data!');
+            return false;
+        }
+
+        $this->avail_items = array_keys($data);
+        $this->items = $data;
+
+        if (!$session->setVariable("{$this->class_name}_current_page", $current_page)) {
+            $this->raiseError(get_class($session) .'::setVariable() returned false!');
+            return false;
+        }
+
+        return parent::showList();
     }
 }
 
