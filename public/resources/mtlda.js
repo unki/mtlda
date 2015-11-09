@@ -97,7 +97,7 @@ $(document).ready(function () {
     $("a.delete.item").click(function () {
         delete_object($(this));
     });
-    $("table tr td a.archive, table tr th a.archive").click(function () {
+    $("a.archive.item").click(function () {
         archive_object($(this));
     });
     $("table tr td a.preview").click(function () {
@@ -388,38 +388,62 @@ function delete_object(element)
 
 function archive_object(element)
 {
-    var obj_id = element.attr("id");
+    var id = element.attr("data-id");
 
-    if (obj_id == undefined || obj_id == "") {
-        alert('no attribute "id" found!');
+    if (id == undefined || id == "") {
+        alert('no attribute "data-id" found!');
         return;
     }
 
-    obj_id = safe_string(obj_id);
+    id = safe_string(id);
 
-    var state = $("#"+obj_id+".state");
-    if (state && state.text() == 'new') {
-        state.text('Processing');
+    if (id != 'all') {
+        var state = $("#archive-state-"+id);
+        if (state && state.text() == 'new') {
+            state.text('processing');
+        }
+    } else {
+        $('td.archive.state').text('processing');
     }
 
-    // for single objects
-    if (!obj_id.match(/-all$/)) {
-        return rpc_object_archive(element, obj_id, state);
+    var title = element.attr("title");
+
+    if (title == undefined || title === "") {
+        throw 'No attribute "title" found!';
+        return false;
+    }
+
+    var text = element.attr("data-modal-text");
+
+    if (text == undefined || text === "") {
+        if (!id.match(/-all$/)) {
+            text = "Do you really want to archive this item?";
+        } else {
+            text = "Do you really want to archive all items?";
+
+        }
     }
 
     // for all objects
     show_modal({
         closeable : false,
-        header : 'Archive all queue items',
-        icon : 'archive icon',
-        content : 'This will archive all items! Are you sure?',
+        header : title,
+        content : text,
+        icon : 'red archive icon',
         onDeny : function () {
+            if (id != 'all') {
+                state.text('new');
+            } else {
+                $('td.archive.state').text('new');
+            }
             return true;
         },
         onApprove : function () {
-            return rpc_object_archive(element, obj_id, state);
+            return rpc_object_archive(element);
         }
     });
+
+    return true;
 }
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
