@@ -23,7 +23,7 @@ class QueueController extends DefaultController
 {
     public function archive($id, $guid)
     {
-        global $mtlda;
+        global $mtlda, $mbus;
 
         if (empty($id) || !is_numeric($id)) {
             $this->raiseError("id is invalid!");
@@ -67,15 +67,8 @@ class QueueController extends DefaultController
             return false;
         }
 
-        try {
-            $archive = new ArchiveController;
-        } catch (\Exception $e) {
-            $this->raiseError("Failed to load ArchiveController!");
-            return false;
-        }
-
-        if (!$archive) {
-            $this->raiseError("Unable to load ArchiveController!");
+        if (!$mbus->sendMessageToClient('archive-reply', 'Invoking archive process.', '20%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -89,7 +82,7 @@ class QueueController extends DefaultController
 
     public function archiveAll()
     {
-        global $mtlda;
+        global $mtlda, $mbus;
 
         try {
             $queue = new \Mtlda\Models\QueueModel;
@@ -98,17 +91,38 @@ class QueueController extends DefaultController
             return false;
         }
 
+        $total = count($queue->avail_items);
+        $counter = 1;
+        $start = 20;
+
+        $steps = floor((100-$start)/$total);
+
         foreach ($queue->avail_items as $key) {
             $queueitem = $queue->items[$key];
             $idx = $queueitem->queue_idx;
             $guid = $queueitem->queue_guid;
+
             if (empty($idx) || !$mtlda->isValidGuidSyntax($guid)) {
                 continue;
             }
+
+            if (!$mbus->sendMessageToClient(
+                'archive-reply',
+                "Archiving item {$counter} of {$total}.",
+                ($start+($steps*$counter)).'%'
+            )) {
+                $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+                return false;
+            }
+
+            $state = $mbus->suppressOutboundMessaging(true);
             if (!$this->archive($idx, $guid)) {
                 $mtlda->raiseArchive(__CLASS__ ."::archive() returned false for QueueItem {$idx}, {$guid}!");
                 return false;
             }
+            $mbus->suppressOutboundMessaging($state);
+
+            $counter++;
         }
 
         return true;
