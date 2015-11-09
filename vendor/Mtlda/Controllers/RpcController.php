@@ -26,9 +26,6 @@ class RpcController extends \Thallium\Controllers\RpcController
         global $mtlda, $router, $query;
 
         switch ($query->action) {
-            case 'archive':
-                $this->rpcArchiveObject();
-                break;
             case 'find-prev-next':
                 $this->rpcFindPrevNextObject();
                 break;
@@ -58,83 +55,6 @@ class RpcController extends \Thallium\Controllers\RpcController
                 break;
         }
 
-        return true;
-    }
-
-    protected function rpcArchiveObject()
-    {
-        global $mtlda;
-
-        if (!isset($_POST['id'])) {
-            $this->raiseError("id is missing!");
-            return false;
-        }
-
-        try {
-            $queue = new \Mtlda\Controllers\QueueController;
-        } catch (\Exception $e) {
-            $this->raiseError("Failed to load QueueController!");
-            return false;
-        }
-
-        if (preg_match('/-all$/', $_POST['id'])) {
-            if (!$queue->ArchiveAll()) {
-                $this->raiseError("QueueController::ArchiveAll() returned false!");
-                return false;
-            }
-            print "ok";
-            return true;
-        }
-
-        $id = $_POST['id'];
-
-        $parts = array();
-        if (!preg_match('/(\w+)-([0-9]+)-([a-z0-9]+)/', $id, $parts)) {
-            $this->raiseError("id in incorrect format!");
-            return false;
-        }
-
-        /* $parts() should now contain
-         * [0] = original id
-         * [1] = object (queueitem, etc.)
-         * [2] = queue_idx
-         * [3] = guid
-         */
-        if (!array($parts) || empty($parts) || count($parts) != 4) {
-            $this->raiseError("id does not contain all required information!");
-            return false;
-        }
-
-        if (!isset($parts[1]) || !$mtlda->isValidModel($parts[1])) {
-            $this->raiseError("id contains an invalid model!");
-            return false;
-        }
-
-        if (!isset($parts[2]) || !is_numeric($parts[2])) {
-            $this->raiseError("id contains an invalid idx!");
-            return false;
-        }
-
-        if (!isset($parts[3]) || !$mtlda->isValidGuidSyntax($parts[3])) {
-            $this->raiseError("id contains an invalid guid!");
-            return false;
-        }
-
-        $request_object = $parts[1];
-        $id = $parts[2];
-        $guid = $parts[3];
-
-        if ($request_object != "queueitem") {
-            $this->raiseError("archive function can only be used for Queue items!");
-            return false;
-        }
-
-        if (!$queue->archive($id, $guid)) {
-            $this->raiseError("QueueController::archive() returned false!");
-            return false;
-        }
-
-        print "ok";
         return true;
     }
 
