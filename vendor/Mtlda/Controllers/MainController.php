@@ -175,21 +175,28 @@ class MainController extends \Thallium\Controllers\MainController
 
             case 'sign-request':
                 if (!$this->handleSignRequest($message)) {
-                    $this->raiseError('handleSignRequest() returned false!');
+                    $this->raiseError(__CLASS__ .'::handleSignRequest() returned false!');
                     return false;
                 }
                 break;
 
             case 'mailimport-request':
                 if (!$this->handleMailImportRequest($message)) {
-                    $this->raiseError('handleMailImportRequest() returned false!');
+                    $this->raiseError(__CLASS__ .'::handleMailImportRequest() returned false!');
                     return false;
                 }
                 break;
 
             case 'scan-request':
                 if (!$this->handleScanDocumentRequests($message)) {
-                    $this->raiseError('handleScanDocumentRequests() returned false!');
+                    $this->raiseError(__CLASS__ .'::handleScanDocumentRequests() returned false!');
+                    return false;
+                }
+                break;
+
+            case 'archive-request':
+                if (!$this->handleArchiveRequest($message)) {
+                    $this->raiseError(__CLASS__ .'::handleArchiveRequest() returned false!');
                     return false;
                 }
                 break;
@@ -493,6 +500,110 @@ class MainController extends \Thallium\Controllers\MainController
     public function isBelowDirectory($dir, $topmost = self::DATA_DIRECTORY)
     {
         if (!(parent::isBelowDirectory($dir, $topmost))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function handleArchiveRequest(&$message)
+    {
+        global $mbus;
+
+        if (empty($message) ||
+            get_class($message) != 'Thallium\Models\MessageModel'
+        ) {
+            $this->raiseError(__METHOD__ .', requires a MessageModel reference as parameter!');
+            return false;
+        }
+
+        if (!$message->hasBody() || !($body = $message->getBody())) {
+            $this->raiseError(get_class($message) .'::getBody() returned false!');
+            return false;
+        }
+
+        if (!is_string($body)) {
+            $this->raiseError(get_class($message) .'::getBody() has not returned a string!');
+            return false;
+        }
+
+        if (!($sessionid = $message->getSessionId())) {
+            $this->raiseError(get_class($message) .'::getSessionId() returned false!');
+            return false;
+        }
+
+        if (!is_string($sessionid)) {
+            $this->raiseError(get_class($message) .'::getSessionId() has not returned a string!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('archive-reply', 'Preparing', '10%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        if (!($archive_request = unserialize($body))) {
+            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
+            return false;
+        }
+
+        if (!is_object($archive_request)) {
+            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            return false;
+        }
+
+        if (!isset($archive_request->id) || empty($archive_request->id) ||
+            !isset($archive_request->guid) || empty($archive_request->guid)
+        ) {
+            $this->raiseError(__METHOD__ .', archive-request is incomplete!');
+            return false;
+        }
+
+        if ($archive_request->id != 'all' &&
+            !$this->isValidId($archive_request->id)
+        ) {
+            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            return false;
+        }
+
+        if ($archive_request->guid != 'all' &&
+            !$this->isValidGuidSyntax($archive_request->guid)
+        ) {
+            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            return false;
+        }
+
+        try {
+            $queue = new \Mtlda\Controllers\QueueController;
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load QueueController!");
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('archive-reply', 'Loading document', '20%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        if ($archive_request->id == 'all' && $archive_request->guid == 'all') {
+            if (!$queue->archiveAll()) {
+                $this->raiseError(get_class($queue) .'::archiveAll() returned false!');
+                return false;
+            }
+            if (!$mbus->sendMessageToClient('archive-reply', 'Done', '100%')) {
+                $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+                return false;
+            }
+            return true;
+        }
+
+        if (!$queue->archive($archive_request->id, $archive_request->guid)) {
+            $this->raiseError(get_class($queue) .'::archive() returned false!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('archive-reply', 'Done', '100%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
