@@ -91,6 +91,11 @@ class ArchiveController extends DefaultController
             return false;
         }
 
+        if (!$mbus->sendMessageToClient('archive-reply', 'Moving document to archive store.', '30%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
         // create the target directory structure
         if (!$storage->createDirectoryStructure(dirname($fqfn_dst))) {
             $this->raiseError("StorageController::createDirectoryStructure() returned false!");
@@ -114,6 +119,11 @@ class ArchiveController extends DefaultController
             return false;
         }
 
+        if (!$mbus->sendMessageToClient('archive-reply', 'Saving document.', '40%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
         // safe DocumentModel to database, remove the file from archive again
         if (!$document->save()) {
             $this->raiseError("DocumentModel::save() returned false!");
@@ -132,6 +142,11 @@ class ArchiveController extends DefaultController
             return false;
         }
 
+        if (!$mbus->sendMessageToClient('archive-reply', 'Embeding seal icon into document.', '50%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
         if ($config->isEmbeddingMtldaIcon()) {
             if (!$this->embedMtldaIcon($document)) {
                 $this->raiseError("embedMtldaIcon() returned false!");
@@ -143,14 +158,19 @@ class ArchiveController extends DefaultController
             }
         }
 
-        $mbus->suppressOutboundMessaging(true);
         if ($config->isPdfIndexingEnabled()) {
+            if (!$mbus->sendMessageToClient('archive-reply', 'Indexing document content.', '60%')) {
+                $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+                return false;
+            }
+
+            $state = $mbus->suppressOutboundMessaging(true);
             if (!$this->indexDocument($document)) {
                 $this->raiseError('indexDocument() returned false!');
                 return false;
             }
+            $mbus->suppressOutboundMessaging($state);
         }
-        $mbus->suppressOutboundMessaging(false);
 
         // if no more actions are necessary, we are done
         if (!$config->isPdfSigningEnabled()) {
@@ -162,12 +182,17 @@ class ArchiveController extends DefaultController
             return true;
         }
 
-        $mbus->suppressOutboundMessaging(true);
+        if (!$mbus->sendMessageToClient('archive-reply', 'Signing documnt.', '80%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        $state = $mbus->suppressOutboundMessaging(true);
         if (!$this->sign($document)) {
             $this->raiseError(__CLASS__ ."::sign() returned false!");
             return false;
         }
-        $mbus->suppressOutboundMessaging(false);
+        $mbus->suppressOutboundMessaging($state);
 
         return true;
     }
