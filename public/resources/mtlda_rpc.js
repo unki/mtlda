@@ -15,61 +15,115 @@
  * GNU Affero General Public License for more details.
  */
 
-function rpc_object_archive(element, obj_id, state)
+function rpc_object_archive(element)
 {
-    if (obj_id == undefined || obj_id == '') {
-        alert('parameter "obj_id" is invalid!');
-        return;
+    if (!(element instanceof jQuery) ) {
+        throw "element is not a jQuery object!";
+        return false;
     }
 
-    $.ajax({
-        type: 'POST',
-        url: 'rpc.html',
-        data: ({
-            type : 'rpc',
-            action : 'archive',
-            id : obj_id
-        }),
-        beforeSend: function () {
-            // change row color to red
-            if (!obj_id.match(/-all$/)) {
-                element.parent().parent().animate({backgroundColor: '#fbc7c7' }, 'fast');
-            } else {
-                $('tr.queueitem').animate({backgroundColor: '#fbc7c7' }, 'fast');
-            }
-            return;
-            if (state) {
-                state.text('Processing');
-            }
-        },
-        error: function (XMLHttpRequest, textStatus, errorThrown) {
-            alert('Failed to contact server! ' + textStatus);
-            if (state) {
-                state.text('Failure');
-            }
-        },
-        success: function (data) {
-            if (data == 'ok') {
-                if (state) {
-                    state.text('Done');
-                }
-                if (!obj_id.match(/-all$/)) {
-                    element.parent().parent().animate({ opacity: 'hide' }, 'fast');
-                } else {
-                    $('tr.queueitem').animate({ opacity: 'hide' }, 'fast');
-                }
-                return;
-            }
-            // change row color back to white
-            if (!obj_id.match(/-all$/)) {
-                element.parent().parent().animate({backgroundColor: '#ffffff' }, 'fast');
-            } else {
-                $('tr.queueitem').animate({backgroundColor: '#ffffff' }, 'fast');
-            }
-            alert('Server returned: ' + data + ', length ' + data.length);
-            return;
+    if (!(id = element.attr('data-id'))) {
+        alert('no attribute "data-id" found!');
+        return false;
+    }
+
+    if (!(guid = element.attr('data-guid'))) {
+        alert('no attribute "data-guid" found!');
+        return false;
+    }
+
+    if (!(model = element.attr('data-model'))) {
+        alert('no attribute "data-model" found!');
+        return false;
+    }
+
+    if (!(title = element.attr('title'))) {
+        alert('no attribute "title" found!');
+        return false;
+    }
+
+    wnd = show_modal({
+        blurring : true,
+        closeable : false,
+        header : title,
+        icon : 'wait icon',
+        hasActions : false,
+        content : 'Please wait a moment.',
+        onShow : rpc_fetch_jobstatus()
+    }, function () {}, '.ui.archive.modal');
+
+    progressbar = $('.ui.modal .image.content .description #progressbar');
+
+    if (!progressbar) {
+        throw 'Can not find the progress bar in the modal window!';
+        return false;
+    }
+
+    var msg_body = new Object;
+    msg_body.id = safe_string(id);
+    msg_body.guid = safe_string(guid);
+    msg_body.model = safe_string(model);
+
+    var msg = new MtldaMessage;
+    msg.setCommand('archive-request');
+    msg.setMessage(msg_body);
+
+    if (!mbus.add(msg)) {
+        throw 'MtldaMessageBus.add() returned false!';
+        return false;
+    }
+
+    mbus.subscribe('archive-replies-handler', 'archive-reply', function (reply) {
+        if (!reply) {
+            throw 'reply is empty!';
+            return false;
         }
-    });
+        if (!wnd) {
+            throw 'Have no reference to the modal window!';
+            return false;
+        }
+        if (!progressbar) {
+            throw 'Have no reference to the progressbar!';
+            return false;
+        }
+
+        var newData = new Object;
+
+        if (reply.value && (value = reply.value.match(/([0-9]+)%$/))) {
+            newData.percent = value[1];
+        }
+        if (reply.body) {
+            newData.text = {
+                active : reply.body,
+                success: reply.body
+            };
+        }
+        if (!progressbar.hasClass('active')) {
+            progressbar.addClass('active');
+        }
+
+        progressbar.progress(newData);
+        wnd.modal('refresh');
+
+        if (reply.value != '100%') {
+            return true;
+        }
+
+        progressbar.removeClass('active').addClass('success');
+
+        setTimeout(function () {
+            wnd.modal('hide');
+            mbus.unsubscribe('archive-replies-handler');
+            location.reload();
+        }, 1000);
+        return true;
+
+    }.bind(this));
+
+    if (!mbus.send()) {
+        throw 'MtldaMessageBus.send() returned false!';
+        return false;
+    }
 
     return true;
 
@@ -472,7 +526,7 @@ function rpc_mail_import(element)
         onShow : rpc_fetch_jobstatus()
     }, function () {}, '.ui.import.modal');
 
-    progressbar = $('.ui.import.modal .image.content .description #importprogress');
+    progressbar = $('.ui.import.modal .image.content .description #progressbar');
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
