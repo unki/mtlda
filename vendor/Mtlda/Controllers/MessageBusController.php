@@ -21,6 +21,12 @@ namespace Mtlda\Controllers;
 
 class MessageBusController extends \Thallium\Controllers\MessageBusController
 {
+    public function suppressOutboundMessaging($state)
+    {
+        $previous = $this->suppressOutboundMessaging;
+        parent::suppressOutboundMessaging($state);
+        return $previous;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
