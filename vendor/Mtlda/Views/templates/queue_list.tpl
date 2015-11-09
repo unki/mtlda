@@ -44,7 +44,7 @@
  </thead>
  <tbody>
 {queue_list}
- <tr class="queueitem">
+ <tr class="queue item">
   <td><a href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getId()}</a></td>
   <td>
    <a name="filename_{$item->getId()}" class="inline editable content" data-orig-value="{$item->getFileName()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getFileName()}</a>
@@ -66,10 +66,10 @@
    </div>
   </td>
   <td>{$item->getFileSize()}</td>
-  <td class="state" id="queueitem-{$item_safe_link}">{$item->getState()}</td>
+  <td class="archive state" id="archive-state-{$item->getId()}">{$item->getState()}</td>
   <td>{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
   <td><a class="preview" title="archive" id="queueitem-{$item_safe_link}"><i class="search icon"></i>Preview</a></td>
-  <td><a class="archive" title="archive" id="queueitem-{$item_safe_link}"><i class="archive icon"></i>Archive</a></td>
+  <td><a class="archive item" title="Archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a></td>
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}"><i class="edit icon"></i>Edit</a></td>
   <td><a class="delete item" title="Delete {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
@@ -79,7 +79,7 @@
   <tr>
    <th colspan="9">
     <div class="ui left floated">
-     <a class="archive" title="archive" id="queueitem-all">Archive all</a>,&nbsp;
+     <a class="archive item" title="Archive all items" data-id="all" data-guid="all" data-model="queue">Archive all</a>,&nbsp;
      <a class="delete item" title="Flush Queue" data-modal-text="Do you really want to delete all items from queue?" data-id="flush" data-guid="flush" data-model="queue">Flush queue</a>
     </div>
 {if isset($pager)}
