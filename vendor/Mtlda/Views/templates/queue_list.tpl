@@ -116,7 +116,7 @@ $(document).ready(function() {
 });
 
 --></script>
-<div class="ui import modal">
+<div class="ui import archive modal">
  <i class="close icon"></i>
  <div class="header">header</div>
  <div class="image content">
@@ -125,7 +125,7 @@ $(document).ready(function() {
   </div>
   <div class="description" style="width: 100%;">
    <p style="display: none">description</p>
-   <div class="ui indicating progress active" id="importprogress">
+   <div class="ui indicating progress active" id="progressbar">
     <div class="bar">
      <div class="progress">0%</div>
     </div>
