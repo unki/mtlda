@@ -1,5 +1,4 @@
 <?php
-
 /**
  * A wrapper to work with TesseractOCR inside PHP
  *
@@ -21,7 +20,6 @@
  * @license  http://opensource.org/licenses/MIT MIT
  * @link     https://github.com/thiagoalessio/tesseract-ocr-for-php
  */
-
 class TesseractOCR
 {
     /**
@@ -222,6 +220,7 @@ class TesseractOCR
         if ($this->configFile) {
             $command.= " nobatch {$this->configFile}";
         }
+        $command.= '> /dev/null 2>&1';
 
         return $command;
     }
@@ -234,6 +233,9 @@ class TesseractOCR
     protected function readOutputFile()
     {
         $this->outputFile.= '.txt'; //automatically appended by tesseract
+        if (!file_exists($this->outputFile)) {
+           throw new Exception("{$this->outputFile} does not exist! Probably Tesseract was unsuccessful.");
+        }
         return trim(file_get_contents($this->outputFile));
     }
 
@@ -247,6 +249,8 @@ class TesseractOCR
         if ($this->configFile) {
             unlink($this->configFile);
         }
-        unlink($this->outputFile);
+        if (file_exists($this->outputFile)) {
+            unlink($this->outputFile);
+        }
     }
 }
