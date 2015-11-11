@@ -38,7 +38,7 @@ class ImportController extends DefaultController
             try {
                 $imagectrl = new \Mtlda\Controllers\ImageController;
             } catch (\Exception $e) {
-                $this->raiseError("Unable to load ImageController");
+                $this->raiseError(__METHOD__ .'(), unable to load ImageController!');
                 return false;
             }
         }
@@ -46,14 +46,14 @@ class ImportController extends DefaultController
         if ($config->isPdfSigningEnabled() &&
             (($sign_pos = $config->getPdfSigningIconPosition()) === false)
         ) {
-            $this->raiseError("PDF-Signing is enabled but no signing-icon-position found!");
+            $this->raiseError(__METHOD__ .'(), PDF-Signing is enabled but no signing-icon-position is defined!');
             return false;
         }
 
         try {
             $storage = new StorageController;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load StorageController!");
+            $this->raiseError(__METHOD__ .', failed to load StorageController!');
             return false;
         }
 
@@ -70,14 +70,14 @@ class ImportController extends DefaultController
 
         foreach ($files as $file) {
             if (!($guid = $mtlda->createGuid())) {
-                $this->raiseError(__METHOD__ ." no valid GUID returned by createGuid()!");
+                $this->raiseError(get_class($mtlda) .'::createGuid() returned false!');
                 return false;
             }
 
             try {
                 $queueitem = new \Mtlda\Models\QueueItemModel;
             } catch (\Exception $e) {
-                $this->raiseError("Unable to load QueueItemModel");
+                $this->raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
                 return false;
             }
 
@@ -106,7 +106,7 @@ class ImportController extends DefaultController
             }
 
             if (!$work_file = $queueitem->getFilePath()) {
-                $this->raiseError("QueueItem::getFilePath() returned false!");
+                $this->raiseError(get_class($queueitem) .'::getFilePath() returned false!');
                 return false;
             }
 
@@ -125,25 +125,25 @@ class ImportController extends DefaultController
 
             // create the target directory structure
             if (!$storage->createDirectoryStructure(dirname($work_file))) {
-                $this->raiseError("StorageController::createDirectoryStructure() returned false!");
+                $this->raiseError(get_class($storage) .'::createDirectoryStructure() returned false!');
                 return false;
             }
 
             if (copy($in_file, $work_file) === false) {
-                $this->raiseError("copy({$in_file}, {$work_file}) returned false!");
+                $this->raiseError(__METHOD__ ."(), copy({$in_file}, {$work_file}) returned false!");
                 return false;
             }
 
             if (!$queueitem->save()) {
                 $queueitem->delete();
-                $this->raiseError("Saving QueueItemModel failed!");
+                $this->raiseError(get_class($queueitem) .'::save() returned false!');
                 return false;
             }
 
-            /*if (!unlink($in_file)) {
-                $this->raiseError("Failed to remove {$in_file}!");
+            if (!unlink($in_file)) {
+                $this->raiseError(__METHOD__ ."(), unlink({$in_file}) failed!");
                 return false;
-            }*/
+            }
 
             if (!$this->unlinkDirectory($in_dir)) {
                 $this->raiseError(__CLASS__ .'::unlinkDirectory() returned false!');
@@ -161,7 +161,7 @@ class ImportController extends DefaultController
 
             if (!$json_str) {
                 $queueitem->delete();
-                $this->raiseError("json_encode() returned false!");
+                $this->raiseError(__METHOD__ .'(), json_encode() returned false!');
                 return false;
             }
 
@@ -174,13 +174,13 @@ class ImportController extends DefaultController
                 );
             } catch (\Exception $e) {
                 $queueitem->delete();
-                $this->raiseError("AuditController:log() returned false!");
+                $this->raiseError(get_class($audit) .'::log() returned false!');
                 return false;
             }
 
             if ($config->isCreatePreviewImageOnImport()) {
                 if (!$imagectrl->createPreviewImage($queueitem, false)) {
-                    $this->raiseError("ImageController::savePreviewImage() returned false");
+                    $this->raiseError(get_class($imagectrl) .'::savePreviewImage() returned false!');
                     return false;
                 }
             }
@@ -194,7 +194,7 @@ class ImportController extends DefaultController
         global $mtlda, $audit;
 
         if (($dir = opendir($path)) === false) {
-            $this->raiseError("Failed to access ". $this::INCOMING_DIRECTORY);
+            $this->raiseError(__METHOD__ .'(), failed to access '. $this::INCOMING_DIRECTORY);
             return false;
         }
 
@@ -227,17 +227,17 @@ class ImportController extends DefaultController
             }
 
             if (!file_exists($file['fqpn'])) {
-                $this->raiseError("File {$file['fqpn']} does not exist!");
+                $this->raiseError(__METHOD__ ."(), file {$file['fqpn']} does not exist!");
                 return false;
             }
 
             if (!is_file($file['fqpn'])) {
-                $this->raiseError("{$file['fqpn']} is not a file!");
+                $this->raiseError(__METHOD__ ."(), {$file['fqpn']} is not a file!");
                 return false;
             }
 
             if (!is_readable($file['fqpn'])) {
-                $this->raiseError("{$file['fqpn']} is not readable!");
+                $this->raiseError(__METHOD__ ."(), {$file['fqpn']} is not readable!");
                 return false;
             }
 
@@ -248,19 +248,19 @@ class ImportController extends DefaultController
                     "queue"
                 );
             } catch (\Exception $e) {
-                $this->raiseError("AuditController::log() raised an exception!");
+                $this->raiseError(get_class($audit) .'::log() raised an exception!');
                 return false;
             }
 
             if (($file['hash'] = sha1_file($file['fqpn'])) === false) {
-                $this->raiseError("SHA1 value of {$file['fqpn']} can not be calculated!");
+                $this->raiseError(__METHOD__ ."(), SHA1 value of {$file['fqpn']} can not be calculated!");
                 return false;
             }
 
             clearstatcache(true, $file['fqpn']);
 
             if (($file['size'] = filesize($file['fqpn'])) === false) {
-                $this->raiseError("Filesize of {$file['fqpn']} is not available!");
+                $this->raiseError(__METHOD__ ."(), filesize of {$file['fqpn']} is not available!");
                 return false;
             }
 
@@ -275,12 +275,12 @@ class ImportController extends DefaultController
         global $mtlda;
 
         if (!file_exists($this::INCOMING_DIRECTORY)) {
-            $this->raiseError($this::INCOMING_DIRECTORY ." does not exist!");
+            $this->raiseError(__METHOD__ .'(), '. $this::INCOMING_DIRECTORY .' does not exist!');
             return false;
         }
 
         if (!is_dir($this::INCOMING_DIRECTORY)) {
-            $this->raiseError($this::INCOMING_DIRECTORY ." is not a directory!");
+            $this->raiseError(__METHOD__ .'(), '. $this::INCOMING_DIRECTORY .' is not a directory!');
             return false;
         }
 
@@ -296,8 +296,13 @@ class ImportController extends DefaultController
     {
         global $mtlda;
 
+        if (!file_exists($dir)) {
+            $this->raiseError(__METHOD__ ."(), directory {$dir} does not exist!");
+            return false;
+        }
+
         if (($files = scandir($dir)) === false) {
-            $this->raiseError("scandir on {$dir} returned false!");
+            $this->raiseError(__METHOD__ ."(), scandir() on {$dir} returned false!");
             return false;
         }
 
@@ -306,12 +311,12 @@ class ImportController extends DefaultController
 
         foreach ($files as $file) {
             if (($fqfn = realpath($dir .'/'. $file)) === false) {
-                $this->raiseError("realpath() on ". $dir .'/'. $file ." returned false!");
+                $this->raiseError(__METHOD__ ."(), realpath() on {$dir}/{$file} returned false!");
                 return false;
             }
 
             if (!$this->isBelowIncomingDirectory(dirname($fqfn))) {
-                $this->raiseError("will only handle requested within ". $this::INCOMING_DIRECTORY ."!");
+                $this->raiseError(__METHOD__ .'(), will only handle requested within '. $this::INCOMING_DIRECTORY .'!');
                 return false;
             }
 
@@ -322,13 +327,13 @@ class ImportController extends DefaultController
             }
 
             if (!unlink($fqfn)) {
-                $this->raiseError("unlink() on {$fqfn} returned false!");
+                $this->raiseError(__METHOD__ ."(), unlink({$fqfn}) returned false!");
                 return false;
             }
         }
 
         if (!rmdir($dir)) {
-            $this->raiseError("rmdir() on {$dir} returned false!");
+            $this->raiseError(__METHOD__ ."(), rmdir({$dir}) returned false!");
             return false;
         }
 
@@ -339,8 +344,8 @@ class ImportController extends DefaultController
     {
         global $mtlda;
 
-        if (empty($dir)) {
-            $this->raiseError("\$dir can not be empty!");
+        if (!isset($dir) || empty($dir) || !is_string($dir)) {
+            $this->raiseError(__METHOD__ .'(), $dir parameter needs to be set!');
             return false;
         }
 
