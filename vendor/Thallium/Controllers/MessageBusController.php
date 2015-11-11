@@ -38,6 +38,15 @@ class MessageBusController extends DefaultController
             return false;
         }
 
+        // Define the JSON errors.
+        $constants = get_defined_constants(true);
+        $this->json_errors = array();
+        foreach ($constants["json"] as $name => $value) {
+            if (!strncmp($name, "JSON_ERROR_", 11)) {
+                $this->json_errors[$value] = $name;
+            }
+        }
+
         return true;
     }
 
@@ -60,8 +69,8 @@ class MessageBusController extends DefaultController
             return false;
         }
 
-        if (!($json = json_decode($messages_raw))) {
-            $this->raiseError('json_decode() returned false!');
+        if (($json = json_decode($messages_raw, false, 2)) === null) {
+            $this->raiseError(__METHOD__ .'(), json_decode() returned false! '. $this->json_errors[json_last_error()]);
             return false;
         }
 
@@ -88,8 +97,8 @@ class MessageBusController extends DefaultController
             return false;
         }
 
-        if (!($messages = json_decode($json->json))) {
-            $this->raiseError('json_decode() returned false!');
+        if (($messages = json_decode($json->json, false, 10)) === null) {
+            $this->raiseError(__METHOD__ .'(), json_decode() returned false! '. $this->json_errors[json_last_error()]);
             return false;
         }
 
@@ -124,14 +133,8 @@ class MessageBusController extends DefaultController
             $mbmsg->setProcessingFlag(false);
 
             if (isset($message->message) && !empty($message->message)) {
-                if (is_object($message->message) || is_array($message->message)) {
-                    $msgbody = serialize($message->message);
-                } else {
-                    $msgbody = $message->message;
-                }
-
-                if (!$mbmsg->setMessage($msgbody)) {
-                    $this->raiseError(get_class($mbmsg) .'::setMessage() returned false!');
+                if (!$mbmsg->setBody($message->message)) {
+                    $this->raiseError(get_class($mbmsg) .'::setBody() returned false!');
                     return false;
                 }
             }
