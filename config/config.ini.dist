@@ -66,6 +66,12 @@ http_upload = 1
 mail_import = 0
 
 ;
+; show "Check Incoming Directory" link
+;  0 = disabled, 1 = enabled
+;
+user_triggers_import = 1
+
+;
 ; PDF Indexing, 0 = disabled, 1 = enabled
 ;
 pdf_indexing = 1
