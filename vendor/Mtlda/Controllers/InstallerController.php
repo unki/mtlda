@@ -67,6 +67,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `queue_signing_icon_position` int(11) DEFAULT NULL,
                 `queue_state` varchar(255) DEFAULT NULL,
                 `queue_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+                `queue_in_processing` varchar(1) DEFAULT NULL,
                 PRIMARY KEY (`queue_idx`),
                 FULLTEXT KEY `text` (`queue_description`)
                     )
@@ -786,6 +787,33 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         }
 
         $db->setDatabaseSchemaVersion(27);
+        return true;
+    }
+
+    protected function upgradeApplicationDatabaseSchemaV28()
+    {
+        global $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXqueue', 'queue_in_processing')) {
+            $db->setDatabaseSchemaVersion(28);
+            return true;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXqueue
+            ADD COLUMN
+                `queue_in_processing` varchar(1) DEFAULT NULL
+            AFTER
+                queue_time"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(28);
         return true;
     }
 }
