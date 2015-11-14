@@ -397,13 +397,33 @@ function archive_object(element)
 
     id = safe_string(id);
 
-    if (id != 'all') {
+    if (id == 'all') {
+        $('td.archive.state').text('processing');
+    } else if (id == 'selected') {
+        id = new Array;
+        $('.checkbox.item.select[name!="select_all"]').each(function () {
+            if (!($(this).checkbox('is checked'))) {
+                return true;
+            }
+            item = $(this).attr('name')
+            if (!item || item == '') {
+                return false;
+            }
+            item = item.match(/^select_(\d+)$/);
+            if (!item || !item[1] || item[1] == '') {
+                return false;
+            }
+            item_id = item[1];
+            id.push(item_id);
+        });
+        id.forEach(function (value) {
+            $('#archive-state-'+value).text('processing');
+        });
+    } else {
         var state = $("#archive-state-"+id);
         if (state && state.text() == 'new') {
             state.text('processing');
         }
-    } else {
-        $('td.archive.state').text('processing');
     }
 
     var title = element.attr("title");
@@ -416,12 +436,21 @@ function archive_object(element)
     var text = element.attr("data-modal-text");
 
     if (text == undefined || text === "") {
-        if (!id.match(/-all$/)) {
+        if (id instanceof String && !id.match(/-all$/)) {
             text = "Do you really want to archive this item?";
         } else {
             text = "Do you really want to archive all items?";
 
         }
+    }
+
+    elements = new Array;
+    if (id instanceof Array) {
+        id.forEach(function (value) {
+            elements.push($('#archive_link_'+value));
+        });
+    } else {
+        elements.push(element);
     }
 
     // for all objects
@@ -432,14 +461,20 @@ function archive_object(element)
         icon : 'red archive icon',
         onDeny : function () {
             if (id != 'all') {
-                state.text('new');
+                if (id instanceof Array) {
+                    id.forEach(function (value) {
+                        $('#archive-state-'+value).text('new');
+                    });
+                } else {
+                    state.text('new');
+                }
             } else {
                 $('td.archive.state').text('new');
             }
             return true;
         },
         onApprove : function () {
-            return rpc_object_archive(element);
+            return rpc_object_archive(elements);
         }
     });
 
