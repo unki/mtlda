@@ -33,6 +33,7 @@ class QueueItemModel extends DefaultModel
             'queue_signing_icon_position' => 'integer',
             'queue_state' => 'string',
             'queue_time' => 'timestamp',
+            'queue_in_processing' => 'string',
             );
     public $avail_items = array();
     public $items = array();
@@ -415,6 +416,39 @@ class QueueItemModel extends DefaultModel
         }
 
         return $this->queue_time;
+    }
+
+    public function setProcessingFlag($value = true)
+    {
+        if (!$value) {
+            $this->queue_in_processing = 'N';
+            return true;
+        }
+
+        $this->queue_in_processing = 'Y';
+        return true;
+    }
+
+    public function getProcessingFlag()
+    {
+        if (!isset($this->queue_in_processing)) {
+            return 'N';
+        }
+
+        return $this->queue_in_processing;
+    }
+
+    public function isProcessing()
+    {
+        if (!isset($this->getProcessingFlag)) {
+            return false;
+        }
+
+        if ($this->queue_in_processing != 'Y') {
+            return false;
+        }
+
+        return true;
     }
 }
 
