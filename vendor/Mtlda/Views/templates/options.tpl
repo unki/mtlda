@@ -26,7 +26,7 @@ $(document).ready(function() {
          closeable : false,
          header : 'Truncate Data',
          icon : 'warning icon',
-         description : 'This will delete all data and settings from database!<br />\nAlso  all archived files in their derivates will be removed!<br /><br />\n\nAre you sure? There is NO undo!',
+         content : 'This will delete all data and settings from database!<br />\nAlso all archived files in their derivates will be removed!<br /><br />\n\nAre you sure? There is NO undo!',
          onDeny : function() {
             return true;
          },
