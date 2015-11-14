@@ -45,39 +45,39 @@ class OptionsView extends DefaultView
 
     private function truncate()
     {
-        global $mtlda, $db;
+        global $db;
 
         if (!$db->truncateDatabaseTables()) {
-            $mtlda->raiseError("DatabaseController::truncateDatabaseTables() returned false!");
+            $this->raiseError(get_class($db) .'::truncateDatabaseTables() returned false!');
             return false;
         }
 
         try {
             $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load StorageController!");
+            $this->raiseError(__METHOD__ .'(), failed to load StorageController!');
             return false;
         }
 
         if (!$storage->flushArchive()) {
-            $mtlda->raiseError("StorageController::flushArchive() returned false!");
+            $this->raiseError(get_class($storage) .'::flushArchive() returned false!');
             return false;
         }
 
         if (!$storage->flushQueue()) {
-            $mtlda->raiseError("StorageController::flushQueue() returned false!");
+            $this->raiseError(get_class($storage) .'::flushQueue() returned false!');
             return false;
         }
 
         try {
-            $import = new \Mtlda\Controllers\ImportController;
+            $queue = new \Mtlda\Models\QueueModel;
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load ImportController!");
+            $this->raiseError(__METHOD__ .'(), failed to load QueueModel!');
             return false;
         }
 
-        if (!$import->flush()) {
-            $mtlda->raiseError("ImportController::flush() returned false!");
+        if (!$queue->flush()) {
+            $this->raiseError(get_class($queue) .'::flush() returned false!');
             return false;
         }
 
