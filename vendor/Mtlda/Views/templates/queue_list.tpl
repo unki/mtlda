@@ -94,7 +94,7 @@
      <a class="ui segment archive item" title="Archive selected items" data-id="selected" data-guid="selected" data-model="queue"><i class="archive icon"></i>Archive selected</a>
      <a class="ui segment delete item" title="Delete selected items" data-modal-text="Dou you really want to delete all selected items from queue?" data-id="selected" data-guid="selected" data-model="queue"><i class="remove circle icon"></i>Delete selected</a>
      <a class="ui segment archive item" title="Archive all items" data-id="all" data-guid="all" data-model="queue"><i class="archive icon"></i>Archive all</a>
-     <a class="ui segment delete item" title="Flush Queue" data-modal-text="Do you really want to delete all items from queue?" data-id="flush" data-guid="flush" data-model="queue"><i class="remove circle icon"></i>Flush queue</a>
+     <a class="ui segment delete item" title="Delete all" data-modal-text="Do you really want to delete all items from queue?" data-id="all" data-guid="all" data-model="queue"><i class="remove circle icon"></i>Delete all</a>
     </div>
 {if isset($pager)}
 {include file='pager.tpl' pager=$pager view=queue}
@@ -157,7 +157,7 @@ $(document).ready(function() {
 });
 
 --></script>
-<div class="ui import archive modal">
+<div class="ui import archive delete modal">
  <i class="close icon"></i>
  <div class="header">header</div>
  <div class="image content">
