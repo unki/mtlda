@@ -468,64 +468,136 @@ function rpc_fetch_jobstatus()
     }
 }
 
-function rpc_object_delete(element)
+function rpc_object_delete(elements)
 {
-    if (!(element instanceof jQuery) ) {
-        throw "element is not a jQuery object!";
+    if (!(elements instanceof Array)) {
+        throw 'elements is not an Array!';
         return false;
     }
 
-    if (!(id = element.attr('data-id'))) {
-        alert('no attribute "data-id" found!');
+    ids = new Array;
+    guids = new Array;
+    models = new Array;
+    titles = new Array;
+
+    elements.forEach(function (element) {
+        if (!(element instanceof jQuery) ) {
+            throw "element is not a jQuery object!";
+            return false;
+        }
+
+        if (!(id = element.attr('data-id'))) {
+            alert('no attribute "data-id" found!');
+            return false;
+        }
+
+        ids.push(id);
+
+        if (!(guid = element.attr('data-guid'))) {
+            alert('no attribute "data-guid" found!');
+            return false;
+        }
+
+        guids[id] = guid;
+
+        if (!(model = element.attr('data-model'))) {
+            alert('no attribute "data-model" found!');
+            return false;
+        }
+
+        models[id] = model;
+
+        if (!(title = element.attr('title'))) {
+            alert('no attribute "title" found!');
+            return false;
+        }
+
+        title[id] = title;
+    });
+
+    wnd = show_modal({
+        blurring : true,
+        closeable : false,
+        header : title,
+        icon : 'remove icon',
+        hasActions : false,
+        content : 'Please wait a moment.',
+        onShow : rpc_fetch_jobstatus()
+    }, function () {}, '.ui.delete.modal');
+
+    progressbar = $('.ui.modal .image.content .description #progressbar');
+
+    if (!progressbar) {
+        throw 'Can not find the progress bar in the modal window!';
         return false;
     }
 
-    if (!(guid = element.attr('data-guid'))) {
-        alert('no attribute "data-guid" found!');
-        return false;
-    }
+    ids.forEach(function (id) {
+        msg_body = new Object;
+        msg_body.id = safe_string(id);
+        msg_body.guid = safe_string(guids[id]);
+        msg_body.model = safe_string(models[id]);
 
-    if (!(model = element.attr('data-model'))) {
-        alert('no attribute "data-model" found!');
-        return false;
-    }
-
-    id = safe_string(id);
-    guid = safe_string(guid);
-    model = safe_string(model);
-
-    if (
-        window.location.pathname != undefined &&
-        window.location.pathname != '' &&
-        !window.location.pathname.match(/\/$/)
-    ) {
-        url = window.location.pathname;
-    } else {
-        url = 'rpc.html';
-    }
-
-    $.ajax({
-        type: 'POST',
-        url: url,
-        data: ({
-            type   : 'rpc',
-            action : 'delete',
-            id     : id,
-            guid   : guid,
-            model  : model
-        }),
-        error: function (XMLHttpRequest, textStatus, errorThrown) {
-            alert('Failed to contact server! ' + textStatus);
-        },
-        success: function (data) {
-            if (data != 'ok') {
-                alert('Server returned: ' + data + ', length ' + data.length);
-                return;
-            }
-            location.reload();
-            return;
+        var msg = new MtldaMessage;
+        msg.setCommand('delete-request');
+        msg.setMessage(msg_body);
+        if (!mbus.add(msg)) {
+            throw 'MtldaMessageBus.add() returned false!';
+            return false;
         }
     });
+
+    mbus.subscribe('delete-replies-handler', 'delete-reply', function (reply) {
+        if (!reply) {
+            throw 'reply is empty!';
+            return false;
+        }
+        if (!wnd) {
+            throw 'Have no reference to the modal window!';
+            return false;
+        }
+        if (!progressbar) {
+            throw 'Have no reference to the progressbar!';
+            return false;
+        }
+
+        var newData = new Object;
+
+        if (reply.value && (value = reply.value.match(/([0-9]+)%$/))) {
+            newData.percent = value[1];
+        }
+        if (reply.body) {
+            newData.text = {
+                active : reply.body,
+                success: reply.body
+            };
+        }
+        if (!progressbar.hasClass('active')) {
+            progressbar.addClass('active');
+        }
+
+        progressbar.progress(newData);
+        wnd.modal('refresh');
+
+        if (reply.value != '100%') {
+            return true;
+        }
+
+        progressbar.removeClass('active').addClass('success');
+
+        setTimeout(function () {
+            wnd.modal('hide');
+            mbus.unsubscribe('delete-replies-handler');
+            location.reload();
+        }, 1000);
+        return true;
+
+    }.bind(this));
+
+    if (!mbus.send()) {
+        throw 'MtldaMessageBus.send() returned false!';
+        return false;
+    }
 
     return true;
 }
