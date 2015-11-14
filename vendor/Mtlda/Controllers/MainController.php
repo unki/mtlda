@@ -542,7 +542,7 @@ class MainController extends \Thallium\Controllers\MainController
             return false;
         }
 
-        if (!($archive_request = unserialize($body))) {
+        if (($archive_request = unserialize($body)) === null) {
             $this->raiseError(__METHOD__ .', unable to unserialize message body!');
             return false;
         }
