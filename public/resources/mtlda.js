@@ -356,30 +356,71 @@ function safe_string(input)
 
 function delete_object(element)
 {
-    var del_title = element.attr("title");
+    var id = element.attr("data-id");
 
-    if (del_title == undefined || del_title === "") {
+    if (id == undefined || id == "") {
+        alert('no attribute "data-id" found!');
+        return;
+    }
+
+    id = safe_string(id);
+
+    if (id == 'selected') {
+        id = new Array;
+        $('.checkbox.item.select[name!="select_all"]').each(function () {
+            if (!($(this).checkbox('is checked'))) {
+                return true;
+            }
+            item = $(this).attr('name')
+            if (!item || item == '') {
+                return false;
+            }
+            item = item.match(/^select_(\d+)$/);
+            if (!item || !item[1] || item[1] == '') {
+                return false;
+            }
+            item_id = item[1];
+            id.push(item_id);
+        });
+    }
+
+    var title = element.attr("title");
+
+    if (title == undefined || title === "") {
         throw 'No attribute "title" found!';
         return false;
     }
 
-    var del_text = element.attr("data-modal-text");
+    var text = element.attr("data-modal-text");
 
-    if (del_text == undefined || del_text === "") {
-        del_text = "Do you really want to delete this item?";
+    if (text == undefined || text === "") {
+        if (id instanceof String && !id.match(/-all$/)) {
+            text = "Do you really want to archive this item?";
+        } else {
+            text = "Do you really want to archive all items?";
+
+        }
     }
 
-    // for all objects
+    elements = new Array;
+    if (id instanceof Array) {
+        id.forEach(function (value) {
+            elements.push($('#archive_link_'+value));
+        });
+    } else {
+        elements.push(element);
+    }
+
     show_modal({
         closeable : false,
-        header : del_title,
+        header : title,
         icon : 'red remove icon',
-        content : del_text,
+        content : text,
         onDeny : function () {
             return true;
         },
         onApprove : function () {
-            return rpc_object_delete(element);
+            return rpc_object_delete(elements);
         }
     });
 
