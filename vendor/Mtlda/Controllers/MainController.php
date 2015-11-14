@@ -200,6 +200,13 @@ class MainController extends \Thallium\Controllers\MainController
                     return false;
                 }
                 break;
+
+            case 'delete-request':
+                if (!$this->handleDeleteRequest($message)) {
+                    $this->raiseError(__CLASS__ .'::handleDeleteRequest() returned false!');
+                    return false;
+                }
+                break;
         }
 
         if (!$jobs->deleteJob($job)) {
@@ -603,6 +610,138 @@ class MainController extends \Thallium\Controllers\MainController
         }
 
         if (!$mbus->sendMessageToClient('archive-reply', 'Done', '100%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    private function handleDeleteRequest(&$message)
+    {
+        global $mbus;
+
+        if (empty($message) ||
+            get_class($message) != 'Thallium\Models\MessageModel'
+        ) {
+            $this->raiseError(__METHOD__ .', requires a MessageModel reference as parameter!');
+            return false;
+        }
+
+        if (!$message->hasBody() || !($body = $message->getBody())) {
+            $this->raiseError(get_class($message) .'::getBody() returned false!');
+            return false;
+        }
+
+        if (!is_string($body)) {
+            $this->raiseError(get_class($message) .'::getBody() has not returned a string!');
+            return false;
+        }
+
+        if (!($sessionid = $message->getSessionId())) {
+            $this->raiseError(get_class($message) .'::getSessionId() returned false!');
+            return false;
+        }
+
+        if (!is_string($sessionid)) {
+            $this->raiseError(get_class($message) .'::getSessionId() has not returned a string!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('delete-reply', 'Preparing', '10%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        if (($delete_request = unserialize($body)) === null) {
+            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
+            return false;
+        }
+
+        if (!is_object($delete_request)) {
+            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            return false;
+        }
+
+        if (!isset($delete_request->id) || empty($delete_request->id) ||
+            !isset($delete_request->guid) || empty($delete_request->guid)
+        ) {
+            $this->raiseError(__METHOD__ .', delete-request is incomplete!');
+            return false;
+        }
+
+        if ($delete_request->id != 'all' &&
+            !$this->isValidId($delete_request->id)
+        ) {
+            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            return false;
+        }
+
+        if ($delete_request->guid != 'all' &&
+            !$this->isValidGuidSyntax($delete_request->guid)
+        ) {
+            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('delete-reply', 'Deleting document(s)', '20%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        if (!isset($delete_request->model) || empty($delete_request->model)) {
+            $this->raiseError(__METHOD__ .'(), delete-request does not contain model information!');
+            return false;
+        }
+
+        if ($delete_request->model == 'queue') {
+            $obj_name = '\Mtlda\Models\QueueModel';
+            $id = null;
+            $guid = null;
+        } elseif ($delete_request->model == 'queueitem') {
+            $obj_name = '\Mtlda\Models\QueueItemModel';
+            $id = $delete_request->id;
+            $guid = $delete_request->guid;
+        } else {
+            $this->raiseError(__METHOD__ .'(), delete-request contains an unsupported model!');
+            return false;
+        }
+
+        try {
+            $obj = new $obj_name($id, $guid);
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load QueueModel!');
+            return false;
+        }
+
+        if (!$obj->permitsRpcActions('delete')) {
+            $this->raiseError(__METHOD__ ."(), {$obj_name} does not permit 'delete' action!");
+            return false;
+        }
+
+        if ($delete_request->id == 'all' && $delete_request->guid == 'all') {
+            if (method_exists($obj, 'flush')) {
+                $rm_method = 'flush';
+            } else {
+                $rm_method = 'delete';
+            }
+            if (!$obj->$rm_method()) {
+                $this->raiseError(get_class($obj) ."::${rm_method}() returned false!");
+                return false;
+            }
+            if (!$mbus->sendMessageToClient('delete-reply', 'Done', '100%')) {
+                $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+                return false;
+            }
+            return true;
+        }
+
+        if (!$obj->delete()) {
+            $this->raiseError(get_class($obj) .'::delete() returned false!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('delete-reply', 'Done', '100%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
