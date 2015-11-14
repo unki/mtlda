@@ -33,6 +33,10 @@ abstract class DefaultView extends \Thallium\Views\DefaultView
             $tmpl->assign('mail_import_is_enabled', true);
         }
 
+        if ($config->isUserTriggersImportEnabled()) {
+            $tmpl->assign('user_triggers_import_enabled', true);
+        }
+
         parent::__construct();
         return true;
     }
