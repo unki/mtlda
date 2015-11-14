@@ -28,6 +28,9 @@
 {if isset($mail_import_is_enabled) }
    <a class="mail import"><i class="mail outline icon"></i>Mailimport</a>
 {/if}
+{if isset($user_triggers_import_enabled)}
+   <a class="trigger import"><i class="spy icon"></i>Check Incoming Directory</a>
+{/if}
   </div>
  </div>
 </div>
@@ -125,6 +128,10 @@ $(document).ready(function() {
 
     $("a.mail.import").click(function() {
         rpc_mail_import($(this));
+    });
+
+    $("a.trigger.import").click(function() {
+        trigger_import_run();
     });
 
     $(".item.select.checkbox")
