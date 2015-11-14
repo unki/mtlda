@@ -34,6 +34,12 @@
 <table class="ui celled table">
  <thead>
   <tr>
+   <th>
+    <div class="ui fitted checkbox item select" name="select_all">
+     <input type="checkbox">
+     <label></label>
+    </div>
+   </th>
    <th>Idx</th>
    <th>Filename</th>
    <th>Size</th>
@@ -45,6 +51,12 @@
  <tbody>
 {queue_list}
  <tr class="queue item">
+  <td>
+   <div class="ui fitted checkbox item select" name="select_{$item->getId()}">
+    <input type="checkbox">
+    <label></label>
+   </div>
+  </td>
   <td><a href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getId()}</a></td>
   <td>
    <a name="filename_{$item->getId()}" class="inline editable content" data-orig-value="{$item->getFileName()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getFileName()}</a>
@@ -69,7 +81,7 @@
   <td class="archive state" id="archive-state-{$item->getId()}">{$item->getState()}</td>
   <td>{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
   <td><a class="preview" title="archive" id="queueitem-{$item_safe_link}"><i class="search icon"></i>Preview</a></td>
-  <td><a class="archive item" title="Archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a></td>
+  <td><a class="archive item" id="archive_link_{$item->getId()}" title="Archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a></td>
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}"><i class="edit icon"></i>Edit</a></td>
   <td><a class="delete item" title="Delete {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
@@ -77,10 +89,12 @@
  </tbody>
  <tfoot>
   <tr>
-   <th colspan="9">
-    <div class="ui left floated">
-     <a class="archive item" title="Archive all items" data-id="all" data-guid="all" data-model="queue">Archive all</a>,&nbsp;
-     <a class="delete item" title="Flush Queue" data-modal-text="Do you really want to delete all items from queue?" data-id="flush" data-guid="flush" data-model="queue">Flush queue</a>
+   <th colspan="10">
+    <div class="ui left floated segment raised segments">
+     <a class="ui segment archive item" title="Archive selected items" data-id="selected" data-guid="selected" data-model="queue"><i class="archive icon"></i>Archive selected</a>
+     <a class="ui segment delete item" title="Delete selected items" data-modal-text="Dou you really want to delete all selected items from queue?" data-id="selected" data-guid="selected" data-model="queue"><i class="remove circle icon"></i>Delete selected</a>
+     <a class="ui segment archive item" title="Archive all items" data-id="all" data-guid="all" data-model="queue"><i class="archive icon"></i>Archive all</a>
+     <a class="ui segment delete item" title="Flush Queue" data-modal-text="Do you really want to delete all items from queue?" data-id="flush" data-guid="flush" data-model="queue"><i class="remove circle icon"></i>Flush queue</a>
     </div>
 {if isset($pager)}
 {include file='pager.tpl' pager=$pager view=queue}
@@ -113,6 +127,33 @@ $(document).ready(function() {
         rpc_mail_import($(this));
     });
 
+    $(".item.select.checkbox")
+        .checkbox()
+        .click(function () {
+            if (!(name = $(this).attr('name'))) {
+               throw 'Failed to locate name-attribute!';
+               return false;
+            }
+            if (name != 'select_all') {
+               return true;
+            }
+
+            state = $(".item.select.checkbox[name='select_all']").checkbox("is checked");
+
+            if (state != true && state != false) {
+               throw 'Checkbox returned an invalid state!';
+               return false;
+            }
+
+            if (state === true) {
+               to_state = "set checked";
+            } else {
+               to_state = "set unchecked";
+            }
+
+            $(".item.select.checkbox[name!='select_all']").checkbox(to_state);
+            return true;
+        });
 });
 
 --></script>
