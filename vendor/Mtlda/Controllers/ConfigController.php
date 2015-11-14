@@ -437,6 +437,29 @@ class ConfigController extends \Thallium\Controllers\ConfigController
         );
         return false;
     }
+
+    public function isUserTriggersImportEnabled()
+    {
+        if (!isset($this->config['app']['user_triggers_import']) ||
+            empty($this->config['app']['user_triggers_import'])
+        ) {
+            return false;
+        }
+
+        if ($this->isDisabled($this->config['app']['user_triggers_import'])) {
+            return false;
+        }
+
+        if ($this->isEnabled($this->config['app']['user_triggers_import'])) {
+            return true;
+        }
+
+        $this->raiseError(
+            __METHOD__ .'(), "user_triggers_import" configuration option in [app] section is invalid!',
+            true
+        );
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
