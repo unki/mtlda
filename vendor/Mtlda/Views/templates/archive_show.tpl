@@ -194,7 +194,7 @@ $(document).ready(function() {
             window.alert(errorMessage + ' ' + element + ' ' + xhr);
          },
          onFailure : function(response, element)  {
-            window.alert(message + ' ' + element);
+            window.alert(response + ' ' + element);
          }
       },
       onChange : function(value, text, choice) {
