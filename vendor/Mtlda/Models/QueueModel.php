@@ -35,7 +35,7 @@ class QueueModel extends DefaultModel
 
         try {
             $this->permitRpcUpdates(true);
-            $this->addRpcAction('flush');
+            $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $this->raiseError(__CLASS__ .', failed to set RPC parameters!', true, $e);
             return false;
