@@ -69,6 +69,29 @@ class ImportController extends DefaultController
         }
 
         foreach ($files as $file) {
+            $lockfile = "${file['fqpn']}.lock";
+            // if file has vanished in the meantime.
+            if (!file_exists($file['fqpn'])) {
+                continue;
+            }
+            if (file_exists($lockfile)) {
+                if (($timestamp = file_get_contents($lockfile)) === false) {
+                    $this->raiseError(__METHOD__ ."(), failed to read {$lockfile}!");
+                    return false;
+                }
+                if (!isset($timestamp) || empty($timestamp) || !is_numeric($timestamp)) {
+                    $this->raiseError(__METHOD__ ."(), {$lockfile} does not contain a timestamp!");
+                    return false;
+                }
+                if (time() < ($timestamp*5*60)) {
+                    continue;
+                }
+            }
+            if (file_put_contents($lockfile, time()) === false) {
+                $this->raiseError(__METHOD__ ."(), failed to write timestamp into {$lockfile}!");
+                return false;
+            }
+
             if (!($guid = $mtlda->createGuid())) {
                 $this->raiseError(get_class($mtlda) .'::createGuid() returned false!');
                 return false;
@@ -87,6 +110,7 @@ class ImportController extends DefaultController
             $queueitem->queue_file_hash = $file['hash'];
             $queueitem->queue_state = 'new';
             $queueitem->queue_time = microtime(true);
+            $queueitem->setProcessingFlag(false);
 
             if ($config->isPdfSigningEnabled()) {
                 $queueitem->queue_signing_icon_position = $sign_pos;
@@ -270,28 +294,6 @@ class ImportController extends DefaultController
         return true;
     }
 
-    public function flush()
-    {
-        global $mtlda;
-
-        if (!file_exists($this::INCOMING_DIRECTORY)) {
-            $this->raiseError(__METHOD__ .'(), '. $this::INCOMING_DIRECTORY .' does not exist!');
-            return false;
-        }
-
-        if (!is_dir($this::INCOMING_DIRECTORY)) {
-            $this->raiseError(__METHOD__ .'(), '. $this::INCOMING_DIRECTORY .' is not a directory!');
-            return false;
-        }
-
-        if (!$this->unlinkDirectory($this::INCOMING_DIRECTORY)) {
-            $this->raiseError(__CLASS__ ."::unlinkDirectory() returned false!");
-            return false;
-        }
-
-        return true;
-    }
-
     private function unlinkDirectory($dir)
     {
         global $mtlda;
@@ -324,6 +326,11 @@ class ImportController extends DefaultController
                 if (!$this->unlinkDirectory($fqfn)) {
                     return false;
                 }
+            }
+
+            // if file has vanished in the meantime.
+            if (!file_exists($fqfn)) {
+                continue;
             }
 
             if (!unlink($fqfn)) {
