@@ -15,32 +15,52 @@
  * GNU Affero General Public License for more details.
  */
 
-function rpc_object_archive(element)
+function rpc_object_archive(elements)
 {
-    if (!(element instanceof jQuery) ) {
-        throw "element is not a jQuery object!";
+    if (!(elements instanceof Array)) {
+        throw 'elements is not an Array!';
         return false;
     }
 
-    if (!(id = element.attr('data-id'))) {
-        alert('no attribute "data-id" found!');
-        return false;
-    }
+    ids = new Array;
+    guids = new Array;
+    models = new Array;
+    titles = new Array;
 
-    if (!(guid = element.attr('data-guid'))) {
-        alert('no attribute "data-guid" found!');
-        return false;
-    }
+    elements.forEach(function (element) {
+        if (!(element instanceof jQuery) ) {
+            throw "element is not a jQuery object!";
+            return false;
+        }
 
-    if (!(model = element.attr('data-model'))) {
-        alert('no attribute "data-model" found!');
-        return false;
-    }
+        if (!(id = element.attr('data-id'))) {
+            alert('no attribute "data-id" found!');
+            return false;
+        }
 
-    if (!(title = element.attr('title'))) {
-        alert('no attribute "title" found!');
-        return false;
-    }
+        ids.push(id);
+
+        if (!(guid = element.attr('data-guid'))) {
+            alert('no attribute "data-guid" found!');
+            return false;
+        }
+
+        guids[id] = guid;
+
+        if (!(model = element.attr('data-model'))) {
+            alert('no attribute "data-model" found!');
+            return false;
+        }
+
+        models[id] = model;
+
+        if (!(title = element.attr('title'))) {
+            alert('no attribute "title" found!');
+            return false;
+        }
+
+        title[id] = title;
+    });
 
     wnd = show_modal({
         blurring : true,
@@ -59,19 +79,20 @@ function rpc_object_archive(element)
         return false;
     }
 
-    var msg_body = new Object;
-    msg_body.id = safe_string(id);
-    msg_body.guid = safe_string(guid);
-    msg_body.model = safe_string(model);
+    ids.forEach(function (id) {
+        msg_body = new Object;
+        msg_body.id = safe_string(id);
+        msg_body.guid = safe_string(guids[id]);
+        msg_body.model = safe_string(models[id]);
 
-    var msg = new MtldaMessage;
-    msg.setCommand('archive-request');
-    msg.setMessage(msg_body);
-
-    if (!mbus.add(msg)) {
-        throw 'MtldaMessageBus.add() returned false!';
-        return false;
-    }
+        var msg = new MtldaMessage;
+        msg.setCommand('archive-request');
+        msg.setMessage(msg_body);
+        if (!mbus.add(msg)) {
+            throw 'MtldaMessageBus.add() returned false!';
+            return false;
+        }
+    });
 
     mbus.subscribe('archive-replies-handler', 'archive-reply', function (reply) {
         if (!reply) {
