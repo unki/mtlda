@@ -228,7 +228,12 @@ class MainController extends \Thallium\Controllers\MainController
 
     protected function handleSignRequest(&$message)
     {
-        global $mbus;
+        global $mbus, $config;
+
+        if (!$config->isPdfSigningEnabled()) {
+            $this->raiseError(get_class($config) .'::isPdfSigningEnabled() returned false!');
+            return false;
+        }
 
         if (empty($message) ||
             get_class($message) != 'Thallium\Models\MessageModel'
@@ -319,7 +324,12 @@ class MainController extends \Thallium\Controllers\MainController
 
     protected function handleMailImportRequest(&$message)
     {
-        global $mbus;
+        global $mbus, $config;
+
+        if (!$config->isMailImportEnabled()) {
+            $this->raiseError(get_class($config) .'::isUserTriggersImportEnabled() returned false!');
+            return false;
+        }
 
         if (empty($message) ||
             get_class($message) != 'Thallium\Models\MessageModel'
@@ -392,7 +402,12 @@ class MainController extends \Thallium\Controllers\MainController
 
     private function handleScanDocumentRequests(&$message)
     {
-        global $mbus;
+        global $mbus, $config;
+
+        if (!$config->isPdfIndexingEnabled()) {
+            $this->raiseError(get_class($config) .'::isPdfIndexingEnabled() returned false!');
+            return false;
+        }
 
         if (empty($message) ||
             get_class($message) != 'Thallium\Models\MessageModel'
@@ -760,7 +775,12 @@ class MainController extends \Thallium\Controllers\MainController
 
     protected function handleImportRequest()
     {
-        global $mbus;
+        global $mbus, $config;
+
+        if (!$config->isUserTriggersImportEnabled()) {
+            $this->raiseError(get_class($config) .'::isUserTriggersImportEnabled() returned false!');
+            return false;
+        }
 
         try {
             $import = new \Mtlda\Controllers\ImportController;
