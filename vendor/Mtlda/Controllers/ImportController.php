@@ -32,7 +32,7 @@ class ImportController extends DefaultController
 
     public function handleQueue()
     {
-        global $mtlda, $config, $audit;
+        global $mtlda, $config, $audit, $mbus;
 
         if ($config->isCreatePreviewImageOnImport()) {
             try {
@@ -59,7 +59,7 @@ class ImportController extends DefaultController
 
         $files = array();
 
-        if (!$this->scanDirectory($this::INCOMING_DIRECTORY, $files)) {
+        if ($this->scanDirectory(self::INCOMING_DIRECTORY, $files) === false) {
             $this->raiseError(__CLASS__ .'::scanDirectory() returned false!');
             return false;
         }
@@ -68,8 +68,22 @@ class ImportController extends DefaultController
             return true;
         }
 
+        $start = 10;
+        $end = 90;
+        $cnt = 0;
+        $total = count($files);
+        $steps = ($end-$start)/$total;
+
         foreach ($files as $file) {
+            $cnt+=1;
             $lockfile = "${file['fqpn']}.lock";
+
+            $mbus->sendMessageToClient(
+                'import-reply',
+                "Importing file {$cnt} of {$total}.",
+                floor($start+($cnt*$steps)) .'%'
+            );
+
             // if file has vanished in the meantime.
             if (!file_exists($file['fqpn'])) {
                 continue;
@@ -169,9 +183,18 @@ class ImportController extends DefaultController
                 return false;
             }
 
-            if (!$this->unlinkDirectory($in_dir)) {
-                $this->raiseError(__CLASS__ .'::unlinkDirectory() returned false!');
-                return false;
+            if (isset($dsc_file) && !empty($dsc_file) && file_exists($dsc_file)) {
+                if (!unlink($dsc_file)) {
+                    $this->raiseError(__METHOD__ ."(), unlink({$dsc_file}) failed!");
+                    return false;
+                }
+            }
+
+            if ($in_dir != self::INCOMING_DIRECTORY) {
+                if (!$this->unlinkDirectory($in_dir)) {
+                    $this->raiseError(__CLASS__ .'::unlinkDirectory() returned false!');
+                    return false;
+                }
             }
 
             $json_str = json_encode(
@@ -218,7 +241,7 @@ class ImportController extends DefaultController
         global $mtlda, $audit;
 
         if (($dir = opendir($path)) === false) {
-            $this->raiseError(__METHOD__ .'(), failed to access '. $this::INCOMING_DIRECTORY);
+            $this->raiseError(__METHOD__ .'(), failed to access '. self::INCOMING_DIRECTORY);
             return false;
         }
 
@@ -234,7 +257,7 @@ class ImportController extends DefaultController
             }
 
             if (is_dir($path .'/'. $item)) {
-                if (!$this->scanDirectory($path .'/'. $item, $files)) {
+                if ($this->scanDirectory($path .'/'. $item, $files) === false) {
                     $this->raiseError(__CLASS__ .'::scanDirectory() returned false!');
                     return false;
                 }
@@ -318,7 +341,7 @@ class ImportController extends DefaultController
             }
 
             if (!$this->isBelowIncomingDirectory(dirname($fqfn))) {
-                $this->raiseError(__METHOD__ .'(), will only handle requested within '. $this::INCOMING_DIRECTORY .'!');
+                $this->raiseError(__METHOD__ .'(), will only handle requested within '. self::INCOMING_DIRECTORY .'!');
                 return false;
             }
 
@@ -357,7 +380,7 @@ class ImportController extends DefaultController
         }
 
         $dir = strtolower(realpath($dir));
-        $dir_top = strtolower(realpath($this::INCOMING_DIRECTORY));
+        $dir_top = strtolower(realpath(self::INCOMING_DIRECTORY));
 
         $dir_top_reg = preg_quote($dir_top, '/');
 
@@ -378,6 +401,27 @@ class ImportController extends DefaultController
         }
 
         return false;
+    }
+
+    public function pendingItems()
+    {
+        if (($files = scandir(self::INCOMING_DIRECTORY)) === false) {
+            $this->raiseError(__METHOD__ .'(), scandir() returned false!');
+            return false;
+        }
+
+        if (!isset($files) || empty($files) || !is_array($files)) {
+            return 0;
+        }
+
+        array_filter($files, function ($value) {
+            if (in_array($value, array('.', '..'))) {
+                return false;
+            }
+            return true;
+        });
+
+        return count($files);
     }
 }
 
