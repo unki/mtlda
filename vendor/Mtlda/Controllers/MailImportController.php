@@ -175,10 +175,12 @@ class MailImportController extends DefaultController
             return false;
         }
 
+        $state = $mbus->suppressOutboundMessaging(true);
         if (!$import->handleQueue()) {
             $this->raiseError("ImportController::handleQueue() returned false!");
             return false;
         }
+        $mbus->suppressOutboundMessaging($state);
 
         unset($import);
         return true;
