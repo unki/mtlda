@@ -31,6 +31,16 @@ class ArchiveController extends DefaultController
             return false;
         }
 
+        if (!$queue_item->setProcessingFlag(true)) {
+            $this->raiseError(get_class($queue_item) .'::setProcessingFlag() returned false!');
+            return false;
+        }
+
+        if (!$queue_item->save()) {
+            $this->raiseError(get_class($queue_item) .'::save() returned false!');
+            return false;
+        }
+
         try {
             $document = new \Mtlda\Models\DocumentModel;
         } catch (\Exception $e) {
@@ -68,7 +78,7 @@ class ArchiveController extends DefaultController
         // copy fields from QueueItemModel to DocumentModel
         foreach (array_keys($queue_item->fields) as $queue_field) {
             // fields we skip
-            if (in_array($queue_field, array("queue_idx", "queue_state"))) {
+            if (in_array($queue_field, array('queue_idx', 'queue_state', 'queue_in_processing'))) {
                 continue;
             }
 
