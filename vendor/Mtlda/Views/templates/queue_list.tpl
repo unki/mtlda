@@ -94,8 +94,8 @@
   <tr>
    <th colspan="10">
     <div class="ui left floated segment raised segments">
-     <a class="ui segment archive item" title="Archive selected items" data-id="selected" data-guid="selected" data-model="queue"><i class="archive icon"></i>Archive selected</a>
-     <a class="ui segment delete item" title="Delete selected items" data-modal-text="Dou you really want to delete all selected items from queue?" data-id="selected" data-guid="selected" data-model="queue"><i class="remove circle icon"></i>Delete selected</a>
+     <a class="ui segment archive item" title="Archive selected items" data-modal-text="Please confirm that you would like to archive selected items." data-id="selected" data-guid="selected" data-model="queue"><i class="archive icon"></i>Archive selected</a>
+     <a class="ui segment delete item" title="Delete selected items" data-modal-text="Do you really want to delete all selected items from queue?" data-id="selected" data-guid="selected" data-model="queue"><i class="remove circle icon"></i>Delete selected</a>
      <a class="ui segment archive item" title="Archive all items" data-id="all" data-guid="all" data-model="queue"><i class="archive icon"></i>Archive all</a>
      <a class="ui segment delete item" title="Delete all" data-modal-text="Do you really want to delete all items from queue?" data-id="all" data-guid="all" data-model="queue"><i class="remove circle icon"></i>Delete all</a>
     </div>
