@@ -55,10 +55,12 @@ class MainController extends \Thallium\Controllers\MainController
             $this->loadController("Import", "import");
             global $import;
 
+            $state = $mbus->suppressOutboundMessaging(true);
             if (!$import->handleQueue()) {
                 $this->raiseError("ImportController::handleQueue returned false!");
                 return false;
             }
+            $mbus->suppressOutboundMessaging($state);
 
             unset($import);
         }
@@ -176,6 +178,13 @@ class MainController extends \Thallium\Controllers\MainController
             case 'sign-request':
                 if (!$this->handleSignRequest($message)) {
                     $this->raiseError(__CLASS__ .'::handleSignRequest() returned false!');
+                    return false;
+                }
+                break;
+
+            case 'import-request':
+                if (!$this->handleImportRequest()) {
+                    $this->raiseError(__CLASS__ .'::handleImportRequest() returned false!');
                     return false;
                 }
                 break;
@@ -742,6 +751,35 @@ class MainController extends \Thallium\Controllers\MainController
         }
 
         if (!$mbus->sendMessageToClient('delete-reply', 'Done', '100%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function handleImportRequest()
+    {
+        global $mbus;
+
+        try {
+            $import = new \Mtlda\Controllers\ImportController;
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load ImportController!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('import-reply', 'Preparing', '10%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        if (!$import->handleQueue()) {
+            $this->raiseError(get_class($import) .'::handleQueue() returned false!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('import-reply', 'Done', '100%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
