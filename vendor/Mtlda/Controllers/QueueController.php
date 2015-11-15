@@ -40,6 +40,10 @@ class QueueController extends DefaultController
             return false;
         }
 
+        if ($obj->isProcessing()) {
+            return true;
+        }
+
         if (!isset($obj->queue_file_hash) || empty($obj->queue_file_hash)) {
             $this->raiseError("Found no file hash for QueueItemModel {$id}, {$guid}!");
             return false;
@@ -101,6 +105,10 @@ class QueueController extends DefaultController
             $queueitem = $queue->items[$key];
             $idx = $queueitem->queue_idx;
             $guid = $queueitem->queue_guid;
+
+            if ($queueitem->isProcessing()) {
+                continue;
+            }
 
             if (empty($idx) || !$mtlda->isValidGuidSyntax($guid)) {
                 continue;
