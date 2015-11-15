@@ -726,6 +726,10 @@ class MainController extends \Thallium\Controllers\MainController
             $obj_name = '\Mtlda\Models\QueueItemModel';
             $id = $delete_request->id;
             $guid = $delete_request->guid;
+        } elseif ($delete_request->model == 'document') {
+            $obj_name = '\Mtlda\Models\DocumentModel';
+            $id = $delete_request->id;
+            $guid = $delete_request->guid;
         } else {
             $this->raiseError(__METHOD__ .'(), delete-request contains an unsupported model!');
             return false;
