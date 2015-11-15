@@ -84,7 +84,7 @@
   <td class="archive state" id="archive-state-{$item->getId()}">{$item->getState()}</td>
   <td>{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
   <td><a class="preview" title="archive" id="queueitem-{$item_safe_link}"><i class="search icon"></i>Preview</a></td>
-  <td><a class="archive item" id="archive_link_{$item->getId()}" title="Archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a></td>
+  <td><a class="archive item" id="archive_link_{$item->getId()}" title="Archive {$item->getFileName()|escape}" data-modal-text="Please confirm that you would like to archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a></td>
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}"><i class="edit icon"></i>Edit</a></td>
   <td><a class="delete item" title="Delete {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
