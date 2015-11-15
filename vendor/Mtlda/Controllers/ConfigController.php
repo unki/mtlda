@@ -460,6 +460,33 @@ class ConfigController extends \Thallium\Controllers\ConfigController
         );
         return false;
     }
+
+    public function isPdfOcrEnabled()
+    {
+        if (!$this->isPdfIndexingEnabled()) {
+            return false;
+        }
+
+        if (!isset($this->config['pdfindexing']['use_ocr_for_embedded_images']) ||
+            empty($this->config['pdfindexing']['use_ocr_for_embedded_images'])
+        ) {
+            return false;
+        }
+
+        if ($this->isDisabled($this->config['pdfindexing']['use_ocr_for_embedded_images'])) {
+            return false;
+        }
+
+        if ($this->isEnabled($this->config['pdfindexing']['use_ocr_for_embedded_images'])) {
+            return true;
+        }
+
+        $this->raiseError(
+            __METHOD__ .'(), "use_ocr_for_embedded_images" configuration option in [pdfindexing] section is invalid!',
+            true
+        );
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
