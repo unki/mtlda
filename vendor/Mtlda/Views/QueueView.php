@@ -23,14 +23,22 @@ class QueueView extends DefaultView
 {
     public $class_name = 'queue';
     public $item_name = 'QueueItem';
-    public $queue;
+    protected $queue;
+    protected $import;
 
     public function __construct()
     {
         try {
             $this->queue = new \Mtlda\Models\QueueModel;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load QueueModel!", true);
+            $this->raiseError(__METHOD__ .'(), failed to load QueueModel!', true);
+            return false;
+        }
+
+        try {
+            $this->import = new \Mtlda\Controllers\ImportController;
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load ImportController!', true);
             return false;
         }
 
@@ -132,7 +140,16 @@ class QueueView extends DefaultView
 
     public function showList($pageno = null)
     {
-        global $session;
+        global $session, $tmpl;
+
+        if (($pending = $this->import->pendingItems()) === false) {
+            $this->raiseError(get_class($import) .'::pendingItems() returned false!');
+            return false;
+        }
+
+        if (isset($pending) || is_numeric($pending)) {
+            $tmpl->assign('pending_incoming_items', $pending);
+        }
 
         if (!isset($pageno) ||
             empty($pageno) ||
