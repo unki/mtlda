@@ -29,7 +29,7 @@
    <a class="mail import"><i class="mail outline icon"></i>Mailimport</a>
 {/if}
 {if isset($user_triggers_import_enabled)}
-   <a class="trigger import"><i class="spy icon"></i>Check Incoming Directory</a>
+   <a class="trigger import"><i class="spy icon"></i>Trigger Import{if isset($pending_incoming_items)} ({$pending_incoming_items}){/if}</a>
 {/if}
   </div>
  </div>
