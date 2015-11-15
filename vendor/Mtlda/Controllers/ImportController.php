@@ -405,7 +405,8 @@ class ImportController extends DefaultController
 
     public function pendingItems()
     {
-        if (($files = scandir(self::INCOMING_DIRECTORY)) === false) {
+        $files = array();
+        if ($this->scanDirectory(self::INCOMING_DIRECTORY, $files) === false) {
             $this->raiseError(__METHOD__ .'(), scandir() returned false!');
             return false;
         }
