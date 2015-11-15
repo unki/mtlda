@@ -31,6 +31,11 @@ class ArchiveController extends DefaultController
             return false;
         }
 
+        if ($queue_item->isProcessing()) {
+            $this->raiseError(__METHOD__ .'(), QueueItemModel already in processing!');
+            return false;
+        }
+
         if (!$queue_item->setProcessingFlag(true)) {
             $this->raiseError(get_class($queue_item) .'::setProcessingFlag() returned false!');
             return false;
@@ -192,7 +197,7 @@ class ArchiveController extends DefaultController
             return true;
         }
 
-        if (!$mbus->sendMessageToClient('archive-reply', 'Signing documnt.', '80%')) {
+        if (!$mbus->sendMessageToClient('archive-reply', 'Signing document.', '80%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
