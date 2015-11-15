@@ -40,7 +40,7 @@ class UploadController extends DefaultController
 
     public function perform()
     {
-        global $mtlda;
+        global $mtlda, $mbus;
 
         if (!isset($_FILES) || empty($_FILES) || !is_array($_FILES)) {
             $this->raiseError("\$_FILES is empty");
@@ -91,10 +91,12 @@ class UploadController extends DefaultController
         $mtlda->loadController("Import", "import");
         global $import;
 
+        $state = $mbus->suppressOutboundMessaging(true);
         if (!$import->handleQueue()) {
             $this->raiseError("ImportController::handleQueue returned false!");
             return false;
         }
+        $mbus->suppressOutboundMessaging($state);
 
         unset($import);
 
