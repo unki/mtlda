@@ -29,7 +29,7 @@ var MtldaMessageBus = function (id) {
         return false;
     }
 
-    $(document).on('MTLDA:notifySubscribers', function(event) {
+    $(document).on('MTLDA:notifySubscribers', function (event) {
         this.notifySubscribers();
     }.bind(this));
 
@@ -39,7 +39,7 @@ var MtldaMessageBus = function (id) {
 MtldaMessageBus.prototype.add = function (message) {
 
     if (!message) {
-        throw 'No message to send provided!';
+        throw 'No message to add provided!';
         return false;
     }
 
@@ -73,7 +73,7 @@ MtldaMessageBus.prototype.getReceivedMessagesCount = function () {
     return this.recvMessages.length;
 }
 
-MtldaMessageBus.prototype.send = function (messages) {
+MtldaMessageBus.prototype.send = function () {
 
     // will not send an empty message
     if (!this.getMessagesCount()) {
@@ -130,7 +130,7 @@ MtldaMessageBus.prototype.send = function (messages) {
             action : 'submit-messages',
             messages : submitmsg
         }),
-        error: function(XMLHttpRequest, textStatus, errorThrown) {
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
             throw 'Failed to contact server! ' + textStatus;
             return false;
         },
@@ -156,7 +156,7 @@ MtldaMessageBus.prototype.poll = function () {
             type : 'rpc',
             action : 'retrieve-messages',
         }),
-        error: function(XMLHttpRequest, textStatus, errorThrown) {
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
             throw 'Failed to contact server! ' + textStatus;
         },
         success: function (data) {
@@ -310,7 +310,6 @@ MtldaMessageBus.prototype.notifySubscribers = function () {
     }
 
     for (var msgid in messages) {
-
         if (!(subscribers = this.getSubscribers(messages[msgid].command))) {
             throw 'Failed to retrieve subscribers list!';
             return false;
