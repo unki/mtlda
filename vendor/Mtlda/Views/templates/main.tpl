@@ -26,10 +26,10 @@
     <i class="file text icon"></i>
     <div class="content">
      <div class="header">
-      <a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_title}</a>&nbsp;
-      <a href="{get_url page=document mode=show id="document-$item_safe_link" file=$item->document_file_name}"><i class="search icon"></i></a>
+      <a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->getTitle()}</a>&nbsp;
+      <a href="{get_url page=document mode=show id="document-$item_safe_link" file=$item->getFileName()}"><i class="search icon"></i></a>
      </div>
-     <div class="description">{if $item->hasCustomDate()}from {$item->getCustomDate()|date_format:"%Y.%m.%d"}{else}archived on {$item->document_time|date_format:"%Y.%m.%d %H:%M"}{/if}.</div>
+     <div class="description">{if $item->hasCustomDate()}from {$item->getCustomDate()|date_format:"%Y.%m.%d"}{else}archived on {$item->getTime()|date_format:"%Y.%m.%d %H:%M"}{/if}.</div>
     </div>
    </div>
 {/top10}

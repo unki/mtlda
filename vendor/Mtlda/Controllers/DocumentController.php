@@ -117,8 +117,8 @@ class DocumentController extends DefaultController
         }
 
         // don't rembmer the purpose of this code
-        /*if ($document->document_version != 1 && $document->document_derivation != 0) {
-            $descent = new \Mtlda\Models\DocumentModel($document->document_derivation);
+        /*if ($document->getVersion() != 1 && $document->getDerivationId() != 0) {
+            $descent = new \Mtlda\Models\DocumentModel($document->getDerivationId());
             if (!$descent) {
                 $this->raiseError("Unable to load parent DocumentModel!");
                 return false;
@@ -143,12 +143,12 @@ class DocumentController extends DefaultController
             return false;
         }
 
-        if (strlen($file['content']) != $document->document_file_size) {
+        if (strlen($file['content']) != $document->getFileSize()) {
             $this->raiseError("File size of retrieved file does not match archive record!");
             return false;
         }
 
-        if ($file['hash'] != $document->document_file_hash) {
+        if ($file['hash'] != $document->getFileHash()) {
             $this->raiseError("File hash of retrieved file does not match archive record!");
             return false;
         }

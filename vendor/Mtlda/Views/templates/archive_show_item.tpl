@@ -15,22 +15,22 @@
  * GNU Affero General Public License for more details.
 *}
 <div class="item">
- {if $latest_document_version == $item->document_version}
+ {if $item->hasVersion() && $latest_document_version == $item->getVersion()}
  <div class="right floated content">
   <i class="ui big red tag icon" data-title="This is the latest version of the current document."></i>
  </div>
  {/if}
- <i class="{if $item->document_signed_copy == 'Y'}protect{else}file text{/if} icon" data-title="{if $item->document_signed_copy == 'Y'}This is a signed copy of the original document.{else}This is a copy of the original document.{/if}"></i>
+ <i class="{if $item->isSignedCopy()}protect{else}file text{/if} icon" data-title="{if $item->isSignedCopy()}This is a signed copy of the original document.{else}This is a copy of the original document.{/if}"></i>
  <div class="content">
   <div class="header">
-   <a name="filename_{$item->document_idx}" class="inline editable content" data-orig-value="{$item->document_file_name}" href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">{$item->document_file_name}</a>&nbsp;&nbsp;
-   <a name="filename_{$item->document_idx}" class="inline editable edit link" data-inline-name="filename_{$item->document_idx}"><i class="tiny edit icon"></i></a>
-   <a class="delete item" title="Delete {$item->getFileName()|escape}" data-model="document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}"><i class="remove circle icon"></i></a>
-   <div name="filename_{$item->document_idx}" class="inline editable formsrc" style="display: none;">
+   <a name="filename_{$item->getId()}" class="inline editable content" data-orig-value="{$item->getFileName()}" href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>&nbsp;&nbsp;
+   <a name="filename_{$item->getId()}" class="inline editable edit link" data-inline-name="filename_{$item->getId()}"><i class="tiny edit icon"></i></a>
+   <a class="delete item" title="Delete {$item->getFileName()|escape}" data-model="document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}"><i class="remove circle icon"></i></a>
+   <div name="filename_{$item->getId()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
      <div class="fields">
       <div class="field small ui input">
-       <input type="text" name="filename_{$item->document_idx}" value="{$item->document_file_name}" data-action="update" data-model="document" data-key="document_file_name" data-id="{$item->document_idx}" />
+       <input type="text" name="filename_{$item->getId()}" value="{$item->getFileName()}" data-action="update" data-model="document" data-key="document_file_name" data-id="{$item->getId()}" />
       </div>
       <div class="field">
        <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
@@ -42,10 +42,10 @@
     </form>
    </div>
   </div>
-  <div class="description">Version {$item->document_version} (created {$item->document_time|date_format:"%Y.%m.%d %H:%M"})</div>
-{if $item->document_signed_copy != 'Y' }
+  <div class="description">Version {$item->getVersion()} (created {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})</div>
+{if ! $item->isSignedCopy()}
   <br />
-  <a class="sign document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-title="{$item->getTitle()}"><i class="protect icon"></i>Click to digitally sign document</a>.
+  <a class="sign document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-title="{$item->getTitle()}"><i class="protect icon"></i>Click to digitally sign document</a>.
 {/if}
  </div>
 </div>

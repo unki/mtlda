@@ -110,9 +110,7 @@ class PdfSigningController extends DefaultController
             return false;
         }
 
-        if (!isset($src_document->document_signing_icon_position) ||
-            empty($src_document->document_signing_icon_position)
-        ) {
+        if (!$src_document->getSigningIconPosition()) {
             $this->raiseError("document_signing_icon is not set!");
             return false;
         }
@@ -122,7 +120,7 @@ class PdfSigningController extends DefaultController
                 "signing request",
                 "request",
                 "signing",
-                $src_document->document_guid
+                $src_document->getGuid()
             );
         } catch (\Exception $e) {
             $signing_item->delete();
@@ -197,7 +195,7 @@ class PdfSigningController extends DefaultController
                 'x509Certificate' => base64_decode($this->tsp_cfg['tsp_ca_certificate'])
             );
         }
-        $parameters->deterministicId = $src_document->document_guid;
+        $parameters->deterministicId = $src_document->getGuid();
         $parameters->signatureLevel = 'PAdES_BASELINE_LTA';
         $parameters->signaturePackaging = 'ENVELOPED';
         $parameters->digestAlgorithm = $this->pdf_cfg['signature_algorithm'];

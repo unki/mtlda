@@ -97,12 +97,12 @@ class ArchiveController extends DefaultController
             $document->$document_field = $queue_item->$queue_field;
         }
 
-        if (!isset($document->document_title) || empty($document->document_title)) {
-            $document->document_title = $document->document_file_name;
+        if (!$document->hasTitle()) {
+            $document->setTitle($document->getFileName());
         }
-        $document->document_version = '1';
-        $document->document_derivation = '';
-        $document->document_derivation_guid = '';
+        $document->setVersion('1');
+        //$document->document_derivation = '';
+        //$document->document_derivation_guid = '';
 
         if (!$fqfn_src = $queue_item->getFilePath()) {
             $this->raiseError(get_class($queue_item) .'::getFilePath() returned false!');
@@ -280,7 +280,7 @@ class ArchiveController extends DefaultController
                 __METHOD__,
                 "read",
                 "archive",
-                $src_item->document_guid
+                $src_item->getGuid()
             );
         } catch (\Exception $e) {
             $signing_item->delete();
@@ -295,9 +295,9 @@ class ArchiveController extends DefaultController
         }
 
         // append a suffix to new cloned file
-        $signing_item->document_file_name = str_replace(".pdf", "_signed.pdf", $signing_item->document_file_name);
-        $signing_item->document_derivation = $src_item->id;
-        $signing_item->document_derivation_guid = $src_item->document_guid;
+        $signing_item->setFileName(str_replace(".pdf", "_signed.pdf", $signing_item->getFileName()));
+        $signing_item->setDerivationId($src_item->id);
+        $signing_item->setDerivationGuid($src_item->getGuid());
 
         if (!$signing_item->save()) {
             $this->raiseError(get_class($signing_item) .'::save() returned false!');
@@ -329,7 +329,7 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        $signing_item->document_signed_copy = 'Y';
+        $signing_item->setSignedCopy(true);
 
         if (!$signing_item->save()) {
             $signing_item->delete();
@@ -339,10 +339,10 @@ class ArchiveController extends DefaultController
 
         try {
             $audit->log(
-                $src_item->document_guid,
+                $src_item->getGuid(),
                 "signed",
                 "archive",
-                $signing_item->document_guid
+                $signing_item->getGuid()
             );
         } catch (\Exception $e) {
             $signing_item->delete();
@@ -431,8 +431,15 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        $logo_doc->document_derivation = $src_document->document_idx;
-        $logo_doc->document_derivation_guid = $src_document->document_guid;
+        if ($logo_doc->setDerivationId($src_document->getId()) === false) {
+            $this->raiseError(get_class($src_document) .'::getId() returned false!');
+            return false;
+        }
+
+        if ($logo_doc->setDerivationGuid($src_document->getGuid()) === false) {
+            $this->raiseError(get_class($src_document) .'::getGuid() returned false!');
+            return false;
+        }
 
         if (!$logo_doc->save()) {
             $this->raiseError(get_class($logo_doc) .'::save() returned false!');
@@ -487,7 +494,7 @@ class ArchiveController extends DefaultController
             }
 
             $signing_icon_position = $this->getSigningIconPosition(
-                $logo_doc->document_signing_icon_position,
+                $logo_doc->getSigningIconPosition(),
                 $size['w'],
                 $size['h']
             );

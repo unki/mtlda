@@ -18,7 +18,7 @@
 <h1 class="ui block header">
  <i class="file text icon"></i>
  <div class="content">
-  <div name="title" class="inline editable content" data-orig-value="{$item->document_title}">{$item->document_title}</div>
+  <div name="title" class="inline editable content" data-orig-value="{$item->getTitle()}">{$item->getTitle()}</div>
   <a name="title" class="inline editable edit link" data-inline-name="title"><i class="tiny edit icon"></i></a>
  </div>
 </h1>
@@ -26,7 +26,7 @@
 <form class="ui form" onsubmit="return false;">
  <div class="fields">
   <div class="field small ui input">
-   <input type="text" name="title" value="{$item->document_title}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->document_idx}" />
+   <input type="text" name="title" value="{$item->getTitle()}" data-action="update" data-model="document" data-key="getTitle()" data-id="{$item->getId()}" />
   </div>
   <div class="field">
    <button class="circular ui big icon button inline editable save" type="submit"><i class="save icon"></i></button>
@@ -51,10 +51,10 @@
        <i class="file text icon"></i>
        <div class="content">
         <div class="header">
-         <a href="{get_url page=document mode=show id=$item_safe_link file=$item->document_file_name}">{$item->document_file_name}</a>
-         <a class="scan document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-title="{$item->document_title}"><i class="find icon"></i></a>
+         <a href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>
+         <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-title="{$item->getTitle()}"><i class="find icon"></i></a>
         </div>
-        <div class="description">Original document (imported {$item->document_time|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-title="{$item->document_title}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
+        <div class="description">Original document (imported {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-title="{$item->getTitle()}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
        </div>
       </div>
 {list_versions}
@@ -68,10 +68,10 @@
       <input type="checkbox" name="use_document_custom_date" {if $item->hasCustomDate()}checked{/if} />
       <label>Assign custom date to document.</label>
      </div><br /><br />
-     <form id="document_custom_date_form" class="ui form" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-target="document_custom_date" onsubmit="return false;" style="{if !$item->hasCustomDate()}display: none;{/if}">
+     <form id="document_custom_date_form" class="ui form" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-target="document_custom_date" onsubmit="return false;" style="{if !$item->hasCustomDate()}display: none;{/if}">
       <div class="fields">
        <div class="field ui input">
-        <input type="text" name="document_custom_date" value="{$item->document_custom_date}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->document_idx}" />
+        <input type="text" name="document_custom_date" value="{$item->getCustomDate()}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->getId()}" />
        </div>
        <div class="field">
         <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
@@ -91,10 +91,10 @@
       <input type="checkbox" name="use_document_expiry_date" {if $item->hasExpiryDate()}checked{/if} />
       <label>Assign expiry date to document.</label>
      </div><br /><br />
-     <form id="document_expiry_date_form" class="ui form" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" data-target="document_expiry_date" onsubmit="return false;" style="{if !$item->hasExpiryDate()}display: none;{/if}">
+     <form id="document_expiry_date_form" class="ui form" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-target="document_expiry_date" onsubmit="return false;" style="{if !$item->hasExpiryDate()}display: none;{/if}">
       <div class="fields">
        <div class="field ui input">
-        <input type="text" name="document_expiry_date" value="{$item->document_expiry_date}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$item->document_idx}" />
+        <input type="text" name="document_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$item->getId()}" />
        </div>
        <div class="field">
         <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
@@ -141,7 +141,7 @@
      <form id="document_description" class="ui form description" data-target="document_description">
       <div class="field">
        <label>Description:</label>
-       <textarea name="document_description" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{$item->document_description}</textarea>
+       <textarea name="document_description" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{$item->getDescription()}</textarea>
       </div>
       <button class="circular small ui icon save button" type="submit">
        <i class="save icon"></i>
@@ -157,11 +157,11 @@
       <div class="ui grid">
        <div class="row">
         <div class="five wide column">Filename:</div>
-        <div class="eleven wide column">{$item->document_file_name}</div>
+        <div class="eleven wide column">{$item->getFileName()}</div>
        </div>
        <div class="row">
         <div class="five wide column">Size:</div>
-        <div class="eleven wide column">{get_humanreadable_filesize size=$item->document_file_size}</div>
+        <div class="eleven wide column">{get_humanreadable_filesize size=$item->getFileSize()}</div>
        </div>
 {document_properties}
        <div class="row">

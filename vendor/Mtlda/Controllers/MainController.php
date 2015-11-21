@@ -126,7 +126,7 @@ class MainController extends \Thallium\Controllers\MainController
             return false;
         }
 
-        if ($document->document_signed_copy == 'Y') {
+        if ($document->isSignedCopy()) {
             $this->raiseError(__METHOD__ .", will not resign an already signed document!");
             return false;
         }
@@ -158,7 +158,7 @@ class MainController extends \Thallium\Controllers\MainController
             return false;
         }
 
-        if ($document->document_signed_copy == 'Y' || $document->document_version != 1) {
+        if ($document->isSignedCopy() || $document->getVersion() != 1) {
             $this->raiseError(__METHOD__ .", will only scan the original document!");
             return false;
         }

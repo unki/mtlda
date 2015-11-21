@@ -108,12 +108,12 @@ class SearchView extends DefaultView
             $smarty->assign('icon', 'star');
         }
 
-        if (!($idx = $item->getId())) {
+        if (($idx = $item->getId()) === false) {
             $mtlda->raiseError(get_class($item) .'::getId() returned false!');
             return false;
         }
 
-        if (!($guid = $item->getGuid())) {
+        if (($guid = $item->getGuid()) === false) {
             $mtlda->raiseError(get_class($item) .'::getGuid() returned false!');
             return false;
         }
@@ -201,7 +201,7 @@ class SearchView extends DefaultView
 
         foreach ($documents as $document) {
             if ($document->getVersion() == 1) {
-                $stack[$document->document_guid] = $document;
+                $stack[$document->getGuid()] = $document;
                 continue;
             }
 
@@ -215,19 +215,19 @@ class SearchView extends DefaultView
                 return false;
             }
 
-            if (in_array($parent->document_guid, array_keys($stack))) {
+            if (in_array($parent->getGuid(), array_keys($stack))) {
                 continue;
             }
 
-            $stack[$parent->document_guid] = $parent;
+            $stack[$parent->getGuid()] = $parent;
         }
 
         if (!usort($stack, function ($a, $b) {
-            if ($a->document_time < $b->document_time) {
+            if ($a->getTime() < $b->getTime()) {
                 return -1;
-            } elseif ($a->document_time == $b->document_time) {
+            } elseif ($a->getTime() == $b->getTime()) {
                 return 0;
-            } elseif ($a->document_time > $b->document_time) {
+            } elseif ($a->getTime() > $b->getTime()) {
                 return 1;
             }
         })) {

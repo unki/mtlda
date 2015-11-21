@@ -96,10 +96,10 @@ class ArchiveView extends DefaultView
             $smarty->assign("document_safe_link", "document-{$idx}-{$guid}");
             unset($latest);
         } else {
-            $smarty->assign("document_safe_link", "document-{$item->document_idx}-{$item->document_guid}");
+            $smarty->assign("document_safe_link", "document-{$item->getId()}-{$item->getGuid()}");
         }
         $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", "{$item->document_idx}-{$item->document_guid}");
+        $smarty->assign("item_safe_link", "{$item->getId()}-{$item->getGuid()}");
 
         $index++;
         $smarty->assign('smarty.IB.item_list.index', $index);
@@ -157,7 +157,7 @@ class ArchiveView extends DefaultView
             return false;
         }
 
-        if (($assigned_keywords = $this->getItemKeywords($this->item->document_idx)) === false) {
+        if (($assigned_keywords = $this->getItemKeywords($this->item->getId())) === false) {
             $this->raiseError(__CLASS__ ."::getItemKeywords() returned false!");
             return false;
         }
@@ -170,7 +170,7 @@ class ArchiveView extends DefaultView
         $tmpl->assign('item', $this->item);
         $tmpl->assign('keywords', $this->keywords->items);
         $tmpl->assign('assigned_keywords', $assigned_keywords);
-        $tmpl->assign("item_safe_link", "document-". $this->item->document_idx ."-". $this->item->document_guid);
+        $tmpl->assign("item_safe_link", "document-". $this->item->getId() ."-". $this->item->getGuid());
 
         try {
             $this->document_properties = new \Mtlda\Models\DocumentPropertiesModel(
@@ -267,7 +267,7 @@ class ArchiveView extends DefaultView
                 continue;
             }
             $tmpl->assign('item', $item);
-            $tmpl->assign('item_safe_link', 'document-'. $item->document_idx .'-'. $item->document_guid);
+            $tmpl->assign('item_safe_link', 'document-'. $item->getId() .'-'. $item->getGuid());
 
             if ($item->hasDescendants()) {
                 $tmpl->assign('item_has_descendants', true);

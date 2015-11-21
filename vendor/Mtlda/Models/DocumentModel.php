@@ -21,9 +21,9 @@ namespace Mtlda\Models ;
 
 class DocumentModel extends DefaultModel
 {
-    public $table_name = 'archive';
-    public $column_name = 'document';
-    public $fields = array(
+    protected $table_name = 'archive';
+    protected $column_name = 'document';
+    protected $fields = array(
             'document_idx' => 'integer',
             'document_guid' => 'string',
             'document_title' => 'string',
@@ -41,10 +41,10 @@ class DocumentModel extends DefaultModel
             'document_signed_copy' => 'string',
             'document_deleted' => 'string',
             );
-    public $avail_items = array();
-    public $items = array();
-    public $descendants = array();
-    private $keywords;
+    protected $avail_items = array();
+    protected $items = array();
+    protected $descendants = array();
+    protected $keywords;
 
     public function __construct($id = null, $guid = null)
     {
@@ -135,7 +135,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function postLoad()
+    protected function postLoad()
     {
         if (!$this->loadDescendants()) {
             $this->raiseError(__CLASS__ .'::loadDescendants() returned false!');
@@ -145,7 +145,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    private function loadDescendants()
+    protected function loadDescendants()
     {
         global $db;
 
@@ -238,6 +238,26 @@ class DocumentModel extends DefaultModel
         return $this->document_file_hash;
     }
 
+    public function getFileSize()
+    {
+        if (!isset($this->document_file_size)) {
+            return false;
+        }
+
+        return $this->document_file_size;
+    }
+
+    public function setFileSize($file_size)
+    {
+        if (!isset($file_size) || empty($file_size) || !is_numeric($file_size)) {
+            $this->raiseError(__METHOD__ .'(), $file_size parameter is invalid!');
+            return false;
+        }
+
+        $this->document_file_size = $file_size;
+        return false;
+    }
+
     public function getFileName()
     {
         if (!isset($this->document_file_name)) {
@@ -245,6 +265,22 @@ class DocumentModel extends DefaultModel
         }
 
         return $this->document_file_name;
+    }
+
+    public function setFileName($file_name)
+    {
+        if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
+            $this->raiseError(__METHOD__ .'(), $file_name parameter is invalid!');
+            return false;
+        }
+
+        if (strstr($file_name, '/') || strstr($file_name, '\\')) {
+            $this->raiseError(__METHOD__ .'(), $file_name parameter contains forbidden characters!');
+            return false;
+        }
+
+        $this->document_file_name = $file_name;
+        return true;
     }
 
     public function getFilePath()
@@ -281,7 +317,7 @@ class DocumentModel extends DefaultModel
         return $fqpn;
     }
 
-    public function generateDirectoryName($guid)
+    protected function generateDirectoryName($guid)
     {
         $dir_name = "";
 
@@ -344,7 +380,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function preDelete()
+    protected function preDelete()
     {
         global $db;
 
@@ -382,7 +418,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function postDelete()
+    protected function postDelete()
     {
         global $audit;
 
@@ -401,7 +437,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function preSave()
+    protected function preSave()
     {
         if ($this->isDuplicate()) {
             $this->raiseError("Duplicated record detected!");
@@ -539,7 +575,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function postSave()
+    protected function postSave()
     {
         global $mtlda, $audit;
 
@@ -643,6 +679,15 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
+    public function getDescription()
+    {
+        if (!isset($this->document_description)) {
+            return false;
+        }
+
+        return $this->document_description;
+    }
+
     public function setDescription($description)
     {
         global $db;
@@ -676,7 +721,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function preClone()
+    protected function preClone()
     {
         if (!isset($this->document_version) || empty($this->document_version)) {
             $this->document_version = 1;
@@ -698,7 +743,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function postClone(&$srcobj)
+    protected function postClone(&$srcobj)
     {
         try {
             $storage = new \Mtlda\Controllers\StorageController;
@@ -815,7 +860,7 @@ class DocumentModel extends DefaultModel
         return $rows[0]['max_version'];
     }
 
-    private function removeAssignedKeywords()
+    protected function removeAssignedKeywords()
     {
         global $db;
 
@@ -842,7 +887,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    private function deleteFile()
+    protected function deleteFile()
     {
         // load StorageController
         $storage = new \Mtlda\Controllers\StorageController;
@@ -860,7 +905,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    private function deleteAllDescendants()
+    protected function deleteAllDescendants()
     {
         if (!$this->hasDescendants()) {
             return true;
@@ -876,7 +921,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    private function deleteAllDocumentProperties()
+    protected function deleteAllDocumentProperties()
     {
         try {
             $properties = new \Mtlda\Models\DocumentPropertiesModel(
@@ -896,7 +941,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    private function deleteAllDocumentIndices()
+    protected function deleteAllDocumentIndices()
     {
         try {
             $indices = new \Mtlda\Models\DocumentIndicesModel(
@@ -952,15 +997,34 @@ class DocumentModel extends DefaultModel
         return $parent;
     }
 
+    public function hasVersion()
+    {
+        if (!isset($this->document_version) || empty($this->document_version)) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function getVersion()
     {
-        if (!isset($this->document_version) ||
-            empty($this->document_version)
-        ) {
+        if (!$this->hasVersion()) {
+            $this->raiseError(__CLASS__ .'::hasVersion() returned false!');
             return false;
         }
 
         return $this->document_version;
+    }
+
+    public function setVersion($number)
+    {
+        if (!isset($number) || empty($number) || !is_numeric($number)) {
+            $this->raiseError(__METHOD__ .'(), $number parameter is invalid!');
+            return false;
+        }
+
+        $this->document_version = $number;
+        return true;
     }
 
     public function setCustomDate($date)
@@ -1111,9 +1175,19 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function getTitle()
+    public function hasTitle()
     {
         if (!isset($this->document_title)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getTitle()
+    {
+        if (!$this->hasTitle()) {
+            $this->raiseError(__CLASS__ .'::hasTitle() returned false!');
             return false;
         }
 
@@ -1189,6 +1263,134 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
+        return true;
+    }
+
+    public function getSigningIconPosition()
+    {
+        if (!isset($this->document_signing_icon_position)) {
+            return false;
+        }
+
+        return $this->document_signing_icon_position;
+    }
+
+    public function setSigningIconPosition($position)
+    {
+        if (!isset($position) || empty($position) || !is_numeric($position)) {
+            $this->raiseError(__METHOD__ .'(), $position parameter is invalid!');
+            return false;
+        }
+
+        $this->document_signing_icon_position = $position;
+        return true;
+    }
+
+    public function getTime()
+    {
+        if (!isset($this->document_time)) {
+            return false;
+        }
+
+        return $this->document_time;
+    }
+
+    public function setTime($timestamp)
+    {
+        if (!isset($timestamp) || empty($timestamp) || !is_numeric($timestamp)) {
+            $this->raiseError(__METHOD__ .'(), $timestamp parameter is invalid!');
+            return false;
+        }
+
+        $this->document_time = $timestamp;
+        return true;
+    }
+
+    public function isSignedCopy()
+    {
+        if (!isset($this->document_signed_copy) ||
+            empty($this->document_signed_copy) ||
+            $this->document_signed_copy != 'Y'
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function setSignedCopy($state)
+    {
+        if (!isset($state) || !is_bool($state)) {
+            $this->raiseError(__METHOD__ .'(), $state parameter is invalid!');
+            return false;
+        }
+
+        if (!$state) {
+            $this->document_signed_copy = 'N';
+            return true;
+        }
+
+        $this->document_signed_copy = 'Y';
+        return true;
+    }
+
+    public function hasDerivationId()
+    {
+        if (!isset($this->document_derivation)) {
+            return false;
+        }
+
+        return $this->document_derivation;
+    }
+
+    public function getDerivationId()
+    {
+        if (!$this->hasDerivationId()) {
+            $this->raiseError(__CLASS__ .'::hasDerivationId() returned false!');
+            return false;
+        }
+
+        return $this->document_derivation;
+    }
+
+    public function setDerivationId($idx)
+    {
+        if (!isset($idx) || empty($idx) || !is_numeric($idx)) {
+            $this->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
+            return false;
+        }
+
+        $this->document_derivation = $idx;
+        return true;
+    }
+
+    public function hasDerivationGuid()
+    {
+        if (!isset($this->document_derivation_guid)) {
+            return false;
+        }
+
+        return $this->document_derivation_guid;
+    }
+
+    public function getDerivationGuid()
+    {
+        if (!$this->hasDerivationGuid()) {
+            $this->raiseError(__CLASS__ .'::hasDerivationGuid() returned false!');
+            return false;
+        }
+
+        return $this->document_derivation_guid;
+    }
+
+    public function setDerivationGuid($guid)
+    {
+        if (!isset($guid) || empty($guid) || !is_string($guid)) {
+            $this->raiseError(__METHOD__ .'(), $guid parameter is invalid!');
+            return false;
+        }
+
+        $this->document_derivation_guid = $guid;
         return true;
     }
 }

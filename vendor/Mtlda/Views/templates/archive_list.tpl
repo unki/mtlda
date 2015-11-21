@@ -46,15 +46,15 @@
     <label></label>
    </div>
   </td>
-  <td><a class="filterable" href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_idx}</a></td>
+  <td><a class="filterable" href="{get_url page=archive mode=show id=$item_safe_link}">{$item->getId()}</a></td>
   <td>
-   <a name="title_{$item->document_idx}" class="filterable inline editable content" data-orig-value="{$item->document_title}" href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_title}</a>
-   <a name="title_{$item->document_idx}" class="inline editable edit link" data-inline-name="title_{$item->document_idx}"><i class="tiny edit icon"></i></a>
-   <div name="title_{$item->document_idx}" class="inline editable formsrc" style="display: none;">
+   <a name="title_{$item->getId()}" class="filterable inline editable content" data-orig-value="{if $item->hasTitle()}{$item->getTitle()}{/if}" href="{get_url page=archive mode=show id=$item_safe_link}">{if $item->hasTitle()}{$item->getTitle()}{/if}</a>
+   <a name="title_{$item->getId()}" class="inline editable edit link" data-inline-name="title_{$item->getId()}"><i class="tiny edit icon"></i></a>
+   <div name="title_{$item->getId()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
      <div class="fields">
       <div class="field small ui input">
-       <input type="text" name="title_{$item->document_idx}" value="{$item->document_title}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->document_idx}" />
+       <input type="text" name="title_{$item->getId()}" value="{$item->getTitle()}" data-action="update" data-model="document" data-key="getTitle()" data-id="{$item->getId()}" />
       </div>
       <div class="field">
        <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
@@ -66,10 +66,10 @@
     </form>
    </div>
   </td>
-  <td class="filterable">{if $item->hasCustomDate()}{$item->getCustomDate()|date_format:"%Y.%m.%d"}{else}{$item->document_time|date_format:"%Y.%m.%d %H:%M"}{/if}</td>
+  <td class="filterable">{if $item->hasCustomDate()}{$item->getCustomDate()|date_format:"%Y.%m.%d"}{else}{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}{/if}</td>
   <td><a href="{get_url page=archive mode=show id=$item_safe_link}"><i class="file text icon"></i>Details</a></td>
   <td><a href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=document mode=show id=$document_safe_link}" target="_blank"><i class="icons"><i class="file text icon"></i><i class="corner search icon"></i></i>Preview</a></td>
-  <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {$item->getTitle()|escape}" data-model="document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}"><i class="remove circle icon"></i>Delete</a></td>
+  <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {$item->getTitle()|escape}" data-model="document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/archive_list}
  </tbody>
