@@ -70,30 +70,14 @@ class MainController extends \Thallium\Controllers\MainController
 
     public function startup()
     {
-        global $config, $db, $router, $query;
+        global $router;
 
-        if (!isset($query->view)) {
-            $this->raiseError("Error - parsing request URI hasn't unveiled what to view!");
-            return false;
-        }
-
-        $this->loadController("Views", "views");
-        global $views;
-
-        if ($router->isRpcCall()) {
-            if (!$this->rpcHandler()) {
-                $this->raiseError("MainController::rpcHandler() returned false!");
-                return false;
-            }
-            return true;
-
-        } elseif ($router->isImageCall()) {
+        if ($router->isImageCall()) {
             if (!$this->imageHandler()) {
                 $this->raiseError("MainController::imageHandler() returned false!");
                 return false;
             }
             return true;
-
         } elseif ($router->isDocumentCall()) {
             if (!$this->documentHandler()) {
                 $this->raiseError("MainController::documentHandler() returned false!");
@@ -107,26 +91,9 @@ class MainController extends \Thallium\Controllers\MainController
                 return false;
             }
             return true;
-
-        } elseif ($page_name = $views->getViewName($query->view)) {
-            if (($page = $views->load($page_name)) === false) {
-                $this->raiseError("ViewController:load() returned false!");
-                return false;
-            }
-
-            if ($page === true) {
-                return true;
-            }
-
-            if (!empty($page)) {
-                print $page;
-            }
-
-            return true;
         }
 
-        $this->raiseError("Unable to find a view for ". $query->view);
-        return false;
+        return parent::startup();
     }
 
     protected function imageHandler()
