@@ -20,6 +20,6 @@ No matches found.
 {/if}
 <pre>
 {result_list}
-<a href="{get_url page=$type mode=show id=$item_safe_url}">{$item->getName()}</a>
+<a href="{get_url page=$type mode=show id=$item_safe_url}"><i class="{$icon} icon"></i>{$item->getName()}</a>
 {/result_list}
 </pre>
