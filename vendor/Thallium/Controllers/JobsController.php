@@ -23,6 +23,7 @@ class JobsController extends DefaultController
 {
     const EXPIRE_TIMEOUT = 300;
     protected $currentJobGuid;
+    protected $registeredHandlers = array();
 
     public function __construct()
     {
@@ -51,28 +52,31 @@ class JobsController extends DefaultController
         return true;
     }
 
-    public function createJob($sessionid = null, $request_guid = null)
+    public function createJob($command, $parameters, $sessionid = null, $request_guid = null)
     {
         global $thallium;
 
-        if (isset($sessionid) && (empty($sessionid) || !is_string($sessionid))) {
-            $this->raiseError(__METHOD__ .', parameter \$sessionid has to be a string!');
+        if (!isset($command) || empty($command) || !is_string($command)) {
+            $this->raiseError(__METHOD__ .'(), parameter $commmand is required!');
             return false;
         }
 
-        if (isset($request_guid) && (
-                empty($request_guid) ||
-                !$thallium->isValidGuidSyntax($request_guid)
-            )
+        if (isset($sessionid) && (empty($sessionid) || !is_string($sessionid))) {
+            $this->raiseError(__METHOD__ .'(), parameter $sessionid has to be a string!');
+            return false;
+        }
+
+        if (isset($request_guid) &&
+           (empty($request_guid) || !$thallium->isValidGuidSyntax($request_guid))
         ) {
-            $this->raiseError(__METHOD__ .', parameter \$request_guid is invalid!');
+            $this->raiseError(__METHOD__ .'(), parameter $request_guid is invalid!');
             return false;
         }
 
         try {
             $job = new \Thallium\Models\JobModel;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .', unable to load JobModel!');
+            $this->raiseError(__METHOD__ .'(), unable to load JobModel!');
             return false;
         }
 
@@ -84,6 +88,18 @@ class JobsController extends DefaultController
         if (isset($request_guid) && !$job->setRequestGuid($request_guid)) {
             $this->raiseError(get_class($job) .'::setRequestGuid() returned false!');
             return false;
+        }
+
+        if (!$job->setCommand($command)) {
+            $this->raiseError(get_class($job) .'::setCommand() returned false!');
+            return false;
+        }
+
+        if (isset($parameters) && !empty($parameters)) {
+            if (!$job->setParameters($parameters)) {
+                $this->raiseError(get_class($job) .'::setParameters() returned false!');
+                return false;
+            }
         }
 
         if (!$job->save()) {
@@ -99,7 +115,7 @@ class JobsController extends DefaultController
             return false;
         }
 
-        return $job->job_guid;
+        return $job;
     }
 
     public function deleteJob($job_guid)
@@ -169,17 +185,26 @@ class JobsController extends DefaultController
         return true;
     }
 
-    public function setJobInProcessing($guid = null)
+    public function runJob($job)
     {
-        if (!isset($guid) || empty($guid) && $this->hasCurrentJob()) {
-            $guid = $this->getCurrentJob();
+        global $thallium;
+
+        if (is_string($job) && $thallium->isValidGuidSyntax($job)) {
+            try {
+                $job = new \Thallium\Models\JobModel(null, $job);
+            } catch (\Exception $e) {
+                $this->raiseError(__METHOD__ .'(), failed to load JobModel!');
+                return false;
+            }
         }
 
-        try {
-            $job = new \Thallium\Models\JobModel(null, $guid);
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .", failed to load JobModel(null, {$guid})!");
+        if (!is_object($job)) {
+            $this->raiseError(__METHOD__ .'(), no valid JobModel provided!');
             return false;
+        }
+
+        if ($job->isProcessing()) {
+            return true;
         }
 
         if (!$job->setProcessingFlag()) {
@@ -192,7 +217,169 @@ class JobsController extends DefaultController
             return false;
         }
 
+        if (($command = $job->getCommand()) === false) {
+            $this->raiseError(get_class($job) .'::getCommand() returned false!');
+            return false;
+        }
+
+        if (!isset($command) || empty($command) || !is_string($command)) {
+            $this->raiseError(get_class($job) .'::getCommand() returned invalid data!');
+            return false;
+        }
+
+        if (!$this->isRegisteredHandler($command)) {
+            $this->raiseError(__METHOD__ ."(), there is no handler for {$command}!");
+            return false;
+        }
+
+        if (($handler = $this->getHandler($command)) === false) {
+            $this->raiseError(__CLASS__ .'::getHandler() returned false!');
+            return false;
+        }
+
+        if (!isset($handler) || empty($handler) || !is_array($handler) ||
+            !isset($handler[0]) || empty($handler[0]) || !is_object($handler[0]) ||
+            !isset($handler[1]) || empty($handler[1]) || !is_string($handler[1])
+        ) {
+            $this->raiseError(__CLASS__ .'::getHandler() returned invalid data!');
+            return false;
+        }
+
+        if (!is_callable($handler, true)) {
+            $this->raiseError(__METHOD__ .'(), handler is not callable!');
+            return false;
+        }
+
+        if (!call_user_func($handler, $job)) {
+            $this->raiseError(get_class($handler[0]) ."::{$handler[1]}() returned false!");
+            return false;
+        }
+
         return true;
+    }
+
+    public function runJobs()
+    {
+        try {
+            $jobs = new \Thallium\Models\JobsModel;
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load JobsModel!');
+            return false;
+        }
+
+        if (($pending = $jobs->getPendingJobs()) === false) {
+            $this->raiseError(get_class($jobs) .'::getPendingJobs() returned false!');
+            return false;
+        }
+
+        if (!isset($pending) || !is_array($pending)) {
+            $this->raiseError(get_class($jobs) .'::getPendingJobs() returned invalid data!');
+            return false;
+        }
+
+        if (empty($pending)) {
+            return true;
+        }
+
+        foreach ($pending as $job) {
+            if (!$this->setCurrentJob($job->getGuid())) {
+                $this->raiseError(__CLASS__ .'::setCurrentJob() returned false!');
+                return false;
+            }
+
+            if (!$this->runJob($job)) {
+                $this->raiseError(__CLASS__ .'::runJob() returned false!');
+                return false;
+            }
+
+            if (!$job->delete()) {
+                $this->raiseError(get_class($job) .'::delete() returned false!');
+                return false;
+            }
+
+            if (!$this->clearCurrentJob()) {
+                $this->raiseError(__CLASS__ .'::clearCurrentJob() returned false!');
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function registerHandler($job_name, $handler)
+    {
+        if (!isset($job_name) || empty($job_name) || !is_string($job_name)) {
+            $this->raiseError(__METHOD__ .'(), $job_name parameter is invalid!');
+            return false;
+        }
+
+        if (!isset($handler) || empty($handler) || (!is_string($handler) && !is_array($handler))) {
+            $this->raiseError(__METHOD__ .'(), $handler parameter is invalid!');
+            return false;
+        }
+
+        if (is_string($handler)) {
+            $handler = array($this, $handler);
+        } else {
+            if (count($handler) != 2 ||
+                !isset($handler[0]) || empty($handler[0]) || !is_object($handler[0]) ||
+                !isset($handler[1]) || empty($handler[1]) || !is_string($handler[1])
+            ) {
+                $this->raiseError(__METHOD__ .'(), $handler parameter contains invalid data!');
+                return false;
+            }
+        }
+
+        if ($this->isRegisteredHandler($job_name)) {
+            $this->raiseError(__METHOD__ ."(), a handler for {$job_name} is already registered!");
+            return false;
+        }
+
+        $this->registeredHandlers[$job_name] = $handler;
+    }
+
+    public function unregisterHandler($job_name)
+    {
+        if (!isset($job_name) || empty($job_name) || !is_string($job_name)) {
+            $this->raiseError(__METHOD__ .'(), $job_name parameter is invalid!');
+            return false;
+        }
+
+        if (!$this->isRegisteredHandler($job_name)) {
+            return true;
+        }
+
+        unset($this->registeredHandlers[$job_name]);
+        return true;
+    }
+
+    public function isRegisteredHandler($job_name)
+    {
+        if (!isset($job_name) || empty($job_name) || !is_string($job_name)) {
+            $this->raiseError(__METHOD__ .'(), $job_name parameter is invalid!');
+            return false;
+        }
+
+        if (!in_array($job_name, array_keys($this->registeredHandlers))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getHandler($job_name)
+    {
+        if (!isset($job_name) || empty($job_name) || !is_string($job_name)) {
+            $this->raiseError(__METHOD__ .'(), $job_name parameter is invalid!');
+            return false;
+        }
+
+        if (!$this->isRegisteredHandler($job_name)) {
+            $this->raiseError(__METHOD__ .'(), no such handler!');
+            return false;
+        }
+
+        return $this->registeredHandlers[$job_name];
     }
 }
 

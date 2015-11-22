@@ -45,7 +45,7 @@ class JobsModel extends DefaultModel
             "DELETE FROM
                 TABLEPREFIXjobs
             WHERE
-                job_time < ?";
+                UNIX_TIMESTAMP(job_time) < ?";
 
         if (!($sth = $db->prepare($sql))) {
             $this->raiseError(__METHOD__ .', failed to prepare query!');
@@ -58,6 +58,46 @@ class JobsModel extends DefaultModel
         }
 
         return true;
+    }
+
+    public function getPendingJobs()
+    {
+        global $db;
+
+        $sql =
+            "SELECT
+                job_idx
+            FROM
+                TABLEPREFIX{$this->table_name}
+            WHERE
+                job_in_processing <> 'Y'";
+
+        if (($sth = $db->prepare($sql)) === false) {
+            $this->raiseError(get_class($db) .'::prepare() returned false!');
+            return false;
+        }
+
+        if (!$db->execute($sth)) {
+            $this->raiseError(get_class($db) .'::execute() returned false!');
+            return false;
+        }
+
+        $jobs = array();
+        if ($sth->rowCount() < 1) {
+            return $jobs;
+        }
+
+        while ($row = $sth->fetch()) {
+            try {
+                $job = new \Thallium\Models\JobModel($row->job_idx);
+            } catch (\Exception $e) {
+                $this->raiseError(__METHOD__ .'(), failed to load JobModel!');
+                return false;
+            }
+            array_push($jobs, $job);
+        }
+
+        return $jobs;
     }
 }
 

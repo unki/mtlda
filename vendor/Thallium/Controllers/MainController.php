@@ -105,12 +105,17 @@ class MainController extends DefaultController
         $this->loadController("Jobs", "jobs");
         $this->loadController("MessageBus", "mbus");
 
+        if (!$this->processRequestMessages()) {
+            $this->raiseError(__CLASS__ .'::processRequestMessages() returned false!', true);
+            return false;
+        }
+
         return true;
     }
 
     public function startup()
     {
-        global $config, $db, $router, $query;
+        global $router, $query;
 
         if (!isset($query->view)) {
             $this->raiseError("Error - parsing request URI hasn't unveiled what to view!");
@@ -120,33 +125,66 @@ class MainController extends DefaultController
         $this->loadController("Views", "views");
         global $views;
 
-
         if ($router->isRpcCall()) {
             if (!$this->rpcHandler()) {
                 $this->raiseError(__CLASS__ .'::rpcHandler() returned false!');
                 return false;
             }
-            return true;
-
-        } elseif ($page_name = $views->getViewName($query->view)) {
-            if (($page = $views->load($page_name)) === false) {
-                $this->raiseError("ViewController:load() returned false!");
+            if (!$this->runBackgroundJobs()) {
+                $this->raiseError(__CLASS__ .'::runBackgroundJobs() returned false!');
                 return false;
             }
-
-            if ($page === true) {
-                return true;
-            }
-
-            if (!empty($page)) {
-                print $page;
-            }
-
             return true;
         }
 
-        $this->raiseError("Unable to find a view for ". $query->view);
-        return false;
+        if (($page_name = $views->getViewName($query->view)) === false) {
+            $this->raiseError(__METHOD__ ."(), unable to find a view for {$query->view}!");
+            return false;
+        }
+
+        if (($page = $views->load($page_name)) === false) {
+            $this->raiseError("ViewController:load() returned false!");
+            return false;
+        }
+
+        if ($page === true) {
+            return true;
+        }
+
+        // display output and close the connection to the client.
+        if (!empty($page)) {
+            ob_start();
+            print $page;
+            $size = ob_get_length();
+            header("Content-Length: {$size}");
+            header('Connection: close');
+            ob_end_flush();
+            ob_flush();
+            flush();
+            session_write_close();
+        }
+
+        if (!$this->runBackgroundJobs()) {
+            $this->raiseError(__CLASS__ .'::runBackgroundJobs() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function runBackgroundJobs()
+    {
+        global $jobs;
+
+        ignore_user_abort(true);
+        set_time_limit(30);
+
+        if (!$jobs->runJobs()) {
+            $this->raiseError(get_class($jobs) .'::runJobs() returned false!');
+            return false;
+        }
+
+        return true;
     }
 
     public function setVerbosity($level)
@@ -486,7 +524,7 @@ class MainController extends DefaultController
             return false;
         }
 
-        if (!($command = $message->getCommand())) {
+        if (($command = $message->getCommand()) === false) {
             $this->raiseError(get_class($message) .'::getCommand() returned false!');
             return false;
         }
@@ -496,43 +534,27 @@ class MainController extends DefaultController
             return false;
         }
 
-        if (!($sessionid = $message->getSessionId())) {
+        if ($message->hasBody()) {
+            if (($parameters = $message->getBody()) === false) {
+                $this->raiseError(get_class($message) .'::getBody() returned false!');
+                return false;
+            }
+        } else {
+            $parameters = null;
+        }
+
+        if (($sessionid = $message->getSessionId()) === false) {
             $this->raiseError(get_class($message) .'::getSessionId() returned false!');
             return false;
         }
 
-        if (!($msg_guid = $message->getGuid()) || !$this->isValidGuidSyntax($msg_guid)) {
+        if (($msg_guid = $message->getGuid()) === false || !$this->isValidGuidSyntax($msg_guid)) {
             $this->raiseError(get_class($message) .'::getGuid() has not returned a valid GUID!');
             return false;
         }
 
-        if (!($job = $jobs->createJob($sessionid, $msg_guid))) {
+        if ($jobs->createJob($command, $parameters, $sessionid, $msg_guid) === false) {
             $this->raiseError(get_class($jobs) .'::createJob() returned false!');
-            return false;
-        }
-
-        if (isset($job) && (empty($job) || !$this->isValidGuidSyntax($job))) {
-            $this->raiseError(get_class($jobs) .'::createJob() has not returned a valid GUID!');
-            return false;
-        }
-
-        if (!$jobs->setCurrentJob($job)) {
-            $this->raiseError(get_class($jobs) .'::setCurrentJob() returned false!');
-            return false;
-        }
-
-        if (!$jobs->setJobInProcessing($job)) {
-            $this->raiseError(get_class($jobs) .'::setJobInProcessing() returned false!');
-            return false;
-        }
-
-        return array(
-            'command' => $command,
-            'job' => $job
-        );
-
-        if (!$jobs->deleteJob($job)) {
-            $this->raiseError(get_class($jobs) .'::deleteJob() returned false!');
             return false;
         }
 
@@ -604,12 +626,12 @@ class MainController extends DefaultController
         }
 
         if (!isset($nick) || empty($nick) || !is_string($nick)) {
-            $this->raiseError(__METHOD__ .'(), \$nick parameter is invalid!');
+            $this->raiseError(__METHOD__ .'(), \$nick parameter is invalid!');
             return false;
         }
 
         if (!isset($model) || empty($model) || !is_string($model)) {
-            $this->raiseError(__METHOD__ .'(), \$model parameter is invalid!');
+            $this->raiseError(__METHOD__ .'(), \$model parameter is invalid!');
             return false;
         }
 
