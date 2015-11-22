@@ -449,7 +449,6 @@ class JobsController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-
         if (($delete_request = unserialize($body)) === null) {
             $this->raiseError(__METHOD__ .', unable to unserialize message body!');
             return false;
@@ -481,7 +480,7 @@ class JobsController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        if (!$mbus->sendMessageToClient('delete-reply', 'Deleting document(s)', '20%')) {
+        if (!$mbus->sendMessageToClient('delete-reply', 'Deleting...', '20%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
@@ -503,6 +502,10 @@ class JobsController extends \Thallium\Controllers\JobsController
             $obj_name = '\Mtlda\Models\DocumentModel';
             $id = $delete_request->id;
             $guid = $delete_request->guid;
+        } elseif ($delete_request->model == 'keyword') {
+            $obj_name = '\Mtlda\Models\KeywordModel';
+            $id = $delete_request->id;
+            $guid = $delete_request->guid;
         } else {
             $this->raiseError(__METHOD__ .'(), delete-request contains an unsupported model!');
             return false;
@@ -519,7 +522,6 @@ class JobsController extends \Thallium\Controllers\JobsController
             $this->raiseError(__METHOD__ ."(), {$obj_name} does not permit 'delete' action!");
             return false;
         }
-
 
         if ($delete_request->id == 'all' && $delete_request->guid == 'all') {
             if (method_exists($obj, 'flush')) {
