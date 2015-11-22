@@ -100,6 +100,14 @@ class SearchView extends DefaultView
 
         $smarty->assign('type', $parts[1]);
 
+        if ($parts[1] == 'archive') {
+            $smarty->assign('icon', 'archive');
+        } elseif ($parts[1] == 'queue') {
+            $smarty->assign('icon', 'wait');
+        } else {
+            $smarty->assign('icon', 'star');
+        }
+
         if (!($idx = $item->getId())) {
             $mtlda->raiseError(get_class($item) .'::getId() returned false!');
             return false;
