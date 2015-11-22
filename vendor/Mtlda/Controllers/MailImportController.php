@@ -148,17 +148,16 @@ class MailImportController extends DefaultController
                 break;
             }
 
+            if (!$this->flagMailSeen($mail->msgno)) {
+                $this->raiseError(__CLASS__ .':flagMailSeen() returned false!');
+                return false;
+            }
+
             if ($config->getMailImportMailDestinyIsDelete()) {
                 if (!$this->deleteMail($mail->msgno)) {
                     $this->raiseError(__CLASS__ .'::deleteMail() returned false!');
                     return false;
                 }
-                continue;
-            }
-
-            if (!$this->flagMailSeen($mail->msgno)) {
-                $this->raiseError(__CLASS__ .':flagMailSeen() returned false!');
-                return false;
             }
         }
 
@@ -725,6 +724,8 @@ class MailImportController extends DefaultController
 
     private function deleteMail($msgno)
     {
+        global $config;
+
         if (!$this->isConnected()) {
             $this->raiseError("Need to be connected to the mail server to proceed!");
             return false;
@@ -733,6 +734,15 @@ class MailImportController extends DefaultController
         if (!imap_delete($this->imap_session, $msgno)) {
             $this->raiseError("imap_delete() returned false!". imap_last_error());
             return false;
+        }
+
+        if (strtolower($this->mail_cfg['mbox_type']) == 'imap') {
+            if ($config->getMailImportImapMailboxExpunge()) {
+                if (!imap_expunge($this->imap_session)) {
+                    $this->raiseError("imap_expunge() returned false!". imap_last_error());
+                    return false;
+                }
+            }
         }
 
         return true;
