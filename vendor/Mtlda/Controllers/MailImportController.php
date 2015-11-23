@@ -32,17 +32,17 @@ class MailImportController extends DefaultController
         global $config;
 
         if (!$config->isMailImportEnabled()) {
-            $this->raiseError("Mail import isn't enabled in Mtlda configuration!", true);
+            $this->raiseError(__METHOD__ .'(), mail import is not enabled in MTLDA configuration!', true);
             return false;
         }
 
         if (!$this->mail_cfg = $config->getMailImportConfiguration()) {
-            $this->raiseError("Unable to retrieve mail import configuration!", true);
+            $this->raiseError(__METHOD__ .'(), unable to retrieve mail import configuration!', true);
             return false;
         }
 
         if (empty($this->mail_cfg) || !is_array($this->mail_cfg)) {
-            $this->raiseError("Invalid mail import configuration retrieved!", true);
+            $this->raiseError(__METHOD__ .'(), invalid mail import configuration retrieved!', true);
             return false;
         }
 
@@ -51,12 +51,12 @@ class MailImportController extends DefaultController
             !isset($this->mail_cfg['mbox_password']) || empty($this->mail_cfg['mbox_password']) ||
             !isset($this->mail_cfg['mbox_type']) || empty($this->mail_cfg['mbox_type'])
         ) {
-            $this->raiseError("Incomplete mail import configuration found!", true);
+            $this->raiseError(__METHOD__ .'(), incomplete mail import configuration found!', true);
             return false;
         }
 
         if (!in_array(strtolower($this->mail_cfg['mbox_type']), array('imap', 'pop3'))) {
-            $this->raiseError("Mailbox type {$this->mail_cfg['mbox_type']} is not supported!", true);
+            $this->raiseError(__METHOD__ ."(), mailbox type {$this->mail_cfg['mbox_type']} is not supported!", true);
             return false;
         }
     }
@@ -116,7 +116,7 @@ class MailImportController extends DefaultController
             if (!isset($mail->message_id) || empty($mail->message_id) ||
                 !isset($mail->msgno) || empty($mail->msgno)
             ) {
-                $this->raiseError("Fetched mail is incomplete!");
+                $this->raiseError(__METHOD__ .'(), fetched mail is incomplete!');
                 break;
             }
 
@@ -170,13 +170,13 @@ class MailImportController extends DefaultController
         try {
             $import = new ImportController;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load ImportController!");
+            $this->raiseError(__METHOD__ .'(), failed to load ImportController!');
             return false;
         }
 
         $state = $mbus->suppressOutboundMessaging(true);
         if (!$import->handleQueue()) {
-            $this->raiseError("ImportController::handleQueue() returned false!");
+            $this->raiseError(get_class($import) .'::handleQueue() returned false!');
             return false;
         }
         $mbus->suppressOutboundMessaging($state);
@@ -194,7 +194,7 @@ class MailImportController extends DefaultController
         }
 
         if (!isset($this->connect_string)) {
-            $this->raiseError("Do not know how to connect!");
+            $this->raiseError(__METHOD__ .'(), do not know how to connect!');
             return false;
         }
 
@@ -208,12 +208,12 @@ class MailImportController extends DefaultController
         );
 
         if ($this->imap_session === false) {
-            $this->raiseError("Unable to connect!<br />". imap_last_error());
+            $this->raiseError(__METHOD__ .'(), unable to connect!<br />'. imap_last_error());
             return false;
         }
 
         if (!is_resource($this->imap_session)) {
-            $this->raiseError("What ever has been opened, it is not a resource!");
+            $this->raiseError(__METHOD__ .'(), imap_open() has not returned a resource!');
             return false;
         }
 
@@ -224,6 +224,7 @@ class MailImportController extends DefaultController
     private function disconnect()
     {
         global $config;
+        $flags = 0;
 
         if (!$this->isConnected()) {
             return true;
@@ -237,13 +238,14 @@ class MailImportController extends DefaultController
                 $config->getMailImportImapMailboxExpunge()
             )
         ) {
+            $flags = CL_EXPUNGE;
             if (!imap_expunge($this->imap_session)) {
                 $this->raiseError("imap_expunge() returned false!". imap_last_error());
                 return false;
             }
         }
 
-        if (!imap_close($this->imap_session)) {
+        if (!imap_close($this->imap_session, $flags)) {
             $this->raiseError("imap_close() failed!". imap_last_error());
             return false;
         }
@@ -255,22 +257,22 @@ class MailImportController extends DefaultController
     private function checkForMails()
     {
         if (!$this->isConnected()) {
-            $this->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
         if (!$status = imap_status($this->imap_session, $this->connect_string, SA_UNSEEN)) {
-            $this->raiseError("imap_status() failed!". imap_last_error());
+            $this->raiseError(__METHOD__ .'(), imap_status() failed!'. imap_last_error());
             return false;
         }
 
         if (!isset($status->flags) || $status->flags != SA_UNSEEN) {
-            $this->raiseError("Server responded with something we have not requested!");
+            $this->raiseError(__METHOD__ .'(), server responded with something we have not requested!');
             return false;
         }
 
         if (!isset($status->unseen) || !is_numeric($status->unseen)) {
-            $this->raiseError("Server responded invalid!");
+            $this->raiseError(__METHOD__ .'(), server responded invalid!');
             return false;
         }
 
@@ -280,7 +282,7 @@ class MailImportController extends DefaultController
     private function retrieveListOfMails($msg_cnt)
     {
         if (!$this->isConnected()) {
-            $this->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
@@ -289,12 +291,12 @@ class MailImportController extends DefaultController
         }
 
         if (!$list = imap_fetch_overview($this->imap_session, "1:{$msg_cnt}")) {
-            $this->raiseError("imap_fetch_overview() failed!");
+            $this->raiseError(__METHOD__ .'(), imap_fetch_overview() failed!');
             return false;
         }
 
         if (!is_array($list)) {
-            $this->raiseError("imap_fetch_overview() returned no array!". imap_last_error());
+            $this->raiseError(__METHOD__ .'(), imap_fetch_overview() returned no array!'. imap_last_error());
             return false;
         }
 
@@ -304,7 +306,7 @@ class MailImportController extends DefaultController
     private function retrieveMail($msgno)
     {
         if (!$this->isConnected()) {
-            $this->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
@@ -313,12 +315,12 @@ class MailImportController extends DefaultController
         }
 
         if (!$structure = imap_fetchstructure($this->imap_session, $msgno)) {
-            $this->raiseError("Unable to retrieve structure!". imap_last_error());
+            $this->raiseError(__METHOD__ .'(), unable to retrieve structure!'. imap_last_error());
             return false;
         }
 
         if (empty($structure) || !is_object($structure)) {
-            $this->raiseError("imap_fetchstructure() hasn't returned an object!". imap_last_error());
+            $this->raiseError(__METHOD__ .'(), imap_fetchstructure() has not returned an object!'. imap_last_error());
             return false;
         }
 
@@ -594,7 +596,7 @@ class MailImportController extends DefaultController
     private function fetchMimePartBody($msgno, $attachment)
     {
         if (!$this->isConnected()) {
-            $this->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
@@ -617,14 +619,14 @@ class MailImportController extends DefaultController
         }
 
         if (empty($body)) {
-            $this->raiseError('imap_fetchbody() returned no valid content!');
+            $this->raiseError(__METHOD__ .'(), imap_fetchbody() returned no valid content!');
             return false;
         }
 
         // 3 = BASE64
         if ($attachment['encoding'] == 3) {
             if (!$body = base64_decode($body)) {
-                $this->raiseError("base64_decode() returned false!");
+                $this->raiseError(__METHOD__ .'(), base64_decode() returned false!');
                 return false;
             }
             return $body;
@@ -633,14 +635,14 @@ class MailImportController extends DefaultController
             return quoted_printable_decode($body);
         }
 
-        $this->raiseError("Unsupported encoding: {$attachment['encoding']}!");
+        $this->raiseError(__METHOD__ ."(), unsupported encoding: {$attachment['encoding']}!");
         return false;
     }
 
     private function fetchMimeTextBody($msgno, $description)
     {
         if (!$this->isConnected()) {
-            $this->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
@@ -663,14 +665,14 @@ class MailImportController extends DefaultController
         }
 
         if (empty($body)) {
-            $this->raiseError('imap_fetchbody() returned no valid content!');
+            $this->raiseError(__METHOD__ .'(), imap_fetchbody() returned no valid content!');
             return false;
         }
 
         // 3 = BASE64
         if ($description['encoding'] == 3) {
             if (!$body = base64_decode($body)) {
-                $this->raiseError("base64_decode() returned false!");
+                $this->raiseError(__METHOD__ .'(), base64_decode() returned false!');
                 return false;
             }
         // 4 = QUOTED-PRINTABLE
@@ -727,19 +729,24 @@ class MailImportController extends DefaultController
         global $config;
 
         if (!$this->isConnected()) {
-            $this->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
+            return false;
+        }
+
+        if (!imap_setflag_full($this->imap_session, $msgno, '\Deleted')) {
+            $this->raiseError(__METHOD__ .'(), imap_setflag_full() returned false!'. imap_last_error());
             return false;
         }
 
         if (!imap_delete($this->imap_session, $msgno)) {
-            $this->raiseError("imap_delete() returned false!". imap_last_error());
+            $this->raiseError(__METHOD__ .'(), imap_delete() returned false!'. imap_last_error());
             return false;
         }
 
         if (strtolower($this->mail_cfg['mbox_type']) == 'imap') {
             if ($config->getMailImportImapMailboxExpunge()) {
                 if (!imap_expunge($this->imap_session)) {
-                    $this->raiseError("imap_expunge() returned false!". imap_last_error());
+                    $this->raiseError(__METHOD__ .'(), imap_expunge() returned false!'. imap_last_error());
                     return false;
                 }
             }
@@ -751,12 +758,12 @@ class MailImportController extends DefaultController
     private function flagMailSeen($msgno)
     {
         if (!$this->isConnected()) {
-            $this->raiseError("Need to be connected to the mail server to proceed!");
+            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
         if (!imap_setflag_full($this->imap_session, $msgno, '\Seen')) {
-            $this->raiseError("imap_setflag_full() returned false!". imap_last_error());
+            $this->raiseError(__METHOD__ .'(), imap_setflag_full() returned false!'. imap_last_error());
             return false;
         }
 
@@ -781,7 +788,7 @@ class MailImportController extends DefaultController
             !isset($value_decoded[0]) ||
             empty($value_decoded[0])
         ) {
-            $this->raiseError('imap_mime_header_decode() has responded invalid!');
+            $this->raiseError(__METHOD__ .'(), imap_mime_header_decode() has responded invalid!');
             return false;
         }
 
@@ -924,7 +931,7 @@ class MailImportController extends DefaultController
     {
         foreach ($attachments as $attachment) {
             if (!isset($attachment['filename']) || empty($attachment['filename'])) {
-                $this->raiseError("Something is wrong. No filename is known for this mime part!");
+                $this->raiseError(__METHOD__ .'(), something is wrong. No filename is known for this mime part!');
                 return false;
             }
 
@@ -941,7 +948,7 @@ class MailImportController extends DefaultController
             }
 
             if (empty($attachment_body)) {
-                $this->raiseError("No body fetched for mime part!");
+                $this->raiseError(__METHOD__ .'(), no body fetched for mime part!');
                 return false;
             }
 
