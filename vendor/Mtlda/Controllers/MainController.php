@@ -26,7 +26,7 @@ class MainController extends \Thallium\Controllers\MainController
     public function __construct($mode = null)
     {
         if (!$this->setNamespacePrefix('Mtlda')) {
-            $this->raiseError('Unable to set namespace prefix!', true);
+            $this->raiseError(__METHOD__ .'(), unable to set namespace prefix!', true);
             return false;
         }
 
@@ -57,7 +57,7 @@ class MainController extends \Thallium\Controllers\MainController
 
             $state = $mbus->suppressOutboundMessaging(true);
             if (!$import->handleQueue()) {
-                $this->raiseError("ImportController::handleQueue returned false!");
+                $this->raiseError(get_class($import) .'::handleQueue returned false!');
                 return false;
             }
             $mbus->suppressOutboundMessaging($state);
@@ -74,20 +74,20 @@ class MainController extends \Thallium\Controllers\MainController
 
         if ($router->isImageCall()) {
             if (!$this->imageHandler()) {
-                $this->raiseError("MainController::imageHandler() returned false!");
+                $this->raiseError(__CLASS__ .'::imageHandler() returned false!');
                 return false;
             }
             return true;
         } elseif ($router->isDocumentCall()) {
             if (!$this->documentHandler()) {
-                $this->raiseError("MainController::documentHandler() returned false!");
+                $this->raiseError(__CLASS__ .'::documentHandler() returned false!');
                 return false;
             }
             return true;
 
         } elseif ($router->isUploadCall()) {
             if (!$this->uploadHandler()) {
-                $this->raiseError("MainController::uploadHandler() returned false!");
+                $this->raiseError(__CLASS__ .'::uploadHandler() returned false!');
                 return false;
             }
             return true;
@@ -102,7 +102,7 @@ class MainController extends \Thallium\Controllers\MainController
         global $image;
 
         if (!$image->perform()) {
-            $this->raiseError("ImageController::perform() returned false!");
+            $this->raiseError(get_class($image) .'::perform() returned false!');
             return false;
         }
 
@@ -116,7 +116,7 @@ class MainController extends \Thallium\Controllers\MainController
         global $document;
 
         if (!$document->perform()) {
-            $this->raiseError("DocumentController::perform() returned false!");
+            $this->raiseError(get_class($document) .'::perform() returned false!');
             return false;
         }
 
@@ -139,17 +139,17 @@ class MainController extends \Thallium\Controllers\MainController
         try {
             $archive = new \Mtlda\Controllers\ArchiveController;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load ArchiveController!");
+            $this->raiseError(__METHOD__ .'(), failed to load ArchiveController!');
             return false;
         }
 
         if (!$archive) {
-            $this->raiseError("Unable to load ArchiveController!");
+            $this->raiseError(__METHOD__ .'(), unable to load ArchiveController!');
             return false;
         }
 
         if (!$archive->sign($document)) {
-            $this->raiseError("ArchiveController::sign() returned false!");
+            $this->raiseError(get_class($archive) .'::sign() returned false!');
             return false;
         }
 
@@ -171,12 +171,12 @@ class MainController extends \Thallium\Controllers\MainController
         try {
             $parser = new \Mtlda\Controllers\PdfIndexerController;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load PdfIndexerController!");
+            $this->raiseError(__METHOD__ .'(), failed to load PdfIndexerController!');
             return false;
         }
 
         if (!$parser) {
-            $this->raiseError("Unable to load PdfIndexerController!");
+            $this->raiseError(__METHOD__ .'(), unable to load PdfIndexerController!');
             return false;
         }
 
