@@ -59,16 +59,6 @@ class JobsController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        if (!($sessionid = $job->getSessionId())) {
-            $this->raiseError(get_class($job) .'::getSessionId() returned false!');
-            return false;
-        }
-
-        if (!is_string($sessionid)) {
-            $this->raiseError(get_class($job) .'::getSessionId() has not returned a string!');
-            return false;
-        }
-
         if (!$mbus->sendMessageToClient('archive-reply', 'Preparing', '10%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
@@ -192,16 +182,6 @@ class JobsController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        if (!($sessionid = $job->getSessionId())) {
-            $this->raiseError(get_class($job) .'::getSessionId() returned false!');
-            return false;
-        }
-
-        if (!is_string($sessionid)) {
-            $this->raiseError(get_class($job) .'::getSessionId() has not returned a string!');
-            return false;
-        }
-
         try {
             $importer = new MailImportController;
         } catch (\Exception $e) {
@@ -245,16 +225,6 @@ class JobsController extends \Thallium\Controllers\JobsController
 
         if (!is_string($body)) {
             $this->raiseError(get_class($job) .'::getParameters() has not returned a string!');
-            return false;
-        }
-
-        if (!($sessionid = $job->getSessionId())) {
-            $this->raiseError(get_class($job) .'::getSessionId() returned false!');
-            return false;
-        }
-
-        if (!is_string($sessionid)) {
-            $this->raiseError(get_class($job) .'::getSessionId() has not returned a string!');
             return false;
         }
 
@@ -344,15 +314,6 @@ class JobsController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        if (!($sessionid = $job->getSessionId())) {
-            $this->raiseError(get_class($job) .'::getSessionId() returned false!');
-            return false;
-        }
-
-        if (!is_string($sessionid)) {
-            $this->raiseError(get_class($job) .'::getSessionId() has not returned a string!');
-            return false;
-        }
         if (!$mbus->sendMessageToClient('sign-reply', 'Preparing', '10%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
@@ -431,16 +392,6 @@ class JobsController extends \Thallium\Controllers\JobsController
 
         if (!is_string($body)) {
             $this->raiseError(get_class($job) .'::getParameters() has not returned a string!');
-            return false;
-        }
-
-        if (!($sessionid = $job->getSessionId())) {
-            $this->raiseError(get_class($job) .'::getSessionId() returned false!');
-            return false;
-        }
-
-        if (!is_string($sessionid)) {
-            $this->raiseError(get_class($job) .'::getSessionId() has not returned a string!');
             return false;
         }
 
