@@ -73,7 +73,7 @@ class MailImportController extends DefaultController
 
     public function fetch()
     {
-        global $config, $mbus;
+        global $config, $mbus, $jobs;
 
         if (!$mbus->sendMessageToClient('mailimport-reply', 'Establishing connection to mailbox.', '10%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
@@ -166,22 +166,11 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        // now launch the import controller
-        try {
-            $import = new ImportController;
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load ImportController!');
+        if (!$jobs->createJob('import-request')) {
+            $this->raiseError(get_class($jobs) .'::createJob() returned false!');
             return false;
         }
 
-        $state = $mbus->suppressOutboundMessaging(true);
-        if (!$import->handleQueue()) {
-            $this->raiseError(get_class($import) .'::handleQueue() returned false!');
-            return false;
-        }
-        $mbus->suppressOutboundMessaging($state);
-
-        unset($import);
         return true;
     }
 
