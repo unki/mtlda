@@ -50,19 +50,13 @@ class MainController extends \Thallium\Controllers\MainController
         $GLOBALS['mtlda'] =& $this;
 
         parent::__construct();
+        global $jobs;
 
         if (isset($mode) and $mode == "queue_only") {
-            $this->loadController("Import", "import");
-            global $import;
-
-            $state = $mbus->suppressOutboundMessaging(true);
-            if (!$import->handleQueue()) {
-                $this->raiseError(get_class($import) .'::handleQueue returned false!');
+            if (!$jobs->createJob('import-request')) {
+                $this->raiseError(get_class($jobs) .'::createJob() returned false!');
                 return false;
             }
-            $mbus->suppressOutboundMessaging($state);
-
-            unset($import);
         }
 
         return true;
