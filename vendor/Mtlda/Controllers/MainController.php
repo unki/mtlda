@@ -59,35 +59,36 @@ class MainController extends \Thallium\Controllers\MainController
             }
         }
 
+        try {
+            $this->registerHandler('image', array($this, 'imageHandler'));
+            $this->registerHandler('document', array($this, 'documentHandler'));
+            $this->registerHandler('upload', array($this, 'uploadHandler'));
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to register handlers!', true);
+        }
         return true;
     }
 
-    public function startup()
+    public function callHandlers()
     {
         global $router;
 
         if ($router->isImageCall()) {
-            if (!$this->imageHandler()) {
-                $this->raiseError(__CLASS__ .'::imageHandler() returned false!');
+            if (!$this->callHandler('image')) {
+                $this->raiseError(__CLASS__ .'::callHandler() returned false!');
                 return false;
             }
             return true;
         } elseif ($router->isDocumentCall()) {
-            if (!$this->documentHandler()) {
-                $this->raiseError(__CLASS__ .'::documentHandler() returned false!');
+            if (!$this->callHandler('document')) {
+                $this->raiseError(__CLASS__ .'::callHandler() returned false!');
                 return false;
             }
             return true;
 
-        } elseif ($router->isUploadCall()) {
-            if (!$this->uploadHandler()) {
-                $this->raiseError(__CLASS__ .'::uploadHandler() returned false!');
-                return false;
-            }
-            return true;
         }
 
-        return parent::startup();
+        return parent::callHandlers();
     }
 
     protected function imageHandler()
