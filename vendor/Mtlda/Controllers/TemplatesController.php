@@ -67,6 +67,10 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
             return false;
         }
 
+        if (!isset($query->view)) {
+            return null;
+        }
+
         if ($params['page'] == $query->view) {
             return "active";
         }
