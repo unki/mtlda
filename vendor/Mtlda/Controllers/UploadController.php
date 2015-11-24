@@ -40,7 +40,7 @@ class UploadController extends DefaultController
 
     public function perform()
     {
-        global $mtlda, $mbus;
+        global $mtlda, $jobs;
 
         if (!isset($_FILES) || empty($_FILES) || !is_array($_FILES)) {
             $this->raiseError("\$_FILES is empty");
@@ -88,17 +88,10 @@ class UploadController extends DefaultController
             }
         }
 
-        $mtlda->loadController("Import", "import");
-        global $import;
-
-        $state = $mbus->suppressOutboundMessaging(true);
-        if (!$import->handleQueue()) {
-            $this->raiseError("ImportController::handleQueue returned false!");
+        if (!$jobs->createJob('import-request')) {
+            $this->raiseError(get_class($jobs) .'::createJob() returned false!');
             return false;
         }
-        $mbus->suppressOutboundMessaging($state);
-
-        unset($import);
 
         print "ok";
         return true;
