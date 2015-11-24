@@ -33,6 +33,8 @@
   <script type="text/javascript" src="{$app_web_path}/resources/forge/js/forge.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/forge/js/util.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/forge/js/sha1.js"></script>
+  <!-- pdf.js -->
+  <script type="text/javascript" src="{$app_web_path}/resources/pdfjs/build/pdf.js"></script>
   <!-- MTLDA JavaScript -->
   <script type="text/javascript" src="{$app_web_path}/resources/mtlda.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/mtlda_rpc.js"></script>
