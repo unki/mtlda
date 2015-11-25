@@ -86,7 +86,7 @@
   <td><a href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" title="Preview {$item->getFileName()|escape}" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i>Preview</a></td>
   <td><a class="archive item" id="archive_link_{$item->getId()}" title="Archive {$item->getFileName()|escape}" data-modal-text="Please confirm that you would like to archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a></td>
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}"><i class="edit icon"></i>Edit</a></td>
-  <td><a class="delete item" title="Delete {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
+  <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/queue_list}
  </tbody>
@@ -133,36 +133,7 @@ $(document).ready(function() {
     $("a.trigger.import").click(function() {
         trigger_import_run();
     });
-
-    $(".item.select.checkbox")
-        .checkbox()
-        .click(function () {
-            if (!(name = $(this).attr('name'))) {
-               throw 'Failed to locate name-attribute!';
-               return false;
-            }
-            if (name != 'select_all') {
-               return true;
-            }
-
-            state = $(".item.select.checkbox[name='select_all']").checkbox("is checked");
-
-            if (state != true && state != false) {
-               throw 'Checkbox returned an invalid state!';
-               return false;
-            }
-
-            if (state === true) {
-               to_state = "set checked";
-            } else {
-               to_state = "set unchecked";
-            }
-
-            $(".item.select.checkbox[name!='select_all']").checkbox(to_state);
-            return true;
-        });
 });
-
 --></script>
 <div class="ui import archive delete modal">
  <i class="close icon"></i>
