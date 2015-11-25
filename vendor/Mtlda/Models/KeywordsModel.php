@@ -36,6 +36,14 @@ class KeywordsModel extends DefaultModel
             return false;
         }
 
+        try {
+            $this->permitRpcUpdates(true);
+            $this->addRpcAction('delete');
+        } catch (\Exception $e) {
+            $this->raiseError(__CLASS__ .', failed to set RPC parameters!', true, $e);
+            return false;
+        }
+
         return true;
     }
 
@@ -55,7 +63,7 @@ class KeywordsModel extends DefaultModel
         );
 
         if ($result === false) {
-            $mtlda->raiseError("failed to fetch keywords!");
+            $this->raiseError(__METHOD__ .'(), failed to fetch keywords!');
             return false;
         }
 
@@ -71,6 +79,58 @@ class KeywordsModel extends DefaultModel
             }
             array_push($this->avail_items, $row->$idx_field);
             $this->items[$row->$idx_field] = $keyword;
+        }
+
+        return true;
+    }
+
+    public function flush()
+    {
+        global $mtlda, $db, $audit;
+
+        // delete each KeywordModel
+        foreach ($this->items as $item) {
+            if (!$item->getId() || !$item->getGuid()) {
+                $this->raiseError(__METHOD__ .'(), invalid $item found!');
+                return false;
+            }
+
+            $keyword = $mtlda->loadModel("keyword", $item->getId(), $item->getGuid());
+
+            if (!$keyword) {
+                $this->raiseError(
+                    "Error loading KeywordModel idx:{$item->getId()} guid:{$item->getGuid()}!"
+                );
+                return false;
+            }
+
+            if (!$keyword->delete()) {
+                $this->raiseError(
+                    "Error deleting KeywordModel idx:{$item->getId()} guid:{$item->getGuid()}!"
+                );
+                return false;
+            }
+        }
+
+        // finally truncate the table
+        $result = $db->query(
+            "TRUNCATE TABLE TABLEPREFIX{$this->table_name}"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ."(), failed to truncate '{$this->table_name}' table!");
+            return false;
+        }
+
+        try {
+            $audit->log(
+                "flushing",
+                "flushed",
+                "keywords"
+            );
+        } catch (\Exception $e) {
+            $this->raiseError(get_class($audit) .'::log() returned false!');
+            return false;
         }
 
         return true;
