@@ -38,6 +38,12 @@
 <table class="ui celled table">
  <thead>
   <tr>
+   <th>
+    <div class="ui fitted checkbox item select" name="select_all">
+     <input type="checkbox">
+     <label></label>
+    </div>
+   </th>
    <th>Keyword</th>
    <th>Actions</th>
   </tr>
@@ -45,6 +51,12 @@
  <tbody>
 {keywords_list}
  <tr>
+  <td>
+   <div class="ui fitted checkbox item select" name="select_{$item->getId()}">
+    <input type="checkbox">
+    <label></label>
+   </div>
+  </td>
   <td>
    <div name="keyword_{$item->getId()}" class="inline editable content" data-orig-value="{$item->getName()}" style="float: left;">{$item->getName()}</div>&nbsp;
    <a name="keyword_{$item->getId()}" class="inline editable edit link" data-inline-name="keyword_{$item->getId()}"><i class="tiny edit icon"></i></a>
@@ -64,13 +76,17 @@
     </form>
    </div>
   </td>
-  <td><a class="delete item" title="Delete {$item->getName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="keyword"><i class="remove circle icon"></i>Delete</a></td>
+  <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {$item->getName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="keyword"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/keywords_list}
  </tbody>
  <tfoot>
   <tr>
-   <th colspan="2">
+   <th colspan="4">
+    <div class="ui left floated segment raised segments">
+     <a class="ui segment delete item" title="Delete selected keywords" data-modal-text="Do you really want to delete all selected keywords?" data-id="selected" data-guid="selected" data-model="keywords"><i class="remove circle icon"></i>Delete selected</a>
+     <a class="ui segment delete item" title="Delete all" data-modal-text="Do you really want to delete all keywords?" data-id="all" data-guid="all" data-model="keywords"><i class="remove circle icon"></i>Delete all</a>
+    </div>
 {if isset($pager)}
 {include file='pager.tpl' pager=$pager view=keywords}
 {/if}
