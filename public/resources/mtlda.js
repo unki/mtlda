@@ -59,6 +59,32 @@ $(document).ready(function () {
             $(this).css('cursor','auto');
         }
     );
+
+    $(".item.select.checkbox").checkbox().click(function () {
+        if (!(name = $(this).attr('name'))) {
+            throw 'Failed to locate name-attribute!';
+            return false;
+        }
+        if (name != 'select_all') {
+            return true;
+        }
+
+        state = $(".item.select.checkbox[name='select_all']").checkbox("is checked");
+
+        if (state != true && state != false) {
+            throw 'Checkbox returned an invalid state!';
+            return false;
+        }
+
+        if (state === true) {
+            to_state = "set checked";
+        } else {
+            to_state = "set unchecked";
+        }
+
+        $(".item.select.checkbox[name!='select_all']").checkbox(to_state);
+        return true;
+    });
 });
 
 function init_upload_progressbar(dropzone)
@@ -258,6 +284,9 @@ function delete_object(element)
             item_id = item[1];
             id.push(item_id);
         });
+        if (id.length == 0) {
+            return true;
+        }
     }
 
     var title = element.attr("title");
@@ -281,7 +310,7 @@ function delete_object(element)
     elements = new Array;
     if (id instanceof Array) {
         id.forEach(function (value) {
-            elements.push($('#archive_link_'+value));
+            elements.push($('#delete_link_'+value));
         });
     } else {
         elements.push(element);
