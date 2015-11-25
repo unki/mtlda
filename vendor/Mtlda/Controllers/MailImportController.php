@@ -36,7 +36,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$this->mail_cfg = $config->getMailImportConfiguration()) {
+        if (($this->mail_cfg = $config->getMailImportConfiguration()) === false) {
             $this->raiseError(__METHOD__ .'(), unable to retrieve mail import configuration!', true);
             return false;
         }
@@ -98,7 +98,7 @@ class MailImportController extends DefaultController
             return true;
         }
 
-        if (!$list = $this->retrieveListOfMails($msg_cnt)) {
+        if (($list = $this->retrieveListOfMails($msg_cnt)) === false) {
             $this->raiseError(__CLASS__ .'::retrieveListOfMails() returned false!');
         }
 
@@ -129,7 +129,7 @@ class MailImportController extends DefaultController
                 return false;
             }
 
-            if (!$msg = $this->retrieveMail($mail->msgno)) {
+            if (($msg = $this->retrieveMail($mail->msgno)) === false) {
                 $this->raiseError(__CLASS__ .'::retrieveMail() returned false!');
                 break;
             }
@@ -250,7 +250,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$status = imap_status($this->imap_session, $this->connect_string, SA_UNSEEN)) {
+        if (($status = imap_status($this->imap_session, $this->connect_string, SA_UNSEEN)) === false) {
             $this->raiseError(__METHOD__ .'(), imap_status() failed!'. imap_last_error());
             return false;
         }
@@ -279,7 +279,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$list = imap_fetch_overview($this->imap_session, "1:{$msg_cnt}")) {
+        if (($list = imap_fetch_overview($this->imap_session, "1:{$msg_cnt}")) === false) {
             $this->raiseError(__METHOD__ .'(), imap_fetch_overview() failed!');
             return false;
         }
@@ -303,7 +303,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$structure = imap_fetchstructure($this->imap_session, $msgno)) {
+        if (($structure = imap_fetchstructure($this->imap_session, $msgno)) === false) {
             $this->raiseError(__METHOD__ .'(), unable to retrieve structure!'. imap_last_error());
             return false;
         }
@@ -599,7 +599,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$body = imap_fetchbody($this->imap_session, $msgno, $attachment['id'])) {
+        if (($body = imap_fetchbody($this->imap_session, $msgno, $attachment['id'])) === false) {
             $this->raiseError(
                 "imap_fetchbody() returned false!<br />Msgno: {$msgno}<br />".
                 "Attachment: {$attachment['id']}<br />". imap_last_error()
@@ -614,7 +614,7 @@ class MailImportController extends DefaultController
 
         // 3 = BASE64
         if ($attachment['encoding'] == 3) {
-            if (!$body = base64_decode($body)) {
+            if (($body = base64_decode($body)) === false) {
                 $this->raiseError(__METHOD__ .'(), base64_decode() returned false!');
                 return false;
             }
@@ -645,7 +645,7 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (!$body = imap_fetchbody($this->imap_session, $msgno, $description['id'])) {
+        if (($body = imap_fetchbody($this->imap_session, $msgno, $description['id'])) === false) {
             $this->raiseError(
                 "imap_fetchbody() returned false!<br />Msgno: {$msgno}<br />".
                 "Attachment: {$description['id']}<br />". imap_last_error()
@@ -660,7 +660,7 @@ class MailImportController extends DefaultController
 
         // 3 = BASE64
         if ($description['encoding'] == 3) {
-            if (!$body = base64_decode($body)) {
+            if (($body = base64_decode($body)) === false) {
                 $this->raiseError(__METHOD__ .'(), base64_decode() returned false!');
                 return false;
             }
