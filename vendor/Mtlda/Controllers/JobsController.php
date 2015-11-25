@@ -457,6 +457,10 @@ class JobsController extends \Thallium\Controllers\JobsController
             $obj_name = '\Mtlda\Models\KeywordModel';
             $id = $delete_request->id;
             $guid = $delete_request->guid;
+        } elseif ($delete_request->model == 'keywords') {
+            $obj_name = '\Mtlda\Models\KeywordsModel';
+            $id = $delete_request->id;
+            $guid = $delete_request->guid;
         } else {
             $this->raiseError(__METHOD__ .'(), delete-request contains an unsupported model!');
             return false;
