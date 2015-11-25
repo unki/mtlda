@@ -49,7 +49,7 @@
   </td>
   <td>{if $item->hasCustomDate()}{$item->getCustomDate()|date_format:"%Y.%m.%d"}{else}{$item->document_time|date_format:"%Y.%m.%d %H:%M"}{/if}</td>
   <td><a href="{get_url page=archive mode=show id=$item_safe_link}"><i class="file text icon"></i>Details</a></td>
-  <td><a href="{get_url page=document mode=show id=$document_safe_link}" target="_blank"><i class="icons"><i class="file text icon"></i><i class="corner search icon"></i></i>Show</a></td>
+  <td><a href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=document mode=show id=$document_safe_link}" target="_blank"><i class="icons"><i class="file text icon"></i><i class="corner search icon"></i></i>Preview</a></td>
   <td><a class="delete item" title="Delete {$item->getTitle()|escape}" data-model="document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/archive_list}
