@@ -18,6 +18,12 @@
 <table class="ui celled table">
  <thead>
   <tr>
+   <th>
+    <div class="ui fitted checkbox item select" name="select_all">
+     <input type="checkbox">
+     <label></label>
+    </div>
+   </th>
    <th>Idx</th>
    <th>Document</th>
    <th>Time</th>
@@ -27,6 +33,12 @@
  <tbody>
 {archive_list}
  <tr>
+  <td>
+   <div class="ui fitted checkbox item select" name="select_{$item->getId()}">
+    <input type="checkbox">
+    <label></label>
+   </div>
+  </td>
   <td><a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_idx}</a></td>
   <td>
    <a name="title_{$item->document_idx}" class="inline editable content" data-orig-value="{$item->document_title}" href="{get_url page=archive mode=show id=$item_safe_link}">{$item->document_title}</a>
@@ -50,13 +62,16 @@
   <td>{if $item->hasCustomDate()}{$item->getCustomDate()|date_format:"%Y.%m.%d"}{else}{$item->document_time|date_format:"%Y.%m.%d %H:%M"}{/if}</td>
   <td><a href="{get_url page=archive mode=show id=$item_safe_link}"><i class="file text icon"></i>Details</a></td>
   <td><a href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=document mode=show id=$document_safe_link}" target="_blank"><i class="icons"><i class="file text icon"></i><i class="corner search icon"></i></i>Preview</a></td>
-  <td><a class="delete item" title="Delete {$item->getTitle()|escape}" data-model="document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}"><i class="remove circle icon"></i>Delete</a></td>
+  <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {$item->getTitle()|escape}" data-model="document" data-id="{$item->document_idx}" data-guid="{$item->document_guid}"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/archive_list}
  </tbody>
  <tfoot>
   <tr>
-   <th colspan="6">
+   <th colspan="7">
+    <div class="ui left floated segment raised segments">
+     <a class="ui segment delete item" title="Delete selected items" data-modal-text="Do you really want to delete all selected items from archive?" data-id="selected" data-guid="selected" data-model="archive"><i class="remove circle icon"></i>Delete selected</a>
+    </div>
 {if isset($pager)}
 {include file='pager.tpl' pager=$pager view=archive}
 {/if}
