@@ -32,9 +32,6 @@ class RpcController extends \Thallium\Controllers\RpcController
             case 'get-content':
                 $this->rpcGetContent();
                 break;
-            case 'get-keywords':
-                $this->rpcGetKeywords();
-                break;
             case 'save-keywords':
                 $this->rpcSaveKeywords();
                 break;
@@ -134,40 +131,6 @@ class RpcController extends \Thallium\Controllers\RpcController
                 break;
         }
 
-        return true;
-    }
-
-    protected function rpcGetKeywords()
-    {
-        global $mtlda;
-
-        try {
-            $keywords = new \Mtlda\Models\KeywordsModel;
-        } catch (\Exception $e) {
-            $this->raiseError("Failed to load KeywordsModel!");
-            return false;
-        }
-
-        $result = array();
-        foreach ($keywords->avail_items as $keyword) {
-            $item = $keywords->items[$keyword];
-            array_push($result, array(
-                'name' => $item->keyword_name,
-                'value' => $item->keyword_idx
-            ));
-        }
-
-        $output = json_encode(array(
-            'success' => 'true',
-            'results' => $result
-        ));
-
-        if ($output === false) {
-            $this->raiseError("json_encode() returned false!");
-            return false;
-        }
-
-        print $output;
         return true;
     }
 
