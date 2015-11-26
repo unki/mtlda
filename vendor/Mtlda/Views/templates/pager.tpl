@@ -14,7 +14,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-{if isset($pager)}
+{if isset($pager) && $pager->getNumberOfPages() > 1}
     <div class="ui right floated pagination borderless menu">
 {if $pager->getFirstPageNumber()}
      <a class="icon item" href="{get_url page=$view number=$pager->getFirstPageNumber()}"><i class="angle double left icon"></i></a>
