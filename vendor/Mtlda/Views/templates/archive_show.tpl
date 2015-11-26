@@ -183,20 +183,6 @@ $(document).ready(function() {
 
    $('#keyword_dropdown').dropdown({
       allowAdditions: false,
-      apiSettings: {
-         method : 'POST',
-         url    : '{/literal}{$keywords_rpc_url}{literal}',
-         data   : {
-            type   : 'rpc',
-            action : 'get-keywords'
-         },
-         onError : function(errorMessage, element, xhr) {
-            window.alert(errorMessage + ' ' + element + ' ' + xhr);
-         },
-         onFailure : function(response, element)  {
-            window.alert(response + ' ' + element);
-         }
-      },
       onChange : function(value, text, choice) {
          $('.ui.form.keywords button.save')
             .addClass('red shape')
