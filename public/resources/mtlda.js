@@ -531,6 +531,13 @@ function init_table_filter()
             return;
         });
     });
+    $('input[name="filter_value"]').keypress(function (e) {
+        var keycode = (event.keyCode ? event.keyCode : event.which);
+        if (keycode != '13') {
+            return;
+        }
+        $('#filterbutton').popup('toggle');
+    });
     $('a.filter.reset').click(function () {
         $('input[name="filter_value"]').val('').trigger('input');
     });
