@@ -15,10 +15,10 @@
  * GNU Affero General Public License for more details.
 *}
 <h1 class="ui header"><i class="archive icon"></i>Archive</h1>
-<table class="ui celled table">
+<table class="ui sortable celled table" id="datatable">
  <thead>
   <tr>
-   <th>
+   <th class="no-sort">
     <div class="ui fitted checkbox item select" id="select_all">
      <input type="checkbox">
      <label></label>
@@ -27,7 +27,7 @@
    <th>Idx</th>
    <th>Document</th>
    <th>Time</th>
-   <th colspan="3">Actions</th>
+   <th colspan="3" class="no-sort">Actions</th>
   </tr>
  </thead>
  <tbody>
@@ -92,5 +92,6 @@ $(document).ready(function() {
       $('#' + type + '_show_' + id).toggle();
       $('#' + type + '_edit_' + id).toggle();
    });
+   $('#datatable').tablesort();
 });
 --></script>
