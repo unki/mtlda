@@ -38,27 +38,34 @@
 <table class="ui sortable celled table" id="datatable">
  <thead>
   <tr>
-   <th class="no-sort">
+   <th class="no-sort one wide column center aligned">
     <div class="ui fitted checkbox item select" id="select_all">
      <input type="checkbox">
      <label></label>
     </div>
    </th>
    <th>Keyword</th>
-   <th class="no-sort">Actions</th>
+   <th class="no-sort three wide column">
+    <div class="two column ui grid">
+     <div class="column">Actions</div>
+     <div class="column right aligned">
+      <a id="filterbutton"><i class="filter icon"></i></a>
+     </div>
+    </div>
+   </th>
   </tr>
  </thead>
  <tbody>
 {keywords_list}
  <tr>
-  <td>
+  <td class="center aligned">
    <div class="ui fitted checkbox item select" id="select_{$item->getId()}">
     <input type="checkbox">
     <label></label>
    </div>
   </td>
   <td>
-   <div name="keyword_{$item->getId()}" class="inline editable content" data-orig-value="{$item->getName()}" style="float: left;">{$item->getName()}</div>&nbsp;
+   <div name="keyword_{$item->getId()}" class="filterable inline editable content" data-orig-value="{$item->getName()}" style="float: left;">{$item->getName()}</div>&nbsp;
    <a name="keyword_{$item->getId()}" class="inline editable edit link" data-inline-name="keyword_{$item->getId()}"><i class="tiny edit icon"></i></a>
    <div name="keyword_{$item->getId()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
@@ -94,8 +101,3 @@
   </tr>
  </tfoot>
 </table>
-<script type="text/javascript"><!--
-$(document).ready(function () {
-   $('#datatable').tablesort();
-});
---></script>
