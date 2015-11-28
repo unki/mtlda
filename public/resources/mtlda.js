@@ -501,21 +501,31 @@ function init_table_filter()
         on: 'click'
     });
     $('input[name="filter_value"]').on('input', function () {
-        filter_value = safe_string($(this).val());
+        filter_value = $(this).val();
+        try {
+            regexp = new RegExp(filter_value, 'i');
+        } catch (e) {
+            regexp = safe_string(filter_value);
+        }
+        $('.filterable').each(function () {
+            $(this).closest('tr').removeClass('filter matches');
+        });
         $('.filterable').each(function () {
             content = $(this).html();
-            if (filter_value !== undefined &&
-                filter_value != "" &&
-                content !== undefined &&
-                !content.match(filter_value)
+            if (filter_value === undefined ||
+                filter_value == "" ||
+                content.match(regexp)
             ) {
-                $(this).closest('tr').hide();
-                return true;
+                $(this).closest('tr')
+                    .show()
+                    .addClass('filter matches');
+                return;
             }
-            if ($(this).closest('tr').is(':hidden')) {
-                $(this).closest('tr').show();
+            if ($(this).closest('tr').hasClass('filter matches')) {
+                return;
             }
-            return true;
+            $(this).closest('tr').hide();
+            return;
         });
     });
     $('a.filter.reset').click(function () {
