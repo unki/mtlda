@@ -48,7 +48,14 @@
    <th>Size</th>
    <th>State</th>
    <th>Time</th>
-   <th colspan="4" class="no-sort">Actions</th>
+   <th colspan="4" class="no-sort">
+    <div class="two column ui grid">
+     <div class="column">Actions</div>
+     <div class="column right aligned">
+      <a id="filterbutton"><i class="filter icon"></i></a>
+     </div>
+    </div>
+   </th>
   </tr>
  </thead>
  <tbody>
@@ -62,7 +69,7 @@
   </td>
   <td><a href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getId()}</a></td>
   <td>
-   <a name="filename_{$item->getId()}" class="inline editable content" data-orig-value="{$item->getFileName()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getFileName()}</a>
+   <a name="filename_{$item->getId()}" class="filterable inline editable content" data-orig-value="{$item->getFileName()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getFileName()}</a>
    <a name="filename_{$item->getId()}" class="inline editable edit link" data-inline-name="filename_{$item->getId()}"><i class="tiny edit icon"></i></a>
    <div name="filename_{$item->getId()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
@@ -80,9 +87,9 @@
     </form>
    </div>
   </td>
-  <td>{$item->getFileSize()}</td>
-  <td class="archive state" id="archive-state-{$item->getId()}">{$item->getState()}</td>
-  <td>{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
+  <td class="filterable">{$item->getFileSize()}</td>
+  <td class="filterable archive state" id="archive-state-{$item->getId()}">{$item->getState()}</td>
+  <td class="filterable">{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
   <td><a href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" title="Preview {$item->getFileName()|escape}" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i>Preview</a></td>
   <td><a class="archive item" id="archive_link_{$item->getId()}" title="Archive {$item->getFileName()|escape}" data-modal-text="Please confirm that you would like to archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a></td>
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}"><i class="edit icon"></i>Edit</a></td>
