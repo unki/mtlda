@@ -60,31 +60,9 @@ $(document).ready(function () {
         }
     );
 
-    $(".item.select.checkbox").checkbox().click(function () {
-        if (!(id = $(this).attr('id'))) {
-            throw 'Failed to locate id-attribute!';
-            return false;
-        }
-        if (id != 'select_all') {
-            return true;
-        }
-
-        state = $(".item.select.checkbox#select_all").checkbox("is checked");
-
-        if (state != true && state != false) {
-            throw 'Checkbox returned an invalid state!';
-            return false;
-        }
-
-        if (state === true) {
-            to_state = "set checked";
-        } else {
-            to_state = "set unchecked";
-        }
-
-        $(".item.select.checkbox[id!='select_all']").checkbox(to_state);
-        return true;
-    });
+    init_checkbox_selector();
+    init_table_sort();
+    init_table_filter();
 });
 
 function init_upload_progressbar(dropzone)
@@ -507,6 +485,71 @@ function trigger_import_run()
     }
 
     return true;
+}
+
+function init_table_sort()
+{
+    $('#datatable').tablesort();
+}
+
+function init_table_filter()
+{
+    $('#filterbutton').popup({
+        popup: '#filterpopup',
+        exclusive: true,
+        preserve: true,
+        on: 'click'
+    });
+    $('input[name="filter_value"]').on('input', function () {
+        filter_value = safe_string($(this).val());
+        $('.filterable').each(function () {
+            content = $(this).html();
+            if (filter_value !== undefined &&
+                filter_value != "" &&
+                content !== undefined &&
+                !content.match(filter_value)
+            ) {
+                $(this).closest('tr').hide();
+                return true;
+            }
+            if ($(this).closest('tr').is(':hidden')) {
+                $(this).closest('tr').show();
+            }
+            return true;
+        });
+    });
+    $('a.filter.reset').click(function () {
+        $('input[name="filter_value"]').val('').trigger('input');
+    });
+}
+
+function init_checkbox_selector()
+{
+    $(".item.select.checkbox").checkbox().click(function () {
+        if (!(id = $(this).attr('id'))) {
+            throw 'Failed to locate id-attribute!';
+            return false;
+        }
+        if (id != 'select_all') {
+            return true;
+        }
+
+        state = $(".item.select.checkbox#select_all").checkbox("is checked");
+
+        if (state != true && state != false) {
+            throw 'Checkbox returned an invalid state!';
+            return false;
+        }
+
+        if (state === true) {
+            to_state = "set checked";
+        } else {
+            to_state = "set unchecked";
+        }
+
+        $(".item.select.checkbox[id!='select_all']").checkbox(to_state);
+        return true;
+    });
 }
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
