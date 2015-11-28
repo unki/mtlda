@@ -38,7 +38,7 @@
  <thead>
   <tr>
    <th>
-    <div class="ui fitted checkbox item select" name="select_all">
+    <div class="ui fitted checkbox item select" id="select_all">
      <input type="checkbox">
      <label></label>
     </div>
@@ -55,7 +55,7 @@
 {queue_list}
  <tr class="queue item">
   <td>
-   <div class="ui fitted checkbox item select" name="select_{$item->getId()}">
+   <div class="ui fitted checkbox item select" id="select_{$item->getId()}">
     <input type="checkbox">
     <label></label>
    </div>
