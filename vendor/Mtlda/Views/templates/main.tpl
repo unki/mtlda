@@ -19,7 +19,7 @@
 
  <!-- left column -->
  <div class="column">
-<i class="archive icon"></i>Recently archived documents
+  <i class="archive icon"></i>Recently archived documents
   <div class="ui very relaxed divided selection list">
 {top10 type=archive}
    <div class="item">
