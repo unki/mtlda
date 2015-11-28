@@ -498,7 +498,10 @@ function init_table_filter()
         popup: '#filterpopup',
         exclusive: true,
         preserve: true,
-        on: 'click'
+        on: 'click',
+        onVisible: function () {
+            $('input[name="filter_value"]').focus();
+        }
     });
     $('input[name="filter_value"]').on('input', function () {
         filter_value = $(this).val();
