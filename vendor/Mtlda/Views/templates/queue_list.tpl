@@ -34,10 +34,10 @@
   </div>
  </div>
 </div>
-<table class="ui celled table">
+<table class="ui sortable celled table" id="datatable">
  <thead>
   <tr>
-   <th>
+   <th class="no-sort">
     <div class="ui fitted checkbox item select" id="select_all">
      <input type="checkbox">
      <label></label>
@@ -48,7 +48,7 @@
    <th>Size</th>
    <th>State</th>
    <th>Time</th>
-   <th colspan="4">Actions</th>
+   <th colspan="4" class="no-sort">Actions</th>
   </tr>
  </thead>
  <tbody>
@@ -133,6 +133,8 @@ $(document).ready(function() {
     $("a.trigger.import").click(function() {
         trigger_import_run();
     });
+
+    $('#datatable').tablesort();
 });
 --></script>
 <div class="ui import archive delete modal">
