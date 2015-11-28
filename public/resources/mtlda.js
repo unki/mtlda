@@ -61,15 +61,15 @@ $(document).ready(function () {
     );
 
     $(".item.select.checkbox").checkbox().click(function () {
-        if (!(name = $(this).attr('name'))) {
-            throw 'Failed to locate name-attribute!';
+        if (!(id = $(this).attr('id'))) {
+            throw 'Failed to locate id-attribute!';
             return false;
         }
-        if (name != 'select_all') {
+        if (id != 'select_all') {
             return true;
         }
 
-        state = $(".item.select.checkbox[name='select_all']").checkbox("is checked");
+        state = $(".item.select.checkbox#select_all").checkbox("is checked");
 
         if (state != true && state != false) {
             throw 'Checkbox returned an invalid state!';
@@ -82,7 +82,7 @@ $(document).ready(function () {
             to_state = "set unchecked";
         }
 
-        $(".item.select.checkbox[name!='select_all']").checkbox(to_state);
+        $(".item.select.checkbox[id!='select_all']").checkbox(to_state);
         return true;
     });
 });
