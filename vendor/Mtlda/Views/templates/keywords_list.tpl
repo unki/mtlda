@@ -35,17 +35,17 @@
   </div>
  </div>
 </div>
-<table class="ui celled table">
+<table class="ui sortable celled table" id="datatable">
  <thead>
   <tr>
-   <th>
+   <th class="no-sort">
     <div class="ui fitted checkbox item select" id="select_all">
      <input type="checkbox">
      <label></label>
     </div>
    </th>
    <th>Keyword</th>
-   <th>Actions</th>
+   <th class="no-sort">Actions</th>
   </tr>
  </thead>
  <tbody>
@@ -94,3 +94,8 @@
   </tr>
  </tfoot>
 </table>
+<script type="text/javascript"><!--
+$(document).ready(function () {
+   $('#datatable').tablesort();
+});
+--></script>
