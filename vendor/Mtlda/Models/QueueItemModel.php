@@ -33,6 +33,8 @@ class QueueItemModel extends DefaultModel
             'queue_signing_icon_position' => 'integer',
             'queue_state' => 'string',
             'queue_time' => 'timestamp',
+            'queue_custom_date' => 'date',
+            'queue_expiry_date' => 'date',
             'queue_in_processing' => 'string',
             );
     public $avail_items = array();
@@ -49,6 +51,8 @@ class QueueItemModel extends DefaultModel
 
         try {
             $this->addRpcEnabledField('queue_file_name');
+            $this->addRpcEnabledField('queue_custom_date');
+            $this->addRpcEnabledField('queue_expiry_date');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
@@ -252,7 +256,7 @@ class QueueItemModel extends DefaultModel
         }
 
         /* new queueitem? no more action here */
-        if (!isset($this->document_idx) && !isset($this->id)) {
+        if (!isset($this->queue_idx) && !isset($this->id)) {
             return true;
         }
 
@@ -449,6 +453,78 @@ class QueueItemModel extends DefaultModel
         }
 
         return true;
+    }
+
+    public function setCustomDate($date)
+    {
+        if (!isset($date) ||
+            empty($date) ||
+            (!is_string($date) && !is_numeric($date))
+        ) {
+            $this->raiseError(__METHOD__ .'(), \$date parameter is invalid!');
+            return false;
+        }
+
+        $this->queue_custom_date = $date;
+        return true;
+    }
+
+    public function hasCustomDate()
+    {
+        if (!isset($this->queue_custom_date) ||
+            empty($this->queue_custom_date) ||
+            $this->queue_custom_date == '0000-00-00'
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getCustomDate()
+    {
+        if (!$this->hasCustomDate()) {
+            $this->raiseError(__CLASS__ .'::hasCustomDate() returned false!');
+            return false;
+        }
+
+        return $this->queue_custom_date;
+    }
+
+    public function setExpiryDate($date)
+    {
+        if (!isset($date) ||
+            empty($date) ||
+            (!is_string($date) && !is_numeric($date))
+        ) {
+            $this->raiseError(__METHOD__ .'(), \$date parameter is invalid!');
+            return false;
+        }
+
+        $this->queue_expiry_date = $date;
+        return true;
+    }
+
+    public function hasExpiryDate()
+    {
+        if (!isset($this->queue_expiry_date) ||
+            empty($this->queue_expiry_date) ||
+            $this->queue_expiry_date == '0000-00-00'
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getExpiryDate()
+    {
+        if (!$this->hasExpiryDate()) {
+            $this->raiseError(__CLASS__ .'::hasExpiryDate() returned false!');
+            return false;
+        }
+
+        return $this->queue_expiry_date;
     }
 }
 
