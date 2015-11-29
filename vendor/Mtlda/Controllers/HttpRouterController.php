@@ -21,6 +21,23 @@ namespace Mtlda\Controllers;
 
 class HttpRouterController extends \Thallium\Controllers\HttpRouterController
 {
+    public function __construct()
+    {
+        try {
+            $this->addValidRpcAction('delete-document');
+            $this->addValidRpcAction('archive');
+            $this->addValidRpcAction('sign');
+            $this->addValidRpcAction('get-keywords');
+            $this->addValidRpcAction('save-keywords');
+            $this->addValidRpcAction('save-description');
+            $this->addValidRpcAction('get-view');
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), unable to register further RPC actions!', true);
+            return false;
+        }
+
+        parent::__construct();
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
