@@ -28,6 +28,8 @@ class QueueView extends DefaultView
 
     public function __construct()
     {
+        global $tmpl;
+
         try {
             $this->queue = new \Mtlda\Models\QueueModel;
         } catch (\Exception $e) {
@@ -39,6 +41,11 @@ class QueueView extends DefaultView
             $this->import = new \Mtlda\Controllers\ImportController;
         } catch (\Exception $e) {
             $this->raiseError(__METHOD__ .'(), failed to load ImportController!', true);
+            return false;
+        }
+
+        if (!$tmpl->addSupportedMode('archive')) {
+            $this->raiseError(get_class($tmpl) .'::addSupportedMode() returned false!', true);
             return false;
         }
 
