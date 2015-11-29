@@ -29,8 +29,8 @@ class RpcController extends \Thallium\Controllers\RpcController
             case 'find-prev-next':
                 $this->rpcFindPrevNextObject();
                 break;
-            case 'get-content':
-                $this->rpcGetContent();
+            case 'get-view':
+                $this->rpcGetViewContent();
                 break;
             case 'save-keywords':
                 $this->rpcSaveKeywords();
@@ -251,6 +251,76 @@ class RpcController extends \Thallium\Controllers\RpcController
             return false;
         }
 
+        return true;
+    }
+
+    protected function rpcGetViewContent()
+    {
+        global $mtlda;
+
+        if (!isset($_POST) || empty($_POST) || !is_array($_POST)) {
+            $this->raiseError(__METHOD__ .'(), $_POST is invalid!');
+            return false;
+        }
+
+        if (!isset($_POST['view']) || empty($_POST['view']) || !is_string($_POST['view'])) {
+            $this->raiseError(__METHOD__ .'(), $_POST["view"] is invalid!');
+            return false;
+        }
+
+        if (!isset($_POST['data']) || empty($_POST['data']) || !is_array($_POST['data'])) {
+            $this->raiseError(__METHOD__ .'(), $_POST["data"] is invalid!');
+            return false;
+        }
+
+        $data = $_POST['data'];
+
+        if (!isset($data['content']) || empty($data['content']) || !is_string($data['content'])) {
+            $this->raiseError(__METHOD__ .'(), $data["content"] is invalid!');
+            return false;
+        }
+
+        if (!preg_match('/^[a-z]+$/', strtolower($_POST['view']))) {
+            $this->raiseError(__METHOD__ .'(), $_POST["view"] contains invalid data!');
+            return false;
+        }
+
+        if (!preg_match('/^[a-z]+$/', strtolower($data['content']))) {
+            $this->raiseError(__METHOD__ .'(), $data["content"] contains invalid data!');
+            return false;
+        }
+
+        if (!$mtlda->loadController("Templates", "tmpl")) {
+            $this->raiseError(__METHOD__ .'(), failed to load TemplatesController!');
+            return false;
+        }
+
+        $view_name = ucwords(strtolower($_POST['view']));
+        $view_name = "\\Mtlda\\Views\\${view_name}View";
+
+        try {
+            $view = new $view_name;
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ ."(), failed to load view ${view_name}!");
+            return false;
+        }
+
+        if (!$view->hasContent($data['content'])) {
+            $this->raiseError(get_class($view) .'::hasContent() returned false!');
+            return false;
+        }
+
+        if (($content = $view->getContent($data['content'], $data)) === false) {
+            $this->raiseError(get_class($view) .'::getContent() returned false!');
+            return false;
+        }
+
+        if (!isset($content) || empty($content)) {
+            $this->raiseError(get_class($view) .'::getContent() returned invalid content!');
+            return false;
+        }
+
+        print $content;
         return true;
     }
 }
