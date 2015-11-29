@@ -21,6 +21,8 @@ namespace Mtlda\Views ;
 
 abstract class DefaultView extends \Thallium\Views\DefaultView
 {
+    protected $known_contents = array();
+
     public function __construct()
     {
         global $config, $tmpl;
@@ -86,6 +88,64 @@ abstract class DefaultView extends \Thallium\Views\DefaultView
         }
 
         return parent::show();
+    }
+
+    public function addContent($name)
+    {
+        if (!isset($name) || empty($name) || !is_string($name)) {
+            $this->raiseError(__METHOD__ .'(), $name parameter is invalid!');
+            return false;
+        }
+
+        if (in_array($name, $this->known_contents)) {
+            return true;
+        }
+
+        array_push($this->known_contents, $name);
+        return true;
+    }
+
+    public function hasContent($name)
+    {
+        if (!isset($name) || empty($name) || !is_string($name)) {
+            $this->raiseError(__METHOD__ .'(), $name parameter is invalid!');
+            return false;
+        }
+
+        if (!in_array($name, $this->known_contents)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getContent($name, &$data = null)
+    {
+        if (!isset($name) || empty($name) || !is_string($name)) {
+            $this->raiseError(__METHOD__ .'(), $name parameter is invalid!');
+            return false;
+        }
+
+        if (!preg_match('/^[a-z]+$/', $name)) {
+            $this->raiseError(__METHOD__ .'(), $name parameter is invalid!');
+            return false;
+        }
+
+        $method_name = 'get'. ucwords(strtolower($name));
+
+        if (!method_exists($this, $method_name) ||
+            !is_callable(array($this, $method_name))
+        ) {
+            $this->raiseError(__CLASS__ ." does not have a content method {$method_name}!");
+            return false;
+        }
+
+        if (($content = $this->$method_name($data)) === false) {
+            $this->raiseError(__CLASS__ ."::{$method_name} returned false!");
+            return false;
+        }
+
+        return $content;
     }
 }
 
