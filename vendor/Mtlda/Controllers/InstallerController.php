@@ -67,6 +67,8 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `queue_signing_icon_position` int(11) DEFAULT NULL,
                 `queue_state` varchar(255) DEFAULT NULL,
                 `queue_time` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+                `queue_custom_date` date NULL DEFAULT NULL,
+                `queue_expiry_date` date NULL DEFAULT NULL,
                 `queue_in_processing` varchar(1) DEFAULT NULL,
                 PRIMARY KEY (`queue_idx`),
                 FULLTEXT KEY `text` (`queue_description`)
@@ -814,6 +816,37 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         }
 
         $db->setDatabaseSchemaVersion(28);
+        return true;
+    }
+
+    protected function upgradeApplicationDatabaseSchemaV29()
+    {
+        global $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXqueue', 'queue_custom_date')) {
+            $db->setDatabaseSchemaVersion(29);
+            return true;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXqueue
+            ADD COLUMN
+                `queue_custom_date` date NULL DEFAULT NULL
+            AFTER
+                queue_time,
+            ADD COLUMN
+                `queue_expiry_date` date NULL DEFAULT NULL
+            AFTER
+                queue_custom_date"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(29);
         return true;
     }
 }
