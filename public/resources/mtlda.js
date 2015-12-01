@@ -278,9 +278,9 @@ function delete_object(element)
 
     if (text == undefined || text === "") {
         if (id instanceof String && !id.match(/-all$/)) {
-            text = "Do you really want to archive this item?";
+            text = "Do you really want to delete this item?";
         } else {
-            text = "Do you really want to archive all items?";
+            text = "Do you really want to delete all items?";
 
         }
     }
@@ -325,11 +325,11 @@ function archive_object(element)
         $('td.archive.state').text('processing');
     } else if (id == 'selected') {
         id = new Array;
-        $('.checkbox.item.select[name!="select_all"]').each(function () {
+        $('.checkbox.item.select[id!="select_all"]').each(function () {
             if (!($(this).checkbox('is checked'))) {
                 return true;
             }
-            item = $(this).attr('name')
+            item = $(this).attr('id')
             if (!item || item == '') {
                 return false;
             }
@@ -340,6 +340,9 @@ function archive_object(element)
             item_id = item[1];
             id.push(item_id);
         });
+        if (id.length < 1) {
+            return true;
+        }
         id.forEach(function (value) {
             $('#archive-state-'+value).text('processing');
         });
@@ -377,13 +380,50 @@ function archive_object(element)
         elements.push(element);
     }
 
-    // for all objects
-    show_modal({
-        closeable : false,
-        header : title,
-        content : text,
-        icon : 'red archive icon',
-        onDeny : function () {
+    if (id == 'all' ||
+        elements.length > 1 ||
+        (elements.length == 1 && !element.hasClass('advanced'))
+    ) {
+        show_modal({
+            closeable : false,
+            header : title,
+            content : text,
+            icon : 'red archive icon',
+            onDeny : function () {
+                if (id != 'all') {
+                    if (id instanceof Array) {
+                        id.forEach(function (value) {
+                            $('#archive-state-'+value).text('new');
+                        });
+                    } else {
+                        state.text('new');
+                    }
+                } else {
+                    $('td.archive.state').text('new');
+                }
+                return true;
+            },
+            onApprove : function () {
+                return rpc_object_archive(elements);
+            }
+        });
+        return true;
+    }
+
+    wnd = $(".ui.fullscreen.modal.queue.archiver");
+
+    if (wnd === undefined || wnd.length < 1) {
+        throw "failed to locate .ui.fullscreen.modal.queue.archiver!";
+        return false;
+    }
+
+    wnd.modal({
+        closable       : true,
+        blurring       : false,
+        title          : title,
+        observeChanges : true,
+        onShow         : archiver_window(elements[0]),
+        onHidden       : function () {
             if (id != 'all') {
                 if (id instanceof Array) {
                     id.forEach(function (value) {
@@ -396,13 +436,12 @@ function archive_object(element)
                 $('td.archive.state').text('new');
             }
             return true;
-        },
-        onApprove : function () {
-            return rpc_object_archive(elements);
         }
-    });
+    })
+        .modal('show');
+        //.on('click.modal', do_function);
 
-    return true;
+    return wnd;
 }
 
 function trigger_import_run()
@@ -569,6 +608,210 @@ function init_checkbox_selector()
 
         $(".item.select.checkbox[id!='select_all']").checkbox(to_state);
         return true;
+    });
+}
+
+function archiver_window(element, step)
+{
+    if (wnd === undefined) {
+        throw "somehow we lost our modal window!"
+        return false;
+    }
+
+    if (element === undefined || ! element instanceof Array) {
+        throw "element parameter is invalid!"
+        return false;
+    }
+
+    if ((id = element.attr('data-id')) === undefined) {
+        throw 'no "data-id" attribute found!';
+        return false;
+    }
+
+    if ((guid = element.attr('data-guid')) === undefined) {
+        throw 'no "data-guid" attribute found!';
+        return false;
+    }
+
+    if ((model = element.attr('data-model')) === undefined) {
+        throw 'no "data-model" attribute found!';
+        return false;
+    }
+
+    if ((title = element.attr('title')) === undefined) {
+        throw 'no "title" attribute found!';
+        return false;
+    }
+
+    if (step === undefined || !(/^[0-9]+$/).test(step)) {
+        step = 1;
+    }
+
+    $('.ui.steps .active.step')
+        .removeClass('active');
+    $('.ui.steps #step_'+step)
+        .removeClass('disabled')
+        .addClass('active');
+
+    request_data = {
+        content : 'archiver',
+        id      : id,
+        guid    : guid,
+        model   : model,
+        step    : step
+    };
+
+    $.when(rpc_get_content('queue', request_data)).done(function (data) {
+        $('#archiver_content').html(data);
+        eval($('.archiver.modal .header.window.title').html(title));
+        eval($('.archiver.modal .ui.steps .step').attr('title', title));
+        eval($('.archiver.modal .ui.steps .step').attr('data-id', id));
+        eval($('.archiver.modal .ui.steps .step').attr('data-guid', guid));
+    });
+}
+
+function load_datepickers(mode)
+{
+    if (mode === undefined || mode == "" || (mode != "document" && mode != "queue")) {
+        throw 'mode parameter is invalid!'
+        return false;
+    }
+
+    var current_custom_date = $('#'+ mode +'_custom_date_form input[type="text"][name="'+ mode +'_custom_date"]').val();
+    if (!current_custom_date || current_custom_date == '0000-00-00') {
+        current_custom_date = null;
+    }
+
+    var current_expiry_date = $('#'+ mode +'_expiry_date_form input[type="text"][name="'+ mode +'_expiry_date"]').val();
+    if (!current_expiry_date || current_expiry_date == '0000-00-00') {
+        current_expiry_date = null;
+    }
+
+    $('#'+ mode +'_custom_date').datepicker({
+        defaultDate: current_custom_date,
+        changeMonth: true,
+        changeYear: true,
+        numberOfMonths: 1,
+        dateFormat: 'yy-mm-dd',
+        showOtherMonths: true,
+        showWeek: true,
+        selectOtherMonths: true,
+        showButtonPanel: true,
+        firstDay: 1,
+        altFormat: 'yy-mm-dd',
+        altField: 'input[type="text"][name="'+ mode +'_custom_date"]',
+        onSelect: function () {
+            curval = $('#'+ mode +'_custom_date_form input[type="text"][name="'+ mode +'_custom_date"]').val();
+            newval = $(this).datepicker('getDate');
+            if (curval && newval && curval == newval) {
+                return true;
+            }
+            $('#'+ mode +'_custom_date_form input[type="text"][name="'+ mode +'_custom_date"]').trigger('input');
+        }
+    });
+
+    $('#'+ mode +'_expiry_date').datepicker({
+        defaultDate: current_expiry_date,
+        changeMonth: true,
+        changeYear: true,
+        numberOfMonths: 1,
+        dateFormat: 'yy-mm-dd',
+        showOtherMonths: true,
+        showWeek: true,
+        selectOtherMonths: true,
+        showButtonPanel: true,
+        firstDay: 1,
+        altFormat: 'yy-mm-dd',
+        altField: 'input[type="text"][name="'+ mode +'_expiry_date"]',
+        onSelect: function () {
+            curval = $('#'+ mode +'_expiry_date_form input[type="text"][name="'+ mode +'_expiry_date"]').val();
+            newval = $(this).datepicker('getDate');
+            if (curval && newval && curval == newval) {
+                return true;
+            }
+            $('#'+ mode +'_expiry_date_form input[type="text"][name="'+ mode +'_expiry_date"]').trigger('input');
+        }
+    });
+
+    $('.ui.toggle.checkbox[name="'+ mode +'_custom_date_checkbox"]').checkbox({
+        onChange : function () {
+            if ($('.ui.toggle.checkbox[name="'+ mode +'_custom_date_checkbox"]').checkbox('is unchecked')) {
+                $('#'+ mode +'_custom_date_form').transition('fly up');
+                $('#'+ mode +'_custom_date_form input[type="text"][name="'+ mode +'_custom_date"]').val('0000-00-00');
+                $('#'+ mode +'_custom_date_form').trigger('submit');
+                return true;
+            }
+            var current_custom_date = $('#'+ mode +'_custom_date_form input[type="text"][name="'+ mode +'_custom_date"]').val();
+            if (!current_custom_date || current_custom_date == '' || current_custom_date == '0000-00-00') {
+                $('#'+ mode +'_custom_date').datepicker('setDate', new Date());
+            }
+            $('#'+ mode +'_custom_date_form input').trigger('input');
+            $('#'+ mode +'_custom_date_form').transition('fly down');
+            return true;
+        }
+    });
+
+    $('.ui.toggle.checkbox[name="'+ mode +'_expiry_date_checkbox"]').checkbox({
+        onChange : function () {
+            if ($('.ui.toggle.checkbox[name="'+ mode +'_expiry_date_checkbox"]').checkbox('is unchecked')) {
+                $('#'+ mode +'_expiry_date_form').transition('fly up');
+                $('#'+ mode +'_expiry_date_form input[type="text"][name="'+ mode +'_expiry_date"]').val('0000-00-00');
+                $('#'+ mode +'_expiry_date_form').trigger('submit');
+                return true;
+            }
+            var current_expiry_date = $('#'+ mode +'_expiry_date_form input[type="text"][name="'+ mode +'_expiry_date"]').val();
+            if (!current_expiry_date || current_expiry_date == '' || current_expiry_date == '0000-00-00') {
+                $('#'+ mode +'_expiry_date').datepicker('setDate', new Date());
+            }
+            $('#'+ mode +'_expiry_date_form input').trigger('input');
+            $('#'+ mode +'_expiry_date_form').transition('fly down');
+            return true;
+        }
+    });
+
+    $('#'+ mode +'_custom_date_form input').on('input', function () {
+        savebutton = $('#'+ mode +'_custom_date_form button.save');
+        if (!savebutton.hasClass('red shape')) {
+            savebutton.addClass('red shape');
+            savebutton.transition('bounce');
+        }
+    });
+
+    $('#'+ mode +'_expiry_date_form input').on('input', function () {
+        savebutton = $('#'+ mode +'_expiry_date_form button.save');
+        if (!savebutton.hasClass('red shape')) {
+            savebutton.addClass('red shape');
+            savebutton.transition('bounce');
+        }
+    });
+
+    $('#'+ mode +'_custom_date_form').on('submit', function () {
+        rpc_object_update($(this), function (data) {
+            if (data != "ok") {
+                return;
+            }
+            $('#'+ mode +'_custom_date_form button.save')
+                .transition('tada')
+                .removeClass('red shape');
+            return;
+        });
+    });
+
+    $('#'+ mode +'_expiry_date_form').on('submit', function () {
+        rpc_object_update($(this), function (data) {
+            if (data != "ok") {
+                return;
+            }
+            $('#'+ mode +'_expiry_date_form button.save')
+                .transition('tada')
+                .removeClass('red shape');
+            return;
+        });
+    });
+
+    $('form.ui.form.keywords').on('submit', function () {
+        rpc_object_update($(this));
+        return false;
     });
 }
 
