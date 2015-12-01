@@ -148,7 +148,7 @@ function rpc_object_archive(elements)
 
     return true;
 
-} // rpc_archive_object()
+} // rpc_object_archive()
 
 function rpc_object_update(element, successMethod)
 {
