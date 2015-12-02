@@ -97,7 +97,8 @@ class ImportController extends DefaultController
                     $this->raiseError(__METHOD__ ."(), {$lockfile} does not contain a timestamp!");
                     return false;
                 }
-                if (time() < ($timestamp*5*60)) {
+
+                if (time() < ($timestamp+(5*60))) {
                     continue;
                 }
             }
