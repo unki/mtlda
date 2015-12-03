@@ -35,9 +35,6 @@ class RpcController extends \Thallium\Controllers\RpcController
             case 'save-keywords':
                 $this->rpcSaveKeywords();
                 break;
-            case 'save-description':
-                $this->rpcSaveDescription();
-                break;
             case 'submit-messages':
                 $this->rpcSubmitToMessageBus();
                 break;
@@ -181,55 +178,6 @@ class RpcController extends \Thallium\Controllers\RpcController
 
         if (!$document->setKeywords($values)) {
             $this->raiseError("DocumentModel::setKeywords() returned false!");
-            return false;
-        }
-
-        print "ok";
-        return true;
-    }
-
-    protected function rpcSaveDescription()
-    {
-        global $mtlda;
-
-        if (!isset($_POST['id']) || empty($_POST['id'])) {
-            $this->raiseError("No id provided!");
-            return false;
-        }
-
-        if (!isset($_POST['guid']) || empty($_POST['guid'])) {
-            $this->raiseError("No guid provided!");
-            return false;
-        }
-
-        if (!$mtlda->isValidGuidSyntax($_POST['guid'])) {
-            $this->raiseError("guid is invalid!");
-            return false;
-        }
-
-        /* if no values are provided this usually means
-           all keywords have been removed from this document.
-        */
-        if (!isset($_POST['description']) ||
-            empty($_POST['description']) ||
-            !is_string($_POST['description'])
-        ) {
-            $_POST['description'] = '';
-        }
-
-        $id = $_POST['id'];
-        $guid = $_POST['guid'];
-        $description = $_POST['description'];
-
-        try {
-            $document = new \Mtlda\Models\DocumentModel($id, $guid);
-        } catch (\Exception $e) {
-            $this->raiseError("Failed to load DocumentModel!");
-            return false;
-        }
-
-        if (!$document->setDescription($description)) {
-            $this->raiseError("DocumentModel::setDescription() returned false!");
             return false;
         }
 
