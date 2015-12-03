@@ -26,6 +26,7 @@ class QueueItemModel extends DefaultModel
     public $fields = array(
             'queue_idx' => 'integer',
             'queue_guid' => 'string',
+            'queue_title' => 'string',
             'queue_file_name' => 'string',
             'queue_file_hash' => 'string',
             'queue_file_size' => 'integer',
@@ -525,6 +526,36 @@ class QueueItemModel extends DefaultModel
         }
 
         return $this->queue_expiry_date;
+    }
+
+    public function hasTitle()
+    {
+        if (!isset($this->queue_title)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getTitle()
+    {
+        if (!$this->hasTitle()) {
+            $this->raiseError(__CLASS__ .'::hasTitle() returned false!');
+            return false;
+        }
+
+        return $this->queue_title;
+    }
+
+    public function setTitle($title)
+    {
+        if (!isset($title) || empty($title) || !is_string($title)) {
+            $this->raiseError(__METHOD__ .'(), $title parameter is invalid!');
+            return false;
+        }
+
+        $this->queue_title = $title;
+        return true;
     }
 }
 
