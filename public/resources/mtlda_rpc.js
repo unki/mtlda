@@ -164,8 +164,7 @@ function rpc_object_update(element, successMethod)
         return false;
     }
 
-
-    if (!(input = element.find('input[name="'+target+'"]'))) {
+    if (!(input = element.find('input[name="'+target+'"], textarea[name="'+target+'"]'))) {
         throw "Failed to get input element!";
         return false;
     }
