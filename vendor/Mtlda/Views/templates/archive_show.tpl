@@ -115,11 +115,11 @@
   <div class="ui grid">
    <div class="row">
     <div class="twelve wide column">
-     <form id="document_keyword" class="ui form keywords" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
+     <form id="document_keyword" class="ui form keywords" data-target="assigned_keywords">
       <div class="field">
        <label>Keywords:</label>
        <div class="ui fluid search dropdown multiple selection" id="keyword_dropdown">
-        <input type="hidden" name="assigned_keywords" value="{$assigned_keywords}">
+        <input type="hidden" name="assigned_keywords" value="{','|implode:$item->getKeywords()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_keywords">
         <i class="dropdown icon"></i>
         <input class="search">
         <div class="default text">No keywords assigned.</div>
@@ -138,10 +138,10 @@
    </div>
    <div class="row">
     <div class="twelve wide column">
-     <form id="document_description" class="ui form description" data-target="queue_description">
+     <form id="document_description" class="ui form description" data-target="document_description">
       <div class="field">
        <label>Description:</label>
-       <textarea name="queue_description" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{$item->document_description}</textarea>
+       <textarea name="document_description" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{$item->document_description}</textarea>
       </div>
       <button class="circular small ui icon save button" type="submit">
        <i class="save icon"></i>
@@ -205,51 +205,9 @@ $(document).ready(function() {
       }
    });
 
-   $('form.ui.form.description').on('submit', function() {
+   $('form.ui.form.description, form.ui.form.keywords').on('submit', function() {
       rpc_object_update($(this));
       return false;
-   });
-
-   $('.ui.form.keywords').on('submit', function() {
-      var document_id = $(this).attr('data-id');
-      if (!document_id) {
-         window.alert('Failed to fetch data-id!');
-         return false;
-      }
-      var document_guid = $(this).attr('data-guid');
-      if (!document_guid) {
-         window.alert('Failed to fetch data-guid!');
-         return false;
-      }
-      var input = $('.ui.form.keywords input[name=assigned_keywords]');
-      var values = input.val();
-
-      $.ajax({
-           type: "POST",
-           url    : '{/literal}{$keywords_rpc_url}{literal}',
-           data: ({
-               type   : 'rpc',
-               action : 'save-keywords',
-               id     : document_id,
-               guid   : document_guid,
-               values : values
-           }),
-           error: function(XMLHttpRequest, textStatus, errorThrown) {
-               alert('Failed to contact server! ' + textStatus);
-           },
-           success: function(data){
-               if(data == "ok") {
-                  $('.ui.form.keywords button.save')
-                     .transition('tada')
-                     .removeClass('red shape');
-                  return;
-               }
-               alert('Server returned: ' + data + ', length ' + data.length);
-               return;
-           }
-       });
-
-       return true;
    });
 
    load_datepickers("document");
