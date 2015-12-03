@@ -32,9 +32,6 @@ class RpcController extends \Thallium\Controllers\RpcController
             case 'get-view':
                 $this->rpcGetViewContent();
                 break;
-            case 'save-keywords':
-                $this->rpcSaveKeywords();
-                break;
             case 'submit-messages':
                 $this->rpcSubmitToMessageBus();
                 break;
@@ -128,60 +125,6 @@ class RpcController extends \Thallium\Controllers\RpcController
                 break;
         }
 
-        return true;
-    }
-
-    protected function rpcSaveKeywords()
-    {
-        global $mtlda;
-
-        if (!isset($_POST['id']) || empty($_POST['id'])) {
-            $this->raiseError("No id provided!");
-            return false;
-        }
-
-        if (!isset($_POST['guid']) || empty($_POST['guid'])) {
-            $this->raiseError("No guid provided!");
-            return false;
-        }
-
-        if (!$mtlda->isValidGuidSyntax($_POST['guid'])) {
-            $this->raiseError("guid is invalid!");
-            return false;
-        }
-
-        /* if no values are provided this usually means
-           all keywords have been removed from this document.
-        */
-        if (!isset($_POST['values']) ||
-            empty($_POST['values'])
-        ) {
-            $_POST['values'] = array();
-        }
-
-        if (!is_array($_POST['values']) && preg_match('/^([0-9]+)$/', $_POST['values'])) {
-            $_POST['values'] = array($_POST['values']);
-        } elseif (!is_array($_POST['values']) && preg_match('/^([0-9]+),([0-9]+)/', $_POST['values'])) {
-            $_POST['values'] = explode(',', $_POST['values']);
-        }
-
-        $id = $_POST['id'];
-        $guid = $_POST['guid'];
-        $values = $_POST['values'];
-
-        try {
-            $document = new \Mtlda\Models\DocumentModel($id, $guid);
-        } catch (\Exception $e) {
-            $this->raiseError("Failed to load DocumentModel!");
-            return false;
-        }
-
-        if (!$document->setKeywords($values)) {
-            $this->raiseError("DocumentModel::setKeywords() returned false!");
-            return false;
-        }
-
-        print "ok";
         return true;
     }
 
