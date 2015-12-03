@@ -60,6 +60,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
             $table_sql = "CREATE TABLE `TABLEPREFIXqueue` (
                 `queue_idx` int(11) NOT NULL AUTO_INCREMENT,
                 `queue_guid` varchar(255) DEFAULT NULL,
+                `queue_title` varchar(255) default NULL,
                 `queue_file_name` varchar(255) DEFAULT NULL,
                 `queue_file_hash` varchar(255) DEFAULT NULL,
                 `queue_file_size` int(11) DEFAULT NULL,
@@ -847,6 +848,33 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         }
 
         $db->setDatabaseSchemaVersion(29);
+        return true;
+    }
+
+    protected function upgradeApplicationDatabaseSchemaV30()
+    {
+        global $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXqueue', 'queue_title')) {
+            $db->setDatabaseSchemaVersion(30);
+            return true;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXqueue
+            ADD COLUMN
+                `queue_title` varchar(255) default NULL
+            AFTER
+                queue_guid"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(30);
         return true;
     }
 }
