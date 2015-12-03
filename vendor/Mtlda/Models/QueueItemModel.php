@@ -55,6 +55,7 @@ class QueueItemModel extends DefaultModel
             $this->addRpcEnabledField('queue_custom_date');
             $this->addRpcEnabledField('queue_expiry_date');
             $this->addRpcEnabledField('queue_title');
+            $this->addRpcEnabledField('queue_description');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
@@ -556,6 +557,26 @@ class QueueItemModel extends DefaultModel
         }
 
         $this->queue_title = $title;
+        return true;
+    }
+
+    public function getDescription()
+    {
+        if (!isset($this->queue_description)) {
+            return false;
+        }
+
+        return $this->queue_description;
+    }
+
+    public function setDescription($description)
+    {
+        if (!isset($description) || empty($description) || !is_string($description)) {
+            $this->raiseError(__METHOD__ .'(), $description parameter is invalid!');
+            return false;
+        }
+
+        $this->queue_description = $description;
         return true;
     }
 }
