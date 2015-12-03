@@ -138,12 +138,12 @@
    </div>
    <div class="row">
     <div class="twelve wide column">
-     <form id="document_description" class="ui form description" data-id="{$item->document_idx}" data-guid="{$item->document_guid}" onsubmit="return false;">
+     <form id="document_description" class="ui form description" data-target="queue_description">
       <div class="field">
        <label>Description:</label>
-       <textarea>{$item->document_description}</textarea>
+       <textarea name="queue_description" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{$item->document_description}</textarea>
       </div>
-      <button class="circular small ui icon save button" type="submit" data-target="document_description" data-type="document_description" data-id="{$item->document_idx}">
+      <button class="circular small ui icon save button" type="submit">
        <i class="save icon"></i>
       </button>
      </form>
@@ -206,50 +206,8 @@ $(document).ready(function() {
    });
 
    $('form.ui.form.description').on('submit', function() {
-      var document_id = $(this).attr('data-id');
-      if (!document_id) {
-         window.alert('Failed to fetch data-id!');
-         return false;
-      }
-
-      var document_guid = $(this).attr('data-guid');
-      if (!document_guid) {
-         window.alert('Failed to fetch data-guid!');
-         return false;
-      }
-
-      var desc_field = $('form.ui.form.description textarea');
-      if (!desc_field) {
-         window.alert('Failed to find description field');
-         return false;
-      }
-
-      $.ajax({
-           type: "POST",
-           url    : '{/literal}{$keywords_rpc_url}{literal}',
-           data: ({
-               type   : 'rpc',
-               action : 'save-description',
-               id     : document_id,
-               guid   : document_guid,
-               description : desc_field.val()
-           }),
-           error: function(XMLHttpRequest, textStatus, errorThrown) {
-               alert('Failed to contact server! ' + textStatus);
-           },
-           success: function(data){
-               if(data == "ok") {
-                  $('form.ui.form.description button.save')
-                     .transition('tada')
-                     .removeClass('red shape');
-                  return;
-               }
-               alert('Server returned: ' + data + ', length ' + data.length);
-               return;
-           }
-       });
-
-       return true;
+      rpc_object_update($(this));
+      return false;
    });
 
    $('.ui.form.keywords').on('submit', function() {
