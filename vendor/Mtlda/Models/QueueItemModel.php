@@ -54,6 +54,7 @@ class QueueItemModel extends DefaultModel
             $this->addRpcEnabledField('queue_file_name');
             $this->addRpcEnabledField('queue_custom_date');
             $this->addRpcEnabledField('queue_expiry_date');
+            $this->addRpcEnabledField('queue_title');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
