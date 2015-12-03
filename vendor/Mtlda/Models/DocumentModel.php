@@ -44,6 +44,7 @@ class DocumentModel extends DefaultModel
     public $avail_items = array();
     public $items = array();
     public $descendants = array();
+    private $keywords;
 
     public function __construct($id = null, $guid = null)
     {
@@ -112,11 +113,19 @@ class DocumentModel extends DefaultModel
         }
 
         try {
+            $this->addVirtualField("document_keywords");
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to add virtual field!');
+            return false;
+        }
+
+        try {
             $this->addRpcEnabledField('document_title');
             $this->addRpcEnabledField('document_description');
             $this->addRpcEnabledField('document_file_name');
             $this->addRpcEnabledField('document_custom_date');
             $this->addRpcEnabledField('document_expiry_date');
+            $this->addRpcEnabledField('document_keywords');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $this->raiseError("Failed on invoking addRpcEnabledField() method");
@@ -574,8 +583,22 @@ class DocumentModel extends DefaultModel
     {
         global $db;
 
-        if (!is_array($values)) {
+        if (!is_array($values) && preg_match('/^([0-9]+)$/', $values)) {
             $values = array($values);
+        } elseif (!is_array($values) && preg_match('/^([0-9]+),([0-9]+)/', $values)) {
+            $values = explode(',', $values);
+        } elseif (!isset($values) || empty($values)) {
+            $values = array();
+        } elseif (is_array($values)) {
+            array_filter($values, function ($value) {
+                if (!is_numeric($value)) {
+                    return false;
+                }
+                return true;
+            });
+        } else {
+            $this->raiseError(__METHOD__ .'(), $values parameter is invalid!');
+            return false;
         }
 
         if (!$this->removeAssignedKeywords()) {
@@ -583,10 +606,14 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
+        if (empty($values)) {
+            return true;
+        }
+
         foreach ($values as $value) {
+            $value = trim($value);
             if (!is_numeric($value)) {
-                $this->raiseError("Value '{$value}' requires to be a number!");
-                $db->freeStatement($sth);
+                $this->raiseError(__METHOD__ .'(), value found that is not a number!');
                 return false;
             }
 
@@ -1101,6 +1128,67 @@ class DocumentModel extends DefaultModel
         }
 
         $this->document_title = $title;
+        return true;
+    }
+
+    public function getKeywords()
+    {
+        global $db;
+
+        if (isset($this->keywords) && !empty($this->keywords)) {
+            return $this->keywords;
+        }
+
+        $sth = $db->prepare(
+            "SELECT
+                akd_keyword_idx
+            FROM
+                TABLEPREFIXassign_keywords_to_document
+            WHERE
+                akd_archive_idx LIKE ?"
+        );
+
+        if (!$sth) {
+            $this->raiseError(__METHOD__ .", failed to prepare query!");
+            return false;
+        }
+
+        if (!$db->execute($sth, array($this->getId()))) {
+            $this->raiseError(__METHOD__ .", failed to execute query!");
+            return false;
+        }
+
+        $rows = $sth->fetchAll(\PDO::FETCH_COLUMN);
+
+        if ($rows === false) {
+            $this->raiseError(__METHOD__ .", failed to fetch result!");
+            return false;
+        }
+
+        if (!is_array($rows)) {
+            $this->raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
+            return false;
+        }
+
+        if (is_null($rows)) {
+            return array();
+        }
+
+        $this->keywords = $rows;
+        return $rows;
+    }
+
+    public function hasKeywords()
+    {
+        if (($keywords = $this->getKeywords()) === false) {
+            $this->raiseError(__CLASS__ .'::getKeywords() returned false!');
+            return false;
+        }
+
+        if (empty($keywords)) {
+            return false;
+        }
+
         return true;
     }
 }
