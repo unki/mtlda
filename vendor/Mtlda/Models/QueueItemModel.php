@@ -40,6 +40,7 @@ class QueueItemModel extends DefaultModel
             );
     public $avail_items = array();
     public $items = array();
+    private $keywords;
 
     public function __construct($id = null, $guid = null)
     {
@@ -51,11 +52,19 @@ class QueueItemModel extends DefaultModel
         }
 
         try {
+            $this->addVirtualField("queue_keywords");
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to add virtual field!');
+            return false;
+        }
+
+        try {
             $this->addRpcEnabledField('queue_file_name');
             $this->addRpcEnabledField('queue_custom_date');
             $this->addRpcEnabledField('queue_expiry_date');
             $this->addRpcEnabledField('queue_title');
             $this->addRpcEnabledField('queue_description');
+            $this->addRpcEnabledField('queue_keywords');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
             $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
@@ -206,6 +215,11 @@ class QueueItemModel extends DefaultModel
     public function preDelete()
     {
         global $mtlda;
+
+        if (!$this->removeAssignedKeywords()) {
+            $this->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false!');
+            return false;
+        }
 
         // load StorageController
         $storage = new \Mtlda\Controllers\StorageController;
@@ -578,6 +592,188 @@ class QueueItemModel extends DefaultModel
 
         $this->queue_description = $description;
         return true;
+    }
+
+    public function setKeywords($values)
+    {
+        global $db;
+
+        if (!is_array($values) && preg_match('/^([0-9]+)$/', $values)) {
+            $values = array($values);
+        } elseif (!is_array($values) && preg_match('/^([0-9]+),([0-9]+)/', $values)) {
+            $values = explode(',', $values);
+        } elseif (!isset($values) || empty($values)) {
+            $values = array();
+        } elseif (is_array($values)) {
+            array_filter($values, function ($value) {
+                if (!is_numeric($value)) {
+                    return false;
+                }
+                return true;
+            });
+        } else {
+            $this->raiseError(__METHOD__ .'(), $values parameter is invalid!');
+            return false;
+        }
+
+        if (!$this->removeAssignedKeywords()) {
+            $this->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false');
+            return false;
+        }
+
+        if (empty($values)) {
+            return true;
+        }
+
+        foreach ($values as $value) {
+            $value = trim($value);
+            if (!is_numeric($value)) {
+                $this->raiseError(__METHOD__ .'(), value found that is not a number!');
+                return false;
+            }
+
+            try {
+                $keyword = new KeywordAssignmentModel;
+            } catch (\Exception $e) {
+                $this->raiseError("Failed to load KeywordAssignmentModel!");
+                return false;
+            }
+
+            if (!$keyword->setQueue($this->getId())) {
+                $this->raiseError("KeywordAssignmentModel::setArchive() returned false!");
+                return false;
+            }
+
+            if (!$keyword->setKeyword($value)) {
+                $this->raiseError("KeywordAssignmentModel::setKeyword() returned false!");
+                return false;
+            }
+
+            if (!$keyword->save()) {
+                $this->raiseError("KeywordAssignmentModel::save() returned false!");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function getKeywords()
+    {
+        global $db;
+
+        if (isset($this->keywords) && !empty($this->keywords)) {
+            return $this->keywords;
+        }
+
+        $sth = $db->prepare(
+            "SELECT
+                akd_keyword_idx
+            FROM
+                TABLEPREFIXassign_keywords_to_document
+            WHERE
+                akd_queue_idx LIKE ?"
+        );
+
+        if (!$sth) {
+            $this->raiseError(__METHOD__ .", failed to prepare query!");
+            return false;
+        }
+
+        if (!$db->execute($sth, array($this->getId()))) {
+            $this->raiseError(__METHOD__ .", failed to execute query!");
+            return false;
+        }
+
+        $rows = $sth->fetchAll(\PDO::FETCH_COLUMN);
+
+        if ($rows === false) {
+            $this->raiseError(__METHOD__ .", failed to fetch result!");
+            return false;
+        }
+
+        if (!is_array($rows)) {
+            $this->raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
+            return false;
+        }
+
+        if (is_null($rows)) {
+            return array();
+        }
+
+        $this->keywords = $rows;
+        return $rows;
+    }
+
+    public function hasKeywords()
+    {
+        if (($keywords = $this->getKeywords()) === false) {
+            $this->raiseError(__CLASS__ .'::getKeywords() returned false!');
+            return false;
+        }
+
+        if (empty($keywords)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function removeAssignedKeywords()
+    {
+        global $db;
+
+        $sth = $db->prepare(
+            "DELETE FROM
+                TABLEPREFIXassign_keywords_to_document
+            WHERE
+                akd_queue_idx
+            LIKE
+                ?"
+        );
+
+        if (!$sth) {
+            $this->raiseError("Unable to prepare query!");
+            return false;
+        }
+
+        if (!$db->execute($sth, array($this->getId()))) {
+            $this->raiseError("Unable to execute query!");
+            return false;
+        }
+
+        $db->freeStatement($sth);
+        return true;
+    }
+
+    public function getAssignedKeywords()
+    {
+        if (($keywords = $this->getKeywords()) === false) {
+            $this->raiseError(__CLASS__ .'::getKeywords() returned false!');
+            return false;
+        }
+
+        if (empty($keywords)) {
+            return null;
+        }
+
+        $names = array();
+
+        foreach ($keywords as $keyword_idx) {
+            try {
+                $keyword = new \Mtlda\Models\KeywordModel($keyword_idx);
+            } catch (\Exception $e) {
+                $this->raiseError(__METHOD__ ."(), failed to load KeywordModel({$keyword_idx})!");
+                return false;
+            }
+            if (($name = $keyword->getName()) === false) {
+                $this->raiseError(get_class($keyword) .'::getName() returned false!');
+                return false;
+            }
+            array_push($names, $name);
+        }
+
+        return implode(', ', $names);
     }
 }
 
