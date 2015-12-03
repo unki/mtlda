@@ -189,7 +189,7 @@ function rpc_object_update(element, successMethod)
         return false;
     }
 
-    if (!(value = input.val())) {
+    if ((value = input.val()) === undefined) {
         return false;
     }
 
