@@ -795,6 +795,7 @@ function load_datepickers(mode)
                 .removeClass('red shape');
             return;
         });
+        return false;
     });
 
     $('#'+ mode +'_expiry_date_form').on('submit', function () {
@@ -807,6 +808,7 @@ function load_datepickers(mode)
                 .removeClass('red shape');
             return;
         });
+        return false;
     });
 
     $('form.ui.form.keywords').on('submit', function () {
