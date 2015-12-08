@@ -105,8 +105,8 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `akd_queue_idx` int(11) NOT NULL,
                 `akd_keyword_idx` int(11) NOT NULL,
                 PRIMARY KEY  (`akd_idx`),
-                UNIQUE KEY `document_keywords` (`akd_archive_idx`,`akd_keyword_idx`),
-                UNIQUE KEY `queue_keywords` (`akd_queue_idx`,`akd_keyword_idx`),
+                KEY `document_keywords` (`akd_archive_idx`,`akd_keyword_idx`),
+                KEY `queue_keywords` (`akd_queue_idx`,`akd_keyword_idx`),
                 KEY `documents` (`akd_archive_idx`),
                 KEY `queue` (`akd_queue_idx`)
                 )
@@ -171,9 +171,10 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         $result = $db->query(
             "ALTER TABLE
                 TABLEPREFIXassign_keywords_to_document
-            ADD
-                unique index `document_keywords` (akd_archive_idx, akd_keyword_idx),
-            ADD index `documents` (akd_archive_idx)"
+            ADD KEY
+                `document_keywords` (akd_archive_idx, akd_keyword_idx),
+            ADD KEY
+                `documents` (akd_archive_idx)"
         );
 
         if ($result === false) {
@@ -897,7 +898,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `akd_queue_idx` int(11) NOT NULL
             AFTER
                 akd_archive_idx,
-            ADD UNIQUE KEY
+            ADD KEY
                 `queue_keywords` (`akd_queue_idx`,`akd_keyword_idx`),
             ADD KEY
                 `queue` (`akd_queue_idx`)"
