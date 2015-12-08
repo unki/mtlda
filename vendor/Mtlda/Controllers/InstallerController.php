@@ -102,10 +102,13 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `akd_idx` int(11) NOT NULL auto_increment,
                 `akd_guid` varchar(255) default NULL,
                 `akd_archive_idx` int(11) NOT NULL,
+                `akd_queue_idx` int(11) NOT NULL,
                 `akd_keyword_idx` int(11) NOT NULL,
                 PRIMARY KEY  (`akd_idx`),
                 UNIQUE KEY `document_keywords` (`akd_archive_idx`,`akd_keyword_idx`),
-                KEY `documents` (`akd_archive_idx`)
+                UNIQUE KEY `queue_keywords` (`akd_queue_idx`,`akd_keyword_idx`),
+                KEY `documents` (`akd_archive_idx`),
+                KEY `queue` (`akd_queue_idx`)
                 )
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
@@ -875,6 +878,37 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         }
 
         $db->setDatabaseSchemaVersion(30);
+        return true;
+    }
+
+    protected function upgradeApplicationDatabaseSchemaV31()
+    {
+        global $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXassign_keywords_to_document', 'akd_queue_idx')) {
+            $db->setDatabaseSchemaVersion(31);
+            return true;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXassign_keywords_to_document
+            ADD COLUMN
+                `akd_queue_idx` int(11) NOT NULL
+            AFTER
+                akd_archive_idx,
+            ADD UNIQUE KEY
+                `queue_keywords` (`akd_queue_idx`,`akd_keyword_idx`),
+            ADD KEY
+                `queue` (`akd_queue_idx`)"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(31);
         return true;
     }
 }
