@@ -80,10 +80,16 @@ class ArchiveController extends DefaultController
             return false;
         }
 
+        $fields_to_skip = array(
+            'queue_idx',
+            'queue_state',
+            'queue_in_processing'
+        );
+
         // copy fields from QueueItemModel to DocumentModel
         foreach (array_keys($queue_item->fields) as $queue_field) {
             // fields we skip
-            if (in_array($queue_field, array('queue_idx', 'queue_state', 'queue_in_processing'))) {
+            if (in_array($queue_field, $fields_to_skip)) {
                 continue;
             }
 
@@ -91,7 +97,9 @@ class ArchiveController extends DefaultController
             $document->$document_field = $queue_item->$queue_field;
         }
 
-        $document->document_title = $document->document_file_name;
+        if (!isset($document->document_title) || empty($document->document_title)) {
+            $document->document_title = $document->document_file_name;
+        }
         $document->document_version = '1';
         $document->document_derivation = '';
         $document->document_derivation_guid = '';
@@ -146,6 +154,21 @@ class ArchiveController extends DefaultController
                 $this->raiseError("StorageController::deleteItemFile() returned false!");
             }
             return false;
+        }
+
+        // transfer keywords
+        if ($queue_item->hasKeywords()) {
+            if (($keywords = $queue_item->getKeywords()) === false) {
+                $this->raiseError(get_class($queue_item) .'::getKeywords() returned false!');
+                return false;
+            }
+            error_log(print_r($keywords, true));
+            if (isset($keywords) && is_array($keywords)) {
+                if (!$document->setKeywords($keywords)) {
+                    $this->raiseError(get_class($document) .'::setKeywords() returned false!');
+                    return false;
+                }
+            }
         }
 
         // delete QueueItemModel from database, if that fails revert
