@@ -130,7 +130,7 @@
         </div>
        </div>
       </div>
-      <button class="circular small ui icon save button" type="submit" data-target="document_keywords" data-type="selected_keywords" data-id="{$item->document_idx}">
+      <button class="circular small ui icon save button" type="submit">
        <i class="save icon"></i>
       </button>
      </form>
@@ -181,15 +181,6 @@
 
 $(document).ready(function() {
 
-   $('#keyword_dropdown').dropdown({
-      allowAdditions: false,
-      onChange : function(value, text, choice) {
-         $('.ui.form.keywords button.save')
-            .addClass('red shape')
-            .transition('bounce');
-      }
-   });
-
    $('form.ui.form.description textarea').on('input', function() {
       savebutton = $('form.ui.form.description button.save');
       if(!savebutton.hasClass('red shape')) {
@@ -205,7 +196,7 @@ $(document).ready(function() {
       }
    });
 
-   $('form.ui.form.description, form.ui.form.keywords').on('submit', function() {
+   $('form.ui.form.description').on('submit', function() {
       rpc_object_update($(this));
       return false;
    });
