@@ -63,6 +63,7 @@ $(document).ready(function () {
     init_checkbox_selector();
     init_table_sort();
     init_table_filter();
+    init_dropdowns();
 });
 
 function init_upload_progressbar(dropzone)
@@ -814,6 +815,18 @@ function load_datepickers(mode)
     $('form.ui.form.keywords').on('submit', function () {
         rpc_object_update($(this));
         return false;
+    });
+}
+
+function init_dropdowns()
+{
+    $('#keyword_dropdown').dropdown({
+        allowAdditions: false,
+        onChange : function (value, text, choice) {
+            $('.ui.form.keywords button.save')
+                .addClass('red shape')
+                .transition('bounce');
+        }
     });
 }
 
