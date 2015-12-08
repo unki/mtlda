@@ -19,7 +19,7 @@
 <h4 class="ui header">MTLDA - My Tiny Little Document Archive</h4>
 &copy; 2015 Andreas Unterkircher &lt;unki@netshadow.net&gt;
 <br />
-<a href="https://oss.netshadow.net/redmine/projects/mtlda" target="_blank">https://oss.netshadow.net/redmine/projects/mtlda</a>
+<a href="http://www.mtlda.org/" target="_blank">http://www.mtlda.org</a>
 <br /><br />
 MTLDA Version: {$mtlda_version}
 <br />
