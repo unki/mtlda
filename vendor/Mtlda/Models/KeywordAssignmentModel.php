@@ -27,6 +27,7 @@ class KeywordAssignmentModel extends DefaultModel
         'akd_idx' => 'integer',
         'akd_guid' => 'string',
         'akd_archive_idx' => 'integer',
+        'akd_queue_idx' => 'integer',
         'akd_keyword_idx' => 'integer',
     );
 
@@ -34,8 +35,8 @@ class KeywordAssignmentModel extends DefaultModel
     {
         global $mtlda;
 
-        if (!is_numeric($idx)) {
-            $mtlda->raiseError(__METHOD__ .', first parameter needs to be numeric!');
+        if (!isset($idx) || empty($idx) || !is_numeric($idx)) {
+            $mtlda->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
             return false;
         }
 
@@ -56,8 +57,8 @@ class KeywordAssignmentModel extends DefaultModel
     {
         global $mtlda;
 
-        if (!is_numeric($idx)) {
-            $mtlda->raiseError(__METHOD__ .', first parameter needs to be numeric!');
+        if (!isset($idx) || empty($idx) || !is_numeric($idx)) {
+            $mtlda->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
             return false;
         }
 
@@ -72,6 +73,28 @@ class KeywordAssignmentModel extends DefaultModel
         }
 
         return $this->akd_keyword_idx;
+    }
+
+    public function setQueue($idx)
+    {
+        global $mtlda;
+
+        if (!isset($idx) || empty($idx) || !is_numeric($idx)) {
+            $mtlda->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
+            return false;
+        }
+
+        $this->akd_queue_idx = $idx;
+        return true;
+    }
+
+    public function getQueue()
+    {
+        if (!isset($this->akd_queue_idx)) {
+            return false;
+        }
+
+        return $this->akd_queue_idx;
     }
 }
 
