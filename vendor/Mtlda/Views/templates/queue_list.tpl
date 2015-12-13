@@ -93,7 +93,7 @@
   <td><a href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" title="Preview {$item->getFileName()|escape}" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i>Preview</a></td>
   <td>
    <a class="archive item" id="archive_link_{$item->getId()}" title="Archive {$item->getFileName()|escape}" data-modal-text="Please confirm that you would like to archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a>
-   <div class="ui dropdown"><i class="dropdown icon"></i><div class="menu"><div class="item"><a class="archive item advanced" title="Archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="settings icon"></i>Advanced</a></div></div></div>
+   <div class="ui dropdown advanced"><i class="dropdown icon"></i><div class="menu"><div class="item"><a class="archive item advanced" title="Archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="settings icon"></i>Advanced</a></div></div></div>
   </td>
   <td><a href="{get_url page=queue mode=edit id=$item_safe_link}"><i class="edit icon"></i>Edit</a></td>
   <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
@@ -145,7 +145,7 @@ $(document).ready(function() {
     });
 
     $('#datatable').tablesort();
-    $('.ui.dropdown').dropdown();
+    $('.ui.dropdown.advanced').dropdown();
 });
 --></script>
 <div class="ui import archive delete modal">
