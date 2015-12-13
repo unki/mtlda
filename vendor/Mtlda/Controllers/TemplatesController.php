@@ -85,11 +85,19 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
             return false;
         }
 
-        if (!array_key_exists('number', $params)) {
+        if (!array_key_exists('number', $params) &&
+            !array_key_exists('items_per_page', $params)) {
             return $url;
         }
 
-        $url.= "list-{$params['number']}.html";
+        if (array_key_exists('number', $params)) {
+            $url.= "list-{$params['number']}.html";
+        }
+
+        if (array_key_exists('items_per_page', $params)) {
+            $url.= "?items-per-page=". $params['items_per_page'];
+        }
+
         return $url;
     }
 }
