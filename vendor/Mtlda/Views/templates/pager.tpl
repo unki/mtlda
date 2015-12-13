@@ -33,16 +33,29 @@
 {/if}
      <div class="item inactive">Page:</div>
      <div class="item">
-     <div class="ui compact search selection dropdown" id="pagerdd">
-      <input type="hidden" name="pagergoto" value="{$pager->getCurrentPage()}">
-      <i class="dropdown icon"></i>
-      <div class="default text">Goto page:</div>
-      <div class="menu">
+      <div class="ui compact search selection dropdown" id="pagerdd">
+       <input type="hidden" name="pagergoto" value="{$pager->getCurrentPage()}">
+       <i class="dropdown icon"></i>
+       <div class="default text">Goto page:</div>
+       <div class="menu">
 {foreach $pager->getPageNumbers() as $pageno}
-       <div class="item {if $pager->isCurrentPage($pageno)}active{/if}" data-value="{get_url page=$view number=$pageno}">{$pageno}</div>
+        <div class="item {if $pager->isCurrentPage($pageno)}active{/if}" data-value="{get_url page=$view number=$pageno}">{$pageno}</div>
 {/foreach}
+       </div>
       </div>
      </div>
+     <div class="item inactive">Items:</div>
+     <div class="item">
+      <div class="ui compact search selection dropdown" id="pagerdd">
+       <input type="hidden" name="itemsgoto" value="{$pager->getCurrentItemsLimit()}">
+       <i class="dropdown icon"></i>
+       <div class="default text">Items per page:</div>
+       <div class="menu">
+{foreach $pager->getItemsLimits() as $item_cnt}
+        <div class="item {if $pager->isCurrentItemsLimit($item_cnt)}active{/if}" data-value="{get_url page=$view number=$pageno items_per_page=$item_cnt}">{if $item_cnt == 0}all{else}{$item_cnt}{/if}</div>
+{/foreach}
+       </div>
+      </div>
      </div>
     </div>
 <script type="text/javascript"><!--
