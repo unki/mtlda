@@ -75,16 +75,32 @@ abstract class DefaultView extends \Thallium\Views\DefaultView
 
         if (isset($query->params) &&
             !empty($query->params) &&
-            is_array($query->params) &&
-            isset($query->params[0]) &&
-            preg_match('/^list-([0-9]+).html$/', $query->params[0], $parts) &&
-            isset($parts) &&
-            !empty($parts) &&
-            is_array($parts) &&
-            isset($parts[1]) &&
-            is_numeric($parts[1])
+            is_array($query->params) && (
+                isset($query->params[0]) &&
+                ( $query->params[0] == 'list.html' || (
+                    preg_match('/^list-([0-9]+).html$/', $query->params[0], $parts) &&
+                    isset($parts) &&
+                    !empty($parts) &&
+                    is_array($parts) &&
+                    isset($parts[1]) &&
+                    is_numeric($parts[1])
+                ))) ||
+                (( !isset($query->params[0]) ||
+                    empty($query->params[0])
+                ) &&
+                    isset($query->params['items-per-page']))
         ) {
-            return $this->showList($parts[1]);
+            if (isset($query->params['items-per-page'])) {
+                $items_per_page = $query->params['items-per-page'];
+            } else {
+                $items_per_page = null;
+            }
+            if (isset($parts[1])) {
+                $mode = $parts[1];
+            } else {
+                $mode = 'list';
+            }
+            return $this->showList($mode, $items_per_page);
         }
 
         return parent::show();
