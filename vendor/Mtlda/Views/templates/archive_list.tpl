@@ -76,8 +76,8 @@
  <tfoot>
   <tr>
    <th colspan="7">
-    <div class="ui left floated segment raised segments">
-     <a class="ui segment delete item" title="Delete selected items" data-modal-text="Do you really want to delete all selected items from archive?" data-id="selected" data-guid="selected" data-model="archive"><i class="remove circle icon"></i>Delete selected</a>
+    <div class="ui left floated borderless small menu">
+     <a class="delete item" title="Delete selected items" data-modal-text="Do you really want to delete all selected items from archive?" data-id="selected" data-guid="selected" data-model="archive"><i class="remove circle icon"></i>Delete selected</a>
     </div>
 {if isset($pager)}
 {include file='pager.tpl' pager=$pager view=archive}
