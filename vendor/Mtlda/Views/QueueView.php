@@ -151,7 +151,7 @@ class QueueView extends DefaultView
         return true;
     }
 
-    public function showList($pageno = null)
+    public function showList($pageno = null, $items_limit = null)
     {
         global $session, $tmpl;
 
@@ -164,15 +164,20 @@ class QueueView extends DefaultView
             $tmpl->assign('pending_incoming_items', $pending);
         }
 
-        if (!isset($pageno) ||
-            empty($pageno) ||
-            !is_numeric($pageno)
-        ) {
+        if (!isset($pageno) || empty($pageno) || !is_numeric($pageno)) {
             if (($current_page = $session->getVariable("{$this->class_name}_current_page")) === false) {
                 $current_page = 1;
             }
         } else {
             $current_page = $pageno;
+        }
+
+        if (!isset($items_limit) || is_null($items_limit) || !is_numeric($items_limit)) {
+            if (($current_items_limit = $session->getVariable("{$this->class_name}_current_items_limit")) === false) {
+                $current_items_limit = -1;
+            }
+        } else {
+            $current_items_limit = $items_limit;
         }
 
         if (empty($this->queue->items)) {
@@ -181,7 +186,6 @@ class QueueView extends DefaultView
 
         try {
             $pager = new \Mtlda\Controllers\PagingController(array(
-                'items_per_page' => 10,
                 'delta' => 2,
             ));
         } catch (\Exception $e) {
@@ -196,6 +200,11 @@ class QueueView extends DefaultView
 
         if (!$pager->setCurrentPage($current_page)) {
             $this->raiseError(get_class($pager) .'::setCurrentPage() returned false!');
+            return false;
+        }
+
+        if (!$pager->setItemsLimit($current_items_limit)) {
+            $this->raiseError(get_class($pager) .'::setItemsLimit() returned false!');
             return false;
         }
 
@@ -216,6 +225,11 @@ class QueueView extends DefaultView
         $this->items = $data;
 
         if (!$session->setVariable("{$this->class_name}_current_page", $current_page)) {
+            $this->raiseError(get_class($session) .'::setVariable() returned false!');
+            return false;
+        }
+
+        if (!$session->setVariable("{$this->class_name}_current_items_limit", $current_items_limit)) {
             $this->raiseError(get_class($session) .'::setVariable() returned false!');
             return false;
         }
