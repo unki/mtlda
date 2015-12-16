@@ -450,7 +450,7 @@ abstract class DefaultModel
             return null;
         }
 
-        if (($value = $this->$method_name($value)) === false) {
+        if (($value = $this->$method_name()) === false) {
             return null;
         }
 
@@ -994,6 +994,26 @@ abstract class DefaultModel
         return $this->$guid_field;
     }
 
+    final public function setGuid($guid)
+    {
+        global $thallium;
+
+        if (!isset($guid) || empty($guid) || !is_string($guid)) {
+            $this->raiseError(__METHOD__ .'(), $guid parameter is invalid!');
+            return false;
+        }
+
+        if (!$thallium->isValidGuidSyntax($guid)) {
+            $this->raiseError(get_class($thallium) .'::isValidGuidSyntax() returned false!');
+            return false;
+        }
+
+        $guid_field = $this->column_name .'_guid';
+
+        $this->$guid_field = $guid;
+        return true;
+    }
+
     final public function getFields()
     {
         if (!isset($this->fields) ||
@@ -1012,7 +1032,20 @@ abstract class DefaultModel
                 'value' => $this->$field,
                 'privacy' => $sec,
             );
-            array_push($fields, $field_ary);
+            $fields[$field] = $field_ary;
+        }
+
+        if (!$this->hasVirtualFields()) {
+            return $fields;
+        }
+
+        foreach ($this->virtual_fields as $field) {
+            $field_ary = array(
+                'name' => $field,
+                'value' => $this->$field,
+                'privacy' => 'public'
+            );
+            $fields[$field] = $field_ary;
         }
 
         return $fields;
@@ -1113,6 +1146,22 @@ abstract class DefaultModel
         }
 
         array_push($this->virtual_fields, $vfield);
+        return true;
+    }
+
+    final public function setField($field, $value)
+    {
+        if (!isset($field) || empty($field) || !is_string($field)) {
+            $this->raiseError(__METHOD__ .'(), $field parameter is invalid!');
+            return false;
+        }
+
+        if (!$this->hasField($field)) {
+            $this->raiseError(__METHOD__ .'(), invalid field specified!');
+            return false;
+        }
+
+        $this->$field = $value;
         return true;
     }
 }
