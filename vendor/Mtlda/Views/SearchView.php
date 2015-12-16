@@ -244,11 +244,11 @@ class SearchView extends DefaultView
         global $mtlda;
 
         if (!usort($queue, function ($a, $b) {
-            if ($a->queue_time < $b->queue_time) {
+            if ($a->getTime() < $b->getTime()) {
                 return -1;
-            } elseif ($a->queue_time == $b->queue_time) {
+            } elseif ($a->getTime() == $b->getTime()) {
                 return 0;
-            } elseif ($a->queue_time > $b->queue_time) {
+            } elseif ($a->getTime() > $b->getTime()) {
                 return 1;
             }
         })) {
