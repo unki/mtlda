@@ -620,7 +620,7 @@ class QueueItemModel extends DefaultModel
 
     public function setTitle($title)
     {
-        if (!isset($title) || empty($title) || !is_string($title)) {
+        if (!isset($title) || !is_string($title)) {
             $this->raiseError(__METHOD__ .'(), $title parameter is invalid!');
             return false;
         }
