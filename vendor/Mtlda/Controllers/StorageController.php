@@ -78,33 +78,30 @@ class StorageController extends DefaultController
             return false;
         }
 
-        if (!isset($item->column_name) || empty($item->column_name)) {
-            $this->raiseError("\$item->column_name is not set!");
-            return false;
-        }
-
-        $file_name_field = $item->column_name .'_file_name';
-        $guid = $item->column_name .'_guid';
-
-        if (!isset($item->$file_name_field) || empty($item->$file_name_field)) {
-            $this->raiseError("\$item->{$file_name_field} is not set!");
-            return false;
-        }
-
-        if (!isset($item->$guid) || empty($item->$guid)) {
-            $this->raiseError("\$item->{$guid} is not set!");
-            return false;
-        }
-
-        if ($item->column_name != 'document' &&
-            $item->column_name != 'queue'
+        if (!is_a($item, 'Mtlda\Models\DocumentModel') &&
+            !is_a($item, 'Mtlda\Models\QueueItemModel')
         ) {
-            $this->raiseError("Unsupported model ". $item->column_name);
+            $this->raiseError("Unsupported model: ". get_class($item) .'!');
             return false;
         }
 
-        if (!method_exists($item, 'getFilePath')) {
-            $this->raiseError('Class '. get_class($item) .' does not provide getFilePath() method!');
+        if (($file_name = $item->getFileName()) === false) {
+            $this->raiseError(get_class($item) .'::getFileName() returned false!');
+            return false;
+        }
+
+        if (empty($file_name)) {
+            $this->raiseError(get_class($item) .'::getFileName() returned an empty file name!');
+            return false;
+        }
+
+        if (($guid = $item->getGuid()) === false) {
+            $this->raiseError(get_class($item) .'::getGuid() returned false!');
+            return false;
+        }
+
+        if (empty($guid)) {
+            $this->raiseError(get_class($item) .'::getGuid() returned an empty GUID!');
             return false;
         }
 
@@ -121,7 +118,7 @@ class StorageController extends DefaultController
 
         try {
             $audit->log(
-                $item->$file_name_field,
+                $file_name,
                 "delete",
                 "storage",
                 $item->$guid
@@ -146,21 +143,10 @@ class StorageController extends DefaultController
             return false;
         }
 
-        if (is_a($document, 'Mtlda\Models\DocumentModel')) {
-            $guid_field = "document_guid";
-            $name_field = "document_file_name";
-        } elseif (is_a($document, 'Mtlda\Models\QueueItemModel')) {
-            $guid_field = "queue_guid";
-            $name_field = "queue_file_name";
-        } else {
-            $this->raiseError("Unsupported model: ". get_class($document) .'!');
-            return false;
-        }
-
-        if (!method_exists($document, 'getFilePath') ||
-            !is_callable(array($document, 'getFilePath'))
+        if (!is_a($document, 'Mtlda\Models\DocumentModel') &&
+            !is_a($document, 'Mtlda\Models\QueueItemModel')
         ) {
-            $this->raiseError('Class '. get_class($document) .' does not provide getFilePath() method!');
+            $this->raiseError("Unsupported model: ". get_class($document) .'!');
             return false;
         }
 
