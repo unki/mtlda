@@ -119,16 +119,20 @@ class ImportController extends DefaultController
                 return false;
             }
 
-            $queueitem->queue_guid = $guid;
-            $queueitem->queue_file_name = $file['filename'];
-            $queueitem->queue_file_size = $file['size'];
-            $queueitem->queue_file_hash = $file['hash'];
-            $queueitem->queue_state = 'new';
-            $queueitem->queue_time = microtime(true);
-            $queueitem->setProcessingFlag(false);
-
-            if ($config->isPdfSigningEnabled()) {
-                $queueitem->queue_signing_icon_position = $sign_pos;
+            try {
+                $queueitem->setGuid($guid);
+                $queueitem->setFileName($file['filename']);
+                $queueitem->setFileSize($file['size']);
+                $queueitem->setFileHash($file['hash']);
+                $queueitem->setState('new');
+                $queueitem->setTime(microtime(true));
+                $queueitem->setProcessingFlag(false);
+                if ($config->isPdfSigningEnabled()) {
+                    $queueitem->setSigningIconPosition($sign_pos);
+                }
+            } catch (\Exception $e) {
+                $this->raiseError('Failed to prepare QueueItemModel! ', false, $e);
+                return false;
             }
 
             $in_file = $file['fqpn'];
@@ -154,11 +158,9 @@ class ImportController extends DefaultController
                     $this->raiseError(__METHOD__ ."(), file_get_contents({$dsc_file}) returned false!");
                     return false;
                 }
-                if (isset($description) &&
-                    !empty($description) &&
-                    is_string($description)
-                ) {
-                    $queueitem->queue_description = $description;
+                if (!$queueitem->setDescription($description)) {
+                    $this->raiseError(get_class($queueitem) .'::setDescription() returned false!');
+                    return false;
                 }
             }
 
