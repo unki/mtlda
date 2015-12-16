@@ -65,36 +65,42 @@ class ArchiveController extends DefaultController
                 "archiving requested",
                 "archive",
                 "storage",
-                $queue_item->queue_guid
+                $queue_item->getGuid()
             );
         } catch (\Exception $e) {
             $this->raiseError("AuditController::log() returned false!");
             return false;
         }
 
-        if (!isset($queue_item->fields) ||
-            empty($queue_item->fields) ||
-            !is_array($queue_item->fields)
-        ) {
-            $this->raiseError("\$queue_item->fields not set!");
+        if (($fields = $queue_item->getFields()) === false) {
+            $this->raiseError(get_class($queue_item) .'::getModelFields() returned false!');
+            return false;
+        }
+
+        if (!is_array($fields) || empty($fields)) {
+            $this->raiseError(get_class($queue_item) .'::getModelFields() returned no fields!');
             return false;
         }
 
         $fields_to_skip = array(
             'queue_idx',
             'queue_state',
-            'queue_in_processing'
+            'queue_in_processing',
+            'queue_keywords'
         );
 
         // copy fields from QueueItemModel to DocumentModel
-        foreach (array_keys($queue_item->fields) as $queue_field) {
+        foreach ($fields as $queue_field => $queue_field_prop) {
             // fields we skip
             if (in_array($queue_field, $fields_to_skip)) {
                 continue;
             }
 
             $document_field = str_replace("queue_", "document_", $queue_field);
-            $document->$document_field = $queue_item->$queue_field;
+            if (!$document->setField($document_field, $queue_field_prop['value'])) {
+                $this->raiseError(get_class($document) .'::setField() returned false!');
+                return false;
+            }
         }
 
         if (!$document->hasTitle()) {
@@ -130,7 +136,7 @@ class ArchiveController extends DefaultController
                 "using {$fqfn_dst} as destination",
                 "archive",
                 "storage",
-                $queue_item->queue_guid
+                $queue_item->getGuid()
             );
         } catch (\Exception $e) {
             $this->raiseError("AuditController::log() returned false!");
@@ -162,7 +168,6 @@ class ArchiveController extends DefaultController
                 $this->raiseError(get_class($queue_item) .'::getKeywords() returned false!');
                 return false;
             }
-            error_log(print_r($keywords, true));
             if (isset($keywords) && is_array($keywords)) {
                 if (!$document->setKeywords($keywords)) {
                     $this->raiseError(get_class($document) .'::setKeywords() returned false!');
