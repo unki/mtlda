@@ -42,7 +42,7 @@ var MtldaInlineEditable = function (id) {
     this._contentBefore = false;
     this._contentEdit = false;
 
-    if (!(id instanceof jQuery) ){
+    if (!(id instanceof jQuery)) {
         throw "id is not a jQuery object!";
         return false;
     }
@@ -64,7 +64,7 @@ MtldaInlineEditable.prototype.validate = function () {
 
     var ref = this.element.attr('data-inline-name');
 
-    if(ref == undefined || ref == '') {
+    if (ref == undefined || ref == '') {
         alert('no attribute "data-inline-name" found!');
         return false;
     }
@@ -78,7 +78,7 @@ MtldaInlineEditable.prototype.validate = function () {
 
     var type = this.element.attr('data-type');
 
-    if(type == undefined || type == '') {
+    if (type == undefined || type == '') {
         alert('no attribute "data-type" found!');
         return false;
     }
@@ -88,7 +88,7 @@ MtldaInlineEditable.prototype.validate = function () {
 
 MtldaInlineEditable.prototype.prepare = function () {
 
-    if (!(origval = this.getContentAttribute('data-orig-value'))) {
+    if ((origval = this.getContentAttribute('data-orig-value')) === undefined) {
         throw "getContentAttribute() returned false!";
         return false;
     }
@@ -105,7 +105,7 @@ MtldaInlineEditable.prototype.prepare = function () {
 
 MtldaInlineEditable.prototype.setOriginalValue = function (value) {
 
-    if (!value) {
+    if (value === undefined) {
         throw "Parameter is not set!";
         return false;
     }
@@ -115,7 +115,7 @@ MtldaInlineEditable.prototype.setOriginalValue = function (value) {
 
 MtldaInlineEditable.prototype.getOriginalValue = function () {
 
-    if (!this._originalValue) {
+    if (this._originalValue === undefined) {
         throw "_originalValue not set!";
         return false;
     }
@@ -125,12 +125,12 @@ MtldaInlineEditable.prototype.getOriginalValue = function () {
 
 MtldaInlineEditable.prototype.getContentAttribute = function (attr) {
 
-    if (!(content_select = this.getContentSelector())) {
+    if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
 
-    if (!(value = $(content_select).attr(attr))) {
+    if ((value = $(content_select).attr(attr)) === undefined) {
         throw "no attr '" + attr + "' found!";
         return false;
     }
@@ -140,7 +140,7 @@ MtldaInlineEditable.prototype.getContentAttribute = function (attr) {
 
 MtldaInlineEditable.prototype.setDomReference = function (element) {
 
-    if (!element) {
+    if (element === undefined) {
         throw "Parameter must reference an element name!";
         return false;
     }
@@ -151,7 +151,7 @@ MtldaInlineEditable.prototype.setDomReference = function (element) {
 
 MtldaInlineEditable.prototype.getDomReference = function () {
 
-    if (!this.element) {
+    if (this.element === undefined) {
         return false;
     }
 
@@ -160,7 +160,7 @@ MtldaInlineEditable.prototype.getDomReference = function () {
 
 MtldaInlineEditable.prototype.getNameSelector = function () {
 
-    if (!(name = this.getDomReference())) {
+    if ((name = this.getDomReference()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
@@ -170,7 +170,7 @@ MtldaInlineEditable.prototype.getNameSelector = function () {
 
 MtldaInlineEditable.prototype.getContentSelector = function () {
 
-    if (!(name = this.getNameSelector())) {
+    if ((name = this.getNameSelector()) === undefined) {
         throw "getNameSelector() returned false!";
         return false;
     }
@@ -180,12 +180,12 @@ MtldaInlineEditable.prototype.getContentSelector = function () {
 
 MtldaInlineEditable.prototype.getContentValue = function () {
 
-    if (!(content_select = this.getContentSelector())) {
+    if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
 
-    if (!(cur_val = $(content_select).html())) {
+    if ((cur_val = $(content_select).html()) === undefined) {
         throw "Can not read the current value!";
         return false;
     }
@@ -199,7 +199,7 @@ MtldaInlineEditable.prototype.getLastUsedValue = function () {
 
 MtldaInlineEditable.prototype.toggle = function () {
 
-    if (!(name_select = this.getNameSelector())) {
+    if ((name_select = this.getNameSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
@@ -218,29 +218,29 @@ MtldaInlineEditable.prototype.toggle = function () {
 
 MtldaInlineEditable.prototype.showForm = function () {
 
-    if (!(name_select = this.getNameSelector())) {
+    if ((name_select = this.getNameSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
 
-    if (!(content_select = this.getContentSelector())) {
+    if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
 
-    if (!(cur_val = this.getContentValue())) {
+    if ((cur_val = this.getContentValue()) === undefined) {
         throw "Can not read the current value!";
         return false;
     }
 
     this._lastUsedValue = cur_val;
 
-    if (!(form_src = $(name_select + '.inline.editable.formsrc').html())) {
+    if ((form_src = $(name_select + '.inline.editable.formsrc').html()) === undefined) {
         throw "Can not retrieve inline-editable-formsrc!";
         return false;
     }
 
-    if (!(content = $(content_select))) {
+    if ((content = $(content_select)) === undefined) {
         throw "Can not retrieve content!";
         return false;
     }
@@ -249,7 +249,7 @@ MtldaInlineEditable.prototype.showForm = function () {
     this._contentBefore = content.replaceWith(this._contentEdit);
 
     // renew content handler
-    if (!(content = $(content_select))) {
+    if ((content = $(content_select)) === undefined) {
         throw "Can not retrieve content!";
         return false;
     }
@@ -259,7 +259,7 @@ MtldaInlineEditable.prototype.showForm = function () {
     $(content_select + ' form input').val(cur_val);
 
     $(content_select).on('click', 'button.cancel', function () {
-        if(!this.toggle()) {
+        if (!this.toggle()) {
             throw "toggle() returned false!";
             return false;
         }
@@ -267,15 +267,15 @@ MtldaInlineEditable.prototype.showForm = function () {
     }.bind(this));
 
     $(content_select).on('input', 'input, textarea', function () {
-        if(!this.touch()) {
+        if (!this.touch()) {
             throw "touch() returned false!";
             return false;
         }
         return true;
     }.bind(this));
 
-    $(content_select).on('submit', 'form', function() {
-        if(!this.save()) {
+    $(content_select).on('submit', 'form', function () {
+        if (!this.save()) {
             throw "save() returned false!";
             return false;
         }
@@ -285,12 +285,12 @@ MtldaInlineEditable.prototype.showForm = function () {
 
 MtldaInlineEditable.prototype.showContent = function () {
 
-    if (!(name_select = this.getNameSelector())) {
+    if ((name_select = this.getNameSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
 
-    if (!(content_select = this.getContentSelector())) {
+    if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
@@ -298,12 +298,12 @@ MtldaInlineEditable.prototype.showContent = function () {
     if (this.isSaved()) {
         value = $(content_select + ' form input').val();
     } else {
-        if (!(value = this.getLastUsedValue())) {
+        if ((value = this.getLastUsedValue()) === undefined) {
             value = this.getOriginalValue();
         }
     }
 
-    if (!(content = $(content_select))) {
+    if ((content = $(content_select)) === undefined) {
         throw "Can not retrieve content!";
         return false;
     }
@@ -317,7 +317,7 @@ MtldaInlineEditable.prototype.showContent = function () {
     content.replaceWith(this._contentBefore);
 
     // renew content handler
-    if (!(content = $(content_select))) {
+    if ((content = $(content_select)) === undefined) {
         throw "Can not retrieve content!";
         return false;
     }
@@ -330,12 +330,12 @@ MtldaInlineEditable.prototype.showContent = function () {
 
 MtldaInlineEditable.prototype.touch = function () {
 
-    if (!(content_select = this.getContentSelector())) {
+    if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
 
-    if (!(input = $(content_select + ' form input'))) {
+    if ((input = $(content_select + ' form input')) === undefined) {
         throw "Failed to locate input field!";
         return false;
     }
@@ -345,7 +345,7 @@ MtldaInlineEditable.prototype.touch = function () {
         return true;
     }
 
-    if (!(savebutton = $(content_select + ' form button.save'))) {
+    if ((savebutton = $(content_select + ' form button.save')) === undefined) {
         throw "can not find the save button!";
         return false;
     }
@@ -366,12 +366,12 @@ MtldaInlineEditable.prototype.touch = function () {
 
 MtldaInlineEditable.prototype.untouch = function () {
 
-    if (!(content_select = this.getContentSelector())) {
+    if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
 
-    if (!(savebutton = $(content_select + ' form button.save'))) {
+    if ((savebutton = $(content_select + ' form button.save')) === undefined) {
         throw "can not find the save button!";
         return false;
     }
@@ -399,7 +399,7 @@ MtldaInlineEditable.prototype.touched = function () {
 
 MtldaInlineEditable.prototype.setSaved = function (value) {
 
-    if (value == undefined)  {
+    if (value == undefined) {
         this._saved = true;
         return true;
     }
@@ -430,37 +430,37 @@ MtldaInlineEditable.prototype.save = function () {
         return true;
     }
 
-    if (!(content_select = this.getContentSelector())) {
+    if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
         return false;
     }
 
-    if (!(input = $(content_select + ' form input'))) {
+    if ((input = $(content_select + ' form input')) === undefined) {
         throw "Failed to get input element!";
         return false;
     }
 
-    if (!(action = input.attr('data-action'))) {
+    if ((action = input.attr('data-action')) === undefined) {
         throw "Unable to locate 'data-action' attribute!";
         return false;
     }
 
-    if (!(model = input.attr('data-model'))) {
+    if ((model = input.attr('data-model')) === undefined) {
         throw "Unable to locate 'data-model' attribute!";
         return false;
     }
 
-    if (!(key = input.attr('data-key'))) {
+    if ((key = input.attr('data-key')) === undefined) {
         throw "Unable to locate 'data-key' attribute!";
         return false;
     }
 
-    if (!(id = input.attr('data-id'))) {
+    if ((id = input.attr('data-id')) === undefined) {
         throw "Unable to locate 'data-id' attribute!";
         return false;
     }
 
-    if (!(value = input.val())) {
+    if ((value = input.val()) === undefined) {
         throw "Unable to locate 'value' attribute!";
         return false;
     }
@@ -471,7 +471,7 @@ MtldaInlineEditable.prototype.save = function () {
     id = safe_string(id);
     value = safe_string(value);
 
-    if(
+    if (
         window.location.pathname != undefined &&
         window.location.pathname != '' &&
         !window.location.pathname.match(/\/$/)
@@ -494,20 +494,20 @@ MtldaInlineEditable.prototype.save = function () {
             key    : key,
             value  : value
         }),
-        error: function(XMLHttpRequest, textStatus, errorThrown) {
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
             alert('Failed to contact server! ' + textStatus);
         },
         success: function (data) {
-            if(data != 'ok') {
+            if (data != 'ok') {
                 alert('Server returned: ' + data + ', length ' + data.length);
                 return;
             }
             this.setSaved();
             this.untouch();
-            if(action == 'add') {
+            if (action == 'add') {
                 location.reload();
                 return;
-            } else if(action == 'update') {
+            } else if (action == 'update') {
                 this.toggle();
             }
             return;
