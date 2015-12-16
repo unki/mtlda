@@ -18,7 +18,7 @@
 <h1 class="ui block header">
  <i class="file text icon"></i>
  <div class="content">
-  <div name="title" class="inline editable content" data-orig-value="{$item->getTitle()}">{$item->getTitle()}</div>
+  <div name="title" class="inline editable content" data-orig-value="{if $item->hasTitle()}{$item->getTitle()}{/if}">{if $item->hasTitle()}{$item->getTitle()}{/if}</div>
   <a name="title" class="inline editable edit link" data-inline-name="title"><i class="tiny edit icon"></i></a>
  </div>
 </h1>
@@ -26,7 +26,7 @@
 <form class="ui form" onsubmit="return false;">
  <div class="fields">
   <div class="field small ui input">
-   <input type="text" name="title" value="{$item->getTitle()}" data-action="update" data-model="document" data-key="getTitle()" data-id="{$item->getId()}" />
+   <input type="text" name="title" value="{if $item->hasTitle()}{$item->getTitle()}{/if}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->getId()}" />
   </div>
   <div class="field">
    <button class="circular ui big icon button inline editable save" type="submit"><i class="save icon"></i></button>
@@ -52,9 +52,9 @@
        <div class="content">
         <div class="header">
          <a href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>
-         <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-title="{$item->getTitle()}"><i class="find icon"></i></a>
+         <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i></a>
         </div>
-        <div class="description">Original document (imported {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-title="{$item->getTitle()}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
+        <div class="description">Original document (imported {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
        </div>
       </div>
 {list_versions}
