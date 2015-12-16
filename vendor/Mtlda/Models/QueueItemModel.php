@@ -21,9 +21,9 @@ namespace Mtlda\Models ;
 
 class QueueItemModel extends DefaultModel
 {
-    public $table_name = 'queue';
-    public $column_name = 'queue';
-    public $fields = array(
+    protected $table_name = 'queue';
+    protected $column_name = 'queue';
+    protected $fields = array(
             'queue_idx' => 'integer',
             'queue_guid' => 'string',
             'queue_title' => 'string',
@@ -38,8 +38,8 @@ class QueueItemModel extends DefaultModel
             'queue_expiry_date' => 'date',
             'queue_in_processing' => 'string',
             );
-    public $avail_items = array();
-    public $items = array();
+    protected $avail_items = array();
+    protected $items = array();
     private $keywords;
 
     public function __construct($id = null, $guid = null)
@@ -194,6 +194,17 @@ class QueueItemModel extends DefaultModel
         return $this->queue_file_hash;
     }
 
+    public function setFileHash($filehash)
+    {
+        if (!isset($filehash) || empty($filehash) || !is_string($filehash)) {
+            $this->raiseError(__METHOD__ .'(), $filehash parameter is invalid!');
+            return false;
+        }
+
+        $this->queue_file_hash = $filehash;
+        return true;
+    }
+
     public function getFileName()
     {
         if (!isset($this->queue_file_name)) {
@@ -203,6 +214,17 @@ class QueueItemModel extends DefaultModel
         return $this->queue_file_name;
     }
 
+    public function setFileName($filename)
+    {
+        if (!isset($filename) || empty($filename) || !is_string($filename)) {
+            $this->raiseError(__METHOD__ .'(), $filename parameter is invalid!');
+            return false;
+        }
+
+        $this->queue_file_name = $filename;
+        return true;
+    }
+
     public function getFileSize()
     {
         if (!isset($this->queue_file_size)) {
@@ -210,6 +232,17 @@ class QueueItemModel extends DefaultModel
         }
 
         return $this->queue_file_size;
+    }
+
+    public function setFileSize($filesize)
+    {
+        if (!isset($filesize) || empty($filesize) || !is_numeric($filesize)) {
+            $this->raiseError(__METHOD__ .'(), $filesize parameter is invalid!');
+            return false;
+        }
+
+        $this->queue_file_size = $size;
+        return true;
     }
 
     public function preDelete()
@@ -384,7 +417,7 @@ class QueueItemModel extends DefaultModel
         return $fqpn;
     }
 
-    public function generateDirectoryName($guid)
+    protected function generateDirectoryName($guid)
     {
         global $mtlda;
 
@@ -430,6 +463,17 @@ class QueueItemModel extends DefaultModel
         return $this->queue_state;
     }
 
+    public function setState($state)
+    {
+        if (!isset($state) || empty($state) || !is_string($state)) {
+            $this->raiseError(__METHOD__ .'(), $state parameter is invalid!');
+            return false;
+        }
+
+        $this->queue_state = $state;
+        return true;
+    }
+
     public function getTime()
     {
         if (!isset($this->queue_time)) {
@@ -437,6 +481,17 @@ class QueueItemModel extends DefaultModel
         }
 
         return $this->queue_time;
+    }
+
+    public function setTime($time)
+    {
+        if (!isset($time) || empty($time) || !is_numeric($time)) {
+            $this->raiseError(__METHOD__ .'(), $time parameter is invalid!');
+            return false;
+        }
+
+        $this->queue_time = $time;
+        return true;
     }
 
     public function setProcessingFlag($value = true)
@@ -774,6 +829,26 @@ class QueueItemModel extends DefaultModel
         }
 
         return implode(', ', $names);
+    }
+
+    public function getSigningIconPosition()
+    {
+        if (!isset($this->queue_signing_icon_position)) {
+            return false;
+        }
+
+        return $this->queue_signing_icon_position;
+    }
+
+    public function setSigningIconPosition($position)
+    {
+        if (!isset($position) || empty($position) || !is_numeric($position)) {
+            $this->raiseError(__METHOD__ .'(), $position parameter is invalid!');
+            return false;
+        }
+
+        $this->queue_signing_icon_position = $time;
+        return true;
     }
 }
 
