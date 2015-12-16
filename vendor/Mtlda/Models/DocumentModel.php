@@ -1196,7 +1196,7 @@ class DocumentModel extends DefaultModel
 
     public function setTitle($title)
     {
-        if (!isset($title) || empty($titel)) {
+        if (!isset($title) || !is_string($title)) {
             $this->raiseError(__METHOD__ .'(), $title parameter is invalid!');
             return false;
         }
