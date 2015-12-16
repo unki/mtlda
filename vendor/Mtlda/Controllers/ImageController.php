@@ -95,12 +95,12 @@ class ImageController extends DefaultController
         global $mtlda, $config, $audit;
 
         if (!isset($item) || empty($item)) {
-            $this->raiseError("createPreviewImage() invalid parameter!");
+            $this->raiseError(__METHOD__ .'(), $item parameter is invalid!');
             return false;
         }
 
-        if (!isset($item->queue_idx, $item->queue_guid, $item->queue_file_name)) {
-            $this->raiseError("createPreviewImage() parameter incomplete!");
+        if (!is_a($item, 'Mtlda\Models\QueueItemModel')) {
+            $this->raiseError(__METHOD__ .'(), can only operate with QueueItemModels!');
             return false;
         }
 
@@ -119,8 +119,8 @@ class ImageController extends DefaultController
             return false;
         }
 
-        if ($this->isCachedImageAvailable($item->queue_idx, $item->queue_guid, 'queueitem_preview')) {
-            return $this->loadCachedImage($item->queue_idx, $item->queue_guid, 'queueitem_preview');
+        if ($this->isCachedImageAvailable($item->getId(), $item->getGuid(), 'queueitem_preview')) {
+            return $this->loadCachedImage($item->getId(), $item->getGuid(), 'queueitem_preview');
         }
 
         try {
@@ -157,7 +157,7 @@ class ImageController extends DefaultController
         }
 
         if ($config->isImageCachingEnabled()) {
-            $this->saveImageToCache($item->queue_idx, $item->queue_guid, 'queueitem_preview', $im);
+            $this->saveImageToCache($item->getId(), $item->getGuid(), 'queueitem_preview', $im);
         }
 
         if (!($content = $im->getImageBlob())) {
