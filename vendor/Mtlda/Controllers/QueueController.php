@@ -44,7 +44,12 @@ class QueueController extends DefaultController
             return true;
         }
 
-        if (!isset($obj->queue_file_hash) || empty($obj->queue_file_hash)) {
+        if (($file_hash = $obj->getFileHash()) === false) {
+            $this->raiseError(get_class($obj) .'::getFileHash() returned false!');
+            return false;
+        }
+
+        if (empty($file_hash)) {
             $this->raiseError("Found no file hash for QueueItemModel {$id}, {$guid}!");
             return false;
         }
@@ -61,7 +66,7 @@ class QueueController extends DefaultController
             return false;
         }
 
-        if (($dupl_item = $archive->checkForDuplicateFileByHash($obj->queue_file_hash)) === false) {
+        if (($dupl_item = $archive->checkForDuplicateFileByHash($file_hash)) === false) {
             $this->raiseError("ArchiveController::checkForDuplicateFileByHash returned false!");
             return false;
         }
@@ -103,8 +108,8 @@ class QueueController extends DefaultController
 
         foreach ($queue->avail_items as $key) {
             $queueitem = $queue->items[$key];
-            $idx = $queueitem->queue_idx;
-            $guid = $queueitem->queue_guid;
+            $idx = $queueitem->getId();
+            $guid = $queueitem->getGuid();
 
             if ($queueitem->isProcessing()) {
                 continue;
