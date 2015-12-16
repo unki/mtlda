@@ -136,27 +136,9 @@ class QueueModel extends DefaultModel
 
         // delete each QueueItemModel
         foreach ($this->items as $item) {
-            if (!isset($item->queue_idx) ||
-                empty($item->queue_idx) ||
-                !isset($item->queue_guid) ||
-                empty($item->queue_guid)
-            ) {
-                $mtlda->raiseError("invalid \$item found!");
-                return false;
-            }
-
-            $queueitem = $mtlda->loadModel("queueitem", $item->queue_idx, $item->queue_guid);
-
-            if (!$queueitem) {
-                $mtlda->raiseError(
-                    "Error loading QueueItemModel idx:{$item->queue_idx} guid:{$item->queue_guid}!"
-                );
-                return false;
-            }
-
             if (!$queueitem->delete()) {
                 $mtlda->raiseError(
-                    "Error deleting QueueItemModel idx:{$item->queue_idx} guid:{$item->queue_guid}!"
+                    "Error deleting QueueItemModel idx:{$item->getId()} guid:{$item->getGuid()}!"
                 );
                 return false;
             }
