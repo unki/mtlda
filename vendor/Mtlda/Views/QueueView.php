@@ -80,7 +80,7 @@ class QueueView extends DefaultView
         $item =  $this->items[$item_idx];
 
         $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", $item->queue_idx ."-". $item->queue_guid);
+        $smarty->assign("item_safe_link", $item->getId() ."-". $item->getGuid());
 
         $index++;
         $smarty->assign('smarty.IB.item_list.index', $index);
@@ -133,12 +133,12 @@ class QueueView extends DefaultView
             return false;
         }
 
-        if (strlen($file['content']) != $item->queue_file_size) {
+        if (strlen($file['content']) != $item->getFileSize()) {
             $this->raiseError("File size of retrieved file does not match archive record!");
             return false;
         }
 
-        if ($file['hash'] != $item->queue_file_hash) {
+        if ($file['hash'] != $item->getFileHash()) {
             $this->raiseError("File hash of retrieved file does not match archive record!");
             return false;
         }
