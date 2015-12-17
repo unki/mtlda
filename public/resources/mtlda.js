@@ -31,6 +31,9 @@ $(document).ready(function () {
     $("a.archive.item").click(function () {
         archive_object($(this));
     });
+    $("a.split.item").click(function () {
+        split_object($(this));
+    });
     $("form.ui.form.add").on('submit', function () {
         rpc_object_update($(this));
     });
@@ -827,6 +830,96 @@ function init_dropdowns()
                 .addClass('red shape')
                 .transition('bounce');
         }
+    });
+}
+
+function split_object(element)
+{
+    var title = element.attr("title");
+
+    if (title == undefined || title === "") {
+        throw 'No attribute "title" found!';
+        return false;
+    }
+
+    var text = element.attr("data-modal-text");
+
+    wnd = $(".ui.fullscreen.modal.queue.splitter");
+
+    if (wnd === undefined || wnd.length < 1) {
+        throw "failed to locate .ui.fullscreen.modal.queue.splitter!";
+        return false;
+    }
+
+    wnd.modal({
+        closable       : true,
+        blurring       : false,
+        title          : title,
+        observeChanges : true,
+        onShow         : splitter_window($(element))
+    })
+        .modal('show');
+        //.on('click.modal', do_function);
+
+    return wnd;
+}
+
+function splitter_window(element, step)
+{
+    if (wnd === undefined) {
+        throw "somehow we lost our modal window!"
+        return false;
+    }
+
+    if (element === undefined || ! element instanceof Array) {
+        throw "element parameter is invalid!"
+        return false;
+    }
+
+    if ((id = element.attr('data-id')) === undefined) {
+        throw 'no "data-id" attribute found!';
+        return false;
+    }
+
+    if ((guid = element.attr('data-guid')) === undefined) {
+        throw 'no "data-guid" attribute found!';
+        return false;
+    }
+
+    if ((model = element.attr('data-model')) === undefined) {
+        throw 'no "data-model" attribute found!';
+        return false;
+    }
+
+    if ((title = element.attr('title')) === undefined) {
+        throw 'no "title" attribute found!';
+        return false;
+    }
+
+    if (step === undefined || !(/^[0-9]+$/).test(step)) {
+        step = 1;
+    }
+
+    $('.ui.steps .active.step')
+        .removeClass('active');
+    $('.ui.steps #step_'+step)
+        .removeClass('disabled')
+        .addClass('active');
+
+    request_data = {
+        content : 'splitter',
+        id      : id,
+        guid    : guid,
+        model   : model,
+        step    : step
+    };
+
+    $.when(rpc_get_content('queue', request_data)).done(function (data) {
+        $('#splitter_content').html(data);
+        eval($('.splitter.modal .header.window.title').html(title));
+        eval($('.splitter.modal .ui.steps .step').attr('title', title));
+        eval($('.splitter.modal .ui.steps .step').attr('data-id', id));
+        eval($('.splitter.modal .ui.steps .step').attr('data-guid', guid));
     });
 }
 
