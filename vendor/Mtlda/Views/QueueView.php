@@ -50,8 +50,18 @@ class QueueView extends DefaultView
             return false;
         }
 
+        if (!$tmpl->addSupportedMode('split')) {
+            $this->raiseError(get_class($tmpl) .'::addSupportedMode() returned false!', true);
+            return false;
+        }
+
         if (!$this->addContent('archiver')) {
-            $this->raiseError(__CLASS__ .'::addContent() returned false!');
+            $this->raiseError(__CLASS__ .'::addContent() returned false!', true);
+            return false;
+        }
+
+        if (!$this->addContent('splitter')) {
+            $this->raiseError(__CLASS__ .'::addContent() returned false!', true);
             return false;
         }
 
@@ -321,6 +331,158 @@ class QueueView extends DefaultView
         }
 
         return $content;
+    }
+
+    public function getSplitter(&$data)
+    {
+        global $mtlda, $tmpl;
+
+        if (!isset($data) || empty($data) || !is_array($data)) {
+            $this->raiseError(__METHOD__ .'(), $data parameter is not set!');
+            return false;
+        }
+
+        if (isset($data['step']) && !empty($data['step']) && is_numeric($data['step'])) {
+            $step = $data['step'];
+        } else {
+            $step = 1;
+        }
+
+        if (!isset($data['model']) || empty($data['model']) || $data['model'] != 'queueitem' ||
+            !isset($data['id']) || empty($data['id']) || !is_numeric($data['id']) ||
+            !isset($data['guid']) || empty($data['guid']) || !$mtlda->isValidGuidSyntax($data['guid'])
+        ) {
+            $this->raiseError(__METHOD__ .'(), item data is invalid!');
+            return false;
+        }
+
+        if (($item = $mtlda->loadModel('queueitem', $data['id'], $data['guid'])) === false) {
+            $this->raiseError(get_class($mtlda) .'::loadModel() returned false!');
+            return false;
+        }
+
+        $tmpl->assign('item', $item);
+
+        try {
+            $this->keywords = new \Mtlda\Models\KeywordsModel;
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load KeywordsModel!");
+            return false;
+        }
+
+        if (($assigned_keywords = $item->getKeywords()) === false) {
+            $this->raiseError(get_class($item) .'::getKeywords() returned false!');
+            return false;
+        }
+
+        $tmpl->assign('keywords', $this->keywords->items);
+        $tmpl->assign('assigned_keywords', implode(',', $assigned_keywords));
+
+        switch ($step) {
+            case 1:
+                $template = "splitter_dialog_step1.tpl";
+                break;
+            case 2:
+                if (($pages = $this->getPdfPageInfo($item)) === false) {
+                    $this->raiseError(__CLASS__ .'::getPdfPageInfo() returned false!');
+                    return false;
+                }
+                $tmpl->assign('page_count', $pages);
+                $tmpl->assign("image_safe_link", $item->getId() ."-". $item->getGuid());
+                $template = "splitter_dialog_step2.tpl";
+                break;
+            case 3:
+                $template = "splitter_dialog_step3.tpl";
+                break;
+            case 4:
+                $template = "splitter_dialog_step4.tpl";
+                break;
+            default:
+                $this->raiseError(__METHOD__ .'(), invalid step requested!');
+                return false;
+                break;
+        }
+
+        if ($step < 4) {
+            $tmpl->assign('next_step', $step+1);
+        }
+
+        if (!isset($template) || empty($template) || !is_string($template)) {
+            $this->raiseError(__METHOD__ .'(), no template selected!');
+            return false;
+        }
+
+        if (($content = $tmpl->fetch($template)) === false) {
+            $this->raiseError(get_class($tmpl) ."::fetch({$template}) returned false!");
+            return false;
+        }
+
+        if (!isset($content) || empty($content) || !is_string($content)) {
+            $this->raiseError(get_class($tmpl) ."::fetch({$template}) returned invalid data!");
+            return false;
+        }
+
+        return $content;
+    }
+
+    protected function getPdfPageInfo(&$item)
+    {
+        if (!isset($item) || empty($item)) {
+            $this->raiseError(__METHOD__ .'(), $item parameter is invalid!');
+            return false;
+        }
+
+        if (!is_a($item, 'Mtlda\Models\QueueItemModel')) {
+            $this->raiseError(__METHOD__ .'(), can only operate on QueueItemModels!');
+            return false;
+        }
+
+        try {
+            $pdf = new \FPDI();
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load FPDI!');
+            return false;
+        }
+
+        if (($fqfn = $item->getFilePath()) === false) {
+            $this->raiseError(get_class($item) .'::getFilePath() returned false!');
+            return false;
+        }
+
+        if (!isset($fqfn) || empty($fqfn)) {
+            $this->raiseError(get_class($item) .'::getFilePath() returned an invalid file name!');
+            return false;
+        }
+
+        if (!file_exists($fqfn)) {
+            $this->raiseError(__METHOD__ ."(), file {$fqfn} does not exist!");
+            return false;
+        }
+
+        if (!is_readable($fqfn)) {
+            $this->raiseError(__METHOD__ ."(), file {$fqfn} is not readable!");
+            return false;
+        }
+
+        try {
+            $page_count = $pdf->setSourceFile($fqfn);
+        } catch (\Exception $e) {
+            $this->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
+
+        try {
+            @$pdf->cleanUp();
+        } catch (\Exception $e) {
+            $this->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
+
+        if (!isset($page_count)) {
+            return false;
+        }
+
+        return $page_count;
     }
 }
 
