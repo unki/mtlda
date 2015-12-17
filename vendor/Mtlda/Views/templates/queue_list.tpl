@@ -95,7 +95,10 @@
    <a class="archive item" id="archive_link_{$item->getId()}" title="Archive {$item->getFileName()|escape}" data-modal-text="Please confirm that you would like to archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a>
    <div class="ui dropdown advanced"><i class="dropdown icon"></i><div class="menu"><div class="item"><a class="archive item advanced" title="Archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="settings icon"></i>Advanced</a></div></div></div>
   </td>
-  <td><a href="{get_url page=queue mode=edit id=$item_safe_link}"><i class="edit icon"></i>Edit</a></td>
+  <td>
+   <i class="edit icon"></i>Edit
+   <div class="ui dropdown edit"><i class="dropdown icon"></i><div class="menu"><div class="item"><a class="split item edit" title="Split {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="expand icon"></i>Split</a></div></div></div>
+  </td>
   <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/queue_list}
@@ -145,7 +148,7 @@ $(document).ready(function() {
     });
 
     $('#datatable').tablesort();
-    $('.ui.dropdown.advanced').dropdown();
+    $('.ui.dropdown.advanced, .ui.dropdown.edit').dropdown();
 });
 --></script>
 <div class="ui import archive delete modal">
