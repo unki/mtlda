@@ -32,6 +32,7 @@ class JobsController extends \Thallium\Controllers\JobsController
             $this->registerHandler('scan-request', array($this, 'handleScanDocumentRequests'));
             $this->registerHandler('archive-request', array($this, 'handleArchiveRequest'));
             $this->registerHandler('delete-request', array($this, 'handleDeleteRequest'));
+            $this->registerHandler('preview-request', array($this, 'handlePreviewRequest'));
         } catch (\Exception $e) {
             $this->raiseError(__METHOD__ .'(), failed to register handlers!', true);
             return false;
@@ -501,6 +502,149 @@ class JobsController extends \Thallium\Controllers\JobsController
         }
 
         if (!$mbus->sendMessageToClient('delete-reply', 'Done', '100%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function handlePreviewRequest($job)
+    {
+        global $mtlda, $mbus;
+
+        if (empty($job) || get_class($job) != 'Thallium\Models\JobModel') {
+            $this->raiseError(__METHOD__ .', requires a JobModel reference as parameter!');
+            return false;
+        }
+
+        if (!$job->hasParameters() || !($body = $job->getParameters())) {
+            $this->raiseError(get_class($job) .'::getParameters() returned false!');
+            return false;
+        }
+
+        if (!is_string($body)) {
+            $this->raiseError(get_class($job) .'::getParameters() has not returned a string!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('preview-reply', 'Preparing', '10%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        if (($preview_request = unserialize($body)) === null) {
+            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
+            return false;
+        }
+
+        if (!is_object($preview_request)) {
+            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            return false;
+        }
+
+        if (!isset($preview_request->id) || empty($preview_request->id) ||
+            !isset($preview_request->guid) || empty($preview_request->guid)
+        ) {
+            $this->raiseError(__METHOD__ .', preview-request is incomplete!');
+            return false;
+        }
+
+        if ($preview_request->id != 'all' &&
+            !$mtlda->isValidId($preview_request->id)
+        ) {
+            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            return false;
+        }
+
+        if ($preview_request->guid != 'all' &&
+            !$mtlda->isValidGuidSyntax($preview_request->guid)
+        ) {
+            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('preview-reply', 'Preview...', '20%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        if (!isset($preview_request->model) || empty($preview_request->model)) {
+            $this->raiseError(__METHOD__ .'(), preview-request does not contain model information!');
+            return false;
+        }
+
+        if ($preview_request->model != 'queueitem') {
+            $this->raiseError(__METHOD__ .'(), unsupported model!');
+            return false;
+        }
+
+        try {
+            $queueitem = new \Mtlda\Models\QueueItemModel(
+                $preview_request->id,
+                $preview_request->guid
+            );
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
+            return false;
+        }
+
+        try {
+            $image = new \Mtlda\Controllers\ImageController;
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load ImageController!');
+            return false;
+        }
+
+        try {
+            $pdf = new \FPDI();
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load FPDI!');
+            return false;
+        }
+
+        if (($fqfn = $queueitem->getFilePath()) === false) {
+            $this->raiseError(get_class($queueitem) .'::getFilePath() returned false!');
+            return false;
+        }
+
+        if (!isset($fqfn) || empty($fqfn)) {
+            $this->raiseError(get_class($queueitem) .'::getFilePath() returned an invalid file name!');
+            return false;
+        }
+
+        if (!file_exists($fqfn)) {
+            $this->raiseError(__METHOD__ ."(), file {$fqfn} does not exist!");
+            return false;
+        }
+
+        if (!is_readable($fqfn)) {
+            $this->raiseError(__METHOD__ ."(), file {$fqfn} is not readable!");
+            return false;
+        }
+
+        try {
+            $page_count = $pdf->setSourceFile($fqfn);
+        } catch (\Exception $e) {
+            $this->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
+
+        for ($page_no = 1; $page_no <= $page_count; $page_no++) {
+            if (!$image->createPreviewImage($queueitem, false, $page_no)) {
+                $this->raiseError(get_class($image) .'::createPreviewImage() returned false!');
+                return false;
+            }
+        }
+
+        try {
+            @$pdf->cleanUp();
+        } catch (\Exception $e) {
+            $this->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('preview-reply', 'Done', '100%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
