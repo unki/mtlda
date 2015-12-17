@@ -71,7 +71,7 @@
      <form id="document_custom_date_form" class="ui form" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-target="document_custom_date" onsubmit="return false;" style="{if !$item->hasCustomDate()}display: none;{/if}">
       <div class="fields">
        <div class="field ui input">
-        <input type="text" name="document_custom_date" value="{$item->getCustomDate()}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->getId()}" />
+        <input type="text" name="document_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->getId()}" />
        </div>
        <div class="field">
         <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
