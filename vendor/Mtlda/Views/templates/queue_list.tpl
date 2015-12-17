@@ -180,3 +180,4 @@ $(document).ready(function() {
  </div>
 </div>
 {include "archiver_dialog_modal.tpl"}
+{include "splitter_dialog_modal.tpl"}
