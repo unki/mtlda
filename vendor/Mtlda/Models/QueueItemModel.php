@@ -850,6 +850,43 @@ class QueueItemModel extends DefaultModel
         $this->queue_signing_icon_position = $time;
         return true;
     }
+
+    protected function postClone(&$srcobj)
+    {
+        try {
+            $storage = new \Mtlda\Controllers\StorageController;
+        } catch (\Exception $e) {
+            $this->raiseError("Failed to load StorageController!");
+            return false;
+        }
+
+        if (!$guid = $this->getGuid()) {
+            $this->raiseError(__CLASS__ .'::getGuid() returned false!');
+            return false;
+        }
+
+        if (!$src_file = $srcobj->getFilePath()) {
+            $this->raiseError(__METHOD__ .'(), unable to retrieve source objects full qualified path name!');
+            return false;
+        }
+
+        if (!$dst_file = $this->getFilePath()) {
+            $this->raiseError(__CLASS__ .'::getFilePath() returned false!');
+            return false;
+        }
+
+        if (!$storage->createDirectoryStructure(dirname($dst_file))) {
+            $this->raiseError(get_class($storage) .'::createDirectoryStructure() returned false!');
+            return false;
+        }
+
+        if (!$storage->copyFile($src_file, $dst_file)) {
+            $this->raiseError(get_class($storage) .'::copyFile() returned false!');
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
