@@ -69,6 +69,25 @@
   </td>
   <td><a href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getId()}</a></td>
   <td>
+{if $item->hasTitle()}
+   <a name="title_{$item->getId()}" class="filterable inline editable content" data-orig-value="{$item->getTitle()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getTitle()}</a>
+   <a name="title_{$item->getId()}" class="inline editable edit link" data-inline-name="title_{$item->getId()}"><i class="tiny edit icon"></i></a>
+   <div name="title_{$item->getId()}" class="inline editable formsrc" style="display: none;">
+    <form class="ui form" onsubmit="return false;">
+     <div class="fields">
+      <div class="field small ui input">
+       <input type="text" name="title_{$item->getId()}" value="{$item->getTitle()}" data-action="update" data-model="queueitem" data-key="queue_title" data-id="{$item->getId()}" />
+      </div>
+      <div class="field">
+       <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
+      </div>
+      <div class="field">
+       <button class="circular ui icon button inline editable cancel"><i class="cancel icon"></i></button>
+      </div>
+     </div>
+    </form>
+   </div><br />
+{/if}
    <a name="filename_{$item->getId()}" class="filterable inline editable content" data-orig-value="{$item->getFileName()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getFileName()}</a>
    <a name="filename_{$item->getId()}" class="inline editable edit link" data-inline-name="filename_{$item->getId()}"><i class="tiny edit icon"></i></a>
    <div name="filename_{$item->getId()}" class="inline editable formsrc" style="display: none;">
@@ -90,16 +109,16 @@
   <td class="filterable">{$item->getFileSize()}</td>
   <td class="filterable archive state" id="archive-state-{$item->getId()}">{$item->getState()}</td>
   <td class="filterable">{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
-  <td><a href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" title="Preview {$item->getFileName()|escape}" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i>Preview</a></td>
+  <td><a href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" title="Preview {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i>Preview</a></td>
   <td>
-   <a class="archive item" id="archive_link_{$item->getId()}" title="Archive {$item->getFileName()|escape}" data-modal-text="Please confirm that you would like to archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a>
-   <div class="ui dropdown advanced"><i class="dropdown icon"></i><div class="menu"><div class="item"><a class="archive item advanced" title="Archive {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="settings icon"></i>Advanced</a></div></div></div>
+   <a class="archive item" id="archive_link_{$item->getId()}" title="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm that you would like to archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a>
+   <div class="ui dropdown advanced"><i class="dropdown icon"></i><div class="menu"><div class="item"><a class="archive item advanced" title="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="settings icon"></i>Advanced</a></div></div></div>
   </td>
   <td>
    <i class="edit icon"></i>Edit
-   <div class="ui dropdown edit"><i class="dropdown icon"></i><div class="menu"><div class="item"><a class="split item edit" title="Split {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="expand icon"></i>Split</a></div></div></div>
+   <div class="ui dropdown edit"><i class="dropdown icon"></i><div class="menu"><div class="item"><a class="split item edit" title="Split {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="expand icon"></i>Split</a></div></div></div>
   </td>
-  <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {$item->getFileName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
+  <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/queue_list}
  </tbody>
