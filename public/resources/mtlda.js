@@ -255,7 +255,7 @@ function delete_object(element)
             if (!($(this).checkbox('is checked'))) {
                 return true;
             }
-            item = $(this).attr('name')
+            item = $(this).attr('id')
             if (!item || item == '') {
                 return false;
             }
