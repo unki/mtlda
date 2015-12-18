@@ -21,6 +21,8 @@ namespace Mtlda\Controllers;
 
 class JobsController extends \Thallium\Controllers\JobsController
 {
+    protected $json_errors;
+
     public function __construct()
     {
         parent::__construct();
@@ -33,9 +35,19 @@ class JobsController extends \Thallium\Controllers\JobsController
             $this->registerHandler('archive-request', array($this, 'handleArchiveRequest'));
             $this->registerHandler('delete-request', array($this, 'handleDeleteRequest'));
             $this->registerHandler('preview-request', array($this, 'handlePreviewRequest'));
+            $this->registerHandler('split-request', array($this, 'handleSplitRequest'));
         } catch (\Exception $e) {
             $this->raiseError(__METHOD__ .'(), failed to register handlers!', true);
             return false;
+        }
+
+        // Define the JSON errors.
+        $constants = get_defined_constants(true);
+        $this->json_errors = array();
+        foreach ($constants["json"] as $name => $value) {
+            if (!strncmp($name, "JSON_ERROR_", 11)) {
+                $this->json_errors[$value] = $name;
+            }
         }
     }
 
@@ -645,6 +657,121 @@ class JobsController extends \Thallium\Controllers\JobsController
         }
 
         if (!$mbus->sendMessageToClient('preview-reply', 'Done', '100%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function handleSplitRequest($job)
+    {
+        global $mtlda, $mbus;
+
+        if (empty($job) || get_class($job) != 'Thallium\Models\JobModel') {
+            $this->raiseError(__METHOD__ .', requires a JobModel reference as parameter!');
+            return false;
+        }
+
+        if (!$job->hasParameters() || !($body = $job->getParameters())) {
+            $this->raiseError(get_class($job) .'::getParameters() returned false!');
+            return false;
+        }
+
+        if (!is_string($body)) {
+            $this->raiseError(get_class($job) .'::getParameters() has not returned a string!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('split-reply', 'Preparing', '10%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        if (($split_request = unserialize($body)) === null) {
+            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
+            return false;
+        }
+
+        if (!is_object($split_request)) {
+            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            return false;
+        }
+
+        if (!isset($split_request->id) || empty($split_request->id) ||
+            !isset($split_request->guid) || empty($split_request->guid)
+        ) {
+            $this->raiseError(__METHOD__ .', split-request is incomplete!');
+            return false;
+        }
+
+        if (!$mtlda->isValidId($split_request->id)) {
+            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            return false;
+        }
+
+        if (!$mtlda->isValidGuidSyntax($split_request->guid)) {
+            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('split-reply', 'Preview...', '20%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
+        if (!isset($split_request->model) || empty($split_request->model)) {
+            $this->raiseError(__METHOD__ .'(), split-request does not contain model information!');
+            return false;
+        }
+
+        if ($split_request->model != 'queueitem') {
+            $this->raiseError(__METHOD__ .'(), unsupported model!');
+            return false;
+        }
+
+        try {
+            $queueitem = new \Mtlda\Models\QueueItemModel(
+                $split_request->id,
+                $split_request->guid
+            );
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
+            return false;
+        }
+
+        try {
+            $splitter = new \Mtlda\Controllers\PdfSplittingController;
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), unable to load PdfSplittingController!');
+            return false;
+        }
+
+        if (!isset($split_request->documents) ||
+            empty($split_request->documents) ||
+            !is_string($split_request->documents)
+        ) {
+            return true;
+        }
+
+        if (($json = json_decode($split_request->documents, false, 3)) === null) {
+            $this->raiseError(__METHOD__ .'(), json_decode() returned false! '. $this->json_errors[json_last_error()]);
+            return false;
+        }
+
+        if (empty($json)) {
+            return true;
+        }
+
+        foreach ($json as $doc => $pages) {
+            if (isset($pages) && !empty($pages) && is_string($pages) &&
+                !$splitter->splitDocument($queueitem, $pages)) {
+                $this->raiseError(get_class($splitter) .'::split() returned false!');
+                return false;
+            }
+        }
+
+        if (!$mbus->sendMessageToClient('split-reply', 'Done', '100%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
