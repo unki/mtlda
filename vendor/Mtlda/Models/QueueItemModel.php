@@ -241,7 +241,7 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $this->queue_file_size = $size;
+        $this->queue_file_size = $filesize;
         return true;
     }
 
@@ -882,6 +882,56 @@ class QueueItemModel extends DefaultModel
 
         if (!$storage->copyFile($src_file, $dst_file)) {
             $this->raiseError(get_class($storage) .'::copyFile() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function refresh()
+    {
+        if (!$fqpn = $this->getFilePath()) {
+            $this->raiseError("getFilePath() returned false!");
+            return false;
+        }
+
+        if (!file_exists($fqpn)) {
+            $this->raiseError("File {$fqpn} does not exist!");
+            return false;
+        }
+
+        if (!is_readable($fqpn)) {
+            $this->raiseError("File {$fqpn} is not readable!");
+            return false;
+        }
+
+        clearstatcache(true, $fqpn);
+
+        if (($hash = sha1_file($fqpn)) === false) {
+            $this->raiseError(__METHOD__ ." SHA1 value of {$fqpn} can not be calculated!");
+            return false;
+        }
+
+        if (empty($hash)) {
+            $this->raiseError(__METHOD__ ." sha1_file() returned an empty hash value!");
+            return false;
+        }
+
+        if (($size = filesize($fqpn)) === false) {
+            $this->raiseError(__METHOD__ ." filesize of {$fqpn} is not available!");
+            return false;
+        }
+
+        if (empty($size) || !is_numeric($size) || ($size <= 0)) {
+            $this->raiseError(__METHOD__ ." fizesize of {$fqpn} is invalid!");
+            return false;
+        }
+
+        $this->setFileSize($size);
+        $this->setFileHash($hash);
+        $this->setTime(time());
+
+        if (!$this->save()) {
             return false;
         }
 
