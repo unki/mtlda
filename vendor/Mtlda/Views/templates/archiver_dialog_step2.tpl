@@ -23,6 +23,10 @@
      <button class="circular ui icon button cancel" type="reset"><i class="cancel icon"></i></button>
     </div>
    </div>
+   Suggestions:&nbsp;
+{date_suggestions}
+   <a onclick="$('#queue_custom_date').val('{$suggest}')">{$suggest}</a>&nbsp;
+{/date_suggestions}
   </form>
 
   <div class="field">
