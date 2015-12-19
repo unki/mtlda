@@ -212,6 +212,7 @@ function rpc_object_update(element, successMethod)
     $.ajax({
         type: 'POST',
         url: url,
+        retries: 0,
         data: ({
             type   : 'rpc',
             action : action,
@@ -221,6 +222,13 @@ function rpc_object_update(element, successMethod)
             value  : value
         }),
         error: function (XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus == 'timeout') {
+                this.retries++;
+                if (this.retries <= 3) {
+                    $.ajax(this);
+                    return;
+                }
+            }
             alert('Failed to contact server! ' + textStatus);
         },
         success: function (data) {
@@ -705,7 +713,15 @@ function rpc_get_content(view, request_data)
         url   : "rpc.html",
         cache : false,
         data  : data,
+        retries: 0,
         error: function (XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus == 'timeout') {
+                this.retries++;
+                if (this.retries <= 3) {
+                    $.ajax(this);
+                    return;
+                }
+            }
             alert('Failed to contact server! ' + textStatus);
         },
         success: function (data) {
