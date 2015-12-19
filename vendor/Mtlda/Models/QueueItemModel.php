@@ -847,7 +847,7 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $this->queue_signing_icon_position = $time;
+        $this->queue_signing_icon_position = $position;
         return true;
     }
 
