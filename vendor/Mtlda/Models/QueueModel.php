@@ -136,7 +136,7 @@ class QueueModel extends DefaultModel
 
         // delete each QueueItemModel
         foreach ($this->items as $item) {
-            if (!$queueitem->delete()) {
+            if (!$item->delete()) {
                 $mtlda->raiseError(
                     "Error deleting QueueItemModel idx:{$item->getId()} guid:{$item->getGuid()}!"
                 );
