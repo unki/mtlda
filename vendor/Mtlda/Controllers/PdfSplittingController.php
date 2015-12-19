@@ -92,7 +92,7 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
             }
         }
 
-        if (!$this->tempItem->setTitle("{$title}-".microtime())) {
+        if (!$this->tempItem->setTitle("{$title}-".microtime(true))) {
             $this->raiseError(get_class($this->tempItem) .'::setTitle() returned false!');
             return false;
         }
