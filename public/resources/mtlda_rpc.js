@@ -64,7 +64,7 @@ function rpc_object_archive(elements)
 
     wnd = show_modal({
         blurring : true,
-        closeable : false,
+        closeable : true,
         header : title,
         icon : 'wait icon',
         hasActions : false,
@@ -267,7 +267,7 @@ function rpc_object_sign(element)
 
     wnd = show_modal({
         blurring : true,
-        closeable : false,
+        closeable : true,
         header : 'MTLDA is signing your document "'+ title + '".',
         icon : 'wait icon',
         /*icon : 'icons',
@@ -376,7 +376,7 @@ function rpc_object_scan(element)
 
     wnd = show_modal({
         blurring : true,
-        closeable : false,
+        closeable : true,
         header : 'MTLDA is scanning your document "'+ title + '".',
         icon : 'wait icon',
         hasActions : false,
@@ -516,7 +516,7 @@ function rpc_object_delete(elements)
 
     wnd = show_modal({
         blurring : true,
-        closeable : false,
+        closeable : true,
         header : title,
         icon : 'remove icon',
         hasActions : false,
@@ -610,7 +610,7 @@ function rpc_mail_import(element)
 
     wnd = show_modal({
         blurring : true,
-        closeable : false,
+        closeable : true,
         header : 'MTLDA is importing documents from mailbox.',
         icon : 'wait icon',
         hasActions : false,
