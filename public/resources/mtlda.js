@@ -299,7 +299,7 @@ function delete_object(element)
     }
 
     show_modal({
-        closeable : false,
+        closeable : true,
         header : title,
         icon : 'red remove icon',
         content : text,
@@ -389,7 +389,7 @@ function archive_object(element)
         (elements.length == 1 && !element.hasClass('advanced'))
     ) {
         show_modal({
-            closeable : false,
+            closeable : true,
             header : title,
             content : text,
             icon : 'red archive icon',
@@ -452,7 +452,7 @@ function trigger_import_run()
 {
     wnd = show_modal({
         blurring : true,
-        closeable : false,
+        closeable : true,
         header : 'Check Incoming Directory',
         icon : 'wait icon',
         hasActions : false,
