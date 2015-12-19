@@ -923,4 +923,8 @@ function splitter_window(element, step)
     });
 }
 
+function isInteger(x)
+{
+    return x % 1 === 0;
+}
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
