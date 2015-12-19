@@ -84,6 +84,9 @@
       <div class="field">
        <button class="circular ui icon button inline editable cancel"><i class="cancel icon"></i></button>
       </div>
+      <div class="field">
+       <button class="circular ui icon button" onclick="$('input[name=title_{$item->getId()}]').val($('a[name=filename_{$item->getId()}]').text()); return false;" title="Copy filename"><i class="copy icon"></i></button>
+      </div>
      </div>
     </form>
    </div><br />
@@ -154,22 +157,6 @@
     <div class="ui button">OK</div>
   </div>
 </div>
-<script type="text/javascript"><!--
-
-$(document).ready(function() {
-
-    $("a.mail.import").click(function() {
-        rpc_mail_import($(this));
-    });
-
-    $("a.trigger.import").click(function() {
-        trigger_import_run();
-    });
-
-    $('#datatable').tablesort();
-    $('.ui.dropdown.advanced, .ui.dropdown.edit').dropdown();
-});
---></script>
 <div class="ui import archive delete modal">
  <i class="close icon"></i>
  <div class="header">header</div>
@@ -200,3 +187,19 @@ $(document).ready(function() {
 </div>
 {include "archiver_dialog_modal.tpl"}
 {include "splitter_dialog_modal.tpl"}
+<script type="text/javascript"><!--
+
+$(document).ready(function() {
+
+    $("a.mail.import").click(function() {
+        rpc_mail_import($(this));
+    });
+
+    $("a.trigger.import").click(function() {
+        trigger_import_run();
+    });
+
+    $('#datatable').tablesort();
+    $('.ui.dropdown.advanced, .ui.dropdown.edit').dropdown();
+});
+--></script>
