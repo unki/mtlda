@@ -251,7 +251,7 @@ function delete_object(element)
 
     if (id == 'selected') {
         id = new Array;
-        $('.checkbox.item.select[name!="select_all"]').each(function () {
+        $('.checkbox.item.select[id!="select_all"]').each(function () {
             if (!($(this).checkbox('is checked'))) {
                 return true;
             }
