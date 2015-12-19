@@ -26,6 +26,8 @@ class QueueView extends DefaultView
     protected $queue;
     protected $keywords;
     protected $import;
+    protected $dateSuggestions;
+    protected $archiveItem;
 
     public function __construct()
     {
@@ -275,6 +277,7 @@ class QueueView extends DefaultView
             return false;
         }
 
+        $this->archiveItem = $item;
         $tmpl->assign('item', $item);
 
         try {
@@ -297,6 +300,7 @@ class QueueView extends DefaultView
                 $template = "archiver_dialog_step1.tpl";
                 break;
             case 2:
+                $tmpl->registerPlugin("block", "date_suggestions", array(&$this, "dateSuggestions"), false);
                 $template = "archiver_dialog_step2.tpl";
                 break;
             case 3:
@@ -483,6 +487,115 @@ class QueueView extends DefaultView
         }
 
         return $page_count;
+    }
+
+    public function dateSuggestions($params, $content, &$smarty, &$repeat)
+    {
+        if (!isset($this->dateSuggestions)) {
+            $this->buildDateSuggestions();
+        }
+
+        $index = $smarty->getTemplateVars("smarty.IB.suggestions_list.index");
+
+        if (!isset($index) || empty($index)) {
+            $index = 0;
+        }
+
+        if ($index >= count($this->dateSuggestions)) {
+            $repeat = false;
+            return $content;
+        }
+
+        $smarty->assign("suggest", $this->dateSuggestions[$index]);
+
+        $index++;
+        $smarty->assign("smarty.IB.suggestions_list.index", $index);
+        $repeat = true;
+
+        return $content;
+    }
+
+    protected function buildDateSuggestions()
+    {
+        if (!isset($this->archiveItem) || empty($this->archiveItem)) {
+            $this->raiseError(__METHOD__ .'(), have no item to operate on!');
+            return false;
+        }
+
+        $sources = array();
+
+        if ($this->archiveItem->hasTitle()) {
+            if (($title = $this->archiveItem->getTitle()) === false) {
+                $this->raiseError(get_class($this->archiveItem) .'::getTitle() returned false!');
+                return false;
+            }
+            array_push($sources, $title);
+        }
+        if (($filename = $this->archiveItem->getFileName()) === false) {
+            $this->raiseError(get_class($this->archiveItem) .'::getFileName() returned false');
+            return false;
+        }
+        array_push($sources, $filename);
+        if (($sources = array_unique($sources)) === false) {
+            $this->raiseError(__METHOD__ .'(), failed to filter sources!');
+            return false;
+        }
+
+        $regexp_map = array(
+            '/(\d\d)-(\d\d)/' => 'YY-MM',
+            '/(\d\d)-(\d\d)/' => 'MM-YY',
+            '/(\d\d\d\d)-(\d\d)/' => 'YYYY-MM',
+            '/(\d\d)-(\d\d\d\d)/' => 'MM-YYYY',
+            '/(\d\d\d\d)(\d\d)(\d\d)/' => 'YYYYMMDD',
+            '/(\d\d\d\d)\.(\d\d)\.(\d\d)/' => 'YYYYMMDD',
+            '/(\d\d)(\d\d)(\d\d\d\d)/' => 'DDMMYYYY',
+            '/(\d\d)\.(\d\d)\.(\d\d\d\d)/' => 'DDMMYYYY',
+        );
+
+        $suggestions = array();
+
+        foreach ($sources as $source) {
+            foreach ($regexp_map as $pattern => $map) {
+                if (!preg_match($pattern, $source, $matches)) {
+                    continue;
+                }
+                if ($map == 'YY-MM' && count($matches) == 3) {
+                    $suggest = "20{$matches[1]}-{$matches[2]}-01";
+                } elseif ($map == 'MM-YY' && count($matches) == 3) {
+                    $suggest = "20{$matches[2]}-{$matches[1]}-01";
+                } elseif ($map == 'MM-YYYY' && count($matches) == 3) {
+                    $suggest = "{$matches[2]}-{$matches[1]}-01";
+                } elseif ($map == 'YYYY-MM' && count($matches) == 3) {
+                    $suggest = "{$matches[1]}-{$matches[2]}-01";
+                } elseif ($map == 'YYYYMMDD' && count($matches) == 4) {
+                    $suggest = "{$matches[1]}-{$matches[2]}-{$matches[3]}";
+                } elseif ($map == 'DDMMYYYY' && count($matches) == 4) {
+                    $suggest = "{$matches[3]}-{$matches[2]}-{$matches[1]}";
+                }
+                array_push($suggestions, $suggest);
+            }
+        }
+
+        //
+        // remove unusual dates.
+        //
+        $this->dateSuggestions = array_filter($suggestions, function ($date) {
+            if (($parsed = date_parse($date)) === false) {
+                return false;
+            }
+            if ($parsed['year'] < 1900 || $parsed['year'] > 2100) {
+                return false;
+            }
+            if ($parsed['month'] < 1 || $parsed['month'] > 12) {
+                return false;
+            }
+            if ($parsed['day'] < 1 || $parsed['day'] > 31) {
+                return false;
+            }
+            return true;
+        });
+
+        return true;
     }
 }
 
