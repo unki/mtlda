@@ -240,7 +240,7 @@ function rpc_object_update(element, successMethod)
                 location.reload();
                 return;
             }
-            if (!successMethod) {
+            if (successMethod === undefined) {
                 return;
             }
             successMethod(data);
@@ -475,7 +475,7 @@ function rpc_fetch_jobstatus()
     }
 }
 
-function rpc_object_delete(elements)
+function rpc_object_delete(elements, successMethod)
 {
     if (!(elements instanceof Array)) {
         throw 'elements is not an Array!';
@@ -592,11 +592,14 @@ function rpc_object_delete(elements)
 
         progressbar.removeClass('active').addClass('success');
 
-        setTimeout(function () {
-            wnd.modal('hide');
-            mbus.unsubscribe('delete-replies-handler');
-            location.reload();
-        }, 1000);
+        wnd.modal('hide');
+        mbus.unsubscribe('delete-replies-handler');
+
+        if (successMethod !== undefined) {
+            return successMethod();
+        }
+
+        location.reload();
         return true;
 
     }.bind(this));
