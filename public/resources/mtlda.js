@@ -307,7 +307,17 @@ function delete_object(element)
             return true;
         },
         onApprove : function () {
-            return rpc_object_delete(elements);
+            return rpc_object_delete(elements, function () {
+                if (elements === undefined) {
+                    return true;
+                }
+                elements.forEach(function (value) {
+                    $(this).closest('tr').hide(400, function () {
+                        $(this).remove();
+                    });
+                });
+                return true;
+            });
         }
     });
 
