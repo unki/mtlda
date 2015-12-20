@@ -732,15 +732,6 @@ class MailImportController extends DefaultController
             return false;
         }
 
-        if (strtolower($this->mail_cfg['mbox_type']) == 'imap') {
-            if ($config->getMailImportImapMailboxExpunge()) {
-                if (!imap_expunge($this->imap_session)) {
-                    $this->raiseError(__METHOD__ .'(), imap_expunge() returned false!'. imap_last_error());
-                    return false;
-                }
-            }
-        }
-
         return true;
     }
 
