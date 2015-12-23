@@ -418,7 +418,17 @@ function archive_object(element)
                 return true;
             },
             onApprove : function () {
-                return rpc_object_archive(elements);
+                return rpc_object_archive(elements, function () {
+                    if (elements === undefined) {
+                        return true;
+                    }
+                    elements.forEach(function (value) {
+                        $(this).closest('tr').hide(400, function () {
+                            $(this).remove();
+                        });
+                    });
+                    return true;
+                });
             }
         });
         return true;
