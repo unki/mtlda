@@ -15,7 +15,7 @@
  * GNU Affero General Public License for more details.
  */
 
-function rpc_object_archive(elements)
+function rpc_object_archive(elements, successMethod)
 {
     if (!(elements instanceof Array)) {
         throw 'elements is not an Array!';
@@ -132,11 +132,14 @@ function rpc_object_archive(elements)
 
         progressbar.removeClass('active').addClass('success');
 
-        setTimeout(function () {
-            wnd.modal('hide');
-            mbus.unsubscribe('archive-replies-handler');
-            location.reload();
-        }, 1000);
+        wnd.modal('hide');
+        mbus.unsubscribe('archive-replies-handler');
+
+        if (successMethod !== undefined) {
+            return successMethod();
+        }
+
+        location.reload();
         return true;
 
     }.bind(this));
