@@ -60,7 +60,7 @@
  </thead>
  <tbody>
 {queue_list}
- <tr class="queue item">
+ <tr class="queue item" id="queue_item_{$item->getId()}">
   <td>
    <div class="ui fitted checkbox item select" id="select_{$item->getId()}">
     <input type="checkbox">
