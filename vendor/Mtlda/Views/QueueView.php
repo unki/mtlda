@@ -542,6 +542,9 @@ class QueueView extends DefaultView
         }
 
         $regexp_map = array(
+            '/(\d\d)/' => 'YY',
+            '/(\d\d\d\d)/' => 'YYYY',
+            '/(\d\d)-(\d\d)/' => 'YY-MM',
             '/(\d\d)-(\d\d)/' => 'YY-MM',
             '/(\d\d)-(\d\d)/' => 'MM-YY',
             '/(\d\d\d\d)-(\d\d)/' => 'YYYY-MM',
@@ -571,6 +574,14 @@ class QueueView extends DefaultView
                     $suggest = "{$matches[1]}-{$matches[2]}-{$matches[3]}";
                 } elseif ($map == 'DDMMYYYY' && count($matches) == 4) {
                     $suggest = "{$matches[3]}-{$matches[2]}-{$matches[1]}";
+                } elseif ($map == 'YY' && count($matches) == 2) {
+                    $suggest = sprintf("20%d-01-01", $matches[1]);
+                    array_push($suggestions, $suggest);
+                    $suggest = sprintf("20%d-12-31", $matches[1]);
+                } elseif ($map == 'YYYY' && count($matches) == 2) {
+                    $suggest = sprintf("%d-01-01", $matches[1]);
+                    array_push($suggestions, $suggest);
+                    $suggest = sprintf("%d-12-31", $matches[1]);
                 }
                 array_push($suggestions, $suggest);
             }
