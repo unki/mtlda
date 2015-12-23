@@ -506,7 +506,9 @@ class QueueView extends DefaultView
             return $content;
         }
 
-        $smarty->assign("suggest", $this->dateSuggestions[$index]);
+        if (isset($this->dateSuggestions[$index])) {
+            $smarty->assign("suggest", $this->dateSuggestions[$index]);
+        }
 
         $index++;
         $smarty->assign("smarty.IB.suggestions_list.index", $index);
