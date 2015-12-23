@@ -31,6 +31,19 @@ $('.ui.button.archive').click(function () {
    wnd.modal('hide');
    elements = new Array;
    elements.push($(this));
-   rpc_object_archive(elements);
+   rpc_object_archive(elements, function () {
+         if (elements === undefined) {
+            return true;
+         }
+         elements.forEach(function (value) {
+            if ((id == $(this).attr('data-id')) === undefined) {
+               return true;
+            }
+            $('tr#queue_item_'+ id).hide(400, function () {
+               $(this).remove();
+            });
+         });
+         return true;
+   });
 });
 --></script>
