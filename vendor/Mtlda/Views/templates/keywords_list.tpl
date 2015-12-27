@@ -91,7 +91,7 @@
   <tr>
    <th colspan="4">
     <div class="ui left floated borderless small menu">
-     <a class="delete item" title="Delete selected keywords" data-modal-text="Do you really want to delete all selected keywords?" data-id="selected" data-guid="selected" data-model="keywords"><i class="remove circle icon"></i>Delete selected</a>
+     <a class="delete item" title="Delete selected keywords" data-modal-text="Do you really want to delete selected keywords?" data-id="selected" data-guid="selected" data-model="keywords"><i class="remove circle icon"></i>Delete selected</a>
      <a class="delete item" title="Delete all" data-modal-text="Do you really want to delete all keywords?" data-id="all" data-guid="all" data-model="keywords"><i class="remove circle icon"></i>Delete all</a>
     </div>
 {if isset($pager)}
