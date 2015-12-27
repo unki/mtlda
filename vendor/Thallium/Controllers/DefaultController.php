@@ -24,6 +24,7 @@ abstract class DefaultController
     const CONFIG_DIRECTORY = APP_BASE ."/config";
     const CACHE_DIRECTORY = APP_BASE ."/cache";
     const LOG_LEVEL = LOG_WARNING;
+    protected $last_error;
 
     final public function sendMessage($command, $body, $value = null)
     {
@@ -51,31 +52,23 @@ abstract class DefaultController
         return true;
     }
 
-    public function raiseError($string, $stop_execution = false, $exception = null)
+    public function raiseError($text, $stop_execution = false, $catched_exception = null)
     {
+        $this->last_error = $text;
         if (defined('DB_NOERROR')) {
-            $this->last_error = $string;
             return;
         }
 
-        print "<br /><br />". $string ."<br /><br />\n";
-
         try {
-            throw new ExceptionController;
+            throw new ExceptionController($text, $catched_exception);
         } catch (ExceptionController $e) {
-            print "<br /><br />\n";
             $this->write($e, LOG_WARNING);
-            if (isset($exception) && !empty($exception) && method_exists($exception, 'getMessage')) {
-                print "<br /><br />\n";
-                $this->write($exception->getMessage());
-            }
         }
 
         if ($stop_execution) {
-            die;
+            exit("Execution stopped.");
         }
 
-        $this->last_error = $string;
         return true;
     }
 
