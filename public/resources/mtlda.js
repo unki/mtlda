@@ -285,7 +285,6 @@ function delete_object(element)
             text = "Do you really want to delete this item?";
         } else {
             text = "Do you really want to delete all items?";
-
         }
     }
 
@@ -309,6 +308,14 @@ function delete_object(element)
         onApprove : function () {
             return rpc_object_delete(elements, function () {
                 if (elements === undefined) {
+                    return true;
+                }
+                if (id !== undefined && id == 'all') {
+                    $('table#datatable tbody tr').each(function () {
+                        $(this).hide(400, function () {
+                            $(value).remove();
+                        });
+                    });
                     return true;
                 }
                 elements.forEach(function (value) {
@@ -420,6 +427,14 @@ function archive_object(element)
             onApprove : function () {
                 return rpc_object_archive(elements, function () {
                     if (elements === undefined) {
+                        return true;
+                    }
+                    if (id !== undefined && id == 'all') {
+                        $('table#datatable tbody tr').each(function () {
+                            $(this).hide(400, function () {
+                                $(value).remove();
+                            });
+                        });
                         return true;
                     }
                     elements.forEach(function (value) {
