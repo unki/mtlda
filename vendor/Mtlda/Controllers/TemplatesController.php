@@ -32,6 +32,8 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
             return false;
         }
 
+        $this->smarty->addPluginsDir(APP_BASE .'/vendor/Mtlda/SmartyPlugins');
+
         if (!($base_path = $config->getWebPath())) {
             $this->raiseError(get_class($config) .'getWebPath() returned false!', true);
             return false;
