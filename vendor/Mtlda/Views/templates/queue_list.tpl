@@ -108,18 +108,18 @@
   <td class="filterable">{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
   <td>
    <div class="ui icon buttons">
-    <a class="action link ui icon button" href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" data-title="Preview {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i></a>
+    <a class="action link ui icon button" href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" data-content="Preview {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i></a>
     <div class="ui top left pointing dropdown button action link">
      <i class="archive icon"></i><i class="dropdown icon"></i>
      <div class="menu">
-      <a class="archive item action link" id="archive_link_{$item->getId()}" data-action-title="Archiving {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-title="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm that you would like to archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Quick</a>
-      <a class="archive item advanced action link" data-modal-title="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="settings icon"></i>Advanced</a>
+      <a class="archive item action link" id="archive_link_{$item->getId()}" data-action-title="Archiving {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-title="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm that you would like to archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide"><i class="archive icon"></i>Quick</a>
+      <a class="archive item advanced action link" data-modal-title="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide"><i class="settings icon"></i>Advanced</a>
      </div>
     </div>
     <div class="ui top left pointing dropdown button action link">
      <i class="edit icon"></i><i class="dropdown icon"></i>
      <div class="menu">
-      <a class="split item edit action link" data-modal-title="Split {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="expand icon"></i>Split</a>
+      <a class="split item edit action link" data-modal-title="Split {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Split {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide"><i class="expand icon"></i>Split</a>
      </div>
     </div>
     <a id="delete_link_{$item->getId()}" class="delete item ui icon button" data-action-title="Deleting {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-title="Delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm to delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i></a>
