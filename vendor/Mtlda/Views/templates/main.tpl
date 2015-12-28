@@ -45,7 +45,7 @@
    <div class="item">
     <i class="file text icon"></i>
     <div class="content">
-     <a class="header" href="{get_url page=queue mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>
+     <a class="header" href="{get_url page=queue mode=show id=$item_safe_link}">{$item->getFileName()}</a>
      <div class="description">added {$item->getTime()|date_format:"%Y.%m.%d %H:%M"}.</div>
     </div>
    </div>
