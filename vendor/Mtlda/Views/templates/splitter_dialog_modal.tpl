@@ -7,28 +7,28 @@
   </div>
   <div class="description">
    <div class="ui steps">
-    <a class="active step" id="step_1" title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="active step" id="step_1" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
      <i class="configure icon"></i>
      <div class="content">
       <div class="title">Preview</div>
       <div class="description">prepare document.</div>
      </div>
     </a>
-    <a class="disabled step" id="step_2" title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="disabled step" id="step_2" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
      <i class="calendar icon"></i>
      <div class="content">
       <div class="title">Pages</div>
       <div class="description">Select pages.</div>
      </div>
     </a>
-    <a class="disabled step" id="step_3" title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="disabled step" id="step_3" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
      <i class="comments icon"></i>
      <div class="content">
       <div class="title">Summary</div>
       <div class="description">changes overview.</div>
      </div>
     </a>
-    <a class="disabled step" id="step_4" title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="disabled step" id="step_4" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
      <i class="expand icon"></i>
      <div class="content">
       <div class="title">Split.</div>
