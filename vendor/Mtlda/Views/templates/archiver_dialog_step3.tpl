@@ -12,7 +12,7 @@
   </div>
  </div>
 </form>
-<button class="ui button" title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
+<button class="ui button" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
 <script type="text/javascript"><!--
 $('.archiver.modal form.ui.form').on('submit', function () {
    rpc_object_update($(this));
