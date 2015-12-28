@@ -62,7 +62,7 @@ function rpc_object_archive(elements, successMethod)
         title[id] = title;
     });
 
-    wnd = show_modal({
+    archive_wnd = show_modal({
         blurring : true,
         closeable : true,
         header : title,
@@ -99,7 +99,7 @@ function rpc_object_archive(elements, successMethod)
             throw 'reply is empty!';
             return false;
         }
-        if (!wnd) {
+        if (!archive_wnd) {
             throw 'Have no reference to the modal window!';
             return false;
         }
@@ -124,7 +124,7 @@ function rpc_object_archive(elements, successMethod)
         }
 
         progressbar.progress(newData);
-        wnd.modal('refresh');
+        archive_wnd.modal('refresh');
 
         if (reply.value != '100%') {
             return true;
@@ -132,7 +132,7 @@ function rpc_object_archive(elements, successMethod)
 
         progressbar.removeClass('active').addClass('success');
 
-        wnd.modal('hide');
+        archive_wnd.modal('hide');
         mbus.unsubscribe('archive-replies-handler');
 
         if (successMethod !== undefined) {
@@ -276,7 +276,7 @@ function rpc_object_sign(element)
         return false;
     }
 
-    wnd = show_modal({
+    sign_wnd = show_modal({
         blurring : true,
         closeable : true,
         header : 'MTLDA is signing your document "'+ title + '".',
@@ -313,7 +313,7 @@ function rpc_object_sign(element)
             throw 'reply is empty!';
             return false;
         }
-        if (!wnd) {
+        if (!sign_wnd) {
             throw 'Have no reference to the modal window!';
             return false;
         }
@@ -338,7 +338,7 @@ function rpc_object_sign(element)
         }
 
         progressbar.progress(newData);
-        wnd.modal('refresh');
+        sign_wnd.modal('refresh');
 
         if (reply.value != '100%') {
             return true;
@@ -347,7 +347,7 @@ function rpc_object_sign(element)
         progressbar.removeClass('active').addClass('success');
 
         setTimeout(function () {
-            wnd.modal('hide');
+            sign_wnd.modal('hide');
             mbus.unsubscribe('signing-replies-handler');
             location.reload();
         }, 1000);
@@ -385,9 +385,10 @@ function rpc_object_scan(element)
         return false;
     }
 
-    wnd = show_modal({
+    scan_wnd = show_modal({
         blurring : true,
         closeable : true,
+        allowMultiple : true,
         header : 'MTLDA is scanning your document "'+ title + '".',
         icon : 'wait icon',
         hasActions : false,
@@ -420,7 +421,7 @@ function rpc_object_scan(element)
             throw 'reply is empty!';
             return false;
         }
-        if (!wnd) {
+        if (!scan_wnd) {
             throw 'Have no reference to the modal window!';
             return false;
         }
@@ -445,7 +446,7 @@ function rpc_object_scan(element)
         }
 
         progressbar.progress(newData);
-        wnd.modal('refresh');
+        scan_wnd.modal('refresh');
 
         if (reply.value != '100%') {
             return true;
@@ -454,7 +455,7 @@ function rpc_object_scan(element)
         progressbar.removeClass('active').addClass('success');
 
         setTimeout(function () {
-            wnd.modal('hide');
+            scan_wnd.modal('hide');
             mbus.unsubscribe('scanner-replies-handler');
             location.reload();
         }, 1000);
@@ -525,7 +526,7 @@ function rpc_object_delete(elements, successMethod)
         title[id] = title;
     });
 
-    wnd = show_modal({
+    del_wnd = show_modal({
         blurring : true,
         closeable : true,
         header : title,
@@ -562,7 +563,7 @@ function rpc_object_delete(elements, successMethod)
             throw 'reply is empty!';
             return false;
         }
-        if (!wnd) {
+        if (!del_wnd) {
             throw 'Have no reference to the modal window!';
             return false;
         }
@@ -587,7 +588,7 @@ function rpc_object_delete(elements, successMethod)
         }
 
         progressbar.progress(newData);
-        wnd.modal('refresh');
+        del_wnd.modal('refresh');
 
         if (reply.value != '100%') {
             return true;
@@ -595,7 +596,7 @@ function rpc_object_delete(elements, successMethod)
 
         progressbar.removeClass('active').addClass('success');
 
-        wnd.modal('hide');
+        del_wnd.modal('hide');
         mbus.unsubscribe('delete-replies-handler');
 
         if (successMethod !== undefined) {
@@ -622,7 +623,7 @@ function rpc_mail_import(element)
         return false;
     }
 
-    wnd = show_modal({
+    import_wnd = show_modal({
         blurring : true,
         closeable : true,
         header : 'MTLDA is importing documents from mailbox.',
@@ -652,7 +653,7 @@ function rpc_mail_import(element)
             throw 'reply is empty!';
             return false;
         }
-        if (!wnd) {
+        if (!import_wnd) {
             throw 'Have no reference to the modal window!';
             return false;
         }
@@ -677,7 +678,7 @@ function rpc_mail_import(element)
         }
 
         progressbar.progress(newData);
-        wnd.modal('refresh');
+        import_wnd.modal('refresh');
 
         if (reply.value != '100%') {
             return true;
@@ -686,7 +687,7 @@ function rpc_mail_import(element)
         progressbar.removeClass('active').addClass('success');
 
         setTimeout(function () {
-            wnd.modal('hide');
+            import_wnd.modal('hide');
             mbus.unsubscribe('mailimport-replies-handler');
             location.reload();
         }, 1000);
