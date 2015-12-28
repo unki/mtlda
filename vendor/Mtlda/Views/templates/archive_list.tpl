@@ -70,8 +70,8 @@
   <td>
    <div class="ui icon buttons">
     <a class="open item ui icon button" href="{get_url page=archive mode=show id=$item_safe_link}"><i class="file text icon"></i></a>
-    <a class="preview item ui icon button" href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=document mode=show id=$document_safe_link}" target="_blank"><i class="search icon"></i></a>
-    <a id="delete_link_{$item->getId()}" class="delete item ui icon button" data-action-title="Deleting {$item->getTitle()|escape}" data-modal-title="Delete {$item->getTitle()|escape}" data-modal-text="Please confirm to delete {$item->getTitle()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document"><i class="remove circle icon"></i></a>
+    <a class="preview item ui icon button action link" href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=document mode=show id=$document_safe_link}" target="_blank" data-content="Preview {$item->getTitle()|escape}" data-variation="wide"><i class="search icon"></i></a>
+    <a id="delete_link_{$item->getId()}" class="delete item ui icon button action link" data-action-title="Deleting {$item->getTitle()|escape}" data-modal-title="Delete {$item->getTitle()|escape}" data-modal-text="Please confirm to delete {$item->getTitle()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-content="Delete {$item->getTitle()|escape}" data-variation="wide"><i class="remove circle icon"></i></a>
    </div>
   </td>
  </tr>
@@ -93,5 +93,6 @@
 <script type="text/javascript"><!--
 $(document).ready(function() {
    $('#datatable').tablesort();
+   $('a.action.link').popup();
 });
 --></script>
