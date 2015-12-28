@@ -35,7 +35,7 @@
   </div>
  </div>
 </div>
-<table class="ui sortable celled table" id="datatable">
+<table class="ui striped single line selectable sortable celled table" id="datatable">
  <thead>
   <tr>
    <th class="no-sort one wide column center aligned">
@@ -83,16 +83,20 @@
     </form>
    </div>
   </td>
-  <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {$item->getName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="keyword"><i class="remove circle icon"></i>Delete</a></td>
+  <td>
+   <div class="ui icon buttons">
+    <a id="delete_link_{$item->getId()}" class="delete item ui icon button" data-action-title="Deleting {$item->getName()|escape}" data-modal-title="Delete {$item->getName()|escape}" data-modal-text="Please confirm to delete {$item->getName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="keyword"><i class="remove circle icon"></i></a>
+   </div>
+  </td>
  </tr>
 {/keywords_list}
  </tbody>
  <tfoot>
   <tr>
-   <th colspan="4">
+   <th colspan="3">
     <div class="ui left floated borderless small menu">
-     <a class="delete item" title="Delete selected keywords" data-modal-text="Do you really want to delete selected keywords?" data-id="selected" data-guid="selected" data-model="keywords"><i class="remove circle icon"></i>Delete selected</a>
-     <a class="delete item" title="Delete all" data-modal-text="Do you really want to delete all keywords?" data-id="all" data-guid="all" data-model="keywords"><i class="remove circle icon"></i>Delete all</a>
+     <a class="delete item" data-action-title="Deleting selected keywords" data-modal-title="Delete selected keywords" data-modal-text="Do you really want to delete selected keywords?" data-id="selected" data-guid="selected" data-model="keywords"><i class="remove circle icon"></i>Delete selected</a>
+     <a class="delete item" data-action-title="Deleting all keywords" data-modal-title="Delete all keywords" data-modal-text="Do you really want to delete all keywords?" data-id="all" data-guid="all" data-model="keywords"><i class="remove circle icon"></i>Delete all</a>
     </div>
 {if isset($pager)}
 {include file='pager.tpl' pager=$pager view=keywords}
