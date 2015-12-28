@@ -145,50 +145,6 @@
   </tr>
  </tfoot>
 </table>
-<div class="ui modal">
-  <i class="close icon"></i>
-  <div class="header">Header </div>
-  <div class="image content">
-    <div class="image">
-      An image can appear on left or an icon
-    </div>
-    <div class="description">
-      A description can appear on the right
-    </div>
-  </div>
-  <div class="actions">
-    <div class="ui button">Cancel</div>
-    <div class="ui button">OK</div>
-  </div>
-</div>
-<div class="ui import archive delete modal">
- <i class="close icon"></i>
- <div class="header">header</div>
- <div class="image content">
-  <div class="image">
-   <i class="icon"></i>
-  </div>
-  <div class="description" style="width: 100%;">
-   <p style="display: none">description</p>
-   <div class="ui indicating progress active" id="progressbar">
-    <div class="bar">
-     <div class="progress">0%</div>
-    </div>
-    <div class="label">Please wait.</div>
-   </div>
-  </div>
- </div>
- <div class="actions">
-  <div class="two fluid ui inverted buttons">
-   <div class="ui red basic inverted button deny">
-    <i class="remove icon"></i>No
-   </div>
-   <div class="ui green basic inverted button approve">
-    <i class="checkmark icon"></i>Yes
-   </div>
-  </div>
- </div>
-</div>
 {include "archiver_dialog_modal.tpl"}
 {include "splitter_dialog_modal.tpl"}
 <script type="text/javascript"><!--
