@@ -49,7 +49,7 @@
     </div>
    </div>
   </form>
-  <button class="ui button" class="ui form" title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
+  <button class="ui button" class="ui form" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
  </div>
 
  <div class="column">
