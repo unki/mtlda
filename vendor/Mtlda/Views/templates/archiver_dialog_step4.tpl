@@ -14,7 +14,7 @@
  </div>
 </div>
 <button class="ui button exit" title="Close window">Exit</button>
-<button class="ui button archive" title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem">Finish</button>
+<button class="ui button archive" data-action-title="Archiving {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem">Finish</button>
 <script type="text/javascript"><!--
 $('.ui.button.exit').click(function () {
    if (!wnd) {
