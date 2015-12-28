@@ -54,7 +54,7 @@ class ExceptionController extends \Exception
             $trace = parent::getTraceAsString();
         }
 
-        if (($json = json_encode(array('text' => $text, 'trace' => $trace))) === false) {
+        if (($json = json_encode(array('error' => 1, 'text' => $text, 'trace' => $trace))) === false) {
             exit("json_encode() failed!");
         }
 
@@ -63,9 +63,11 @@ class ExceptionController extends \Exception
 
     public function __toString()
     {
-        global $router;
+        global $thallium, $router;
 
-        if ($router->isRpcCall()) {
+        if ($router->isRpcCall() and
+            (!isset($thallium->backgroundJobsRunning) or empty($thallium->backgroundJobsRunning))
+        ) {
             return $this->getJson();
         }
 
