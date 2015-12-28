@@ -26,6 +26,7 @@
   </div>
 {include "footer.tpl"}
 {include "modal.tpl"}
+{include "progress_modal.tpl"}
 {include "filter_popup.tpl"}
  </body>
 </html>
