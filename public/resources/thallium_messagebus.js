@@ -1,8 +1,8 @@
 /**
- * This file is part of MTLDA.
+ * This file is part of Thallium.
  *
- * MTLDA, a web-based document archive.
- * Copyright (C) <2015>  <Andreas Unterkircher>
+ * Thallium, a PHP-based framework for web applications.
+ * Copyright (C) <2015> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,7 +15,7 @@
  * GNU Affero General Public License for more details.
  */
 
-var MtldaMessageBus = function (id) {
+var ThalliumMessageBus = function (id) {
     this.element = id;
     this.messages = new Array;
     this.recvMessages = new Array;
@@ -24,18 +24,18 @@ var MtldaMessageBus = function (id) {
     this.rpcEnabled = true;
 
     if (!(this.pollerId = setInterval("mbus.poll()", 1000))) {
-        throw 'Failed to start MtldaMessageBus.poll()!';
+        throw 'Failed to start ThalliumMessageBus.poll()!';
         return false;
     }
 
-    $(document).on('MTLDA:notifySubscribers', function (event) {
+    $(document).on('Thallium:notifySubscribers', function (event) {
         this.notifySubscribers();
     }.bind(this));
 
     return true;
 };
 
-MtldaMessageBus.prototype.add = function (message) {
+ThalliumMessageBus.prototype.add = function (message) {
     if (!message) {
         throw 'No message to add provided!';
         return false;
@@ -50,7 +50,7 @@ MtldaMessageBus.prototype.add = function (message) {
     return true;
 }
 
-MtldaMessageBus.prototype.fetchMessages = function () {
+ThalliumMessageBus.prototype.fetchMessages = function () {
     var fetched_messages = new Array;
     var message;
 
@@ -61,11 +61,11 @@ MtldaMessageBus.prototype.fetchMessages = function () {
     return fetched_messages;
 }
 
-MtldaMessageBus.prototype.getMessagesCount = function () {
+ThalliumMessageBus.prototype.getMessagesCount = function () {
     return this.messages.length;
 }
 
-MtldaMessageBus.prototype.getReceivedMessages = function () {
+ThalliumMessageBus.prototype.getReceivedMessages = function () {
     var _messages = new Array;
 
     while (message = this.recvMessages.shift()) {
@@ -74,11 +74,11 @@ MtldaMessageBus.prototype.getReceivedMessages = function () {
     return _messages;
 }
 
-MtldaMessageBus.prototype.getReceivedMessagesCount = function () {
+ThalliumMessageBus.prototype.getReceivedMessagesCount = function () {
     return this.recvMessages.length;
 }
 
-MtldaMessageBus.prototype.send = function () {
+ThalliumMessageBus.prototype.send = function (messages) {
     // will not send an empty message
     if (!this.getMessagesCount()) {
         return true;
@@ -164,8 +164,7 @@ MtldaMessageBus.prototype.send = function () {
     return true;
 }
 
-MtldaMessageBus.prototype.poll = function () {
-
+ThalliumMessageBus.prototype.poll = function () {
     $.ajax({
         context: this,
         global: false,
@@ -194,8 +193,7 @@ MtldaMessageBus.prototype.poll = function () {
     return true;
 }
 
-MtldaMessageBus.prototype.parseResponse = function (data) {
-
+ThalliumMessageBus.prototype.parseResponse = function (data) {
     if (!data) {
         throw 'Requires data to be set!';
         return false;
@@ -261,12 +259,11 @@ MtldaMessageBus.prototype.parseResponse = function (data) {
         this.recvMessages.push(messages[message]);
     }
 
-    $(document).trigger("MTLDA:notifySubscribers");
+    $(document).trigger("Thallium:notifySubscribers");
     return true;
 };
 
-MtldaMessageBus.prototype.subscribe = function (name, category, handler) {
-
+ThalliumMessageBus.prototype.subscribe = function (name, category, handler) {
     if (!name) {
         throw 'No name provided!';
         return false;
@@ -293,8 +290,7 @@ MtldaMessageBus.prototype.subscribe = function (name, category, handler) {
     return true;
 }
 
-MtldaMessageBus.prototype.unsubscribe = function (name) {
-
+ThalliumMessageBus.prototype.unsubscribe = function (name) {
     if (!this.subscribers[name]) {
         return true;
     }
@@ -303,8 +299,7 @@ MtldaMessageBus.prototype.unsubscribe = function (name) {
     return true;
 }
 
-MtldaMessageBus.prototype.getSubscribers = function (category) {
-
+ThalliumMessageBus.prototype.getSubscribers = function (category) {
     if (!category) {
         return this.subscribers;
     }
@@ -320,8 +315,7 @@ MtldaMessageBus.prototype.getSubscribers = function (category) {
     return subscribers;
 }
 
-MtldaMessageBus.prototype.notifySubscribers = function () {
-
+ThalliumMessageBus.prototype.notifySubscribers = function () {
     var subscribers;
     var messages;
 
