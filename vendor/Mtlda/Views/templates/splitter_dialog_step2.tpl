@@ -14,7 +14,7 @@
   <label>template text</label>
  </div>
 </div>
-<form class="ui form step2" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" title="Split {if $item->hasTitle}{$item->getTitle()}{else}{$item->getFileName()}{/if}">
+<form class="ui form step2" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-modal-title="Split {if $item->hasTitle}{$item->getTitle()}{else}{$item->getFileName()}{/if}">
 {for $page_no=1 to $page_count}
  <div class="ui segment">
   <div class="ui grid">
