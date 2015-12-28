@@ -7,28 +7,28 @@
   </div>
   <div class="description">
    <div class="ui steps">
-    <a class="active step" id="step_1" title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="active step" id="step_1" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
      <i class="configure icon"></i>
      <div class="content">
       <div class="title">Document</div>
       <div class="description">Enter document details.</div>
      </div>
     </a>
-    <a class="disabled step" id="step_2" title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="disabled step" id="step_2" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
      <i class="calendar icon"></i>
      <div class="content">
       <div class="title">Meta</div>
       <div class="description">Keywords, expiration, etc.</div>
      </div>
     </a>
-    <a class="disabled step" id="step_3" title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="disabled step" id="step_3" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
      <i class="comments icon"></i>
      <div class="content">
       <div class="title">Description</div>
       <div class="description">Describe document.</div>
      </div>
     </a>
-    <a class="disabled step" id="step_4" title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="disabled step" id="step_4" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
      <i class="info icon"></i>
      <div class="content">
       <div class="title">Archive.</div>
