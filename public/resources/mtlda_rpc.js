@@ -85,7 +85,7 @@ function rpc_object_archive(elements, successMethod)
         msg_body.guid = safe_string(guids[id]);
         msg_body.model = safe_string(models[id]);
 
-        var msg = new MtldaMessage;
+        var msg = new ThalliumMessage;
         msg.setCommand('archive-request');
         msg.setMessage(msg_body);
         if (!mbus.add(msg)) {
@@ -299,7 +299,7 @@ function rpc_object_sign(element)
     msg_body.id = safe_string(id);
     msg_body.guid = safe_string(guid);
 
-    var msg = new MtldaMessage;
+    var msg = new ThalliumMessage;
     msg.setCommand('sign-request');
     msg.setMessage(msg_body);
 
@@ -406,7 +406,7 @@ function rpc_object_scan(element)
     msg_body.id = safe_string(id);
     msg_body.guid = safe_string(guid);
 
-    var msg = new MtldaMessage;
+    var msg = new ThalliumMessage;
     msg.setCommand('scan-request');
     msg.setMessage(msg_body);
 
@@ -548,7 +548,7 @@ function rpc_object_delete(elements, successMethod)
         msg_body.guid = safe_string(guids[id]);
         msg_body.model = safe_string(models[id]);
 
-        var msg = new MtldaMessage;
+        var msg = new ThalliumMessage;
         msg.setCommand('delete-request');
         msg.setMessage(msg_body);
         if (!mbus.add(msg)) {
@@ -639,7 +639,7 @@ function rpc_mail_import(element)
         return false;
     }
 
-    var msg = new MtldaMessage;
+    var msg = new ThalliumMessage;
     msg.setCommand('mailimport-request');
 
     if (!mbus.add(msg)) {
