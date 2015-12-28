@@ -503,7 +503,7 @@ function trigger_import_run()
         return false;
     }
 
-    var msg = new MtldaMessage;
+    var msg = new ThalliumMessage;
     msg.setCommand('import-request');
 
     if (!mbus.add(msg)) {
