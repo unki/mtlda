@@ -106,11 +106,7 @@ class MainView extends DefaultView
         $item =  $items[$item_idx];
 
         $smarty->assign("item", $item);
-        if ($params['type'] == 'archive') {
-            $smarty->assign("item_safe_link", "{$item->getId()}-{$item->getGuid()}");
-        } elseif ($params['type'] == 'queue') {
-            $smarty->assign("item_safe_link", "queue-{$item->getId()}-{$item->getGuid()}");
-        }
+        $smarty->assign("item_safe_link", "{$item->getId()}-{$item->getGuid()}");
 
         $index++;
         $smarty->assign("smarty.IB.{$params['type']}_list.index", $index);
