@@ -16,7 +16,6 @@
  */
 
 var MtldaMessageBus = function (id) {
-
     this.element = id;
     this.messages = new Array;
     this.recvMessages = new Array;
@@ -37,7 +36,6 @@ var MtldaMessageBus = function (id) {
 };
 
 MtldaMessageBus.prototype.add = function (message) {
-
     if (!message) {
         throw 'No message to add provided!';
         return false;
@@ -52,8 +50,15 @@ MtldaMessageBus.prototype.add = function (message) {
     return true;
 }
 
-MtldaMessageBus.prototype.getMessages = function () {
-    return this.messages;
+MtldaMessageBus.prototype.fetchMessages = function () {
+    var fetched_messages = new Array;
+    var message;
+
+    while ((message = this.messages.shift())) {
+        fetched_messages.push(message);
+    }
+
+    return fetched_messages;
 }
 
 MtldaMessageBus.prototype.getMessagesCount = function () {
@@ -74,14 +79,20 @@ MtldaMessageBus.prototype.getReceivedMessagesCount = function () {
 }
 
 MtldaMessageBus.prototype.send = function () {
-
     // will not send an empty message
     if (!this.getMessagesCount()) {
         return true;
     }
 
+    var messages;
+
+    if ((messages = this.fetchMessages()) === undefined) {
+        throw "fetchMessages() failed!";
+        return false;
+    }
+
     try {
-        var messages = JSON.stringify(this.getMessages());
+        json_str = JSON.stringify(messages);
     } catch (e) {
         throw 'Failed to convert messages to JSON string! '+ e;
         return false;
@@ -92,16 +103,16 @@ MtldaMessageBus.prototype.send = function () {
         return false;
     }
 
-    if (!md.update(messages)) {
+    if (!md.update(json_str)) {
         throw 'forge SHA1 failed on json input!';
         return false;
     }
 
     var json = new Object;
-    json.count = this.getMessagesCount();
-    json.size = messages.length;
+    json.count = messages.length;
+    json.size = json_str.length;
     json.hash = md.digest().toHex();
-    json.json = messages;
+    json.json = json_str;
 
     try {
         var submitmsg = JSON.stringify(json);
