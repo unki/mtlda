@@ -15,12 +15,12 @@ msg_body.guid = '{$item->getGuid()}';
 msg_body.model = 'queueitem';
 msg_body.documents = JSON.stringify(doc_obj);
 
-var msg = new MtldaMessage;
+var msg = new ThalliumMessage;
 msg.setCommand('split-request');
 msg.setMessage(msg_body);
 
 if (!mbus.add(msg)) {
-   throw 'MtldaMessageBus.add() returned false!';
+   throw 'ThalliumMessageBus.add() returned false!';
 }
 
 if (typeof subscribed === 'undefined') {
@@ -45,6 +45,6 @@ if (typeof subscribed === 'undefined') {
 }
 
 if (!mbus.send()) {
-   throw 'MtldaMessageBus.send() returned false!';
+   throw 'ThalliumMessageBus.send() returned false!';
 }
 --></script>
