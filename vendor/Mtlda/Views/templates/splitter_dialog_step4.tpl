@@ -29,7 +29,7 @@ if (typeof subscribed === 'undefined') {
          throw 'reply is empty!';
          return false;
       }
-      if (!wnd) {
+      if (!splitter_wnd) {
          throw 'Have no reference to the modal window!';
          return false;
       }

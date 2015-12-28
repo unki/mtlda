@@ -28,10 +28,6 @@ $(document).ready(function () {
             throw 'reply is empty!';
             return false;
         }
-        if (!wnd) {
-            throw 'Have no reference to the modal window!';
-            return false;
-        }
 
         if (reply.value != '100%') {
             return true;
