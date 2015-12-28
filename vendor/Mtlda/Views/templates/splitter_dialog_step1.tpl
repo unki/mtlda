@@ -14,12 +14,12 @@ $(document).ready(function () {
     msg_body.guid = safe_string(guid);
     msg_body.model = safe_string(model);
 
-    var msg = new MtldaMessage;
+    var msg = new ThalliumMessage;
     msg.setCommand('preview-request');
     msg.setMessage(msg_body);
 
     if (!mbus.add(msg)) {
-        throw 'MtldaMessageBus.add() returned false!';
+        throw 'ThalliumMessageBus.add() returned false!';
         return false;
     }
 
@@ -44,7 +44,7 @@ $(document).ready(function () {
     }.bind(this));
 
     if (!mbus.send()) {
-        throw 'MtldaMessageBus.send() returned false!';
+        throw 'ThalliumMessageBus.send() returned false!';
         return false;
     }
 
