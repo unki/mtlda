@@ -34,7 +34,7 @@
   </div>
  </div>
 </div>
-<table class="ui sortable celled table" id="datatable">
+<table class="ui striped single line selectable sortable celled table" id="datatable">
  <thead>
   <tr>
    <th class="no-sort">
@@ -48,7 +48,7 @@
    <th>Size</th>
    <th>State</th>
    <th>Time</th>
-   <th colspan="4" class="no-sort">
+   <th class="no-sort">
     <div class="two column ui grid">
      <div class="column">Actions</div>
      <div class="column right aligned">
@@ -103,30 +103,39 @@
     </form>
    </div>
   </td>
-  <td class="filterable">{$item->getFileSize()}</td>
+  <td class="filterable" data-sort-value="{$item->getFileSize()}">{$item->getFileSize()|filesize}</td>
   <td class="filterable archive state" id="archive-state-{$item->getId()}">{$item->getState()}</td>
   <td class="filterable">{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
-  <td><a href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" title="Preview {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i>Preview</a></td>
   <td>
-   <a class="archive item" id="archive_link_{$item->getId()}" title="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm that you would like to archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Archive</a>
-   <div class="ui dropdown advanced"><i class="dropdown icon"></i><div class="menu"><div class="item"><a class="archive item advanced" title="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="settings icon"></i>Advanced</a></div></div></div>
+   <div class="ui icon buttons">
+    <a class="action link ui icon button" href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" data-title="Preview {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i></a>
+    <div class="ui top left pointing dropdown button">
+     <i class="archive icon"></i>
+     <div class="menu">
+      <a class="archive item action link" id="archive_link_{$item->getId()}" data-action-title="Archiving {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-title="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm that you would like to archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="archive icon"></i>Quick</a>
+      <a class="archive item advanced action link" data-modal-title="Archive {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="settings icon"></i>Advanced</a>
+     </div>
+    </div>
+    <div class="ui top left pointing dropdown button">
+     <i class="edit icon"></i>
+     <div class="menu">
+      <a class="split item edit action link" data-modal-title="Split {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="expand icon"></i>Split</a>
+     </div>
+    </div>
+    <a id="delete_link_{$item->getId()}" class="delete item ui icon button" data-action-title="Deleting {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-title="Delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm to delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i></a>
+   </div>
   </td>
-  <td>
-   <i class="edit icon"></i>Edit
-   <div class="ui dropdown edit"><i class="dropdown icon"></i><div class="menu"><div class="item"><a class="split item edit" title="Split {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="expand icon"></i>Split</a></div></div></div>
-  </td>
-  <td><a id="delete_link_{$item->getId()}" class="delete item" title="Delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i>Delete</a></td>
  </tr>
 {/queue_list}
  </tbody>
  <tfoot>
   <tr>
-   <th colspan="10">
+   <th colspan="7">
     <div class="ui left floated borderless small menu">
-     <a class="archive item" title="Archive selected items" data-modal-text="Please confirm that you would like to archive selected items." data-id="selected" data-guid="selected" data-model="queue"><i class="archive icon"></i>Archive selected</a>
-     <a class="delete item" title="Delete selected items" data-modal-text="Do you really want to delete selected items from queue?" data-id="selected" data-guid="selected" data-model="queue"><i class="remove circle icon"></i>Delete selected</a>
-     <a class="archive item" title="Archive all items" data-id="all" data-guid="all" data-model="queue"><i class="archive icon"></i>Archive all</a>
-     <a class="delete item" title="Delete all" data-modal-text="Do you really want to delete all items from queue?" data-id="all" data-guid="all" data-model="queue"><i class="remove circle icon"></i>Delete all</a>
+     <a class="archive item" data-action-title="Archiving selected items" data-modal-title="Archive selected items" data-modal-text="Please confirm that you would like to archive selected items." data-id="selected" data-guid="selected" data-model="queue"><i class="archive icon"></i>Archive selected</a>
+     <a class="delete item" data-action-title="Deleting selected items" data-modal-title="Delete selected items" data-modal-text="Do you really want to delete selected items from queue?" data-id="selected" data-guid="selected" data-model="queue"><i class="remove circle icon"></i>Delete selected</a>
+     <a class="archive item" data-action-title="Archiving all items" data-modal-title="Archive all items" data-modal-text="Please confirm that you would like to archive all items." data-id="all" data-guid="all" data-model="queue"><i class="archive icon"></i>Archive all</a>
+     <a class="delete item" data-action-title="Deleting all items" data-modal-title="Delete all items" data-modal-text="Do you really want to delete all items from queue?" data-id="all" data-guid="all" data-model="queue"><i class="remove circle icon"></i>Delete all</a>
     </div>
 {if isset($pager)}
 {include file='pager.tpl' pager=$pager view=queue}
@@ -182,7 +191,6 @@
 {include "archiver_dialog_modal.tpl"}
 {include "splitter_dialog_modal.tpl"}
 <script type="text/javascript"><!--
-
 $(document).ready(function() {
 
     $("a.mail.import").click(function() {
@@ -194,6 +202,9 @@ $(document).ready(function() {
     });
 
     $('#datatable').tablesort();
-    $('.ui.dropdown.advanced, .ui.dropdown.edit').dropdown();
+    $('.ui.dropdown').dropdown({
+      preserve: true
+    });
+    $('a.action.link').popup();
 });
 --></script>
