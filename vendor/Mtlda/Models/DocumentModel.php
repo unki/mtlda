@@ -94,7 +94,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (!($row = $sth->fetch())) {
+        if (($row = $sth->fetch()) === false) {
             $this->raiseError("Unable to find archive item with guid value {$guid}");
             return false;
         }
