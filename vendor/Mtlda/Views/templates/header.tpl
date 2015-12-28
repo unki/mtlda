@@ -42,6 +42,6 @@
   <script type="text/javascript" src="{$app_web_path}/resources/mtlda_rpc.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/mtlda_editable.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/thallium_messagebus.js"></script>
-  <script type="text/javascript" src="{$app_web_path}/resources/mtlda_message.js"></script>
+  <script type="text/javascript" src="{$app_web_path}/resources/thallium_message.js"></script>
   <!-- MTLDA CSS -->
   <link type="text/css" href="{$app_web_path}/resources/mtlda.css" rel="Stylesheet" />
