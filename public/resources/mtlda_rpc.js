@@ -54,8 +54,8 @@ function rpc_object_archive(elements, successMethod)
 
         models[id] = model;
 
-        if (!(title = element.attr('title'))) {
-            alert('no attribute "title" found!');
+        if (!(title = element.attr('data-action-title'))) {
+            alert('no attribute "data-action-title" found!');
             return false;
         }
 
@@ -271,8 +271,8 @@ function rpc_object_sign(element)
         return false;
     }
 
-    if (!(title = element.attr('data-title'))) {
-        alert('no attribute "data-title" found!');
+    if (!(title = element.attr('data-action-title'))) {
+        alert('no attribute "data-action-title" found!');
         return false;
     }
 
@@ -380,8 +380,8 @@ function rpc_object_scan(element)
         return false;
     }
 
-    if (!(title = element.attr('data-title'))) {
-        alert('no attribute "data-title" found!');
+    if (!(title = element.attr('data-action-title'))) {
+        alert('no attribute "data-action-title" found!');
         return false;
     }
 
@@ -517,8 +517,8 @@ function rpc_object_delete(elements, successMethod)
 
         models[id] = model;
 
-        if (!(title = element.attr('title'))) {
-            alert('no attribute "title" found!');
+        if (!(title = element.attr('data-action-title'))) {
+            alert('no attribute "data-action-title" found!');
             return false;
         }
 
