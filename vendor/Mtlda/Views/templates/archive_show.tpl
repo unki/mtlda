@@ -204,31 +204,3 @@ $(document).ready(function() {
    load_datepickers("document");
 });
 {/literal}--></script>
-<div class="ui signer scanner modal">
- <i class="close icon"></i>
- <div class="header">header</div>
- <div class="image content">
-  <div class="image">
-   <i class="icon"></i>
-  </div>
-  <div class="description" style="width: 100%;">
-   <p style="display: none">description</p>
-   <div class="ui indicating progress active" id="progressbar">
-    <div class="bar">
-     <div class="progress">0%</div>
-    </div>
-    <div class="label">Please wait.</div>
-   </div>
-  </div>
- </div>
- <div class="actions">
-  <div class="two fluid ui inverted buttons">
-   <div class="ui red basic inverted button deny">
-    <i class="remove icon"></i>No
-   </div>
-   <div class="ui green basic inverted button approve">
-    <i class="checkmark icon"></i>Yes
-   </div>
- </div>
- </div>
-</div>
