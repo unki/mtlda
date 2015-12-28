@@ -450,14 +450,14 @@ function archive_object(element)
         return true;
     }
 
-    wnd = $(".ui.fullscreen.modal.queue.archiver");
+    archiver_wnd = $(".ui.fullscreen.modal.queue.archiver");
 
-    if (wnd === undefined || wnd.length < 1) {
+    if (archiver_wnd === undefined || archiver_wnd.length < 1) {
         throw "failed to locate .ui.fullscreen.modal.queue.archiver!";
         return false;
     }
 
-    wnd.modal({
+    archiver_wnd.modal({
         closable       : true,
         blurring       : false,
         title          : title,
@@ -481,12 +481,12 @@ function archive_object(element)
         .modal('show');
         //.on('click.modal', do_function);
 
-    return wnd;
+    return archiver_wnd;
 }
 
 function trigger_import_run()
 {
-    wnd = show_modal({
+    import_wnd = show_modal({
         blurring : true,
         closeable : true,
         header : 'Check Incoming Directory',
@@ -516,7 +516,7 @@ function trigger_import_run()
             throw 'reply is empty!';
             return false;
         }
-        if (!wnd) {
+        if (!import_wnd) {
             throw 'Have no reference to the modal window!';
             return false;
         }
@@ -541,7 +541,7 @@ function trigger_import_run()
         }
 
         progressbar.progress(newData);
-        wnd.modal('refresh');
+        import_wnd.modal('refresh');
 
         if (reply.value != '100%') {
             return true;
@@ -550,7 +550,7 @@ function trigger_import_run()
         progressbar.removeClass('active').addClass('success');
 
         setTimeout(function () {
-            wnd.modal('hide');
+            import_wnd.modal('hide');
             mbus.unsubscribe('import-replies-handler');
             location.reload();
         }, 1000);
@@ -653,7 +653,7 @@ function init_checkbox_selector()
 
 function archiver_window(element, step)
 {
-    if (wnd === undefined) {
+    if (archiver_wnd === undefined) {
         throw "somehow we lost our modal window!"
         return false;
     }
@@ -880,14 +880,14 @@ function split_object(element)
 
     var text = element.attr("data-modal-text");
 
-    wnd = $(".ui.fullscreen.modal.queue.splitter");
+    splitter_wnd = $(".ui.fullscreen.modal.queue.splitter");
 
-    if (wnd === undefined || wnd.length < 1) {
+    if (splitter_wnd === undefined || splitter_wnd.length < 1) {
         throw "failed to locate .ui.fullscreen.modal.queue.splitter!";
         return false;
     }
 
-    wnd.modal({
+    splitter_wnd.modal({
         closable       : true,
         blurring       : false,
         title          : title,
@@ -897,12 +897,12 @@ function split_object(element)
         .modal('show');
         //.on('click.modal', do_function);
 
-    return wnd;
+    return splitter_wnd;
 }
 
 function splitter_window(element, step)
 {
-    if (wnd === undefined) {
+    if (splitter_wnd === undefined) {
         throw "somehow we lost our modal window!"
         return false;
     }
