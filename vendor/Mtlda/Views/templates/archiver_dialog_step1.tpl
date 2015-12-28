@@ -1,4 +1,4 @@
-<form class="ui form" id="queue_title" title="Archive {$item->getFileName()}" data-target="queue_title">
+<form class="ui form" id="queue_title" data-target="queue_title">
  <div class="inline fields">
   <div class="field">
    <label>Document Title</label>
@@ -12,7 +12,7 @@
   </div>
  </div>
 </form>
-<form class="ui form" id="queue_file_name" title="Archive {$item->getFileName()}" data-target="queue_file_name">
+<form class="ui form" id="queue_file_name" data-target="queue_file_name">
  <div class="inline fields">
   <div class="required field">
    <label>Filename</label>
@@ -26,7 +26,7 @@
   </div>
  </div>
 </form>
-<button class="ui button" title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
+<button class="ui button" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
 <script type="text/javascript"><!--
 $('.archiver.modal form.ui.form').on('submit', function () {
    rpc_object_update($(this));
