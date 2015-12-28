@@ -40,14 +40,8 @@ class SearchController extends DefaultController
 
     protected function validateInput($input)
     {
-        if (!isset($input) ||
-            !is_string($input)
-        ) {
+        if (!isset($input) || !is_string($input)) {
             return false;
-        }
-
-        if (empty($input)) {
-            return true;
         }
 
         return true;
@@ -65,6 +59,11 @@ class SearchController extends DefaultController
                 'data' => $time,
                 'type' => 'timestamp'
             );
+        }
+
+        if (preg_match('/^(archive|keyword|keyword):(.+)$/', $query, $matches)) {
+            $query_ary['filter'] = $matches[1];
+            $query_ary['data'] = $matches[2];
         }
 
         if (!$this->queryArchive($query_ary)) {
@@ -92,6 +91,10 @@ class SearchController extends DefaultController
         if (!$this->isValidSearchQuery($query)) {
             $this->raiseError(__CLASS__ .'::isValidSearchQuery() returned false!');
             return false;
+        }
+
+        if (isset($query['filter']) && $query['filter'] != 'archive') {
+            return true;
         }
 
         $sql =
@@ -188,6 +191,10 @@ class SearchController extends DefaultController
             return false;
         }
 
+        if (isset($query['filter']) && $query['filter'] != 'queue') {
+            return true;
+        }
+
         $sql =
             "SELECT
                 queue_idx,
@@ -253,6 +260,10 @@ class SearchController extends DefaultController
         if (!$this->isValidSearchQuery($query)) {
             $this->raiseError(__CLASS__ .'::isValidSearchQuery() returned false!');
             return false;
+        }
+
+        if (isset($query['filter']) && $query['filter'] != 'keyword') {
+            return true;
         }
 
         if ($query['type'] == 'timestamp') {
