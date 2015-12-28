@@ -18,9 +18,9 @@
 $(document).ready(function () {
 
     try {
-        mbus = new MtldaMessageBus;
+        mbus = new ThalliumMessageBus;
     } catch (e) {
-        throw 'Failed to load MtldaMessageBus! '+ e;
+        throw 'Failed to load ThalliumMessageBus! '+ e;
         return false;
     }
 
@@ -507,7 +507,7 @@ function trigger_import_run()
     msg.setCommand('import-request');
 
     if (!mbus.add(msg)) {
-        throw 'MtldaMessageBus.add() returned false!';
+        throw 'ThalliumMessageBus.add() returned false!';
         return false;
     }
 
@@ -559,7 +559,7 @@ function trigger_import_run()
     }.bind(this));
 
     if (!mbus.send()) {
-        throw 'MtldaMessageBus.send() returned false!';
+        throw 'ThalliumMessageBus.send() returned false!';
         return false;
     }
 
