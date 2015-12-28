@@ -1,8 +1,8 @@
 /**
- * This file is part of MTLDA.
+ * This file is part of Thallium.
  *
- * MTLDA, a web-based document archive.
- * Copyright (C) <2015>  <Andreas Unterkircher>
+ * Thallium, a PHP-based framework for web applications.
+ * Copyright (C) <2015> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,19 +15,19 @@
  * GNU Affero General Public License for more details.
  */
 
-var MtldaMessage = function () {
+var ThalliumMessage = function () {
     return true;
 
     var command;
     var message;
 };
 
-MtldaMessage.prototype.setCommand = function (command) {
+ThalliumMessage.prototype.setCommand = function (command) {
     this.command = command;
     return true;
 }
 
-MtldaMessage.prototype.setMessage = function (message) {
+ThalliumMessage.prototype.setMessage = function (message) {
     this.message = message;
     return true;
 }
