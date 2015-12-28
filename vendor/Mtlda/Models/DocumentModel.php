@@ -84,23 +84,20 @@ class DocumentModel extends DefaultModel
             $arr_query[] = $guid;
         };
 
-        if (!($sth = $db->prepare($sql))) {
-            $this->raiseError("Failed to prepare query");
+        if (($sth = $db->prepare($sql)) === false) {
+            $this->raiseError(get_class($db) .'::prepare() returned false!', true);
             return false;
         }
 
         if (!$db->execute($sth, $arr_query)) {
-            $this->raiseError("Failed to execute query");
+            $this->raiseError(get_class($db) .'::execute() returned false!', true);
             return false;
         }
 
-        if (($row = $sth->fetch()) === false) {
-            $this->raiseError("Unable to find archive item with guid value {$guid}");
-            return false;
-        }
-
-        if (!isset($row->document_idx) || empty($row->document_idx)) {
-            $this->raiseError("Unable to find archive item with guid value {$guid}");
+        if (($row = $sth->fetch()) === false ||
+            !isset($row->document_idx) || empty($row->document_idx)
+        ) {
+            $this->raiseError(__METHOD__ ."(), unable to find archive item with guid value {$guid}!", true);
             return false;
         }
 
@@ -108,14 +105,14 @@ class DocumentModel extends DefaultModel
         parent::__construct($row->document_idx);
 
         if (!$this->permitRpcUpdates(true)) {
-            $this->raiseError("permitRpcUpdates() returned false!");
+            $this->raiseError(__CLASS__ .'::permitRpcUpdates() returned false!', true);
             return false;
         }
 
         try {
             $this->addVirtualField("document_keywords");
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to add virtual field!');
+            $this->raiseError(__METHOD__ .'(), failed to add virtual field!', true, $e);
             return false;
         }
 
@@ -128,7 +125,7 @@ class DocumentModel extends DefaultModel
             $this->addRpcEnabledField('document_keywords');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
-            $this->raiseError("Failed on invoking addRpcEnabledField() method");
+            $this->raiseError(__METHOD__ .'(), failed on invoking addRpcEnabledField() method!', true, $e);
             return false;
         }
 
