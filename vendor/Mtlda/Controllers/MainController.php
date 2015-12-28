@@ -151,7 +151,7 @@ class MainController extends \Thallium\Controllers\MainController
         return true;
     }
 
-    private function scanDocument(&$document)
+    public function scanDocument(&$document)
     {
         if (get_class($document) != "Mtlda\Models\DocumentModel") {
             $this->raiseError(__METHOD__ .', can only work with DocumentModels!');

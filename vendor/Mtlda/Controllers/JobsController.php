@@ -288,8 +288,8 @@ class JobsController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        if (!$this->scanDocument($document)) {
-            $this->raiseError(__CLASS__ .'::scanDocument() returned false!');
+        if (!$mtlda->scanDocument($document)) {
+            $this->raiseError(get_class($mtlda) .'::scanDocument() returned false!');
             return false;
         }
 
