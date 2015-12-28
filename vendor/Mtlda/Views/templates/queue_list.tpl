@@ -98,6 +98,7 @@
       <div class="field">
        <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
        <button class="circular ui icon button inline editable cancel"><i class="cancel icon"></i></button>
+       <button class="circular ui icon button" onclick="$('input[name=filename_{$item->getId()}]').val($('a[name=title_{$item->getId()}]').text()); return false;" title="Copy title"><i class="copy icon"></i></button>
       </div>
      </div>
     </form>
