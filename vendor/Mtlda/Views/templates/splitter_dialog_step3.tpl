@@ -7,7 +7,7 @@
   <input type="text" name="document_pages" placeholder="Selected pages...">
  </div>
 </div>
-<form class="ui form step3" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" title="Split {if $item->hasTitle}{$item->getTitle()}{else}{$item->getFileName()}{/if}">
+<form class="ui form step3" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-modal-title="Split {if $item->hasTitle}{$item->getTitle()}{else}{$item->getFileName()}{/if}">
  <button class="ui button" type="submit">Split!</button>
  <button class="ui button" type="submit">Split!</button>
 </form>
