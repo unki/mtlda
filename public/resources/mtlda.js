@@ -271,10 +271,10 @@ function delete_object(element)
         }
     }
 
-    var title = element.attr("title");
+    var title = element.attr("data-modal-title");
 
     if (title == undefined || title === "") {
-        throw 'No attribute "title" found!';
+        throw 'No attribute "data-modal-title" found!';
         return false;
     }
 
@@ -374,10 +374,11 @@ function archive_object(element)
         }
     }
 
-    var title = element.attr("title");
+    var title = element.attr("data-modal-title");
 
     if (title == undefined || title === "") {
-        throw 'No attribute "title" found!';
+        console.log(element);
+        throw 'No attribute "data-modal-title" found!';
         return false;
     }
 
@@ -677,8 +678,8 @@ function archiver_window(element, step)
         return false;
     }
 
-    if ((title = element.attr('title')) === undefined) {
-        throw 'no "title" attribute found!';
+    if ((title = element.attr('data-modal-title')) === undefined) {
+        throw 'no "data-modal-title" attribute found!';
         return false;
     }
 
@@ -703,7 +704,7 @@ function archiver_window(element, step)
     $.when(rpc_get_content('queue', request_data)).done(function (data) {
         $('#archiver_content').html(data);
         eval($('.archiver.modal .header.window.title').html(title));
-        eval($('.archiver.modal .ui.steps .step').attr('title', title));
+        eval($('.archiver.modal .ui.steps .step').attr('data-modal-title', title));
         eval($('.archiver.modal .ui.steps .step').attr('data-id', id));
         eval($('.archiver.modal .ui.steps .step').attr('data-guid', guid));
     });
@@ -870,10 +871,10 @@ function init_dropdowns()
 
 function split_object(element)
 {
-    var title = element.attr("title");
+    var title = element.attr("data-modal-title");
 
     if (title == undefined || title === "") {
-        throw 'No attribute "title" found!';
+        throw 'No attribute "data-modal-title" found!';
         return false;
     }
 
@@ -926,8 +927,8 @@ function splitter_window(element, step)
         return false;
     }
 
-    if ((title = element.attr('title')) === undefined) {
-        throw 'no "title" attribute found!';
+    if ((title = element.attr('data-modal-title')) === undefined) {
+        throw 'no "data-modal-title" attribute found!';
         return false;
     }
 
@@ -952,7 +953,7 @@ function splitter_window(element, step)
     $.when(rpc_get_content('queue', request_data)).done(function (data) {
         $('#splitter_content').html(data);
         eval($('.splitter.modal .header.window.title').html(title));
-        eval($('.splitter.modal .ui.steps .step').attr('title', title));
+        eval($('.splitter.modal .ui.steps .step').attr('data-modal-title', title));
         eval($('.splitter.modal .ui.steps .step').attr('data-id', id));
         eval($('.splitter.modal .ui.steps .step').attr('data-guid', guid));
     });
