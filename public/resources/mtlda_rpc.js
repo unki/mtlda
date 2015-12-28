@@ -89,7 +89,7 @@ function rpc_object_archive(elements, successMethod)
         msg.setCommand('archive-request');
         msg.setMessage(msg_body);
         if (!mbus.add(msg)) {
-            throw 'MtldaMessageBus.add() returned false!';
+            throw 'ThalliumMessageBus.add() returned false!';
             return false;
         }
     });
@@ -145,7 +145,7 @@ function rpc_object_archive(elements, successMethod)
     }.bind(this));
 
     if (!mbus.send()) {
-        throw 'MtldaMessageBus.send() returned false!';
+        throw 'ThalliumMessageBus.send() returned false!';
         return false;
     }
 
@@ -304,7 +304,7 @@ function rpc_object_sign(element)
     msg.setMessage(msg_body);
 
     if (!mbus.add(msg)) {
-        throw 'MtldaMessageBus.add() returned false!';
+        throw 'ThalliumMessageBus.add() returned false!';
         return false;
     }
 
@@ -356,7 +356,7 @@ function rpc_object_sign(element)
     }.bind(this));
 
     if (!mbus.send()) {
-        throw 'MtldaMessageBus.send() returned false!';
+        throw 'ThalliumMessageBus.send() returned false!';
         return false;
     }
 
@@ -411,7 +411,7 @@ function rpc_object_scan(element)
     msg.setMessage(msg_body);
 
     if (!mbus.add(msg)) {
-        throw 'MtldaMessageBus.add() returned false!';
+        throw 'ThalliumMessageBus.add() returned false!';
         return false;
     }
 
@@ -463,7 +463,7 @@ function rpc_object_scan(element)
     }.bind(this));
 
     if (!mbus.send()) {
-        throw 'MtldaMessageBus.send() returned false!';
+        throw 'ThalliumMessageBus.send() returned false!';
         return false;
     }
 
@@ -552,7 +552,7 @@ function rpc_object_delete(elements, successMethod)
         msg.setCommand('delete-request');
         msg.setMessage(msg_body);
         if (!mbus.add(msg)) {
-            throw 'MtldaMessageBus.add() returned false!';
+            throw 'ThalliumMessageBus.add() returned false!';
             return false;
         }
     });
@@ -608,7 +608,7 @@ function rpc_object_delete(elements, successMethod)
     }.bind(this));
 
     if (!mbus.send()) {
-        throw 'MtldaMessageBus.send() returned false!';
+        throw 'ThalliumMessageBus.send() returned false!';
         return false;
     }
 
@@ -643,7 +643,7 @@ function rpc_mail_import(element)
     msg.setCommand('mailimport-request');
 
     if (!mbus.add(msg)) {
-        throw 'MtldaMessageBus.add() returned false!';
+        throw 'ThalliumMessageBus.add() returned false!';
         return false;
     }
 
@@ -695,7 +695,7 @@ function rpc_mail_import(element)
     }.bind(this));
 
     if (!mbus.send()) {
-        throw 'MtldaMessageBus.send() returned false!';
+        throw 'ThalliumMessageBus.send() returned false!';
         return false;
     }
 
