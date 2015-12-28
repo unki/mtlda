@@ -272,8 +272,8 @@ MtldaMessageBus.prototype.subscribe = function (name, category, handler) {
     }
 
     if (this.subscribers[name]) {
-        throw 'A subscriber named '+ name +' has already been registered!';
-        return false;
+        throw 'A subscriber named '+ name +' has already been registered. It has been unsubscribed now!';
+        this.unsubscribe(name);
     }
 
     this.subscribers[name] = new Object;
