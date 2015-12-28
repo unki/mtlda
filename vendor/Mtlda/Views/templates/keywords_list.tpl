@@ -85,7 +85,7 @@
   </td>
   <td>
    <div class="ui icon buttons">
-    <a id="delete_link_{$item->getId()}" class="delete item ui icon button" data-action-title="Deleting {$item->getName()|escape}" data-modal-title="Delete {$item->getName()|escape}" data-modal-text="Please confirm to delete {$item->getName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="keyword"><i class="remove circle icon"></i></a>
+    <a id="delete_link_{$item->getId()}" class="delete item ui icon button action link" data-action-title="Deleting {$item->getName()|escape}" data-modal-title="Delete {$item->getName()|escape}" data-modal-text="Please confirm to delete {$item->getName()|escape}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="keyword" data-content="Delete {$item->getName()|escape}" data-variation="wide"><i class="remove circle icon"></i></a>
    </div>
   </td>
  </tr>
@@ -105,3 +105,8 @@
   </tr>
  </tfoot>
 </table>
+<script type="text/javascript"><!--
+$(document).ready(function () {
+   $('a.action.link').popup();
+});
+--></script>
