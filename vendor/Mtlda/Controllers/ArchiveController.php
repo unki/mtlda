@@ -641,7 +641,7 @@ class ArchiveController extends DefaultController
 
         if (!isset($document) ||
             empty($document) ||
-            !get_class($document) == 'Mtlda\Models\DocumentModel'
+            !is_a($document, 'Mtlda\Models\DocumentModel')
         ) {
             $this->raiseError(__METHOD__ .' can only work with DocmentModels!');
             return false;
@@ -815,7 +815,7 @@ class ArchiveController extends DefaultController
         }
 
         foreach ($documents as $document) {
-            if (get_class($document) != 'Mtlda\Models\DocumentModel') {
+            if (!is_a($document, 'Mtlda\Models\DocumentModel')) {
                 $this->raiseError(__METHOD__ .'(), provided object is not an DocumentModel!');
                 return false;
             }
