@@ -912,6 +912,72 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         $db->setDatabaseSchemaVersion(31);
         return true;
     }
+
+    protected function upgradeApplicationDatabaseSchemaV32()
+    {
+        global $db;
+
+        /*if ($db->checkColumnExists('TABLEPREFIXdocument_indices', 'di_file_hash')) {
+            $db->setDatabaseSchemaVersion(32);
+            return true;
+        }*/
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXdocument_indices
+            ADD COLUMN
+                `di_file_hash` varchar(255) DEFAULT NULL
+            AFTER
+                di_document_guid"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $result = $db->query(
+            "UPDATE
+                TABLEPREFIXdocument_indices di
+            SET
+                di.di_file_hash=(
+                    SELECT
+                        a.document_file_hash
+                    FROM
+                        TABLEPREFIXarchive a
+                    WHERE
+                        di.di_document_idx LIKE a.document_idx
+                    AND
+                        di.di_document_guid LIKE a.document_guid
+                )"
+        );
+        
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXdocument_indices
+            DROP KEY
+                document_indices,
+            ADD KEY
+                `file_hash` (di_file_hash),
+            DROP COLUMN
+                di_document_idx,
+            DROP COLUMN
+                di_document_guid"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(32);
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
