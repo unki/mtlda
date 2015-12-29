@@ -121,7 +121,7 @@ class MainController extends \Thallium\Controllers\MainController
 
     private function signDocument(&$document)
     {
-        if (get_class($document) != "Mtlda\Models\DocumentModel") {
+        if (!is_a($document, "Mtlda\Models\DocumentModel")) {
             $this->raiseError(__METHOD__ .', can only work with DocumentModels!');
             return false;
         }
@@ -154,14 +154,16 @@ class MainController extends \Thallium\Controllers\MainController
     public function scanDocument(&$document)
     {
         if (!isset($document) || empty($document) ||
-            get_class($document) != "Mtlda\Models\DocumentModel" ||
-            get_class($document) != "Mtlda\Models\QueueItemModel") {
+            (!is_a($document, "Mtlda\Models\DocumentModel") &&
+            !is_a($document, "Mtlda\Models\QueueItemModel"))
+        ) {
             $this->raiseError(__METHOD__ .', unable to work with provided model!');
             return false;
         }
 
-        if (get_class($document) == "Mtlda\Models\DocumentModel" &&
-            $document->isSignedCopy() || $document->getVersion() != 1) {
+        if (is_a($document, "Mtlda\Models\DocumentModel") && (
+            $document->isSignedCopy() || $document->getVersion() != 1)
+        ) {
             $this->raiseError(__METHOD__ .", will only scan the original document!");
             return false;
         }
