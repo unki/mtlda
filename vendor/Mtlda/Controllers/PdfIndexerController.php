@@ -92,6 +92,11 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
+        if (!($hash = $document->getFileHash())) {
+            $this->raiseError(get_class($document) .'::getFileHash() returned false!');
+            return false;
+        }
+
         $this->sendMessage('scan-reply', 'Retrieving document from archive.', '10%');
 
         if (!$fqpn = $document->getFilePath()) {
@@ -113,7 +118,7 @@ class PdfIndexerController extends DefaultController
         // cleanup existing indices & properties
         //
         try {
-            $indices = new \Mtlda\Models\DocumentIndicesModel($idx, $guid);
+            $indices = new \Mtlda\Models\DocumentIndicesModel($hash);
         } catch (\Exception $e) {
             $this->raiseError(__CLASS__ .', failed to load DocumentIndicesModel!');
             return false;
@@ -457,13 +462,8 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
-        if (!$index->setDocumentIdx($document->getId())) {
-            $this->raiseError(get_class($index) .'::setDocumentIdx() returned false!');
-            return false;
-        }
-
-        if (!$index->setDocumentGuid($document->getGuid())) {
-            $this->raiseError(get_class($index) .'::setDocumentGuid() returned false!');
+        if (!$index->setFileHash($document->getFileHash())) {
+            $this->raiseError(get_class($index) .'::setFileHash() returned false!');
             return false;
         }
 
