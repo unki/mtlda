@@ -1,4 +1,4 @@
-<div id="confirm_template" class="ui basic modal" style="display: none;">
+<div id="confirm_template" class="ui basic modal">
  <i class="close icon"></i>
  <div class="header">header</div>
  <div class="image content">
