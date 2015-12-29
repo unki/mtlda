@@ -300,6 +300,9 @@ class QueueView extends DefaultView
                 $template = "archiver_dialog_step1.tpl";
                 break;
             case 2:
+                if (!isset($this->dateSuggestions)) {
+                    $this->buildDateSuggestions();
+                }
                 $tmpl->registerPlugin("block", "date_suggestions", array(&$this, "dateSuggestions"), false);
                 $template = "archiver_dialog_step2.tpl";
                 break;
@@ -506,9 +509,7 @@ class QueueView extends DefaultView
             return $content;
         }
 
-        if (isset($this->dateSuggestions[$index])) {
-            $smarty->assign("suggest", $this->dateSuggestions[$index]);
-        }
+        $smarty->assign("suggest", $this->dateSuggestions[$index]);
 
         $index++;
         $smarty->assign("smarty.IB.suggestions_list.index", $index);
@@ -519,6 +520,8 @@ class QueueView extends DefaultView
 
     protected function buildDateSuggestions()
     {
+        global $tmpl;
+
         if (!isset($this->archiveItem) || empty($this->archiveItem)) {
             $this->raiseError(__METHOD__ .'(), have no item to operate on!');
             return false;
@@ -565,27 +568,28 @@ class QueueView extends DefaultView
                     continue;
                 }
                 if ($map == 'YY-MM' && count($matches) == 3) {
-                    $suggest = "20{$matches[1]}-{$matches[2]}-01";
+                    array_push($suggestions, "20{$matches[1]}-{$matches[2]}-01");
+                    array_push($suggestions, "20{$matches[1]}-{$matches[2]}-31");
                 } elseif ($map == 'MM-YY' && count($matches) == 3) {
-                    $suggest = "20{$matches[2]}-{$matches[1]}-01";
+                    array_push($suggestions, "20{$matches[2]}-{$matches[1]}-01");
+                    array_push($suggestions, "20{$matches[2]}-{$matches[1]}-31");
                 } elseif ($map == 'MM-YYYY' && count($matches) == 3) {
-                    $suggest = "{$matches[2]}-{$matches[1]}-01";
+                    array_push($suggestions, "{$matches[2]}-{$matches[1]}-01");
+                    array_push($suggestions, "{$matches[2]}-{$matches[1]}-31");
                 } elseif ($map == 'YYYY-MM' && count($matches) == 3) {
-                    $suggest = "{$matches[1]}-{$matches[2]}-01";
+                    array_push($suggestions, "{$matches[1]}-{$matches[2]}-01");
+                    array_push($suggestions, "{$matches[1]}-{$matches[2]}-31");
                 } elseif ($map == 'YYYYMMDD' && count($matches) == 4) {
-                    $suggest = "{$matches[1]}-{$matches[2]}-{$matches[3]}";
+                    array_push($suggestions, "{$matches[1]}-{$matches[2]}-{$matches[3]}");
                 } elseif ($map == 'DDMMYYYY' && count($matches) == 4) {
-                    $suggest = "{$matches[3]}-{$matches[2]}-{$matches[1]}";
+                    array_push($suggestions, "{$matches[3]}-{$matches[2]}-{$matches[1]}");
                 } elseif ($map == 'YY' && count($matches) == 2) {
-                    $suggest = sprintf("20%d-01-01", $matches[1]);
-                    array_push($suggestions, $suggest);
-                    $suggest = sprintf("20%d-12-31", $matches[1]);
+                    array_push($suggestions, sprintf("20%d-01-01", $matches[1]));
+                    array_push($suggestions, sprintf("20%d-12-31", $matches[1]));
                 } elseif ($map == 'YYYY' && count($matches) == 2) {
-                    $suggest = sprintf("%d-01-01", $matches[1]);
-                    array_push($suggestions, $suggest);
-                    $suggest = sprintf("%d-12-31", $matches[1]);
+                    array_push($suggestions, sprintf("%d-01-01", $matches[1]));
+                    array_push($suggestions, sprintf("%d-12-31", $matches[1]));
                 }
-                array_push($suggestions, $suggest);
             }
         }
 
@@ -607,6 +611,15 @@ class QueueView extends DefaultView
             }
             return true;
         });
+
+        if (!sort($this->dateSuggestions)) {
+            $this->raiseError(__METHOD__ .'(), sort() returned false!');
+            return false;
+        }
+
+        if (isset($this->dateSuggestions) && !empty($this->dateSuggestions)) {
+            $tmpl->assign('has_suggestions', true);
+        }
 
         return true;
     }
