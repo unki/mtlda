@@ -72,7 +72,7 @@
     <i class="save icon"></i>
    </button>
   </form>
-  <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i>Index document.</a>
+  <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i>Index document.</a>
  </div>
 </div>
 <script type="text/javascript"><!--
