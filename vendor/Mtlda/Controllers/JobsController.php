@@ -224,9 +224,7 @@ class JobsController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        if (empty($job) ||
-            get_class($job) != 'Thallium\Models\JobModel'
-        ) {
+        if (empty($job) || get_class($job) != 'Thallium\Models\JobModel') {
             $this->raiseError(__METHOD__ .', requires a JobModel reference as parameter!');
             return false;
         }
