@@ -380,6 +380,11 @@ function rpc_object_scan(element)
         return false;
     }
 
+    if (!(model = element.attr('data-model'))) {
+        alert('no attribute "data-model" found!');
+        return false;
+    }
+
     if (!(title = element.attr('data-action-title'))) {
         alert('no attribute "data-action-title" found!');
         return false;
@@ -406,6 +411,7 @@ function rpc_object_scan(element)
     var msg_body = new Object;
     msg_body.id = safe_string(id);
     msg_body.guid = safe_string(guid);
+    msg_body.model = safe_string(model);
 
     var msg = new ThalliumMessage;
     msg.setCommand('scan-request');
