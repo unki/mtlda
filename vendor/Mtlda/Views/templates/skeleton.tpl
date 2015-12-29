@@ -25,7 +25,7 @@
 {$page_content}
   </div>
 {include "footer.tpl"}
-{include "modal.tpl"}
+{include "confirm_modal.tpl"}
 {include "progress_modal.tpl"}
 {include "filter_popup.tpl"}
  </body>
