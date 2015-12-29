@@ -77,8 +77,11 @@ class PdfIndexerController extends DefaultController
 
     public function scan(&$document)
     {
-        if (!is_a($document, 'Mtlda\Models\DocumentModel')) {
-            $this->raiseError(__METHOD__ .' only supports DocumentModels!');
+        if (!isset($document) || empty($document) ||
+            (!is_a($document, 'Mtlda\Models\DocumentModel') &&
+            !is_a($document, 'Mtlda\Models\QueueItemModel'))
+        ) {
+            $this->raiseError(__METHOD__ .'(), provided model is not supported!');
             return false;
         }
 
