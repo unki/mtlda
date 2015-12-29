@@ -225,7 +225,8 @@ function show_modal(settings, do_function, modalclass)
             closable  : settings.closeable,
             onDeny    : settings.onDeny,
             onApprove : settings.onApprove,
-            blurring  : settings.blurring
+            blurring  : settings.blurring,
+            allowMultiple : true
         })
         .modal('show')
         .on('click.modal', do_function);
@@ -463,6 +464,7 @@ function archive_object(element)
         title          : title,
         observeChanges : true,
         onShow         : archiver_window(elements[0]),
+        allowMultiple  : true,
         onHidden       : function () {
             if (id != 'all') {
                 if (id instanceof Array) {
