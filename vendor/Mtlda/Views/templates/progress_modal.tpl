@@ -1,4 +1,4 @@
-<div class="ui progress modal signer scanner import archive delete">
+<div class="ui progress modal signer scanner import archive delete" style="display: none;">
  <i class="close icon"></i>
  <div class="header">header</div>
  <div class="image content">
