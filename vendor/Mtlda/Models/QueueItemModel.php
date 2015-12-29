@@ -941,6 +941,14 @@ class QueueItemModel extends DefaultModel
 
     public function hasIndices()
     {
+        if (isset($this->indices) &&
+            !empty($this->indices) &&
+            is_a($this->indices, 'Mtlda\Models\DocumentIndicesModel') &&
+            count($this->indices->items) > 0
+        ) {
+            return true;
+        }
+
         if (($hash = $this->getFileHash()) === false) {
             $this->raiseError(__CLASS__ .'::getFileHash() returned false!');
             return false;
@@ -953,6 +961,11 @@ class QueueItemModel extends DefaultModel
         }
 
         $this->indices = $indices;
+
+        if (count($this->indices->items) <= 0) {
+            return false;
+        }
+
         return true;
     }
 
