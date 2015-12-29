@@ -41,6 +41,7 @@ class QueueItemModel extends DefaultModel
     protected $avail_items = array();
     protected $items = array();
     private $keywords;
+    private $indices;
 
     public function __construct($id = null, $guid = null)
     {
@@ -936,6 +937,32 @@ class QueueItemModel extends DefaultModel
         }
 
         return true;
+    }
+
+    public function hasIndices()
+    {
+        if (($hash = $this->getFileHash()) === false) {
+            $this->raiseError(__CLASS__ .'::getFileHash() returned false!');
+            return false;
+        }
+
+        try {
+            $indices = new \Mtlda\Models\DocumentIndicesModel($hash);
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        $this->indices = $indices;
+        return true;
+    }
+
+    public function getIndices()
+    {
+        if (!isset($this->indices)) {
+            return false;
+        }
+
+        return $this->indices->getIndices();
     }
 }
 
