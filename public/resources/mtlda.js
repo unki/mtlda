@@ -171,6 +171,7 @@ function show_modal(type, settings, id, do_function, modalclass)
         return false;
     }
 
+    wnd.css('display', 'inline');
     wnd.removeAttr('id');
 
     if (id && id !== undefined) {
@@ -229,6 +230,7 @@ function show_modal(type, settings, id, do_function, modalclass)
 
     if (!settings.onApprove) {
         settings.onApprove = function () {
+            $(this).modal('hide');
             return true;
         };
     }
@@ -239,17 +241,16 @@ function show_modal(type, settings, id, do_function, modalclass)
         };
     }
 
-    modal = wnd.modal({
+    var modal = wnd.modal({
         closable  : settings.closeable,
         onDeny    : settings.onDeny,
         onApprove : settings.onApprove,
         blurring  : settings.blurring,
         allowMultiple : true
     })
-    .modal('show')
-    .modal('refresh')
-    .on('click.modal', do_function);
 
+    modal.modal('show')
+    modal.on('click.modal', do_function);
     return modal;
 }
 
@@ -308,7 +309,7 @@ function delete_object(element)
         }
     }
 
-    elements = new Array;
+    var elements = new Array;
     if (id instanceof Array) {
         id.forEach(function (value) {
             elements.push($('#delete_link_'+value));
@@ -317,7 +318,7 @@ function delete_object(element)
         elements.push(element);
     }
 
-    del_wnd = show_modal('confirm', {
+    var del_wnd = show_modal('confirm', {
         closeable : true,
         header : title,
         icon : 'red remove icon',
@@ -326,6 +327,7 @@ function delete_object(element)
             return true;
         },
         onApprove : function () {
+            $(this).modal('hide');
             return rpc_object_delete(elements, function () {
                 if (elements === undefined) {
                     return true;
@@ -446,6 +448,7 @@ function archive_object(element)
                 return true;
             },
             onApprove : function () {
+                $(this).modal('hide');
                 return rpc_object_archive(elements, function () {
                     if (elements === undefined) {
                         return true;
@@ -517,7 +520,7 @@ function trigger_import_run()
         onShow : rpc_fetch_jobstatus()
     });
 
-    progressbar = $('.ui.modal .image.content .description #progressbar');
+    progressbar = import_wnd.find('.description .ui.indicating.progress');
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
