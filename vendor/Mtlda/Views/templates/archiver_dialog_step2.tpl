@@ -74,7 +74,9 @@
     <i class="save icon"></i>
    </button>
   </form>
+{if !$item->hasIndices()}
   <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}"><i class="find icon"></i>Index document.</a>
+{/if}
  </div>
 </div>
 <script type="text/javascript"><!--
