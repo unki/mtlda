@@ -29,23 +29,28 @@ class DocumentIndicesModel extends DefaultModel
     public $avail_items = array();
     public $items = array();
 
-    public function __construct()
+    public function __construct($hash = null)
     {
-        global $mtlda;
+        if (!$hash) {
+            parent::__construct();
+            return true;
+        }
 
-        parent::__construct(null);
-
-        if (!$this->load()) {
-            $mtlda->raiseError(__CLASS__ .', load() returned false!', true);
+        if (!$this->load($hash)) {
+            $this->raiseError(__CLASS__ .', load() returned false!', true);
             return false;
         }
 
         return true;
     }
 
-    public function load()
+    public function load($hash)
     {
-        global $mtlda, $db;
+        global $db;
+
+        if (!$hash) {
+            return parent::load();
+        }
     
         $idx_field = $this->column_name ."_idx";
 
@@ -53,16 +58,18 @@ class DocumentIndicesModel extends DefaultModel
             "SELECT
                 {$idx_field}
             FROM
-                TABLEPREFIX{$this->table_name}";
+                TABLEPREFIX{$this->table_name}
+            WHERE
+                {$this->column_name}_file_hash LIKE ?";
 
         if (!($sth = $db->prepare($sql))) {
-            $mtlda->raiseError(get_class($db) .'::prepare() returned false!');
+            $this->raiseError(get_class($db) .'::prepare() returned false!');
             return false;
         }
 
-        if (!($db->execute($sth))) {
+        if (!($db->execute($sth, array($hash)))) {
             $db->freeStatement($sth);
-            $mtlda->raiseError(get_class($db) .'::execute() returned false!');
+            $this->raiseError(get_class($db) .'::execute() returned false!');
             return false;
         }
 
@@ -71,7 +78,7 @@ class DocumentIndicesModel extends DefaultModel
             try {
                 $this->items[$row->$idx_field] = new DocumentIndexModel($row->$idx_field);
             } catch (\Exception $e) {
-                $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentProperty!');
+                $this->raiseError(__METHOD__ .'(), failed to load DocumentProperty!');
                 return false;
             }
         }
@@ -82,11 +89,9 @@ class DocumentIndicesModel extends DefaultModel
 
     public function delete()
     {
-        global $mtlda;
-
         foreach ($this->items as $item) {
             if (!$item->delete()) {
-                $mtlda->raiseError(get_class($item) .'::delete() returned false!');
+                $this->raiseError(get_class($item) .'::delete() returned false!');
                 return false;
             }
         }
