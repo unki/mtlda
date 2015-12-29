@@ -22,7 +22,7 @@ $(document).ready(function() {
 
    $('#truncate_link').click(function() {
 
-      show_modal({
+      show_modal('confirm', {
          closeable : false,
          header : 'Truncate Data',
          icon : 'warning icon',
