@@ -79,6 +79,8 @@
 load_datepickers("queue");
 init_dropdowns();
 $("a.scan.document").click(function () {
-   rpc_object_scan($(this));
+   rpc_object_scan($(this), function () {
+      archiver_window($(this), 2);
+   });
 });
 --></script>
