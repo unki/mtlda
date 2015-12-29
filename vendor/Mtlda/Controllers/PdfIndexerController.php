@@ -132,16 +132,18 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
-        try {
-            $properties = new \Mtlda\Models\DocumentPropertiesModel($idx, $guid);
-        } catch (\Exception $e) {
-            $this->raiseError(__CLASS__ .', failed to load DocumentProperties!');
-            return false;
-        }
+        if (is_a($document, 'Mtlda\Models\DocumentModel')) {
+            try {
+                $properties = new \Mtlda\Models\DocumentPropertiesModel($idx, $guid);
+            } catch (\Exception $e) {
+                $this->raiseError(__CLASS__ .', failed to load DocumentProperties!');
+                return false;
+            }
 
-        if (!$properties->delete()) {
-            $this->raiseError(get_class($properties) .'::delete() returned false!');
-            return false;
+            if (!$properties->delete()) {
+                $this->raiseError(get_class($properties) .'::delete() returned false!');
+                return false;
+            }
         }
 
         $this->sendMessage('scan-reply', 'Parsing document.', '30%');
@@ -170,7 +172,9 @@ class PdfIndexerController extends DefaultController
             }
         }
 
-        if (isset($info['details']) && !empty($info['details'])) {
+        if (is_a($document, 'Mtlda\Models\DocumentModel') &&
+            (isset($info['details']) && !empty($info['details']))
+        ) {
             foreach ($info['details'] as $property => $value) {
                 if (is_array($value)) {
                     $value = implode(', ', $value);
@@ -442,19 +446,23 @@ class PdfIndexerController extends DefaultController
 
     private function saveDocumentIndex($document, $text)
     {
-        if (!isset($document) ||
-            empty($document) ||
-            !is_a($document, 'Mtlda\Models\DocumentModel')
+        if (!isset($document) || empty($document) ||
+            (!is_a($document, 'Mtlda\Models\DocumentModel') &&
+            !is_a($document, 'Mtlda\Models\QueueItemModel'))
         ) {
             $this->raiseError(__METHOD__ .'(), \$document parameter is invalid!');
             return false;
         }
 
-        if (!isset($text) ||
-            empty($text) ||
+        if (!isset($text) || empty($text) ||
             (!is_string($text) && !is_numeric($text))
         ) {
             $this->raiseError(__METHOD__ .'(), \$property parameter is invalid!');
+            return false;
+        }
+
+        if (($hash = $document->getFileHash()) === false) {
+            $this->raiseError(get_class($document).'::getFileHash() returned false!');
             return false;
         }
 
@@ -465,7 +473,7 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
-        if (!$index->setFileHash($document->getFileHash())) {
+        if (!$index->setFileHash($hash)) {
             $this->raiseError(get_class($index) .'::setFileHash() returned false!');
             return false;
         }
