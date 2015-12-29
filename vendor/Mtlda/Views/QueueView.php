@@ -548,7 +548,7 @@ class QueueView extends DefaultView
                 $this->raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
                 return false;
             }
-            if (!isset($indices) || empty($indices) || !is_a($indices)) {
+            if (!isset($indices) || empty($indices) || !is_array($indices)) {
                 $this->raiseError(get_class($this->archiveItem) .'::getIndices() returned invalid data!');
                 return false;
             }
@@ -558,6 +558,26 @@ class QueueView extends DefaultView
                     return false;
                 }
                 array_push($sources, $text);
+            }
+        }
+
+        if (is_a($this->archiveItem, 'Mtlda\Models\DocumentModel') &&
+            $this->archiveItem->hasProperties()
+        ) {
+            if (($properties = $this->archiveItem->getProperties()) === false) {
+                $this->raiseError(get_class($this->archiveItem) .'::getProperties() returned false!');
+                return false;
+            }
+            if (!isset($properties) || empty($properties) || !is_array($properties)) {
+                $this->raiseError(get_class($this->archiveItem) .'::getProperties() returned invalid data!');
+                return false;
+            }
+            foreach ($properties as $property) {
+                if (($value = $property->getDocumentValue()) === false) {
+                    $this->raiseError(get_class($property) .'::getDocumentValue() returned false!');
+                    return false;
+                }
+                array_push($sources, $value);
             }
         }
 
