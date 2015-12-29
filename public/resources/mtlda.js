@@ -150,32 +150,51 @@ function init_dropzone()
     };
 }
 
-function show_modal(settings, do_function, modalclass)
+function show_modal(type, settings, id, do_function, modalclass)
 {
-    if (!modalclass) {
-        modalclass = '.ui.basic.modal';
+    if (!type || type === undefined) {
+        throw 'show_modal(), mandatory type parameter is missing!';
+        return false;
     }
 
-    var modal_settings = {};
+    if (type == 'progress') {
+        var wnd = $('#progress_template').clone();
+    } else if (type == 'confirm') {
+        var wnd = $('#confirm_template').clone();
+    } else {
+        throw 'show_modal(), unsupported type!';
+        return false;
+    }
+
+    if (!wnd || wnd === undefined) {
+        throw 'show_modal(), unable to clone progress_template!';
+        return false;
+    }
+
+    wnd.removeAttr('id');
+
+    if (id && id !== undefined) {
+        wnd.attr('id', id);
+    }
 
     if (settings.header) {
-        $(modalclass + ' .header').html(settings.header);
+        wnd.find('.header').html(settings.header);
     }
 
     if (settings.icon) {
-        $(modalclass + ' .image.content i.icon').removeClass().addClass(settings.icon);
+        wnd.find('.image.content i.icon').removeClass().addClass(settings.icon);
     } else {
         settings.icon = 'icon';
     }
 
     if (settings.iconHtml) {
-        $(modalclass + ' .image.content i.' + settings.icon).html(settings.iconHtml);
+        wnd.find('.image.content i.' + settings.icon).html(settings.iconHtml);
     } else {
-        $(modalclass + ' .image.content i.' + settings.icon).html('');
+        wnd.find('.image.content i.' + settings.icon).html('');
     }
 
     if (settings.content) {
-        $(modalclass + ' .image.content .description p').html(settings.content);
+        wnd.find('.image.content .description p').html(settings.content);
     }
 
     if (settings.closeable == undefined) {
@@ -183,9 +202,9 @@ function show_modal(settings, do_function, modalclass)
     }
 
     if (!settings.closeable) {
-        $(modalclass + ' i.close.icon').detach();
+        wnd.find('i.close.icon').detach();
     } else {
-        $(modalclass + ' i.close.icon').appendTo('.ui.basic.modal');
+        wnd.find('i.close.icon').appendTo(wnd);
     }
 
     if (settings.hasActions == undefined) {
@@ -197,9 +216,9 @@ function show_modal(settings, do_function, modalclass)
     }
 
     if (!settings.hasActions) {
-        $(modalclass + ' .actions').detach();
+        wnd.find('.actions').detach();
     } else {
-        $(modalclass + ' .actions').appendTo('.ui.basic.modal');
+        wnd.find('.actions').appendTo(wnd);
     }
 
     if (!settings.onDeny) {
@@ -220,18 +239,18 @@ function show_modal(settings, do_function, modalclass)
         };
     }
 
-    modal = $(modalclass)
-        .modal({
-            closable  : settings.closeable,
-            onDeny    : settings.onDeny,
-            onApprove : settings.onApprove,
-            blurring  : settings.blurring,
-            allowMultiple : true
-        })
-        .modal('show')
-        .on('click.modal', do_function);
+    modal = wnd.modal({
+        closable  : settings.closeable,
+        onDeny    : settings.onDeny,
+        onApprove : settings.onApprove,
+        blurring  : settings.blurring,
+        allowMultiple : true
+    })
+    .modal('show')
+    .modal('refresh')
+    .on('click.modal', do_function);
 
-        return modal;
+    return modal;
 }
 
 function safe_string(input)
@@ -298,7 +317,7 @@ function delete_object(element)
         elements.push(element);
     }
 
-    show_modal({
+    del_wnd = show_modal('confirm', {
         closeable : true,
         header : title,
         icon : 'red remove icon',
@@ -407,7 +426,7 @@ function archive_object(element)
         elements.length > 1 ||
         (elements.length == 1 && !element.hasClass('advanced'))
     ) {
-        show_modal({
+        show_modal('confirm', {
             closeable : true,
             header : title,
             content : text,
@@ -488,7 +507,7 @@ function archive_object(element)
 
 function trigger_import_run()
 {
-    import_wnd = show_modal({
+    import_wnd = show_modal('progress', {
         blurring : true,
         closeable : true,
         header : 'Check Incoming Directory',
@@ -496,7 +515,7 @@ function trigger_import_run()
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
-    }, function () {}, '.ui.archive.modal');
+    });
 
     progressbar = $('.ui.modal .image.content .description #progressbar');
 
@@ -965,4 +984,5 @@ function isInteger(x)
 {
     return x % 1 === 0;
 }
+
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
