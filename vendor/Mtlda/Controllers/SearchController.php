@@ -109,8 +109,7 @@ class SearchController extends DefaultController
                 " LEFT JOIN
                      TABLEPREFIXdocument_indices di
                 ON (
-                    a.document_idx=di.di_document_idx AND
-                    a.document_guid=di.di_document_guid
+                    a.document_file_hash=di.di_file_hash
                 )
                 LEFT JOIN
                     TABLEPREFIXdocument_properties dp
