@@ -98,6 +98,15 @@ class DocumentIndicesModel extends DefaultModel
 
         return true;
     }
+
+    public function getIndices()
+    {
+        if (!isset($this->items)) {
+            return false;
+        }
+
+        return $this->items;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
