@@ -536,11 +536,31 @@ class QueueView extends DefaultView
             }
             array_push($sources, $title);
         }
+
         if (($filename = $this->archiveItem->getFileName()) === false) {
             $this->raiseError(get_class($this->archiveItem) .'::getFileName() returned false');
             return false;
         }
         array_push($sources, $filename);
+
+        if ($this->archiveItem->hasIndices()) {
+            if (($indices = $this->archiveItem->getIndices()) === false) {
+                $this->raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
+                return false;
+            }
+            if (!isset($indices) || empty($indices) || !is_a($indices)) {
+                $this->raiseError(get_class($this->archiveItem) .'::getIndices() returned invalid data!');
+                return false;
+            }
+            foreach ($indices as $index) {
+                if (($text = $index->getDocumentText()) === false) {
+                    $this->raiseError(get_class($index) .'::getDocumentText() returned false!');
+                    return false;
+                }
+                array_push($sources, $text);
+            }
+        }
+
         if (($sources = array_unique($sources)) === false) {
             $this->raiseError(__METHOD__ .'(), failed to filter sources!');
             return false;
