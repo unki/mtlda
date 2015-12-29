@@ -251,7 +251,9 @@ class JobsController extends \Thallium\Controllers\JobsController
         }
 
         if (!isset($scan_request->id) || empty($scan_request->id) ||
-            !isset($scan_request->guid) || empty($scan_request->guid)
+            !isset($scan_request->guid) || empty($scan_request->guid) ||
+            !isset($scan_request->model) || empty($scan_request->model) ||
+            !in_array($scan_request->model, array('document', 'queueitem'))
         ) {
             $this->raiseError(__METHOD__ .', scan-request is incomplete!');
             return false;
@@ -272,12 +274,11 @@ class JobsController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        try {
-            $document = new \Mtlda\Models\DocumentModel(
-                $scan_request->id,
-                $scan_request->guid
-            );
-        } catch (\Exception $e) {
+        if (($document = $mtlda->loadModel(
+            $scan_request->model,
+            $scan_request->id,
+            $scan_request->guid
+        )) === false) {
             $this->raiseError(__METHOD__ .", unable to load DocumentModel!");
             return false;
         }
