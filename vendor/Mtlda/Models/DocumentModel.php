@@ -45,6 +45,7 @@ class DocumentModel extends DefaultModel
     protected $items = array();
     protected $descendants = array();
     protected $keywords;
+    protected $indices;
 
     public function __construct($id = null, $guid = null)
     {
@@ -938,18 +939,39 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    protected function deleteAllDocumentIndices()
+    public function hasIndices()
     {
-        try {
-            $indices = new \Mtlda\Models\DocumentIndicesModel(
-                $this->getFileHash()
-            );
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load DocumentIndicesModel!');
+        if (($hash = $this->getFileHash()) === false) {
+            $this->raiseError(__CLASS__ .'::getFileHash() returned false!');
             return false;
         }
 
-        if (!$indices->delete()) {
+        try {
+            $indices = new \Mtlda\Models\DocumentIndicesModel($hash);
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        $this->indices = $indices;
+        return true;
+    }
+
+    public function getIndices()
+    {
+        if (!isset($this->indices)) {
+            return false;
+        }
+
+        return $this->indices->getIndices();
+    }
+
+    protected function deleteAllDocumentIndices()
+    {
+        if (!$this->hasIndices()) {
+            return true;
+        }
+
+        if (!$this->indices->delete()) {
             $this->raiseError(get_class($indices) .'::delete() returned false!');
             return false;
         }
