@@ -942,8 +942,7 @@ class DocumentModel extends DefaultModel
     {
         try {
             $indices = new \Mtlda\Models\DocumentIndicesModel(
-                $this->getId(),
-                $this->getGuid()
+                $this->getFileHash()
             );
         } catch (\Exception $e) {
             $this->raiseError(__METHOD__ .'(), failed to load DocumentIndicesModel!');

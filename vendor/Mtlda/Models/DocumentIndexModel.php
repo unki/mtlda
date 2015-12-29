@@ -26,43 +26,25 @@ class DocumentIndexModel extends DefaultModel
     public $fields = array(
         'di_idx' => 'integer',
         'di_guid' => 'string',
-        'di_document_idx' => 'integer',
-        'di_document_guid' => 'string',
+        'di_file_hash' => 'string',
         'di_text' => 'string',
     );
 
-    public function setDocumentIdx($idx)
+    public function setFileHash($hash)
     {
-        global $mtlda;
-
-        if (!isset($idx) || empty($idx)) {
-            $mtlda->raiseError(__METHOD__ .'(), \$idx needs to be set!');
+        if (!isset($hash) || empty($hash)) {
+            $this->raiseError(__METHOD__ .'(), \$hash needs to be set!');
             return false;
         }
 
-        $this->di_document_idx = $idx;
-        return true;
-    }
-
-    public function setDocumentGuid($guid)
-    {
-        global $mtlda;
-
-        if (!isset($guid) || empty($guid)) {
-            $mtlda->raiseError(__METHOD__ .'(), \$guid needs to be set!');
-            return false;
-        }
-
-        $this->di_document_guid = $guid;
+        $this->di_file_hash = $hash;
         return true;
     }
 
     public function setDocumentText($text)
     {
-        global $mtlda;
-
         if (!isset($text) || empty($text)) {
-            $mtlda->raiseError(__METHOD__ .'(), \$text needs to be set!');
+            $this->raiseError(__METHOD__ .'(), \$text needs to be set!');
             return false;
         }
 
@@ -70,32 +52,17 @@ class DocumentIndexModel extends DefaultModel
         return true;
     }
 
-    public function getDocumentIdx()
+    public function getFileHash()
     {
-        global $mtlda;
-
-        if (!isset($this->di_document_idx)) {
+        if (!isset($this->di_file_hash)) {
             return false;
         }
 
-        return $this->di_document_idx;
-    }
-
-    public function getDocumentGuid()
-    {
-        global $mtlda;
-
-        if (!isset($this->di_document_guid)) {
-            return false;
-        }
-
-        return $this->di_document_guid;
+        return $this->di_file_hash;
     }
 
     public function getDocumentText()
     {
-        global $mtlda;
-
         if (!isset($this->di_text)) {
             return false;
         }
