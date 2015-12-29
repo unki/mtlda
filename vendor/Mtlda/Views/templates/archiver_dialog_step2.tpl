@@ -23,10 +23,12 @@
      <button class="circular ui icon button cancel" type="reset"><i class="cancel icon"></i></button>
     </div>
    </div>
-   Suggestions:&nbsp;
+{if isset($has_suggestions) && $has_suggestions}
+   Suggestions:<br />
 {date_suggestions}
-   <a onclick="$('#queue_custom_date').val('{$suggest}')">{$suggest}</a>&nbsp;
+   <a onclick="$('#queue_custom_date').val('{$suggest}')">{$suggest}</a><br />
 {/date_suggestions}
+{/if}
   </form>
 
   <div class="field">
