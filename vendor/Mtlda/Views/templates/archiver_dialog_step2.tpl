@@ -49,7 +49,7 @@
     </div>
    </div>
   </form>
-  <button class="ui button" class="ui form" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
+  <button id="next_button" class="ui button" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
  </div>
 
  <div class="column">
@@ -72,7 +72,7 @@
     <i class="save icon"></i>
    </button>
   </form>
-  <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i>Index document.</a>
+  <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}"><i class="find icon"></i>Index document.</a>
  </div>
 </div>
 <script type="text/javascript"><!--
@@ -80,7 +80,7 @@ load_datepickers("queue");
 init_dropdowns();
 $("a.scan.document").click(function () {
    rpc_object_scan($(this), function () {
-      archiver_window($(this), 2);
+      archiver_window($('button#next_button'), 2);
    });
 });
 --></script>
