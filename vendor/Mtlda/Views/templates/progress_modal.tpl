@@ -1,4 +1,4 @@
-<div id="progress_template" class="ui progress modal" style="display: none;">
+<div id="progress_template" class="ui modal">
  <i class="close icon"></i>
  <div class="header">header</div>
  <div class="image content">
