@@ -52,7 +52,7 @@
        <div class="content">
         <div class="header">
          <a href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>
-         <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i></a>
+         <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i></a>
         </div>
         <div class="description">Original document (imported {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-action-title="Sign {if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
        </div>
