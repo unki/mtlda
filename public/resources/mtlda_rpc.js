@@ -72,7 +72,7 @@ function rpc_object_archive(elements, successMethod)
         onShow : rpc_fetch_jobstatus()
     });
 
-    progressbar = $('.ui.modal .image.content .description #progressbar');
+    progressbar = archive_wnd.find('.description .ui.indicating.progress');
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
@@ -162,7 +162,7 @@ function rpc_object_update(element, successMethod)
 
     var target = element.attr('data-target');
 
-    if (target == undefined || target == '') {
+    if (target === undefined || target == '') {
         alert('no attribute "data-target" found!');
         return false;
     }
@@ -288,7 +288,7 @@ function rpc_object_sign(element)
         onShow : rpc_fetch_jobstatus()
     });
 
-    progressbar = $('.ui.modal .image.content .description #progressbar');
+    progressbar = sign_wnd.find('.description .ui.indicating.progress');
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
@@ -393,7 +393,6 @@ function rpc_object_scan(element, successMethod)
     scan_wnd = show_modal('progress', {
         blurring : true,
         closeable : true,
-        allowMultiple : true,
         header : 'MTLDA is scanning your document "'+ title + '".',
         icon : 'wait icon',
         hasActions : false,
@@ -401,7 +400,7 @@ function rpc_object_scan(element, successMethod)
         onShow : rpc_fetch_jobstatus()
     });
 
-    progressbar = $('.ui.modal .image.content .description #progressbar');
+    progressbar = scan_wnd.find('.description .ui.indicating.progress');
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
@@ -494,12 +493,13 @@ function rpc_object_delete(elements, successMethod)
         return false;
     }
 
-    ids = new Array;
-    guids = new Array;
-    models = new Array;
-    titles = new Array;
+    var ids = new Array;
+    var guids = new Array;
+    var models = new Array;
+    var titles = new Array;
 
     elements.forEach(function (element) {
+        var id, guid, model, title;
         if (!(element instanceof jQuery) ) {
             throw "element is not a jQuery object!";
             return false;
@@ -537,14 +537,14 @@ function rpc_object_delete(elements, successMethod)
     del_wnd = show_modal('progress', {
         blurring : true,
         closeable : true,
-        header : title,
+        header : 'Deleting...',
         icon : 'remove icon',
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
     });
 
-    progressbar = $('.ui.modal .image.content .description #progressbar');
+    progressbar = del_wnd.find('.description .ui.indicating.progress');
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
@@ -641,7 +641,7 @@ function rpc_mail_import(element)
         onShow : rpc_fetch_jobstatus()
     });
 
-    progressbar = $('.ui.import.modal .image.content .description #progressbar');
+    progressbar = import_wnd.find('.description .ui.indicating.progress');
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
