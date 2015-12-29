@@ -363,7 +363,7 @@ function rpc_object_sign(element)
     return true;
 }
 
-function rpc_object_scan(element)
+function rpc_object_scan(element, successMethod)
 {
     if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
@@ -460,13 +460,15 @@ function rpc_object_scan(element)
 
         progressbar.removeClass('active').addClass('success');
 
-        setTimeout(function () {
-            scan_wnd.modal('hide');
-            mbus.unsubscribe('scanner-replies-handler');
-            location.reload();
-        }, 1000);
-        return true;
+        scan_wnd.modal('hide');
+        mbus.unsubscribe('scanner-replies-handler');
 
+        if (successMethod !== undefined) {
+            return successMethod();
+        }
+
+        location.reload();
+        return true;
     }.bind(this));
 
     if (!mbus.send()) {
