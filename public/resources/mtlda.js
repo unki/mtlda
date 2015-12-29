@@ -171,87 +171,107 @@ function show_modal(type, settings, id, do_function, modalclass)
         return false;
     }
 
-    wnd.css('display', 'inline');
     wnd.removeAttr('id');
 
     if (id && id !== undefined) {
         wnd.attr('id', id);
     }
 
-    if (settings.header) {
+    if (settings === undefined) {
+        settings = {};
+    }
+
+    if (settings.header !== undefined) {
         wnd.find('.header').html(settings.header);
     }
 
-    if (settings.icon) {
+    if (settings.icon !== undefined) {
         wnd.find('.image.content i.icon').removeClass().addClass(settings.icon);
     } else {
         settings.icon = 'icon';
     }
 
-    if (settings.iconHtml) {
+    if (settings.iconHtml !== undefined) {
         wnd.find('.image.content i.' + settings.icon).html(settings.iconHtml);
     } else {
         wnd.find('.image.content i.' + settings.icon).html('');
     }
 
-    if (settings.content) {
+    if (settings.content !== undefined) {
         wnd.find('.image.content .description p').html(settings.content);
     }
 
-    if (settings.closeable == undefined) {
+    if (settings.closeable === undefined) {
         settings.closeable = true;
     }
 
-    if (!settings.closeable) {
+    if (!settings.closeable !== undefined) {
         wnd.find('i.close.icon').detach();
     } else {
         wnd.find('i.close.icon').appendTo(wnd);
     }
 
-    if (settings.hasActions == undefined) {
+    if (settings.hasActions === undefined) {
         settings.hasActions = true;
     }
 
-    if (settings.blurring == undefined) {
+    if (settings.blurring === undefined) {
         settings.blurring = true;
     }
 
-    if (!settings.hasActions) {
+    if (settings.hasActions === undefined) {
         wnd.find('.actions').detach();
     } else {
         wnd.find('.actions').appendTo(wnd);
     }
 
-    if (!settings.onDeny) {
+    if (settings.onDeny === undefined) {
         settings.onDeny = function () {
             return true;
         };
     }
 
-    if (!settings.onApprove) {
+    if (settings.onApprove === undefined) {
         settings.onApprove = function () {
             $(this).modal('hide');
             return true;
         };
     }
 
-    if (!do_function) {
+    if (settings.onHidden === undefined) {
+        settings.onHidden = function () {
+            return true;
+        };
+    }
+
+    if (settings.detachable === undefined) {
+        settings.detachable = true;
+    }
+
+    if (settings.observeChanges === undefined) {
+        settings.observeChanges = false;
+    }
+
+    if (do_function === undefined) {
         do_function = function () {
             return true;
         };
     }
 
-    var modal = wnd.modal({
-        closable  : settings.closeable,
-        onDeny    : settings.onDeny,
-        onApprove : settings.onApprove,
-        blurring  : settings.blurring,
-        allowMultiple : true
-    })
+    var modal = wnd
+        .modal({
+            closable   : settings.closeable,
+            onDeny     : settings.onDeny,
+            onApprove  : settings.onApprove,
+            onHidden   : settings.onHidden,
+            blurring   : settings.blurring,
+            detachable : settings.detachable,
+            observeChanges : settings.observeChanges,
+        })
+        .modal('show')
+        .on('click.modal', do_function);
 
-    modal.modal('show')
-    modal.on('click.modal', do_function);
-    return modal;
+        return modal;
 }
 
 function safe_string(input)
@@ -263,7 +283,7 @@ function delete_object(element)
 {
     var id = element.attr("data-id");
 
-    if (id == undefined || id == "") {
+    if (id === undefined || id == "") {
         alert('no attribute "data-id" found!');
         return;
     }
@@ -294,14 +314,14 @@ function delete_object(element)
 
     var title = element.attr("data-modal-title");
 
-    if (title == undefined || title === "") {
+    if (title === undefined || title === "") {
         throw 'No attribute "data-modal-title" found!';
         return false;
     }
 
     var text = element.attr("data-modal-text");
 
-    if (text == undefined || text === "") {
+    if (text === undefined || text === "") {
         if (id instanceof String && !id.match(/-all$/)) {
             text = "Do you really want to delete this item?";
         } else {
@@ -347,7 +367,7 @@ function delete_object(element)
                 });
                 return true;
             });
-        }
+        },
     });
 
     return true;
@@ -357,7 +377,7 @@ function archive_object(element)
 {
     var id = element.attr("data-id");
 
-    if (id == undefined || id == "") {
+    if (id === undefined || id == "") {
         alert('no attribute "data-id" found!');
         return;
     }
@@ -398,7 +418,7 @@ function archive_object(element)
 
     var title = element.attr("data-modal-title");
 
-    if (title == undefined || title === "") {
+    if (title === undefined || title === "") {
         console.log(element);
         throw 'No attribute "data-modal-title" found!';
         return false;
@@ -406,7 +426,7 @@ function archive_object(element)
 
     var text = element.attr("data-modal-text");
 
-    if (text == undefined || text === "") {
+    if (text === undefined || text === "") {
         if (id instanceof String && !id.match(/-all$/)) {
             text = "Do you really want to archive this item?";
         } else {
@@ -897,7 +917,7 @@ function split_object(element)
 {
     var title = element.attr("data-modal-title");
 
-    if (title == undefined || title === "") {
+    if (title === undefined || title === "") {
         throw 'No attribute "data-modal-title" found!';
         return false;
     }
