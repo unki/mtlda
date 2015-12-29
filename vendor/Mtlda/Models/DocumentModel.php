@@ -46,6 +46,7 @@ class DocumentModel extends DefaultModel
     protected $descendants = array();
     protected $keywords;
     protected $indices;
+    protected $properties;
 
     public function __construct($id = null, $guid = null)
     {
@@ -919,19 +920,44 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    protected function deleteAllDocumentProperties()
+    public function hasProperties()
     {
+        if (isset($this->properties) &&
+            !empty($this->properties) &&
+            is_a($this->properties, 'Mtlda\Models\DocumentPropertiesModel')
+        ) {
+            return true;
+        }
+
         try {
             $properties = new \Mtlda\Models\DocumentPropertiesModel(
                 $this->getId(),
                 $this->getGuid()
             );
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load DocumentPropertiesModel!');
             return false;
         }
 
-        if (!$properties->delete()) {
+        $this->properties = $properties;
+        return true;
+    }
+
+    public function getProperties()
+    {
+        if (!$this->hasProperties()) {
+            return false;
+        }
+
+        return $this->properties->getProperties();
+    }
+
+    protected function deleteAllDocumentProperties()
+    {
+        if (!$this->hasProperties()) {
+            return true;
+        }
+
+        if (!$this->properties->delete()) {
             $this->raiseError(get_class($properties) .'::delete() returned false!');
             return false;
         }
@@ -941,6 +967,12 @@ class DocumentModel extends DefaultModel
 
     public function hasIndices()
     {
+        if (isset($this->indices) &&
+            !empty($this->indices) &&
+            is_a($this->indices, 'Mtlda\Models\DocumentIndicesModel')) {
+            return true;
+        }
+
         if (($hash = $this->getFileHash()) === false) {
             $this->raiseError(__CLASS__ .'::getFileHash() returned false!');
             return false;
@@ -958,7 +990,7 @@ class DocumentModel extends DefaultModel
 
     public function getIndices()
     {
-        if (!isset($this->indices)) {
+        if (!$this->hasIndices()) {
             return false;
         }
 
