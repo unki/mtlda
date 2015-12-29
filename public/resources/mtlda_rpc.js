@@ -62,7 +62,7 @@ function rpc_object_archive(elements, successMethod)
         title[id] = title;
     });
 
-    archive_wnd = show_modal({
+    archive_wnd = show_modal('progress', {
         blurring : true,
         closeable : true,
         header : title,
@@ -70,7 +70,7 @@ function rpc_object_archive(elements, successMethod)
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
-    }, function () {}, '.ui.archive.modal');
+    });
 
     progressbar = $('.ui.modal .image.content .description #progressbar');
 
@@ -276,7 +276,7 @@ function rpc_object_sign(element)
         return false;
     }
 
-    sign_wnd = show_modal({
+    sign_wnd = show_modal('progress', {
         blurring : true,
         closeable : true,
         header : 'MTLDA is signing your document "'+ title + '".',
@@ -286,7 +286,7 @@ function rpc_object_sign(element)
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
-    }, function () {}, '.ui.signer.modal');
+    });
 
     progressbar = $('.ui.modal .image.content .description #progressbar');
 
@@ -390,7 +390,7 @@ function rpc_object_scan(element, successMethod)
         return false;
     }
 
-    scan_wnd = show_modal({
+    scan_wnd = show_modal('progress', {
         blurring : true,
         closeable : true,
         allowMultiple : true,
@@ -399,7 +399,7 @@ function rpc_object_scan(element, successMethod)
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
-    }, function () {}, '.ui.scanner.modal');
+    });
 
     progressbar = $('.ui.modal .image.content .description #progressbar');
 
@@ -534,7 +534,7 @@ function rpc_object_delete(elements, successMethod)
         title[id] = title;
     });
 
-    del_wnd = show_modal({
+    del_wnd = show_modal('progress', {
         blurring : true,
         closeable : true,
         header : title,
@@ -542,7 +542,7 @@ function rpc_object_delete(elements, successMethod)
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
-    }, function () {}, '.ui.delete.modal');
+    });
 
     progressbar = $('.ui.modal .image.content .description #progressbar');
 
@@ -631,7 +631,7 @@ function rpc_mail_import(element)
         return false;
     }
 
-    import_wnd = show_modal({
+    import_wnd = show_modal('progress', {
         blurring : true,
         closeable : true,
         header : 'MTLDA is importing documents from mailbox.',
@@ -639,7 +639,7 @@ function rpc_mail_import(element)
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
-    }, function () {}, '.ui.import.modal');
+    });
 
     progressbar = $('.ui.import.modal .image.content .description #progressbar');
 
