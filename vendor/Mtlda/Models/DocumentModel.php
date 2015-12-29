@@ -969,7 +969,9 @@ class DocumentModel extends DefaultModel
     {
         if (isset($this->indices) &&
             !empty($this->indices) &&
-            is_a($this->indices, 'Mtlda\Models\DocumentIndicesModel')) {
+            is_a($this->indices, 'Mtlda\Models\DocumentIndicesModel') &&
+            count($this->indices->items) > 0
+        ) {
             return true;
         }
 
@@ -985,6 +987,11 @@ class DocumentModel extends DefaultModel
         }
 
         $this->indices = $indices;
+
+        if (count($this->indices->items) <= 0) {
+            return false;
+        }
+
         return true;
     }
 
