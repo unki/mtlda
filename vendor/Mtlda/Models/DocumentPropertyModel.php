@@ -26,37 +26,10 @@ class DocumentPropertyModel extends DefaultModel
     public $fields = array(
         'dp_idx' => 'integer',
         'dp_guid' => 'string',
-        'dp_document_idx' => 'integer',
-        'dp_document_guid' => 'string',
+        'dp_file_hash' => 'string',
         'dp_property' => 'string',
         'dp_value' => 'string',
     );
-
-    public function setDocumentIdx($idx)
-    {
-        global $mtlda;
-
-        if (!isset($idx) || empty($idx)) {
-            $mtlda->raiseError(__METHOD__ .'(), \$idx needs to be set!');
-            return false;
-        }
-
-        $this->dp_document_idx = $idx;
-        return true;
-    }
-
-    public function setDocumentGuid($guid)
-    {
-        global $mtlda;
-
-        if (!isset($guid) || empty($guid)) {
-            $mtlda->raiseError(__METHOD__ .'(), \$guid needs to be set!');
-            return false;
-        }
-
-        $this->dp_document_guid = $guid;
-        return true;
-    }
 
     public function setDocumentProperty($property)
     {
@@ -83,27 +56,6 @@ class DocumentPropertyModel extends DefaultModel
         $this->dp_value = $value;
         return true;
     }
-    public function getDocumentIdx()
-    {
-        global $mtlda;
-
-        if (!isset($this->dp_document_idx)) {
-            return false;
-        }
-
-        return $this->dp_document_idx;
-    }
-
-    public function getDocumentGuid()
-    {
-        global $mtlda;
-
-        if (!isset($this->dp_document_guid)) {
-            return false;
-        }
-
-        return $this->dp_document_guid;
-    }
 
     public function getDocumentProperty()
     {
@@ -125,6 +77,26 @@ class DocumentPropertyModel extends DefaultModel
         }
 
         return $this->dp_value;
+    }
+
+    public function setFileHash($hash)
+    {
+        if (!isset($hash) || empty($hash)) {
+            $this->raiseError(__METHOD__ .'(), \$hash needs to be set!');
+            return false;
+        }
+
+        $this->dp_file_hash = $hash;
+        return true;
+    }
+
+    public function getFileHash()
+    {
+        if (!isset($this->dp_file_hash)) {
+            return false;
+        }
+
+        return $this->dp_file_hash;
     }
 }
 
