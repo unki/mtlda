@@ -83,8 +83,22 @@
 load_datepickers("queue");
 init_dropdowns();
 $("a.scan.document").click(function () {
-   rpc_object_scan($(this), function () {
+   $('#archiver_modal_window')
+      .modal('setting', { closable: false })
+      .removeClass('active')
+      .modal('refresh');
+   $('#archiver_modal_window').addClass('blurring');
+   $('#archiver_modal_window .ui.dimmer').addClass('active');
+   return rpc_object_scan($(this), function (scan_wnd) {
+      $('#archiver_modal_window .ui.dimmer').removeClass('active');
+      $('#archiver_modal_window').removeClass('blurring');
+      $('#archiver_modal_window')
+         .modal('setting', { closable: true })
+         .addClass('active')
+         .modal('refresh');
+      scan_wnd.modal('hide');
       archiver_window($('button#next_button'), 2);
+      return true;
    });
 });
 --></script>
