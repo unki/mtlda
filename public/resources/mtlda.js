@@ -201,11 +201,11 @@ function show_modal(type, settings, id, do_function, modalclass)
         wnd.find('.image.content .description p').html(settings.content);
     }
 
-    if (settings.closeable === undefined) {
-        settings.closeable = true;
+    if (settings.closable === undefined) {
+        settings.closable = true;
     }
 
-    if (!settings.closeable !== undefined) {
+    if (settings.closable !== undefined && !settings.closable) {
         wnd.find('i.close.icon').detach();
     } else {
         wnd.find('i.close.icon').appendTo(wnd);
@@ -264,7 +264,7 @@ function show_modal(type, settings, id, do_function, modalclass)
 
     var modal = wnd
         .modal({
-            closable   : settings.closeable,
+            closable   : settings.closable,
             onDeny     : settings.onDeny,
             onApprove  : settings.onApprove,
             onHidden   : settings.onHidden,
