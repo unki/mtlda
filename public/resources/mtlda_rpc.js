@@ -391,7 +391,7 @@ function rpc_object_scan(element, successMethod)
         icon : 'wait icon',
         hasActions : false,
         allowMultiple : true,
-        closeable: false,
+        closable: false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
     });
