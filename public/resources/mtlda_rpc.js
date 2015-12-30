@@ -396,6 +396,7 @@ function rpc_object_scan(element, successMethod)
         header : 'MTLDA is scanning your document "'+ title + '".',
         icon : 'wait icon',
         hasActions : false,
+        allowMultiple : true,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
     });
