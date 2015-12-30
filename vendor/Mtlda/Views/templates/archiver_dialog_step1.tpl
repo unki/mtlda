@@ -2,7 +2,7 @@
  <div class="inline fields">
   <div class="field">
    <label>Document Title</label>
-   <input type="text" name="queue_title" value="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-action="update" data-model="queueitem" data-key="queue_title">
+   <input type="text" name="queue_title" value="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()|regex_replace:'/\.([a-zA-Z]+)$/':''|replace:'_':' '}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-action="update" data-model="queueitem" data-key="queue_title">
   </div>
   <div class="field">
    <button class="circular ui icon button save {if !$item->hasTitle()}red shape{/if}" type="submit"><i class="save icon"></i></button>
