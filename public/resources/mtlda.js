@@ -252,6 +252,10 @@ function show_modal(type, settings, id, do_function, modalclass)
         settings.observeChanges = false;
     }
 
+    if (settings.allowMultiple === undefined) {
+        settings.allowMultiple = false;
+    }
+
     if (do_function === undefined) {
         do_function = function () {
             return true;
@@ -267,6 +271,7 @@ function show_modal(type, settings, id, do_function, modalclass)
             blurring   : settings.blurring,
             detachable : settings.detachable,
             observeChanges : settings.observeChanges,
+            allowMultiple : settings.allowMultiple,
         })
         .modal('show')
         .on('click.modal', do_function);
