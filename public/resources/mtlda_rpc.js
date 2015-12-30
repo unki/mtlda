@@ -62,7 +62,7 @@ function rpc_object_archive(elements, successMethod)
         title[id] = title;
     });
 
-    archive_wnd = show_modal('progress', {
+    var archive_wnd = show_modal('progress', {
         header : title,
         icon : 'wait icon',
         hasActions : false,
@@ -274,7 +274,7 @@ function rpc_object_sign(element)
         return false;
     }
 
-    sign_wnd = show_modal('progress', {
+    var sign_wnd = show_modal('progress', {
         header : 'MTLDA is signing your document "'+ title + '".',
         icon : 'wait icon',
         /*icon : 'icons',
@@ -386,7 +386,7 @@ function rpc_object_scan(element, successMethod)
         return false;
     }
 
-    scan_wnd = show_modal('progress', {
+    var scan_wnd = show_modal('progress', {
         header : 'MTLDA is scanning your document "'+ title + '".',
         icon : 'wait icon',
         hasActions : false,
@@ -455,11 +455,10 @@ function rpc_object_scan(element, successMethod)
 
         progressbar.removeClass('active').addClass('success');
 
-        scan_wnd.modal('hide');
         mbus.unsubscribe('scanner-replies-handler');
 
         if (successMethod !== undefined) {
-            return successMethod();
+            return successMethod(scan_wnd);
         }
 
         location.reload();
@@ -530,7 +529,7 @@ function rpc_object_delete(elements, successMethod)
         title[id] = title;
     });
 
-    del_wnd = show_modal('progress', {
+    var del_wnd = show_modal('progress', {
         header : 'Deleting...',
         icon : 'remove icon',
         hasActions : false,
@@ -625,7 +624,7 @@ function rpc_mail_import(element)
         return false;
     }
 
-    import_wnd = show_modal('progress', {
+    var import_wnd = show_modal('progress', {
         header : 'MTLDA is importing documents from mailbox.',
         icon : 'wait icon',
         hasActions : false,
