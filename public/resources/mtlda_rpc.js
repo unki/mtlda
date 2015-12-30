@@ -63,8 +63,6 @@ function rpc_object_archive(elements, successMethod)
     });
 
     archive_wnd = show_modal('progress', {
-        blurring : true,
-        closeable : true,
         header : title,
         icon : 'wait icon',
         hasActions : false,
@@ -277,8 +275,6 @@ function rpc_object_sign(element)
     }
 
     sign_wnd = show_modal('progress', {
-        blurring : true,
-        closeable : true,
         header : 'MTLDA is signing your document "'+ title + '".',
         icon : 'wait icon',
         /*icon : 'icons',
@@ -391,12 +387,11 @@ function rpc_object_scan(element, successMethod)
     }
 
     scan_wnd = show_modal('progress', {
-        blurring : true,
-        closeable : true,
         header : 'MTLDA is scanning your document "'+ title + '".',
         icon : 'wait icon',
         hasActions : false,
         allowMultiple : true,
+        closeable: false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
     });
@@ -536,8 +531,6 @@ function rpc_object_delete(elements, successMethod)
     });
 
     del_wnd = show_modal('progress', {
-        blurring : true,
-        closeable : true,
         header : 'Deleting...',
         icon : 'remove icon',
         hasActions : false,
@@ -633,8 +626,6 @@ function rpc_mail_import(element)
     }
 
     import_wnd = show_modal('progress', {
-        blurring : true,
-        closeable : true,
         header : 'MTLDA is importing documents from mailbox.',
         icon : 'wait icon',
         hasActions : false,
