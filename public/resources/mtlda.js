@@ -344,7 +344,6 @@ function delete_object(element)
     }
 
     var del_wnd = show_modal('confirm', {
-        closeable : true,
         header : title,
         icon : 'red remove icon',
         content : text,
@@ -454,7 +453,6 @@ function archive_object(element)
         (elements.length == 1 && !element.hasClass('advanced'))
     ) {
         show_modal('confirm', {
-            closeable : true,
             header : title,
             content : text,
             icon : 'red archive icon',
@@ -536,8 +534,6 @@ function archive_object(element)
 function trigger_import_run()
 {
     import_wnd = show_modal('progress', {
-        blurring : true,
-        closeable : true,
         header : 'Check Incoming Directory',
         icon : 'wait icon',
         hasActions : false,
