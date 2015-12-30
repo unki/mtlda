@@ -40,7 +40,7 @@
   <!-- MTLDA JavaScript -->
   <script type="text/javascript" src="{$app_web_path}/resources/mtlda.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/mtlda_rpc.js"></script>
-  <script type="text/javascript" src="{$app_web_path}/resources/mtlda_editable.js"></script>
+  <script type="text/javascript" src="{$app_web_path}/resources/thallium_editable.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/thallium_messagebus.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/thallium_message.js"></script>
   <!-- MTLDA CSS -->
