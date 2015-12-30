@@ -114,8 +114,7 @@ class SearchController extends DefaultController
                 LEFT JOIN
                     TABLEPREFIXdocument_properties dp
                 ON (
-                    a.document_idx=dp.dp_document_idx AND
-                    a.document_guid=dp.dp_document_guid
+                    a.document_file_hash=dp.dp_file_hash
                 )
                 WHERE (
                     a.document_title LIKE :searchwild
