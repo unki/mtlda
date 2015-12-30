@@ -26,8 +26,34 @@
 </form>
 <button class="ui button" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
 <script type="text/javascript"><!--
-$('.archiver.modal form.ui.form').on('submit', function () {
-   rpc_object_update($(this));
+$('#archiver_modal_window form.ui.form').on('submit', function () {
+   rpc_object_update($(this), function (element, data) {
+      if (element === undefined || !element) {
+         throw 'lost element!';
+         return false;
+      }
+      if (data != "ok") {
+         return true;
+      }
+      var savebutton = element.find('button.save');
+      savebutton.transition('tada').removeClass('red shape');
+      return true;
+   });
    return false;
+});
+$('#archiver_modal_window form.ui.form input').on('input', function () {
+   var form = $(this).closest('form');
+   if (form === undefined) {
+      return true;
+   }
+   var savebutton = form.find('button.save');
+   if (savebutton === undefined) {
+      return true;
+   }
+   if (!savebutton.hasClass('red shape')) {
+      savebutton.addClass('red shape');
+      savebutton.transition('bounce');
+   }
+   return true;
 });
 --></script>
