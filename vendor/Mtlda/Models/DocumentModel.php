@@ -1234,7 +1234,7 @@ class DocumentModel extends DefaultModel
 
     public function hasTitle()
     {
-        if (!isset($this->document_title)) {
+        if (!isset($this->document_title) || empty($this->document_title)) {
             return false;
         }
 
