@@ -122,11 +122,10 @@ class InstallerController extends \Thallium\Controllers\InstallerController
             $table_sql = "CREATE TABLE `TABLEPREFIXdocument_indices` (
                 `di_idx` int(11) NOT NULL auto_increment,
                 `di_guid` varchar(255) default NULL,
-                `di_document_idx` int(11) NOT NULL,
-                `di_document_guid` varchar(255) default NULL,
+                `di_file_hash` varchar(255) DEFAULT NULL
                 `di_text` TEXT default NULL,
                 PRIMARY KEY  (`di_idx`),
-                KEY `document_indices` (`di_document_idx`,`di_document_guid`),
+                KEY `file_hash` (di_file_hash),
                 FULLTEXT KEY `text` (`di_text`)
                 )
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
@@ -141,12 +140,11 @@ class InstallerController extends \Thallium\Controllers\InstallerController
             $table_sql = "CREATE TABLE `TABLEPREFIXdocument_properties` (
                 `dp_idx` int(11) NOT NULL auto_increment,
                 `dp_guid` varchar(255) default NULL,
-                `dp_document_idx` int(11) NOT NULL,
-                `dp_document_guid` varchar(255) default NULL,
+                `dp_file_hash` varchar(255) default NULL,
                 `dp_property` varchar(255) default NULL,
                 `dp_value` varchar(255) default NULL,
                 PRIMARY KEY  (`dp_idx`),
-                KEY `document_properties` (`dp_document_idx`,`dp_document_guid`)
+                KEY `file_hash` (dp_file_hash),
                 )
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
@@ -917,10 +915,10 @@ class InstallerController extends \Thallium\Controllers\InstallerController
     {
         global $db;
 
-        /*if ($db->checkColumnExists('TABLEPREFIXdocument_indices', 'di_file_hash')) {
+        if ($db->checkColumnExists('TABLEPREFIXdocument_indices', 'di_file_hash')) {
             $db->setDatabaseSchemaVersion(32);
             return true;
-        }*/
+        }
 
         $result = $db->query(
             "ALTER TABLE
@@ -951,7 +949,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                         di.di_document_guid LIKE a.document_guid
                 )"
         );
-        
+
         if ($result === false) {
             $this->raiseError(__METHOD__ ." failed!");
             return false;
@@ -976,6 +974,72 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         }
 
         $db->setDatabaseSchemaVersion(32);
+        return true;
+    }
+
+    protected function upgradeApplicationDatabaseSchemaV33()
+    {
+        global $db;
+
+        if ($db->checkColumnExists('TABLEPREFIXdocument_properties', 'dp_file_hash')) {
+            $db->setDatabaseSchemaVersion(33);
+            return true;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXdocument_properties
+            ADD COLUMN
+                `dp_file_hash` varchar(255) DEFAULT NULL
+            AFTER
+                dp_document_guid"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $result = $db->query(
+            "UPDATE
+                TABLEPREFIXdocument_properties dp
+            SET
+                dp.dp_file_hash=(
+                    SELECT
+                        a.document_file_hash
+                    FROM
+                        TABLEPREFIXarchive a
+                    WHERE
+                        dp.dp_document_idx LIKE a.document_idx
+                    AND
+                        dp.dp_document_guid LIKE a.document_guid
+                )"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXdocument_properties
+            DROP KEY
+                document_properties,
+            ADD KEY
+                `file_hash` (dp_file_hash),
+            DROP COLUMN
+                dp_document_idx,
+            DROP COLUMN
+                dp_document_guid"
+        );
+
+        if ($result === false) {
+            $this->raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(33);
         return true;
     }
 }
