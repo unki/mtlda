@@ -44,7 +44,7 @@ $(document).ready(function () {
         rpc_object_scan($(this));
     });
     $('.inline.editable.edit.link').click(function () {
-        inlineobj = new MtldaInlineEditable($(this));
+        inlineobj = new ThalliumInlineEditable($(this));
         inlineobj.toggle();
     });
    /*$("table td a.clone").click(function () {
