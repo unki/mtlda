@@ -23,7 +23,7 @@ $(document).ready(function() {
    $('#truncate_link').click(function() {
 
       show_modal('confirm', {
-         closeable : false,
+         closable : false,
          header : 'Truncate Data',
          icon : 'warning icon',
          content : 'This will delete all data and settings from database!<br />\nAlso all archived files in their derivates will be removed!<br /><br />\n\nAre you sure? There is NO undo!',
