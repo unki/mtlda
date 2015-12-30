@@ -1,8 +1,8 @@
 /**
- * This file is part of MTLDA.
+ * This file is part of Thallium.
  *
- * MTLDA, a web-based document archive.
- * Copyright (C) <2015>  <Andreas Unterkircher>
+ * Thallium, a PHP-based framework for web applications.
+ * Copyright (C) <2015> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -15,7 +15,7 @@
  * GNU Affero General Public License for more details.
  */
 
-var MtldaInlineEditable = function (id) {
+var ThalliumInlineEditable = function (id) {
 
     this.element = id;
 
@@ -60,7 +60,7 @@ var MtldaInlineEditable = function (id) {
     return true;
 };
 
-MtldaInlineEditable.prototype.validate = function () {
+ThalliumInlineEditable.prototype.validate = function () {
 
     var ref = this.element.attr('data-inline-name');
 
@@ -86,7 +86,7 @@ MtldaInlineEditable.prototype.validate = function () {
     this.type = type;
 };
 
-MtldaInlineEditable.prototype.prepare = function () {
+ThalliumInlineEditable.prototype.prepare = function () {
 
     if ((origval = this.getContentAttribute('data-orig-value')) === undefined) {
         throw "getContentAttribute() returned false!";
@@ -103,7 +103,7 @@ MtldaInlineEditable.prototype.prepare = function () {
     return true;
 };
 
-MtldaInlineEditable.prototype.setOriginalValue = function (value) {
+ThalliumInlineEditable.prototype.setOriginalValue = function (value) {
 
     if (value === undefined) {
         throw "Parameter is not set!";
@@ -113,7 +113,7 @@ MtldaInlineEditable.prototype.setOriginalValue = function (value) {
     this._originalValue = value;
 };
 
-MtldaInlineEditable.prototype.getOriginalValue = function () {
+ThalliumInlineEditable.prototype.getOriginalValue = function () {
 
     if (this._originalValue === undefined) {
         throw "_originalValue not set!";
@@ -123,7 +123,7 @@ MtldaInlineEditable.prototype.getOriginalValue = function () {
     return this._originalValue;
 };
 
-MtldaInlineEditable.prototype.getContentAttribute = function (attr) {
+ThalliumInlineEditable.prototype.getContentAttribute = function (attr) {
 
     if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
@@ -138,7 +138,7 @@ MtldaInlineEditable.prototype.getContentAttribute = function (attr) {
     return value;
 };
 
-MtldaInlineEditable.prototype.setDomReference = function (element) {
+ThalliumInlineEditable.prototype.setDomReference = function (element) {
 
     if (element === undefined) {
         throw "Parameter must reference an element name!";
@@ -149,7 +149,7 @@ MtldaInlineEditable.prototype.setDomReference = function (element) {
     return true;
 };
 
-MtldaInlineEditable.prototype.getDomReference = function () {
+ThalliumInlineEditable.prototype.getDomReference = function () {
 
     if (this.element === undefined) {
         return false;
@@ -158,7 +158,7 @@ MtldaInlineEditable.prototype.getDomReference = function () {
     return this.element;
 };
 
-MtldaInlineEditable.prototype.getNameSelector = function () {
+ThalliumInlineEditable.prototype.getNameSelector = function () {
 
     if ((name = this.getDomReference()) === undefined) {
         throw "Can not continue without knowning the name!";
@@ -168,7 +168,7 @@ MtldaInlineEditable.prototype.getNameSelector = function () {
     return '[name="' + name + '"]';
 };
 
-MtldaInlineEditable.prototype.getContentSelector = function () {
+ThalliumInlineEditable.prototype.getContentSelector = function () {
 
     if ((name = this.getNameSelector()) === undefined) {
         throw "getNameSelector() returned false!";
@@ -178,7 +178,7 @@ MtldaInlineEditable.prototype.getContentSelector = function () {
     return name + '.inline.editable.content';
 }
 
-MtldaInlineEditable.prototype.getContentValue = function () {
+ThalliumInlineEditable.prototype.getContentValue = function () {
 
     if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
@@ -193,11 +193,11 @@ MtldaInlineEditable.prototype.getContentValue = function () {
     return cur_val;
 }
 
-MtldaInlineEditable.prototype.getLastUsedValue = function () {
+ThalliumInlineEditable.prototype.getLastUsedValue = function () {
     return this._lastUsedValue;
 }
 
-MtldaInlineEditable.prototype.toggle = function () {
+ThalliumInlineEditable.prototype.toggle = function () {
 
     if ((name_select = this.getNameSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
@@ -216,7 +216,7 @@ MtldaInlineEditable.prototype.toggle = function () {
     return true;
 };
 
-MtldaInlineEditable.prototype.showForm = function () {
+ThalliumInlineEditable.prototype.showForm = function () {
 
     if ((name_select = this.getNameSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
@@ -283,7 +283,7 @@ MtldaInlineEditable.prototype.showForm = function () {
     }.bind(this));
 };
 
-MtldaInlineEditable.prototype.showContent = function () {
+ThalliumInlineEditable.prototype.showContent = function () {
 
     if ((name_select = this.getNameSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
@@ -328,7 +328,7 @@ MtldaInlineEditable.prototype.showContent = function () {
     $(name_select + '.inline.editable.edit.link').show();
 };
 
-MtldaInlineEditable.prototype.touch = function () {
+ThalliumInlineEditable.prototype.touch = function () {
 
     if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
@@ -364,7 +364,7 @@ MtldaInlineEditable.prototype.touch = function () {
 
 };
 
-MtldaInlineEditable.prototype.untouch = function () {
+ThalliumInlineEditable.prototype.untouch = function () {
 
     if ((content_select = this.getContentSelector()) === undefined) {
         throw "Can not continue without knowning the name!";
@@ -384,7 +384,7 @@ MtldaInlineEditable.prototype.untouch = function () {
     return false;
 };
 
-MtldaInlineEditable.prototype.touched = function () {
+ThalliumInlineEditable.prototype.touched = function () {
 
     if (this._touched == undefined) {
         return false
@@ -397,7 +397,7 @@ MtldaInlineEditable.prototype.touched = function () {
     return true;
 };
 
-MtldaInlineEditable.prototype.setSaved = function (value) {
+ThalliumInlineEditable.prototype.setSaved = function (value) {
 
     if (value == undefined) {
         this._saved = true;
@@ -413,7 +413,7 @@ MtldaInlineEditable.prototype.setSaved = function (value) {
     return true;
 };
 
-MtldaInlineEditable.prototype.isSaved = function () {
+ThalliumInlineEditable.prototype.isSaved = function () {
 
     if (!this._saved) {
         return false;
@@ -422,7 +422,7 @@ MtldaInlineEditable.prototype.isSaved = function () {
     return true;
 };
 
-MtldaInlineEditable.prototype.save = function () {
+ThalliumInlineEditable.prototype.save = function () {
 
     /* if data hasn't change, just swap views */
     if (this.getContentValue() == this.getLastUsedValue()) {
@@ -471,8 +471,7 @@ MtldaInlineEditable.prototype.save = function () {
     id = safe_string(id);
     value = safe_string(value);
 
-    if (
-        window.location.pathname != undefined &&
+    if (window.location.pathname != undefined &&
         window.location.pathname != '' &&
         !window.location.pathname.match(/\/$/)
     ) {
