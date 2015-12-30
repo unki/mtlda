@@ -733,7 +733,7 @@ function archiver_window(element, step)
 
     $('.ui.steps .active.step')
         .removeClass('active');
-    $('.ui.steps #step_'+step)
+    $('.ui.steps #archiver_step_'+step)
         .removeClass('disabled')
         .addClass('active');
 
@@ -983,7 +983,7 @@ function splitter_window(element, step)
 
     $('.ui.steps .active.step')
         .removeClass('active');
-    $('.ui.steps #step_'+step)
+    $('.ui.steps #splitter_step_'+step)
         .removeClass('disabled')
         .addClass('active');
 
