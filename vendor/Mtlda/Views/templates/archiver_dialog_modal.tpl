@@ -45,7 +45,7 @@
  </div>
 </div>
 <script type="text/javascript"><!--
-$('.ui.archiver.steps a.step.archiver').on('click', ':not(.disabled)', function () {
+$('.ui.archiver.steps a.step').on('click', ':not(.disabled)', function () {
    link = eval($(this).closest('a.step'));
    id = $(link).attr('id');
    if (id === undefined || id == '') {
