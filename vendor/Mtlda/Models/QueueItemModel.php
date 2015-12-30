@@ -602,7 +602,7 @@ class QueueItemModel extends DefaultModel
 
     public function hasTitle()
     {
-        if (!isset($this->queue_title)) {
+        if (!isset($this->queue_title) || empty($this->queue_title)) {
             return false;
         }
 
