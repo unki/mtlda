@@ -5,10 +5,9 @@
    <input type="text" name="queue_title" value="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-action="update" data-model="queueitem" data-key="queue_title">
   </div>
   <div class="field">
-   <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
-  </div>
-  <div class="field">
+   <button class="circular ui icon button save {if !$item->hasTitle()}red shape{/if}" type="submit"><i class="save icon"></i></button>
    <button class="circular ui icon button cancel" type="reset"><i class="cancel icon"></i></button>
+   <button class="circular ui icon button" onclick="$('input[name=queue_title]').val($('input[name=queue_file_name]').val()); return false;" title="Copy filename"><i class="copy icon"></i></button>
   </div>
  </div>
 </form>
@@ -20,9 +19,8 @@
   </div>
   <div class="field">
    <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
-  </div>
-  <div class="field">
    <button class="circular ui icon button cancel" type="reset"><i class="cancel icon"></i></button>
+   <button class="circular ui icon button" onclick="$('input[name=queue_file_name]').val($('input[name=queue_title]').val()); return false;" title="Copy filename"><i class="copy icon"></i></button>
   </div>
  </div>
 </form>
