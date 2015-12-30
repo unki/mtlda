@@ -633,10 +633,10 @@ function init_table_filter()
         } catch (e) {
             regexp = safe_string(filter_value);
         }
-        $('.filterable').each(function () {
+        $('table#datatable .filterable').each(function () {
             $(this).closest('tr').removeClass('filter matches');
         });
-        $('.filterable').each(function () {
+        $('table#datatable .filterable').each(function () {
             content = $(this).html();
             if (filter_value === undefined ||
                 filter_value == "" ||
@@ -751,6 +751,7 @@ function archiver_window(element, step)
         eval($('.archiver.modal .ui.steps .step').attr('data-modal-title', title));
         eval($('.archiver.modal .ui.steps .step').attr('data-id', id));
         eval($('.archiver.modal .ui.steps .step').attr('data-guid', guid));
+        return true;
     });
 }
 
@@ -872,12 +873,12 @@ function load_datepickers(mode)
     $('#'+ mode +'_custom_date_form').on('submit', function () {
         rpc_object_update($(this), function (data) {
             if (data != "ok") {
-                return;
+                return true;
             }
             $('#'+ mode +'_custom_date_form button.save')
                 .transition('tada')
                 .removeClass('red shape');
-            return;
+            return true;
         });
         return false;
     });
@@ -885,12 +886,12 @@ function load_datepickers(mode)
     $('#'+ mode +'_expiry_date_form').on('submit', function () {
         rpc_object_update($(this), function (data) {
             if (data != "ok") {
-                return;
+                return true;
             }
             $('#'+ mode +'_expiry_date_form button.save')
                 .transition('tada')
                 .removeClass('red shape');
-            return;
+            return true;
         });
         return false;
     });
@@ -1000,6 +1001,7 @@ function splitter_window(element, step)
         eval($('.splitter.modal .ui.steps .step').attr('data-modal-title', title));
         eval($('.splitter.modal .ui.steps .step').attr('data-id', id));
         eval($('.splitter.modal .ui.steps .step').attr('data-guid', guid));
+        return true;
     });
 }
 
