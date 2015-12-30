@@ -640,6 +640,12 @@ class QueueView extends DefaultView
             if (($parsed = date_parse($date)) === false) {
                 return false;
             }
+            if (isset($parsed['errors']) &&
+                is_array($parsed['errors']) &&
+                !empty($parsed['errors'])
+            ) {
+                return false;
+            }
             if ($parsed['year'] < 1900 || $parsed['year'] > 2100) {
                 return false;
             }
