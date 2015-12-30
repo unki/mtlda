@@ -409,6 +409,11 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
+        if (($hash = $document->getFileHash()) === false) {
+            $this->raiseError(get_class($document).'::getFileHash() returned false!');
+            return false;
+        }
+
         try {
             $pmodel = new \Mtlda\Models\DocumentPropertyModel;
         } catch (\Exception $e) {
@@ -416,13 +421,8 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
-        if (!$pmodel->setDocumentIdx($document->getId())) {
-            $this->raiseError(get_class($pmodel) .'::setDocumentIdx() returned false!');
-            return false;
-        }
-
-        if (!$pmodel->setDocumentGuid($document->getGuid())) {
-            $this->raiseError(get_class($pmodel) .'::setDocumentGuid() returned false!');
+        if (!$pmodel->setFileHash($hash)) {
+            $this->raiseError(get_class($pmodel) .'::setFileHash() returned false!');
             return false;
         }
 
