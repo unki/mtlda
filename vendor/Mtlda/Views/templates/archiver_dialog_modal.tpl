@@ -1,4 +1,5 @@
-<div class="ui long fullscreen modal queue archiver">
+<div class="ui long fullscreen modal" id="archiver_modal_window">
+ <div class="ui inverted dimmer"></div>
  <i class="close icon"></i>
  <div class="header window title">Archiving</div>
  <div class="image content">
