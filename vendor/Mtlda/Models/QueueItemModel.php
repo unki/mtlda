@@ -42,6 +42,7 @@ class QueueItemModel extends DefaultModel
     protected $items = array();
     private $keywords;
     private $indices;
+    private $properties;
 
     public function __construct($id = null, $guid = null)
     {
@@ -986,6 +987,37 @@ class QueueItemModel extends DefaultModel
         }
 
         return $this->indices->getIndices();
+    }
+
+    public function hasProperties()
+    {
+        if (isset($this->properties) &&
+            !empty($this->properties) &&
+            is_a($this->properties, 'Mtlda\Models\DocumentPropertiesModel')
+        ) {
+            return true;
+        }
+
+        try {
+            $properties = new \Mtlda\Models\DocumentPropertiesModel(
+                $this->getId(),
+                $this->getGuid()
+            );
+        } catch (\Exception $e) {
+            return false;
+        }
+
+        $this->properties = $properties;
+        return true;
+    }
+
+    public function getProperties()
+    {
+        if (!$this->hasProperties()) {
+            return false;
+        }
+
+        return $this->properties->getProperties();
     }
 
     protected function deleteAllDocumentIndices()
