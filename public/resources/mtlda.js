@@ -871,26 +871,24 @@ function load_datepickers(mode)
     });
 
     $('#'+ mode +'_custom_date_form').on('submit', function () {
-        rpc_object_update($(this), function (data) {
+        rpc_object_update($(this), function (element, data) {
             if (data != "ok") {
                 return true;
             }
-            $('#'+ mode +'_custom_date_form button.save')
-                .transition('tada')
-                .removeClass('red shape');
+            savebutton = element.find('button.save');
+            savebutton.transition('tada').removeClass('red shape');
             return true;
         });
         return false;
     });
 
     $('#'+ mode +'_expiry_date_form').on('submit', function () {
-        rpc_object_update($(this), function (data) {
+        rpc_object_update($(this), function (element, data) {
             if (data != "ok") {
                 return true;
             }
-            $('#'+ mode +'_expiry_date_form button.save')
-                .transition('tada')
-                .removeClass('red shape');
+            savebutton = element.find('button.save');
+            savebutton.transition('tada').removeClass('red shape');
             return true;
         });
         return false;
