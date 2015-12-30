@@ -200,8 +200,7 @@ function rpc_object_update(element, successMethod)
     id = safe_string(id);
     value = safe_string(value);
 
-    if (
-        window.location.pathname != undefined &&
+    if (window.location.pathname != undefined &&
         window.location.pathname != '' &&
         !window.location.pathname.match(/\/$/)
     ) {
@@ -244,7 +243,7 @@ function rpc_object_update(element, successMethod)
             if (successMethod === undefined) {
                 return;
             }
-            successMethod(data);
+            successMethod(element, data);
             return;
         }
     });
