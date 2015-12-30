@@ -1,4 +1,4 @@
-<div class="ui long fullscreen modal queue splitter">
+<div class="ui long fullscreen modal" id="splitter_modal_window">
  <i class="close icon"></i>
  <div class="header window title">Splitting</div>
  <div class="image content">
