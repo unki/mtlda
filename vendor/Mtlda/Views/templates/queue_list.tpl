@@ -85,7 +85,7 @@
       </div>
      </div>
     </form>
-   </div><br />
+   </div>&nbsp;(
 {/if}
    <a name="filename_{$item->getId()}" class="filterable inline editable content" data-orig-value="{$item->getFileName()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getFileName()}</a>
    <a name="filename_{$item->getId()}" class="inline editable edit link" data-inline-name="filename_{$item->getId()}"><i class="tiny edit icon"></i></a>
@@ -103,6 +103,9 @@
      </div>
     </form>
    </div>
+{if $item->hasTitle()}
+)
+{/if}
   </td>
   <td class="filterable" data-sort-value="{$item->getFileSize()}">{$item->getFileSize()|filesize}</td>
   <td class="filterable archive state" id="archive-state-{$item->getId()}">{$item->getState()}</td>
