@@ -201,7 +201,9 @@ class ArchiveController extends DefaultController
             }
         }
 
-        if ($config->isPdfIndexingEnabled()) {
+        if ($config->isPdfIndexingEnabled() &&
+            ($document->hasIndices() || !$document->hasProperties())
+        ) {
             if (!$mbus->sendMessageToClient('archive-reply', 'Indexing document content.', '60%')) {
                 $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
                 return false;
