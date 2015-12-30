@@ -29,65 +29,52 @@ class DocumentPropertiesModel extends DefaultModel
     public $avail_items = array();
     public $items = array();
 
-    public function __construct($id = null, $guid = null)
+    public function __construct($hash = null)
     {
-        global $mtlda;
+        if (!$hash) {
+            parent::__construct();
+            return true;
+        }
 
-        parent::__construct(null);
-
-        if (!$this->load($id, $guid)) {
-            $mtlda->raiseError(__CLASS__ .', load() returned false!', true);
+        if (!$this->load($hash)) {
+            $this->raiseError(__CLASS__ .', load() returned false!', true);
             return false;
         }
 
         return true;
     }
 
-    public function load($id = null, $guid = null)
+    public function load($hash)
     {
-        global $mtlda, $db;
+        global $db;
+
+        if (!$hash) {
+            return parent::load();
+        }
 
         $idx_field = $this->column_name ."_idx";
-        $params = array();
 
         $sql =
             "SELECT
                 {$idx_field}
             FROM
-                TABLEPREFIX{$this->table_name}";
-
-        if (isset($id) && !empty($id)) {
-            $sql.= " WHERE {$this->column_name}_document_idx LIKE ?";
-            array_push($params, $id);
-        }
-
-        if (isset($id) && !empty($id) &&
-            isset($guid) && !empty($guid)
-        ) {
-            $sql.= 'AND';
-        } else {
-            $sql.= ' WHERE ';
-        }
-
-        if (isset($guid) && !empty($guid)) {
-            $sql.= " {$this->column_name}_document_guid LIKE ?";
-            array_push($params, $guid);
-        }
+                TABLEPREFIX{$this->table_name}
+            WHERE
+                {$this->column_name}_file_hash LIKE ?";
 
         if (!($sth = $db->prepare($sql))) {
-            $mtlda->raiseError(get_class($db) .'::prepare() returned false!');
+            $this->raiseError(get_class($db) .'::prepare() returned false!');
             return false;
         }
 
-        if (!($db->execute($sth, $params))) {
+        if (!($db->execute($sth, array($hash)))) {
             $db->freeStatement($sth);
-            $mtlda->raiseError(get_class($db) .'::execute() returned false!');
+            $this->raiseError(get_class($db) .'::execute() returned false!');
             return false;
         }
 
         while ($row = $sth->fetch()) {
             array_push($this->avail_items, $row->$idx_field);
-
             try {
                 $this->items[$row->$idx_field] = new DocumentPropertyModel($row->$idx_field);
             } catch (\Exception $e) {
