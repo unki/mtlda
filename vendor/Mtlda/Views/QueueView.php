@@ -294,6 +294,7 @@ class QueueView extends DefaultView
 
         $tmpl->assign('keywords', $this->keywords->items);
         $tmpl->assign('assigned_keywords', implode(',', $assigned_keywords));
+        $tmpl->assign("item_safe_link", $item->getId() ."-". $item->getGuid());
 
         switch ($step) {
             case 1:
