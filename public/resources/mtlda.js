@@ -423,7 +423,6 @@ function archive_object(element)
     var title = element.attr("data-modal-title");
 
     if (title === undefined || title === "") {
-        console.log(element);
         throw 'No attribute "data-modal-title" found!';
         return false;
     }
@@ -496,10 +495,10 @@ function archive_object(element)
         return true;
     }
 
-    archiver_wnd = $(".ui.fullscreen.modal.queue.archiver");
+    archiver_wnd = $("#archiver_modal_window");
 
     if (archiver_wnd === undefined || archiver_wnd.length < 1) {
-        throw "failed to locate .ui.fullscreen.modal.queue.archiver!";
+        throw "failed to locate #archiver_modal_window!";
         return false;
     }
 
@@ -748,10 +747,10 @@ function archiver_window(element, step)
 
     $.when(rpc_get_content('queue', request_data)).done(function (data) {
         $('#archiver_content').html(data);
-        eval($('.archiver.modal .header.window.title').html(title));
-        eval($('.archiver.modal .ui.steps .step').attr('data-modal-title', title));
-        eval($('.archiver.modal .ui.steps .step').attr('data-id', id));
-        eval($('.archiver.modal .ui.steps .step').attr('data-guid', guid));
+        eval($('#archiver_modal_window .header.window.title').html(title));
+        eval($('#archiver_modal_window .ui.steps.archiver .step').attr('data-modal-title', title));
+        eval($('#archiver_modal_window .ui.steps.archiver .step').attr('data-id', id));
+        eval($('#archiver_modal_window .ui.steps.archiver .step').attr('data-guid', guid));
         return true;
     });
 }
@@ -926,10 +925,10 @@ function split_object(element)
 
     var text = element.attr("data-modal-text");
 
-    splitter_wnd = $(".ui.fullscreen.modal.queue.splitter");
+    splitter_wnd = $("#splitter_modal_window");
 
     if (splitter_wnd === undefined || splitter_wnd.length < 1) {
-        throw "failed to locate .ui.fullscreen.modal.queue.splitter!";
+        throw "failed to locate #splitter_modal_window!";
         return false;
     }
 
@@ -998,10 +997,10 @@ function splitter_window(element, step)
 
     $.when(rpc_get_content('queue', request_data)).done(function (data) {
         $('#splitter_content').html(data);
-        eval($('.splitter.modal .header.window.title').html(title));
-        eval($('.splitter.modal .ui.steps .step').attr('data-modal-title', title));
-        eval($('.splitter.modal .ui.steps .step').attr('data-id', id));
-        eval($('.splitter.modal .ui.steps .step').attr('data-guid', guid));
+        eval($('#splitter_modal_window .header.window.title').html(title));
+        eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-modal-title', title));
+        eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-id', id));
+        eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-guid', guid));
         return true;
     });
 }
