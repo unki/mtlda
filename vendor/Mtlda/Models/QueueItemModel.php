@@ -255,6 +255,16 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
+        if (!$this->deleteAllDocumentIndices()) {
+            $this->raiseError(__CLASS__ .'::deleteAllDocumentIndices() returned false!');
+            return false;
+        }
+
+        if (!$this->deleteAllDocumentProperties()) {
+            $this->raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
+            return false;
+        }
+
         // load StorageController
         $storage = new \Mtlda\Controllers\StorageController;
 
@@ -976,6 +986,34 @@ class QueueItemModel extends DefaultModel
         }
 
         return $this->indices->getIndices();
+    }
+
+    protected function deleteAllDocumentIndices()
+    {
+        if (!$this->hasIndices()) {
+            return true;
+        }
+
+        if (!$this->indices->delete()) {
+            $this->raiseError(get_class($indices) .'::delete() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    protected function deleteAllDocumentProperties()
+    {
+        if (!$this->hasProperties()) {
+            return true;
+        }
+
+        if (!$this->properties->delete()) {
+            $this->raiseError(get_class($properties) .'::delete() returned false!');
+            return false;
+        }
+
+        return true;
     }
 }
 
