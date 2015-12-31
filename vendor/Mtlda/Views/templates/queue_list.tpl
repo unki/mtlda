@@ -43,16 +43,16 @@
      <label></label>
     </div>
    </th>
-   <th>Idx</th>
-   <th>Filename</th>
-   <th>Size</th>
-   <th>State</th>
-   <th>Time</th>
+   <th data-content="Click to sort list">Idx</th>
+   <th data-content="Click to sort list">Filename</th>
+   <th data-content="Click to sort list">Size</th>
+   <th data-content="Click to sort list">State</th>
+   <th data-content="Click to sort list">Time</th>
    <th class="no-sort">
     <div class="two column ui grid">
      <div class="column">Actions</div>
      <div class="column right aligned">
-      <a id="filterbutton"><i class="filter icon"></i></a>
+      <a id="filterbutton" data-content="Filter list"><i class="filter icon"></i></a>
      </div>
     </div>
    </th>
@@ -126,7 +126,7 @@
       <a class="split item edit action link" data-modal-title="Split {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Split {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide"><i class="expand icon"></i>Split</a>
      </div>
     </div>
-    <a id="delete_link_{$item->getId()}" class="delete item ui icon button" data-action-title="Deleting {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-title="Delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm to delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem"><i class="remove circle icon"></i></a>
+    <a id="delete_link_{$item->getId()}" class="delete item ui icon button action link" data-action-title="Deleting {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-title="Delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm to delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Deletes {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}"><i class="remove circle icon"></i></a>
    </div>
   </td>
  </tr>
@@ -136,10 +136,10 @@
   <tr>
    <th colspan="7">
     <div class="ui left floated borderless small menu">
-     <a class="archive item" data-action-title="Archiving selected items" data-modal-title="Archive selected items" data-modal-text="Please confirm that you would like to archive selected items." data-id="selected" data-guid="selected" data-model="queue"><i class="archive icon"></i>Archive selected</a>
-     <a class="delete item" data-action-title="Deleting selected items" data-modal-title="Delete selected items" data-modal-text="Do you really want to delete selected items from queue?" data-id="selected" data-guid="selected" data-model="queue"><i class="remove circle icon"></i>Delete selected</a>
-     <a class="archive item" data-action-title="Archiving all items" data-modal-title="Archive all items" data-modal-text="Please confirm that you would like to archive all items." data-id="all" data-guid="all" data-model="queue"><i class="archive icon"></i>Archive all</a>
-     <a class="delete item" data-action-title="Deleting all items" data-modal-title="Delete all items" data-modal-text="Do you really want to delete all items from queue?" data-id="all" data-guid="all" data-model="queue"><i class="remove circle icon"></i>Delete all</a>
+     <a class="archive item action link" data-action-title="Archiving selected items" data-modal-title="Archive selected items" data-modal-text="Please confirm that you would like to archive selected items." data-id="selected" data-guid="selected" data-model="queue" data-content="Archive selected items"><i class="archive icon"></i>Archive selected</a>
+     <a class="delete item action link" data-action-title="Deleting selected items" data-modal-title="Delete selected items" data-modal-text="Do you really want to delete selected items from queue?" data-id="selected" data-guid="selected" data-model="queue" data-content="Delete selected items"><i class="remove circle icon"></i>Delete selected</a>
+     <a class="archive item action link" data-action-title="Archiving all items" data-modal-title="Archive all items" data-modal-text="Please confirm that you would like to archive all items." data-id="all" data-guid="all" data-model="queue" data-content="Archive all items"><i class="archive icon"></i>Archive all</a>
+     <a class="delete item action link" data-action-title="Deleting all items" data-modal-title="Delete all items" data-modal-text="Do you really want to delete all items from queue?" data-id="all" data-guid="all" data-model="queue" data-content="Delete all items"><i class="remove circle icon"></i>Delete all</a>
     </div>
 {if isset($pager)}
 {include file='pager.tpl' pager=$pager view=queue}
@@ -165,6 +165,6 @@ $(document).ready(function() {
     $('.ui.dropdown.action.link').dropdown({
       preserve: true
     });
-    $('a.action.link').popup();
+    $('a.action.link, table#datatable thead tr th, a#filterbutton').popup();
 });
 --></script>
