@@ -17,10 +17,8 @@
      <input type="text" id="queue_custom_date" name="queue_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="queueitem" data-key="queue_custom_date" data-id="{$item->getId()}" />
     </div>
     <div class="field">
-     <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
-    </div>
-    <div class="field">
-     <button class="circular ui icon button cancel" type="reset"><i class="cancel icon"></i></button>
+     <button class="circular ui icon button save" type="submit" data-content="Save custom date"><i class="save icon"></i></button>
+     <button class="circular ui icon button cancel" type="reset" data-content="Reset custom date"><i class="cancel icon"></i></button>
     </div>
    </div>
 {if isset($has_suggestions) && $has_suggestions}
@@ -44,14 +42,12 @@
      <input type="text" id="queue_expiry_date" name="queue_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="queueitem" data-key="queue_expiry_date" data-id="{$item->getId()}" />
     </div>
     <div class="field">
-     <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
-    </div>
-    <div class="field">
-     <button class="circular ui icon button cancel" type="reset"><i class="cancel icon"></i></button>
+     <button class="circular ui icon button save" type="submit" data-content="Save expiry date"><i class="save icon"></i></button>
+     <button class="circular ui icon button cancel" type="reset" data-content="Reset expiry date"><i class="cancel icon"></i></button>
     </div>
    </div>
   </form>
-  <button id="next_button" class="ui button" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
+  <button id="next_button" class="ui button" data-content="Continue to next step" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="$(this).popup('hide'); archiver_window($(this), {$next_step}); return false;">Next</button>
  </div>
 
  <div class="column">
@@ -70,12 +66,13 @@
      </div>
     </div>
    </div>
-   <button class="circular small ui icon save button" type="submit">
+   <button class="circular small ui icon save button" type="submit" data-content="Save keywords">
     <i class="save icon"></i>
    </button>
   </form>
+  <br />
 {if !$item->hasIndices()}
-  <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}"><i class="find icon"></i>Index document.</a>
+  <a class="scan document ui icon button" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-content="Scan {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}"><i class="find icon"></i></a>
 {/if}
   <a class="ui icon button" href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" data-content="Preview {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i></a>
  </div>
@@ -134,4 +131,6 @@ $('#archiver_modal_window form.ui.form input').on('input', function () {
    }
    return true;
 });
+
+$('button.ui.button, a.ui.icon.button').popup();
 --></script>
