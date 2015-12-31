@@ -5,14 +5,12 @@
  </div>
  <div class="inline fields">
   <div class="field">
-   <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
-  </div>
-  <div class="field">
-   <button class="circular ui icon button cancel" type="reset"><i class="cancel icon"></i></button>
+   <button class="circular ui icon button save" type="submit" data-content="Save description"><i class="save icon"></i></button>
+   <button class="circular ui icon button cancel" type="reset" data-content="Reset description"><i class="cancel icon"></i></button>
   </div>
  </div>
 </form>
-<button class="ui button" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="archiver_window($(this), {$next_step}); return false;">Next</button>
+<button class="ui button" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Continue to next step" onclick="$(this).popup('hide'); archiver_window($(this), {$next_step}); return false;">Next</button>
 <script type="text/javascript"><!--
 $('#archiver_modal_window form.ui.form').on('submit', function () {
    rpc_object_update($(this), function (element, data) {
@@ -45,4 +43,6 @@ $('#archiver_modal_window form.ui.form textarea').on('input', function () {
    }
    return true;
 });
+
+$('button.ui.button').popup();
 --></script>
