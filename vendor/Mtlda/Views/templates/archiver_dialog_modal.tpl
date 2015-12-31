@@ -1,6 +1,6 @@
 <div class="ui long fullscreen modal" id="archiver_modal_window">
  <div class="ui inverted dimmer"></div>
- <i class="close icon"></i>
+ <i class="close icon" data-content="Exit archiver and close window"></i>
  <div class="header window title">Archiving</div>
  <div class="image content">
   <div class="image">
@@ -8,28 +8,28 @@
   </div>
   <div class="description">
    <div class="ui steps archiver">
-    <a class="active step" id="archiver_step_1" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="active step" id="archiver_step_1" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem" data-content="Change to step 1 (Document)">
      <i class="configure icon"></i>
      <div class="content">
       <div class="title">Document</div>
       <div class="description">Enter document details.</div>
      </div>
     </a>
-    <a class="disabled step" id="archiver_step_2" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="disabled step" id="archiver_step_2" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem" data-content="Change to step 2 (Meta)">
      <i class="calendar icon"></i>
      <div class="content">
       <div class="title">Meta</div>
       <div class="description">Keywords, expiration, etc.</div>
      </div>
     </a>
-    <a class="disabled step" id="archiver_step_3" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="disabled step" id="archiver_step_3" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem" data-content="Change to step 3 (Description)">
      <i class="comments icon"></i>
      <div class="content">
       <div class="title">Description</div>
       <div class="description">Describe document.</div>
      </div>
     </a>
-    <a class="disabled step" id="archiver_step_4" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem">
+    <a class="disabled step" id="archiver_step_4" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem" data-content="Change to step 4 (Archive)">
      <i class="info icon"></i>
      <div class="content">
       <div class="title">Archive.</div>
@@ -58,4 +58,6 @@ $('.ui.archiver.steps a.step').on('click', ':not(.disabled)', function () {
    }
    archiver_window($(link), step_no[1]);
 });
+
+$('a.step, i.close.icon').popup();
 --></script>
