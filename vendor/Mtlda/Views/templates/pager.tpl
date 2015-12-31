@@ -17,19 +17,19 @@
 <div class="ui right floated pagination borderless small menu">
 {if isset($pager) && $pager->getNumberOfPages() > 1}
 {if $pager->getFirstPageNumber()}
- <a class="icon item" href="{get_url page=$view number=$pager->getFirstPageNumber()}"><i class="angle double left icon"></i></a>
+ <a class="pager icon item" href="{get_url page=$view number=$pager->getFirstPageNumber()}" data-content="Go to first page"><i class="angle double left icon"></i></a>
 {/if}
 {if $pager->getPreviousePageNumber()}
- <a class="icon item" href="{get_url page=$view number=$pager->getPreviousePageNumber()}"><i class="angle left icon"></i></a>
+ <a class="pager icon item" href="{get_url page=$view number=$pager->getPreviousePageNumber()}" data-content="Go to previous page"><i class="angle left icon"></i></a>
 {/if}
 {foreach $pager->getDeltaPageNumbers() as $pageno}
- <a class="item {if $pager->isCurrentPage($pageno)}active{/if}" href="{get_url page=$view number=$pageno}">{$pageno}</a>
+ <a class="pager item {if $pager->isCurrentPage($pageno)}active{/if}" href="{get_url page=$view number=$pageno}" data-content="Go to page {$pageno}">{$pageno}</a>
 {/foreach}
 {if $pager->getNextPageNumber()}
- <a class="icon item" href="{get_url page=$view number=$pager->getNextPageNumber()}"><i class="angle right icon"></i></a>
+ <a class="pager icon item" href="{get_url page=$view number=$pager->getNextPageNumber()}" data-content="Go to next page"><i class="angle right icon"></i></a>
 {/if}
 {if $pager->getLastPageNumber()}
- <a class="icon item" href="{get_url page=$view number=$pager->getLastPageNumber()}"><i class="angle double right icon"></i></a>
+ <a class="pager icon item" href="{get_url page=$view number=$pager->getLastPageNumber()}" data-content="Go to last page"><i class="angle double right icon"></i></a>
 {/if}
  <div class="item inactive">Page:</div>
  <div class="item">
@@ -70,5 +70,6 @@ $(document).ready(function () {
          window.location = value;
       }
    });
+   $('a.pager').popup();
 });
 --></script>
