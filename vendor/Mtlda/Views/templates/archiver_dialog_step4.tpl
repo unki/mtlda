@@ -13,8 +13,8 @@
   <p>Click on "Finish" to start archiving this document.</p>
  </div>
 </div>
-<button class="ui button exit" title="Close window">Exit</button>
-<button class="ui button archive" data-action-title="Archiving {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem">Finish</button>
+<button class="ui button exit" data-content="Exit archiving and close this window">Exit</button>
+<button class="ui button archive" data-content="Invoke archiving process" data-action-title="Archiving {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem">Finish</button>
 <script type="text/javascript"><!--
 $('.ui.button.exit').click(function () {
    if (!archiver_wnd) {
@@ -46,4 +46,6 @@ $('.ui.button.archive').click(function () {
          return true;
    });
 });
+
+$('button.ui.button').popup();
 --></script>
