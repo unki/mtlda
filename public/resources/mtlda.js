@@ -895,7 +895,14 @@ function load_datepickers(mode)
     });
 
     $('form.ui.form.keywords').on('submit', function () {
-        rpc_object_update($(this));
+        rpc_object_update($(this), function (element, data) {
+            if (data != "ok") {
+                return true;
+            }
+            savebutton = element.find("button.save");
+            savebutton.transition('tada').removeClass('red shape');
+            return true;
+        });
         return false;
     });
 }
