@@ -30,7 +30,7 @@ Thallium Database Schema: {$framework_schema_version}
 </div>
 <div class="ui segment">
 <h4 class="ui header">Appreciation</h4>
-Your MTLDA installation bundles further software and libraries:<br />
+Your MTLDA installation bundles further open source software and libraries:<br />
 <div class="ui bulleted list">
 <div class="item">jQuery,&nbsp;<a href="http://www.jquery.com" target="_blank">http://www.jquery.com</a></div>
 <div class="item">jQuery&nbsp;UI,&nbsp;<a href="http://www.jqueryui.com" target="_blank">http://www.jquery.ui.com</a></div>
