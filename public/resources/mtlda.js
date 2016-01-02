@@ -695,7 +695,7 @@ function init_checkbox_selector()
     });
 }
 
-function archiver_window(element, step)
+function archiver_window(element, step, allow_unsaved_data)
 {
     if (archiver_wnd === undefined) {
         throw "somehow we lost our modal window!"
@@ -727,6 +727,60 @@ function archiver_window(element, step)
         return false;
     }
 
+    if (typeof current_step === 'undefined') {
+        current_step = false;
+    }
+
+    if (current_step > 0) {
+        var unsaved_data = false;
+        savebuttons = $('button.save');
+        if (savebuttons !== undefined && savebuttons.length) {
+            savebuttons.each(function () {
+                if ($(this).hasClass('red') && $(this).hasClass('shape')) {
+                    unsaved_data = true;
+                }
+            });
+
+            if (unsaved_data && typeof allow_unsaved_data === 'undefined') {
+                archiver_wnd
+                    .modal('setting', { closable: false })
+                    .removeClass('active')
+                    .modal('refresh')
+                    .addClass('blurring');
+                archiver_wnd.find('.ui.dimmer').addClass('active');
+                var del_wnd = show_modal('confirm', {
+                    closable : false,
+                    header : 'Unsaved data on page!',
+                    icon : 'red warning icon',
+                    content : 'Some data on this page has not been saved!<br />Do you really want to continue? Data will be lost.',
+                    allowMultiple: true,
+                    onDeny : function () {
+                        archiver_wnd.find('.ui.dimmer').removeClass('active');
+                        archiver_wnd
+                            .removeClass('blurring')
+                            .modal('setting', { closable: true })
+                            .addClass('active')
+                            .modal('refresh');
+                        $(this).modal('hide');
+                        return false;
+                    },
+                    onApprove : function () {
+                        archiver_wnd.find('.ui.dimmer').removeClass('active');
+                        archiver_wnd
+                            .removeClass('blurring')
+                            .modal('setting', { closable: true })
+                            .addClass('active')
+                            .modal('refresh');
+                        $(this).modal('hide');
+                        archiver_window(element, step, true);
+                        return false;
+                    },
+                });
+                return true;
+            }
+        }
+    }
+
     if (step === undefined || !(/^[0-9]+$/).test(step)) {
         step = 1;
     }
@@ -751,6 +805,7 @@ function archiver_window(element, step)
         eval($('#archiver_modal_window .ui.steps.archiver .step').attr('data-modal-title', title));
         eval($('#archiver_modal_window .ui.steps.archiver .step').attr('data-id', id));
         eval($('#archiver_modal_window .ui.steps.archiver .step').attr('data-guid', guid));
+        current_step = step;
         return true;
     });
 }
