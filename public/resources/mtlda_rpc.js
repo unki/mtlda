@@ -133,7 +133,7 @@ function rpc_object_archive(elements, successMethod)
         archive_wnd.modal('hide');
         mbus.unsubscribe('archive-replies-handler');
 
-        if (successMethod !== undefined) {
+        if (typeof successMethod !== 'undefined') {
             return successMethod();
         }
 
@@ -160,7 +160,7 @@ function rpc_object_update(element, successMethod)
 
     var target = element.attr('data-target');
 
-    if (target === undefined || target == '') {
+    if (typeof target === 'undefined' || target == '') {
         alert('no attribute "data-target" found!');
         return false;
     }
@@ -190,7 +190,7 @@ function rpc_object_update(element, successMethod)
         return false;
     }
 
-    if ((value = input.val()) === undefined) {
+    if (typeof (value = input.val()) === 'undefined') {
         return false;
     }
 
@@ -200,7 +200,7 @@ function rpc_object_update(element, successMethod)
     id = safe_string(id);
     value = safe_string(value);
 
-    if (window.location.pathname != undefined &&
+    if (typeof window.location.pathname !== 'undefined' &&
         window.location.pathname != '' &&
         !window.location.pathname.match(/\/$/)
     ) {
@@ -240,7 +240,7 @@ function rpc_object_update(element, successMethod)
                 location.reload();
                 return;
             }
-            if (successMethod === undefined) {
+            if (typeof successMethod === 'undefined') {
                 return;
             }
             successMethod(element, data);
@@ -456,7 +456,7 @@ function rpc_object_scan(element, successMethod)
 
         mbus.unsubscribe('scanner-replies-handler');
 
-        if (successMethod !== undefined) {
+        if (typeof successMethod !== 'undefined') {
             return successMethod(scan_wnd);
         }
 
@@ -599,7 +599,7 @@ function rpc_object_delete(elements, successMethod)
         del_wnd.modal('hide');
         mbus.unsubscribe('delete-replies-handler');
 
-        if (successMethod !== undefined) {
+        if (typeof successMethod !== 'undefined') {
             return successMethod();
         }
 
@@ -709,7 +709,7 @@ function rpc_get_content(view, request_data)
         view    : view
     };
 
-    if (request_data !== undefined) {
+    if (typeof request_data !== 'undefined') {
         data.data = request_data;
     }
 
