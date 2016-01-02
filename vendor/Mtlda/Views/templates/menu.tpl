@@ -15,9 +15,7 @@
  * GNU Affero General Public License for more details.
 *}
 <div class="ui teal inverted fixed menu">
- <div class="header brand item">
-  <i class="gamepad icon"></i>MTLDA
- </div>
+ <a href="{get_url page=main}" class="header brand item"><i class="gamepad icon"></i>MTLDA</a>
  <a href="{get_url page=main}" class="item {get_menu_state page=main}">Main</a>
  <a href="{get_url page=archive}" class="item {get_menu_state page=archive}">Archive</a>
  <a href="{get_url page=keywords}" class="item {get_menu_state page=keywords}">Keywords</a>
