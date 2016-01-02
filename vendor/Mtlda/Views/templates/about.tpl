@@ -19,8 +19,7 @@
 <h4 class="ui header">MTLDA - My Tiny Little Document Archive</h4>
 &copy; 2015 Andreas Unterkircher &lt;unki@netshadow.net&gt;
 <br />
-<a href="http://www.mtlda.org/" target="_blank">http://www.mtlda.org</a>
-<br />
+<a href="http://www.mtlda.org/" target="_blank">http://www.mtlda.org</a>.
 Or visit project at <a href="https://github.com/unki/mtlda" target="_blank"><i class="github icon"></i>github</a>.
 <br /><br />
 MTLDA Version: {$mtlda_version}
