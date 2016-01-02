@@ -1,5 +1,5 @@
 <div class="ui long fullscreen modal" id="archiver_modal_window">
- <div class="ui inverted dimmer"></div>
+ <div class="ui dimmer"></div>
  <i class="close icon" data-content="Exit archiver and close window"></i>
  <div class="header window title">Archiving</div>
  <div class="image content">
