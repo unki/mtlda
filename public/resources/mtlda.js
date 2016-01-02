@@ -152,7 +152,7 @@ function init_dropzone()
 
 function show_modal(type, settings, id, do_function, modalclass)
 {
-    if (!type || type === undefined) {
+    if (typeof type === 'undefined' || !type) {
         throw 'show_modal(), mandatory type parameter is missing!';
         return false;
     }
@@ -166,97 +166,97 @@ function show_modal(type, settings, id, do_function, modalclass)
         return false;
     }
 
-    if (!wnd || wnd === undefined) {
+    if (typeof wnd === 'undefined' || !wnd) {
         throw 'show_modal(), unable to clone progress_template!';
         return false;
     }
 
     wnd.removeAttr('id');
 
-    if (id && id !== undefined) {
+    if (typeof id !== 'undefined' && id) {
         wnd.attr('id', id);
     }
 
-    if (settings === undefined) {
+    if (typeof settings === 'undefined') {
         settings = {};
     }
 
-    if (settings.header !== undefined) {
+    if (typeof settings.header !== 'undefined') {
         wnd.find('.header').html(settings.header);
     }
 
-    if (settings.icon !== undefined) {
+    if (typeof settings.icon !== 'undefined') {
         wnd.find('.image.content i.icon').removeClass().addClass(settings.icon);
     } else {
         settings.icon = 'icon';
     }
 
-    if (settings.iconHtml !== undefined) {
+    if (typeof settings.iconHtml !== 'undefined') {
         wnd.find('.image.content i.' + settings.icon).html(settings.iconHtml);
     } else {
         wnd.find('.image.content i.' + settings.icon).html('');
     }
 
-    if (settings.content !== undefined) {
+    if (typeof settings.content !== 'undefined') {
         wnd.find('.image.content .description p').html(settings.content);
     }
 
-    if (settings.closable === undefined) {
+    if (typeof settings.closable === 'undefined') {
         settings.closable = true;
     }
 
-    if (settings.closable !== undefined && !settings.closable) {
+    if (typeof settings.closable !== 'undefined' && !settings.closable) {
         wnd.find('i.close.icon').detach();
     } else {
         wnd.find('i.close.icon').appendTo(wnd);
     }
 
-    if (settings.hasActions === undefined) {
+    if (typeof settings.hasActions === 'undefined') {
         settings.hasActions = true;
     }
 
-    if (settings.blurring === undefined) {
+    if (typeof settings.blurring === 'undefined') {
         settings.blurring = true;
     }
 
-    if (settings.hasActions === undefined) {
+    if (typeof settings.hasActions === 'undefined') {
         wnd.find('.actions').detach();
     } else {
         wnd.find('.actions').appendTo(wnd);
     }
 
-    if (settings.onDeny === undefined) {
+    if (typeof settings.onDeny === 'undefined') {
         settings.onDeny = function () {
             return true;
         };
     }
 
-    if (settings.onApprove === undefined) {
+    if (typeof settings.onApprove === 'undefined') {
         settings.onApprove = function () {
             $(this).modal('hide');
             return true;
         };
     }
 
-    if (settings.onHidden === undefined) {
+    if (typeof settings.onHidden === 'undefined') {
         settings.onHidden = function () {
             return true;
         };
     }
 
-    if (settings.detachable === undefined) {
+    if (typeof settings.detachable === 'undefined') {
         settings.detachable = true;
     }
 
-    if (settings.observeChanges === undefined) {
+    if (typeof settings.observeChanges === 'undefined') {
         settings.observeChanges = false;
     }
 
-    if (settings.allowMultiple === undefined) {
+    if (typeof settings.allowMultiple === 'undefined') {
         settings.allowMultiple = false;
     }
 
-    if (do_function === undefined) {
+    if (typeof do_function === 'undefined') {
         do_function = function () {
             return true;
         };
@@ -288,7 +288,7 @@ function delete_object(element)
 {
     var id = element.attr("data-id");
 
-    if (id === undefined || id == "") {
+    if (typeof id === 'undefined' || id == "") {
         alert('no attribute "data-id" found!');
         return;
     }
@@ -319,14 +319,14 @@ function delete_object(element)
 
     var title = element.attr("data-modal-title");
 
-    if (title === undefined || title === "") {
+    if (typeof title === 'undefined' || title === "") {
         throw 'No attribute "data-modal-title" found!';
         return false;
     }
 
     var text = element.attr("data-modal-text");
 
-    if (text === undefined || text === "") {
+    if (typeof text === 'undefined' || text === "") {
         if (id instanceof String && !id.match(/-all$/)) {
             text = "Do you really want to delete this item?";
         } else {
@@ -353,10 +353,10 @@ function delete_object(element)
         onApprove : function () {
             $(this).modal('hide');
             return rpc_object_delete(elements, function () {
-                if (elements === undefined) {
+                if (typeof elements === 'undefined') {
                     return true;
                 }
-                if (id !== undefined && id == 'all') {
+                if (typeof id !== 'undefined' && id == 'all') {
                     $('table#datatable tbody tr').each(function () {
                         $(this).hide(400, function () {
                             $(value).remove();
@@ -381,7 +381,7 @@ function archive_object(element)
 {
     var id = element.attr("data-id");
 
-    if (id === undefined || id == "") {
+    if (typeof id === 'undefined' || id == "") {
         alert('no attribute "data-id" found!');
         return;
     }
@@ -422,14 +422,14 @@ function archive_object(element)
 
     var title = element.attr("data-modal-title");
 
-    if (title === undefined || title === "") {
+    if (typeof title === 'undefined' || title === "") {
         throw 'No attribute "data-modal-title" found!';
         return false;
     }
 
     var text = element.attr("data-modal-text");
 
-    if (text === undefined || text === "") {
+    if (typeof text === 'undefined' || text === "") {
         if (id instanceof String && !id.match(/-all$/)) {
             text = "Do you really want to archive this item?";
         } else {
@@ -472,10 +472,10 @@ function archive_object(element)
             onApprove : function () {
                 $(this).modal('hide');
                 return rpc_object_archive(elements, function () {
-                    if (elements === undefined) {
+                    if (typeof elements === 'undefined') {
                         return true;
                     }
-                    if (id !== undefined && id == 'all') {
+                    if (typeof id !== 'undefined' && id == 'all') {
                         $('table#datatable tbody tr').each(function () {
                             $(this).hide(400, function () {
                                 $(value).remove();
@@ -497,7 +497,7 @@ function archive_object(element)
 
     archiver_wnd = $("#archiver_modal_window");
 
-    if (archiver_wnd === undefined || archiver_wnd.length < 1) {
+    if (typeof archiver_wnd === 'undefined' || archiver_wnd.length < 1) {
         throw "failed to locate #archiver_modal_window!";
         return false;
     }
@@ -638,7 +638,7 @@ function init_table_filter()
         });
         $('table#datatable .filterable').each(function () {
             content = $(this).html();
-            if (filter_value === undefined ||
+            if (typeof filter_value === 'undefined' ||
                 filter_value == "" ||
                 content.match(regexp)
             ) {
@@ -697,32 +697,32 @@ function init_checkbox_selector()
 
 function archiver_window(element, step, allow_unsaved_data)
 {
-    if (archiver_wnd === undefined) {
+    if (typeof archiver_wnd === 'undefined') {
         throw "somehow we lost our modal window!"
         return false;
     }
 
-    if (element === undefined || ! element instanceof Array) {
+    if (typeof element === 'undefined' || ! element instanceof Array) {
         throw "element parameter is invalid!"
         return false;
     }
 
-    if ((id = element.attr('data-id')) === undefined) {
+    if (typeof (id = element.attr('data-id')) === 'undefined') {
         throw 'no "data-id" attribute found!';
         return false;
     }
 
-    if ((guid = element.attr('data-guid')) === undefined) {
+    if (typeof (guid = element.attr('data-guid')) === 'undefined') {
         throw 'no "data-guid" attribute found!';
         return false;
     }
 
-    if ((model = element.attr('data-model')) === undefined) {
+    if (typeof (model = element.attr('data-model')) === 'undefined') {
         throw 'no "data-model" attribute found!';
         return false;
     }
 
-    if ((title = element.attr('data-modal-title')) === undefined) {
+    if (typeof (title = element.attr('data-modal-title')) === 'undefined') {
         throw 'no "data-modal-title" attribute found!';
         return false;
     }
@@ -734,14 +734,14 @@ function archiver_window(element, step, allow_unsaved_data)
     if (current_step > 0) {
         var unsaved_data = false;
         savebuttons = $('button.save');
-        if (savebuttons !== undefined && savebuttons.length) {
+        if (typeof savebuttons !== 'undefined' && savebuttons.length) {
             savebuttons.each(function () {
                 if ($(this).hasClass('red') && $(this).hasClass('shape')) {
                     unsaved_data = true;
                 }
             });
 
-            if (unsaved_data && typeof allow_unsaved_data === 'undefined') {
+            if (typeof allow_unsaved_data === 'undefined' || unsaved_data) {
                 archiver_wnd
                     .modal('setting', { closable: false })
                     .removeClass('active')
@@ -781,7 +781,7 @@ function archiver_window(element, step, allow_unsaved_data)
         }
     }
 
-    if (step === undefined || !(/^[0-9]+$/).test(step)) {
+    if (typeof step === 'undefined' || !(/^[0-9]+$/).test(step)) {
         step = 1;
     }
 
@@ -812,7 +812,7 @@ function archiver_window(element, step, allow_unsaved_data)
 
 function load_datepickers(mode)
 {
-    if (mode === undefined || mode == "" || (mode != "document" && mode != "queue")) {
+    if (typeof mode === 'undefined' || mode == "" || (mode != "document" && mode != "queue")) {
         throw 'mode parameter is invalid!'
         return false;
     }
@@ -978,7 +978,7 @@ function split_object(element)
 {
     var title = element.attr("data-modal-title");
 
-    if (title === undefined || title === "") {
+    if (typeof title === 'undefined' || title === "") {
         throw 'No attribute "data-modal-title" found!';
         return false;
     }
@@ -987,7 +987,7 @@ function split_object(element)
 
     splitter_wnd = $("#splitter_modal_window");
 
-    if (splitter_wnd === undefined || splitter_wnd.length < 1) {
+    if (typeof splitter_wnd === 'undefined' || splitter_wnd.length < 1) {
         throw "failed to locate #splitter_modal_window!";
         return false;
     }
@@ -1007,37 +1007,37 @@ function split_object(element)
 
 function splitter_window(element, step)
 {
-    if (splitter_wnd === undefined) {
+    if (typeof splitter_wnd === 'undefined') {
         throw "somehow we lost our modal window!"
         return false;
     }
 
-    if (element === undefined || ! element instanceof Array) {
+    if (typeof element === 'undefined' || ! element instanceof Array) {
         throw "element parameter is invalid!"
         return false;
     }
 
-    if ((id = element.attr('data-id')) === undefined) {
+    if (typeof (id = element.attr('data-id')) === 'undefined') {
         throw 'no "data-id" attribute found!';
         return false;
     }
 
-    if ((guid = element.attr('data-guid')) === undefined) {
+    if (typeof (guid = element.attr('data-guid')) === 'undefined') {
         throw 'no "data-guid" attribute found!';
         return false;
     }
 
-    if ((model = element.attr('data-model')) === undefined) {
+    if (typeof (model = element.attr('data-model')) === 'undefined') {
         throw 'no "data-model" attribute found!';
         return false;
     }
 
-    if ((title = element.attr('data-modal-title')) === undefined) {
+    if (typeof (title = element.attr('data-modal-title')) === 'undefined') {
         throw 'no "data-modal-title" attribute found!';
         return false;
     }
 
-    if (step === undefined || !(/^[0-9]+$/).test(step)) {
+    if (typeof step === 'undefined' || !(/^[0-9]+$/).test(step)) {
         step = 1;
     }
 
