@@ -634,7 +634,11 @@ class JobsController extends \Thallium\Controllers\JobsController
         }
 
         for ($page_no = 1; $page_no <= $page_count; $page_no++) {
-            if (!$image->createPreviewImage($queueitem, false, $page_no)) {
+            if (!$image->createPreviewImage($queueitem, false, $page_no, 300)) {
+                $this->raiseError(get_class($image) .'::createPreviewImage() returned false!');
+                return false;
+            }
+            if (!$image->createPreviewImage($queueitem, false, $page_no, 'full')) {
                 $this->raiseError(get_class($image) .'::createPreviewImage() returned false!');
                 return false;
             }
