@@ -22,10 +22,18 @@ namespace Mtlda\Controllers;
 class ImageController extends DefaultController
 {
     private $image_cache;
+    private $valid_image_request_sizes;
 
     public function __construct()
     {
         $this->image_cache = $this::CACHE_DIRECTORY ."/image_cache";
+
+        $this->valid_image_request_sizes = array(
+            '300',
+            'full',
+        );
+
+        return true;
     }
 
     public function perform()
@@ -91,6 +99,10 @@ class ImageController extends DefaultController
         if (isset($query->params[2]) && !empty($query->params[2]) &&
             (is_numeric($query->params[2]) || is_string($query->params[2]))
         ) {
+            if (!$this->isValidImageRequestSize($query->params[2])) {
+                $this->raiseError(__CLASS__ .'::isValidImageRequestSize() returned false!');
+                return false;
+            }
             $size = $query->params[2];
         } else {
             $size = 300;
@@ -262,6 +274,20 @@ class ImageController extends DefaultController
 
         if (fwrite($fp, $im->getImageBlob()) === false) {
             $this->raiseError("fwrite() returned unsuccessful");
+            return false;
+        }
+
+        return true;
+    }
+
+    private function isValidImageRequestSize($size)
+    {
+        if (!isset($size) || (!is_numeric($size) && !is_string($size))) {
+            $this->raiseError(__METHOD__ .'(), $size parameter is invalid!');
+            return false;
+        }
+
+        if (!in_array($size, $this->valid_image_request_sizes)) {
             return false;
         }
 
