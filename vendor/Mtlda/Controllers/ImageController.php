@@ -119,9 +119,17 @@ class ImageController extends DefaultController
             return false;
         }
 
-        if (!isset($size) || !is_numeric($size) || $size < 0 || $size > 2048) {
+        if (!isset($size) ||
+            (!is_numeric($size) && !is_string($size)) ||
+            (is_numeric($size) && ($size < 0 || $size > 2048)) ||
+            (is_string($size) && $size != 'full')
+        ) {
             $this->raiseError(__METHOD__ .'(), $size parameter is invalid!');
             return false;
+        }
+
+        if ($size == 0) {
+            $size = 'full';
         }
 
         if (!is_a($item, 'Mtlda\Models\QueueItemModel')) {
@@ -144,8 +152,8 @@ class ImageController extends DefaultController
             return false;
         }
 
-        if ($this->isCachedImageAvailable($item->getId(), $item->getGuid(), 'queueitem_preview', $page)) {
-            return $this->loadCachedImage($item->getId(), $item->getGuid(), 'queueitem_preview', $page);
+        if ($this->isCachedImageAvailable($item->getId(), $item->getGuid(), "queueitem_preview_{$size}", $page)) {
+            return $this->loadCachedImage($item->getId(), $item->getGuid(), "queueitem_preview_{$size}", $page);
         }
 
         try {
@@ -178,7 +186,7 @@ class ImageController extends DefaultController
             return false;
         }
 
-        if ($size > 0) {
+        if (is_numeric($size) && $size > 0) {
             if (!$im->scaleImage($size, $size, true)) {
                 $this->raiseError(get_class($im) .'::scaleImage() returned false!');
                 return false;
@@ -186,7 +194,7 @@ class ImageController extends DefaultController
         }
 
         if ($config->isImageCachingEnabled()) {
-            if (!$this->saveImageToCache($item->getId(), $item->getGuid(), 'queueitem_preview', $page, $im)) {
+            if (!$this->saveImageToCache($item->getId(), $item->getGuid(), "queueitem_preview_{$size}", $page, $im)) {
                 $this->raiseError(__CLASS__ .'::saveImageToCache() returned false!');
                 return false;
             }
