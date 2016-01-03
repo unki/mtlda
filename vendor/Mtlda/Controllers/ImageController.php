@@ -100,7 +100,7 @@ class ImageController extends DefaultController
         return true;
     }
 
-    public function createPreviewImage(&$item, $return_content = true, $page = 1)
+    public function createPreviewImage(&$item, $return_content = true, $page = 1, $size = 300)
     {
         global $mtlda, $config, $audit;
 
@@ -116,6 +116,11 @@ class ImageController extends DefaultController
 
         if (!isset($page) || !is_numeric($page) || $page < 1) {
             $this->raiseError(__METHOD__ .'(), $page parameter is invalid!');
+            return false;
+        }
+
+        if (!isset($size) || !is_numeric($size) || $size < 0 || $size > 2048) {
+            $this->raiseError(__METHOD__ .'(), $size parameter is invalid!');
             return false;
         }
 
@@ -160,7 +165,7 @@ class ImageController extends DefaultController
         try {
             $im = new \Imagick($src ."[{$page_id}]");
         } catch (ImagickException $e) {
-            $this->raiseError("Unable to load imagick class!");
+            $this->raiseError(__METHOD__ .'(), unable to load imagick class!');
             return false;
         }
 
@@ -169,17 +174,22 @@ class ImageController extends DefaultController
         }
 
         if (!$im->setImageFormat('jpg')) {
-            $this->raiseError("Unable to set jpg image format!");
+            $this->raiseError(get_class($im) .'::setImageFormat() returned false!');
             return false;
         }
 
-        if (!$im->scaleImage(300, 300, true)) {
-            $this->raiseError("Unable to scale image!");
-            return false;
+        if ($size > 0) {
+            if (!$im->scaleImage($size, $size, true)) {
+                $this->raiseError(get_class($im) .'::scaleImage() returned false!');
+                return false;
+            }
         }
 
         if ($config->isImageCachingEnabled()) {
-            $this->saveImageToCache($item->getId(), $item->getGuid(), 'queueitem_preview', $page, $im);
+            if (!$this->saveImageToCache($item->getId(), $item->getGuid(), 'queueitem_preview', $page, $im)) {
+                $this->raiseError(__CLASS__ .'::saveImageToCache() returned false!');
+                return false;
+            }
         }
 
         if (!($content = $im->getImageBlob())) {
@@ -238,6 +248,8 @@ class ImageController extends DefaultController
             $this->raiseError("fwrite() returned unsuccessful");
             return false;
         }
+
+        return true;
     }
 }
 
