@@ -3,7 +3,7 @@
     <div class="ui text loader">Creating document previews.<br />Please wait a moment.</div>
   </div>
   <br /><br /><br /><br />
-  <a onclick="splitter_window($(this), 2);" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-modal-title="Split {if $item->hasTitle}{$item->getTitle()}{else}{$item->getFileName()}{/if}">Continue.</a>
+  <button class="ui button" onclick="splitter_window($(this), 2);" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-modal-title="Split {if $item->hasTitle}{$item->getTitle()}{else}{$item->getFileName()}{/if}">Continue</button>
   <br /><br /><br /><br />
 </div>
 <script type="text/javascript"><!--
