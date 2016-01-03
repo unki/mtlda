@@ -19,7 +19,7 @@
  <div class="ui segment">
   <div class="ui grid">
    <div class="six wide column">
-    <img src="{$app_web_path}/preview/queueitem-{$image_safe_link}/{$page_no}" height="300" />
+    <img src="{$app_web_path}/preview/queueitem-{$image_safe_link}/{$page_no}" class="ui bordered image" height="300" />
    </div>
    <div class="{if $page_no == 1 || $page_no == $page_count}seven{else}ten{/if} wide column">
     Page {$page_no}
