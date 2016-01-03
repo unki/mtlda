@@ -49,14 +49,14 @@ class QueueItemModel extends DefaultModel
         global $mtlda, $db;
 
         if (!$this->permitRpcUpdates(true)) {
-            $mtlda->raiseError("permitRpcUpdates() returned false!");
+            $this->raiseError(__METHOD__ .'(), permitRpcUpdates() returned false!', true);
             return false;
         }
 
         try {
             $this->addVirtualField("queue_keywords");
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to add virtual field!');
+            $this->raiseError(__METHOD__ .'(), failed to add virtual field!', true);
             return false;
         }
 
@@ -69,7 +69,7 @@ class QueueItemModel extends DefaultModel
             $this->addRpcEnabledField('queue_keywords');
             $this->addRpcAction('delete');
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
+            $this->raiseError(__METHOD__ .'(), failed on invoking addRpcEnabledField() method', true);
             return false;
         }
 
@@ -80,17 +80,17 @@ class QueueItemModel extends DefaultModel
         }
 
         if (!empty($id) && !$mtlda->isValidId($id)) {
-            $mtlda->raiseError("\$id is in an invalid format", true);
+            $this->raiseError(__METHOD__ .'(), $id is in an invalid format', true);
             return false;
         }
 
         if (!empty($guid) && !$mtlda->isValidGuidSyntax($guid)) {
-            $mtlda->raiseError("\$guid is in an invalid format", true);
+            $this->raiseError(__METHOD__ .'(), $guid is in an invalid format', true);
             return false;
         }
 
         if (empty($id) && empty($guid)) {
-            $mtlda->raiseError("Need to know either \$id or \$guid to load item!", true);
+            $this->raiseError(__METHOD__ .'(), need to know either $id or $guid to load item!', true);
             return false;
         }
 
@@ -120,23 +120,23 @@ class QueueItemModel extends DefaultModel
             $arr_query[] = $guid;
         };
 
-        if (!$sth = $db->prepare($sql)) {
-            $mtlda->raiseError("Failed to prepare query!", true);
+        if (($sth = $db->prepare($sql)) === false) {
+            $this->raiseError(get_class($db) .'::prepare() returned false!', true);
             return false;
         }
 
         if (!$db->execute($sth, $arr_query)) {
-            $mtlda->raiseError("Failed to execute query!", true);
+            $this->raiseError(get_class($db) .'::execute() returned false!', true);
             return false;
         }
 
-        if (!($row = $sth->fetch())) {
-            $mtlda->raiseError("Unable to find queue item with guid value {$guid}", true);
+        if (($row = $sth->fetch()) === false) {
+            $this->raiseError(get_class($sth) .'::fetch() returned false!', true);
             return false;
         }
 
         if (!isset($row->queue_idx) || empty($row->queue_idx)) {
-            $mtlda->raiseError("Unable to find queue item with guid value {$guid}", true);
+            $this->raiseError(__METHOD__ ."(), unable to find queue item with guid value {$guid}", true);
             return false;
         }
 
@@ -147,40 +147,38 @@ class QueueItemModel extends DefaultModel
 
     public function verify()
     {
-        global $mtlda;
-
         if (!isset($this->queue_file_name)) {
-            $mtlda->raiseError("queue_file_name is not set!");
+            $this->raiseError(__METHOD__ .'(), queue_file_name is not set!');
             return false;
         }
 
         if (!isset($this->queue_file_hash)) {
-            $mtlda->raiseError("queue_file_hash is not set!");
+            $this->raiseError(__METHOD__ .'(), queue_file_hash is not set!');
             return false;
         }
 
-        if (!$fqpn = $this->getFilePath()) {
-            $mtlda->raiseError("getFilePath() returned false!");
+        if (($fqpn = $this->getFilePath()) === false) {
+            $this->raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
 
         if (!file_exists($fqpn)) {
-            $mtlda->raiseError("File {$fqpn} does not exist!");
+            $this->raiseError(__METHOD__ ."(), file {$fqpn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqpn)) {
-            $mtlda->raiseError("File {$fqpn} is not readable!");
+            $this->raiseError(__METHOD__ ."(), file {$fqpn} is not readable!");
             return false;
         }
 
         if (($file_hash = sha1_file($fqpn)) === false) {
-            $mtlda->raiseError("Unable to calculate SHA1 hash of file {$fqpn}!");
+            $this->raiseError(__METHOD__ ."(), unable to calculate SHA1 hash of file {$fqpn}!");
             return false;
         }
 
         if (isset($hash) && $hash != $file_hash) {
-            $mtlda->raiseError("Hash value of ${file} does not match!");
+            $this->raiseError(__METHOD__ ."(), hash value of ${file} does not match!");
             return false;
         }
 
@@ -249,8 +247,6 @@ class QueueItemModel extends DefaultModel
 
     public function preDelete()
     {
-        global $mtlda;
-
         if (!$this->removeAssignedKeywords()) {
             $this->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false!');
             return false;
@@ -270,12 +266,12 @@ class QueueItemModel extends DefaultModel
         $storage = new \Mtlda\Controllers\StorageController;
 
         if (!$storage) {
-            $mtlda->raiseError("unable to load StorageController!");
+            $this->raiseError(__METHOD__ .'(), failed to load StorageController!');
             return false;
         }
 
         if (!$storage->deleteItemFile($this)) {
-            $mtlda->raiseError("StorageController::deleteItemFile() returned false!");
+            $this->raiseError(get_class($storage) .'::deleteItemFile() returned false!');
             return false;
         }
 
@@ -284,7 +280,7 @@ class QueueItemModel extends DefaultModel
 
     public function postDelete()
     {
-        global $mtlda, $audit;
+        global $audit;
 
         try {
             $audit->log(
@@ -294,7 +290,7 @@ class QueueItemModel extends DefaultModel
                 $this->queue_guid
             );
         } catch (\Exception $e) {
-            $mtlda->raiseError("AuditController::log() returned false!");
+            $this->raiseError("AuditController::log() returned false!");
             return false;
         }
 
@@ -303,17 +299,15 @@ class QueueItemModel extends DefaultModel
 
     public function preSave()
     {
-        global $mtlda;
-
         if ($this->isDuplicate()) {
-            $mtlda->raiseError("Duplicated record detected!");
+            $this->raiseError(__METHOD__ .'(), duplicated record detected!');
             return false;
         }
 
         if (!isset($this->queue_file_name) ||
             empty($this->queue_file_name)
         ) {
-            $mtlda->raiseError("\$queue_file_name must not be empty!");
+            $this->raiseError(__METHOD__ .'(), $queue_file_name must not be empty!');
             return false;
         }
 
@@ -334,14 +328,14 @@ class QueueItemModel extends DefaultModel
         }
 
         if (!$fqpn = $this->getFilePath()) {
-            $mtlda->raiseError(__CLASS__ ."::getFilePath() returned false!");
+            $this->raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
 
         $path = dirname($fqpn);
 
         if (empty($path)) {
-            $mtlda->raiseError("why is \$path empty?");
+            $this->raiseError(__METHOD__ .'(), why is $path empty?');
             return false;
         }
 
@@ -349,12 +343,14 @@ class QueueItemModel extends DefaultModel
         $new_file = $path .'/'. basename($this->queue_file_name);
 
         if (file_exists($new_file)) {
-            $mtlda->raiseError("Unable to rename {$old_file} to {$new_file} - destination already exists!");
+            $this->raiseError(
+                __METHOD__ ."(), unable to rename {$old_file} to {$new_file} - destination already exists!"
+            );
             return false;
         }
 
         if (rename($old_file, $new_file) === false) {
-            $mtlda->raiseError("rename() returned false!");
+            $this->raiseError(__METHOD__ .'(), rename() returned false!');
             return false;
         }
 
@@ -375,7 +371,7 @@ class QueueItemModel extends DefaultModel
         );
 
         if (!$json_str) {
-            $mtlda->raiseError("json_encode() returned false!");
+            $this->raiseError(__METHOD__ .'(), json_encode() returned false!');
             return false;
         }
 
@@ -388,7 +384,7 @@ class QueueItemModel extends DefaultModel
             );
         } catch (\Exception $e) {
             $queueitem->delete();
-            $mtlda->raiseError("AuditController:log() returned false!");
+            $this->raiseError("AuditController::log() returned false!");
             return false;
         }
 
@@ -398,27 +394,27 @@ class QueueItemModel extends DefaultModel
     public function getFilePath()
     {
         if (!($guid = $this->getGuid())) {
-            $mtlda->raiseError(__CLASS__ ."::getGuid() returned false!");
+            $this->raiseError(__CLASS__ ."::getGuid() returned false!");
             return false;
         }
 
         if (!($dir_name = $this->generateDirectoryName($guid))) {
-            $mtlda->raiseError(__CLASS__ ."::generateDirectoryName() returned false!");
+            $this->raiseError(__CLASS__ ."::generateDirectoryName() returned false!");
             return false;
         }
 
         if (!isset($dir_name) || empty($dir_name)) {
-            $mtlda->raiseError("Unable to get directory name!");
+            $this->raiseError(__METHOD__ .'(), unable to get directory name!');
             return false;
         }
 
-        if (!($file_name = $this->getFileName())) {
-            $mtlda->raiseError(__CLASS__ ."::getFileName() returned false!");
+        if (($file_name = $this->getFileName()) === false) {
+            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
             return false;
         }
 
         if (!isset($file_name) || empty($file_name)) {
-            $mtlda->raiseError("Unable to get file name!");
+            $this->raiseError(__METHOD__ .'(), unable to get file name!');
             return false;
         }
 
@@ -431,12 +427,10 @@ class QueueItemModel extends DefaultModel
 
     protected function generateDirectoryName($guid)
     {
-        global $mtlda;
-
         $dir_name = "";
 
-        if (empty($guid)) {
-            $mtlda->raiseError("guid is empty!");
+        if (!isset($guid) || empty($guid)) {
+            $this->raiseError(__METHOD__ .'(), $guid parameter is invalid!');
             return false;
         }
 
@@ -444,7 +438,7 @@ class QueueItemModel extends DefaultModel
             $guid_part = substr($guid, $i, 2);
 
             if ($guid_part === false) {
-                $mtlda->raiseError("substr() returned false!");
+                $this->raiseError(__METHOD__ .'(), substr() returned false!');
                 return false;
             }
 
@@ -1046,6 +1040,44 @@ class QueueItemModel extends DefaultModel
         }
 
         return true;
+    }
+
+    public function getFileNameExtension()
+    {
+        if (($file_name = $this->getFileName()) === false) {
+            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
+            return false;
+        }
+
+        if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
+            $this->raiseError(__CLASS__ ."::getFileName() returned invalid data!");
+            return false;
+        }
+
+        if (!strpos($file_name, '.')) {
+            return false;
+        }
+
+        if (($suffix = pathinfo($file_name, PATHINFO_EXTENSION)) === false) {
+            return false;
+        }
+
+        return $suffix;
+    }
+
+    public function getFileNameBase()
+    {
+        if (($file_name = $this->getFileName()) === false) {
+            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
+            return false;
+        }
+
+        if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
+            $this->raiseError(__CLASS__ ."::getFileName() returned invalid data!");
+            return false;
+        }
+
+        return basename($file_name);
     }
 }
 
