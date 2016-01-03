@@ -26,7 +26,7 @@
    <a href="{get_url page=upload}"><i class="upload icon"></i>Upload</a>&nbsp;
 {/if}
 {if isset($mail_import_is_enabled) }
-   <a class="mail import"><i class="mail outline icon"></i>Mailimport</a>
+   <a class="mail import action link" data-content="Invoke mail importer run"><i class="mail outline icon"></i>Mailimport</a>
 {/if}
 {if isset($user_triggers_import_enabled)}
    <a class="trigger import"><i class="spy icon"></i>Trigger Import{if isset($pending_incoming_items)} ({$pending_incoming_items}){/if}</a>
