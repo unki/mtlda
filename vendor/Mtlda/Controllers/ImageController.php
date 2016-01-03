@@ -88,7 +88,15 @@ class ImageController extends DefaultController
             $page_no = 1;
         }
 
-        if (!($image = $this->createPreviewImage($item, true, $page_no))) {
+        if (isset($query->params[2]) && !empty($query->params[2]) &&
+            (is_numeric($query->params[2]) || is_string($query->params[2]))
+        ) {
+            $size = $query->params[2];
+        } else {
+            $size = 300;
+        }
+
+        if (!($image = $this->createPreviewImage($item, true, $page_no, $size))) {
             $this->raiseError("createPreviewImage() returned false!");
             return false;
         }
