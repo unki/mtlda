@@ -23,13 +23,13 @@
  <div class="six wide column">
   <div class="right aligned container">
 {if isset($http_upload_is_enabled) }
-   <a href="{get_url page=upload}"><i class="upload icon"></i>Upload</a>&nbsp;
+   <a class="action link" href="{get_url page=upload}" data-content="Goto to document upload page"><i class="upload icon"></i>Upload</a>&nbsp;
 {/if}
 {if isset($mail_import_is_enabled) }
    <a class="mail import action link" data-content="Invoke mail importer run"><i class="mail outline icon"></i>Mailimport</a>
 {/if}
 {if isset($user_triggers_import_enabled)}
-   <a class="trigger import"><i class="spy icon"></i>Trigger Import{if isset($pending_incoming_items)} ({$pending_incoming_items}){/if}</a>
+   <a class="trigger import action link" data-content="Invoke importer on configured incoming directory"><i class="spy icon"></i>Trigger Import{if isset($pending_incoming_items)} ({$pending_incoming_items}){/if}</a>
 {/if}
   </div>
  </div>
