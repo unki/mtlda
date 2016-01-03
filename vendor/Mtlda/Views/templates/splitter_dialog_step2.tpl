@@ -1,12 +1,19 @@
 <div class="ui segment">
+ <p>Document total pages: {$page_count}</p>
  <div class="ui labeled input">
   <div class="ui label">
-    Documents number:
+    Split into
   </div>
-  <input type="text" name="document_count" value="1">
+  <input type="text" name="document_count" value="1" size="3">
+  <div class="ui label">
+    documents
+  </div>
  </div>
- <button class="ui icon button document count minus"><i class="minus icon"></i></button>
- <button class="ui icon button document count plus"><i class="plus icon"></i></button>
+ <button class="ui icon button document count minus"><i class="red minus icon"></i></button>
+ <button class="ui icon button document count plus"><i class="green plus icon"></i></button>
+{if $page_count < 10}
+ <button class="ui icon button document one per page">One page per document</button>
+{/if}
 </div>
 <div id="checkbox_template" class="field" style="display: none;">
  <div class="ui checkbox">
@@ -85,6 +92,15 @@ $('#splitter_content button.ui.button.document.count').click(function () {
    $('#splitter_content form.ui.form.step2').trigger('checkboxchange');
    return true;
 });
+
+{if $page_count < 10 }
+$('#splitter_content button.ui.button.one.per.page').click(function () {
+   document_count = {$page_count};
+   $('#splitter_content input[name=document_count]').val({$page_count});
+   $('#splitter_content form.ui.form.step2').trigger('checkboxchange');
+   return true;
+});
+{/if}
 
 $('#splitter_content form.ui.form.step2').on('checkboxchange', function () {
    if ((checkbox_template = $('#splitter_content #checkbox_template')) === undefined) {
