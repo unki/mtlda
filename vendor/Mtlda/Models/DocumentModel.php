@@ -1450,6 +1450,44 @@ class DocumentModel extends DefaultModel
         $this->document_derivation_guid = $guid;
         return true;
     }
+
+    public function getFileNameExtension()
+    {
+        if (($file_name = $this->getFileName()) === false) {
+            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
+            return false;
+        }
+
+        if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
+            $this->raiseError(__CLASS__ ."::getFileName() returned invalid data!");
+            return false;
+        }
+
+        if (!strpos($file_name, '.')) {
+            return false;
+        }
+
+        if (($suffix = pathinfo($file_name, PATHINFO_EXTENSION)) === false) {
+            return false;
+        }
+
+        return $suffix;
+    }
+
+    public function getFileNameBase()
+    {
+        if (($file_name = $this->getFileName()) === false) {
+            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
+            return false;
+        }
+
+        if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
+            $this->raiseError(__CLASS__ ."::getFileName() returned invalid data!");
+            return false;
+        }
+
+        return basename($file_name);
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
