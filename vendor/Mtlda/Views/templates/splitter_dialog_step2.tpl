@@ -18,7 +18,7 @@
 </div>
 <div id="checkbox_template" class="field" style="display: none;">
  <div class="ui checkbox">
-  <input type="checkbox" name="" value="1" tabindex="0" class="hidden">
+  <input type="checkbox" class="hidden">
   <label>template text</label>
  </div>
 </div>
@@ -34,7 +34,7 @@
    <div class="{if $page_no == 1 || $page_no == $page_count}seven{else}ten{/if} wide column">
     Page {$page_no}
     <div class="grouped fields" data-page="{$page_no}">
-     <label for="page_mode[{$page_no}]">Page appears in:</label>
+     <label>Page appears in:</label>
     </div>
    </div>
 {if $page_no == 1 || $page_no == $page_count}
@@ -121,13 +121,11 @@ $('#splitter_content form.ui.form.step2').on('checkboxchange', function () {
       for (i = 1; i <= document_count; i++) {
          checkbox = checkbox_template.clone();
          checkbox.removeAttr("id");
-         checkbox.find("input").val(i);
-         checkbox.find("label").text("Document " + i);
          checkbox.attr("data-document", i);
+         checkbox.find("label").text("Document " + i);
          if (i == page_no) {
-            checkbox.find("input").attr("checked", "checked");
+            checkbox.find(".ui.checkbox").checkbox("set checked");
          }
-         checkbox.find("input").attr("name", "page_mode["+ page_no +"]");
          checkbox.show();
          $(this).append(checkbox);
       }
@@ -142,23 +140,24 @@ $('#splitter_content .ui.form.step2').submit(function () {
       documents[i].pages = new Array;
    }
 
-   $(this).find('input:checked[name^=page_mode]').each(function () {
-      if (typeof (name = $(this).attr('name')) === 'undefined') {
-         throw 'Failed to read name attribute!';
+   var pages = $(this).find('.grouped.fields').each(function () {
+      var page_no;
+      if (typeof (page_no = $(this).attr("data-page")) === 'undefined') {
+         throw 'Failed to read data-page attribute!';
          return false;
       }
-      if (typeof (into_document = $(this).val()) === 'undefined') {
-         throw 'Failed to read checkbox value!';
-         return false;
-      }
-      page = name.match(/^page_mode\[(\d+)\]$/);
-      if (!page || !page[1] || page[1] == '') {
-         throw 'Failed to retrieve page number!';
-         return false;
-      }
-      page_no = page[1];
-      documents[into_document].pages.push(page_no);
-      return true;
+      $(this).find('input[type=checkbox]').each(function () {
+         var document_no;
+         if (!$(this).parent().checkbox('is checked')) {
+            return true;
+         }
+         if (typeof (document_no = $(this).parent().parent().attr('data-document')) === 'undefined') {
+            throw 'Failed to read data-document attribute!';
+            return false;
+         }
+         documents[document_no].pages.push(page_no);
+         return true;
+      });
    });
 
    splitter_window($(this), {$next_step});
@@ -176,7 +175,7 @@ if (typeof document_count === 'undefined') {
    }
 }
 if (typeof documents === 'undefined') {
-   documents = new Array;
+   documents = new Object;
 }
 
 $('#splitter_content form.ui.form.step2').trigger('checkboxchange');
