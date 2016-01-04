@@ -16,18 +16,21 @@ if (typeof documents === 'undefined' || !documents instanceof Array) {
 }
 
 $('.ui.button.exit').click(function () {
-   if (!splitter_wnd) {
+   if (typeof splitter_wnd === 'undefined') {
       throw 'Have no reference to the modal window!';
       return false;
    }
    splitter_wnd.modal('hide');
+   delete documents;
+   delete splitter_wnd;
 });
 $('.ui.button.split').click(function () {
-   if (!splitter_wnd) {
+   if (typeof splitter_wnd === 'undefined') {
       throw 'Have no reference to the modal window!';
       return false;
    }
    splitter_wnd.modal('hide');
+   delete splitter_wnd;
 
    var split_wnd = show_modal('progress', {
       header : title,
@@ -39,7 +42,7 @@ $('.ui.button.split').click(function () {
 
    progressbar = split_wnd.find('.description .ui.indicating.progress');
 
-   if (!progressbar) {
+   if (typeof progressbar === 'undefined') {
       throw 'Can not find the progress bar in the modal window!';
       return false;
    }
@@ -63,13 +66,12 @@ $('.ui.button.split').click(function () {
          throw 'reply is empty!';
          return false;
       }
-      if (!splitter_wnd) {
-         throw 'Have no reference to the modal window!';
+      if (typeof progressbar === 'undefined') {
+         throw 'Have no reference to the progressbar!';
          return false;
       }
-
-      if (!progressbar) {
-         throw 'Have no reference to the progressbar!';
+      if (typeof split_wnd === 'undefined') {
+         throw 'Have no reference to the split_wnd!';
          return false;
       }
 
@@ -97,6 +99,8 @@ $('.ui.button.split').click(function () {
       progressbar.removeClass('active').addClass('success');
 
       split_wnd.modal('hide');
+      delete documents;
+      delete split_wnd;
       mbus.unsubscribe('split-replies-handler');
 
       location.reload();
