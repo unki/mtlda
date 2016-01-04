@@ -39,7 +39,20 @@ if (typeof documents === 'undefined' || !documents instanceof Array) {
 file_name_base = "{$item->getFileNameBase()}";
 file_name_ext = "{$item->getFileNameExtension()}";
 
-documents.forEach(function (pages, document_no) {
+documents.forEach(function (params, document_no) {
+
+   if (typeof params.pages !== 'undefined') {
+      pages = params.pages;
+   }
+
+   if (typeof params.title !== 'undefined') {
+      title = params.title;
+   }
+
+   if (typeof params.filename !== 'undefined') {
+      filename = params.filename;
+   }
+
    segment = $(".ui.segment.template").clone();
    segment.removeClass("template");
    segment.find("h4.ui.header").text("Document "+ document_no);
@@ -50,7 +63,9 @@ documents.forEach(function (pages, document_no) {
       return false;
    }
    input.attr("name", "document_pages[" + document_no +"]");
-   input.val(pages.join(','));
+   if (typeof pages !== 'undefined') {
+      input.val(pages.join(','));
+   }
 
    if (typeof (input = segment.find("input[type=checkbox][name=document_use_title]")) === 'undefined') {
       throw 'failed to locate input element!';
@@ -64,7 +79,11 @@ documents.forEach(function (pages, document_no) {
       return false;
    }
    input.attr("name", "document_title["+ document_no +"]");
-   input.val(input.val() + ' Pages ' + pages.join('_'));
+   if (typeof title === 'undefined') {
+      input.val(input.val() + ' Pages ' + pages.join('_'));
+   } else {
+      input.val(title);
+   }
 
    if (typeof (input = segment.find("input[type=checkbox][name=document_use_file_name]")) === 'undefined') {
       throw 'failed to locate input element!';
@@ -78,7 +97,11 @@ documents.forEach(function (pages, document_no) {
       return false;
    }
    input.attr("name", "document_file_name["+ document_no +"]");
-   input.val(file_name_base + '_pages_' + pages.join('-') + '.' + file_name_ext);
+   if (typeof filename === 'undefined') {
+      input.val(file_name_base + '_pages_' + pages.join('-') + '.' + file_name_ext);
+   } else {
+      input.val(filename);
+   }
 
    segment.show();
    segment.insertBefore('form.ui.form.step3 button.ui.button.lower.submit');
@@ -103,7 +126,7 @@ $('form.ui.form.step3').submit(function () {
          return false;
       }
       document_no = document_no[1];
- 
+
       if (typeof (use_title = $(this).find('input[type=checkbox][name^="document_use_title_"]').parent().checkbox('is checked')) === 'undefined') {
          throw 'Failed to read checkbox value!';
          return false;
