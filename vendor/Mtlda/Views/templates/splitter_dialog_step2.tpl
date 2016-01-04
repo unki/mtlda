@@ -138,7 +138,8 @@ $('#splitter_content form.ui.form.step2').on('checkboxchange', function () {
 
 $('#splitter_content .ui.form.step2').submit(function () {
    for (i = 1; i <= document_count; i++) {
-      documents[i] = new Array;
+      documents[i] = new Object;
+      documents[i].pages = new Array;
    }
 
    $(this).find('input:checked[name^=page_mode]').each(function () {
@@ -156,7 +157,7 @@ $('#splitter_content .ui.form.step2').submit(function () {
          return false;
       }
       page_no = page[1];
-      documents[into_document].push(page_no);
+      documents[into_document].pages.push(page_no);
       return true;
    });
 
@@ -165,8 +166,18 @@ $('#splitter_content .ui.form.step2').submit(function () {
    return false;
 });
 
-document_count = 1;
-documents = new Array;
-$('#splitter_content form.ui.form.step2').trigger('checkboxchange');
+if (typeof document_count === 'undefined') {
+   document_count = 1;
+} else {
+   if (document_count > 0 && document_count < 10) {
+      $('#splitter_content input[name=document_count]').val(document_count);
+   } else {
+      document_count = 1
+   }
+}
+if (typeof documents === 'undefined') {
+   documents = new Array;
+}
 
+$('#splitter_content form.ui.form.step2').trigger('checkboxchange');
 --></script>
