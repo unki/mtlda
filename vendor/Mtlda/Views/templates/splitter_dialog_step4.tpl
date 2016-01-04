@@ -3,17 +3,11 @@ if (typeof documents === 'undefined' || !documents instanceof Array) {
    throw 'Lost pages information!';
 }
 
-doc_obj = new Object;
-
-documents.forEach(function (pages, document_no) {
-   doc_obj[document_no] = pages.join(',');
-});
-
 msg_body = new Object;
 msg_body.id = '{$item->getId()}';
 msg_body.guid = '{$item->getGuid()}';
 msg_body.model = 'queueitem';
-msg_body.documents = JSON.stringify(doc_obj);
+msg_body.documents = JSON.stringify(documents);
 
 var msg = new ThalliumMessage;
 msg.setCommand('split-request');
