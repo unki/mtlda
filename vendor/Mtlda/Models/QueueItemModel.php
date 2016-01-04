@@ -1082,7 +1082,11 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        return basename($file_name);
+        if (($base = pathinfo($file_name, PATHINFO_FILENAME)) === false) {
+            return false;
+        }
+
+        return $base;
     }
 }
 
