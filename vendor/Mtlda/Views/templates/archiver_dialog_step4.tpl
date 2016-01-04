@@ -32,11 +32,11 @@ $('.ui.button.archive').click(function () {
    elements = new Array;
    elements.push($(this));
    rpc_object_archive(elements, function () {
-         if (elements === undefined) {
+         if (typeof elements === 'undefined') {
             return true;
          }
          elements.forEach(function (value) {
-            if ((id == $(this).attr('data-id')) === undefined) {
+            if (typeof (id = $(this).attr('data-id')) === 'undefined') {
                return true;
             }
             $('tr#queue_item_'+ id).hide(400, function () {
