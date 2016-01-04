@@ -86,7 +86,7 @@ $('form.ui.form.step3').submit(function () {
       }
       document_no = document_no[1];
  
-      if (typeof (use_title = $(this).find('input[type=checkbox][name^="document_use_title_"]').checkbox('is checked')) === 'undefined') {
+      if (typeof (use_title = $(this).find('input[type=checkbox][name^="document_use_title_"]').parent().checkbox('is checked')) === 'undefined') {
          throw 'Failed to read checkbox value!';
          return false;
       }
@@ -111,17 +111,15 @@ $('form.ui.form.step3').submit(function () {
             return false;
       }
 
-      this_document = new Array;
-      if (use_title == 'checked') {
-         this_document['title'] = document_title;
+      this_document = new Object;
+      if (use_title) {
+         this_document.title = document_title;
       }
-      this_document['file_name'] = document_file_name;
-      this_document['pages'] = document_pages;
+      this_document.file_name = document_file_name;
+      this_document.pages = document_pages;
       documents.push(this_document);
       return true;
    });
-
-   console.log(documents);
 
    splitter_window($(this), {$next_step});
    return false;
