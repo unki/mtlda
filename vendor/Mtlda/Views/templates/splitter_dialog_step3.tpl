@@ -39,7 +39,9 @@ if (typeof documents === 'undefined' || !documents instanceof Array) {
 file_name_base = "{$item->getFileNameBase()}";
 file_name_ext = "{$item->getFileNameExtension()}";
 
-documents.forEach(function (params, document_no) {
+for (var document_no in documents) {
+
+   params = documents[document_no];
 
    if (typeof params.pages !== 'undefined') {
       pages = params.pages;
@@ -60,7 +62,7 @@ documents.forEach(function (params, document_no) {
 
    if (typeof (input = segment.find("input[name=document_pages]")) === 'undefined') {
       throw 'failed to locate input element!';
-      return false;
+      break;
    }
    input.attr("name", "document_pages[" + document_no +"]");
    if (typeof pages !== 'undefined') {
@@ -69,14 +71,14 @@ documents.forEach(function (params, document_no) {
 
    if (typeof (input = segment.find("input[type=checkbox][name=document_use_title]")) === 'undefined') {
       throw 'failed to locate input element!';
-      return false;
+      break;
    }
    input.attr("name", "document_use_title_" + document_no);
    input.attr("data-target", "document_title["+ document_no +"]");
 
    if (typeof (input = segment.find("input[name=document_titles]")) === 'undefined') {
       throw 'failed to locate input element!';
-      return false;
+      break;
    }
    input.attr("name", "document_title["+ document_no +"]");
    if (typeof title === 'undefined') {
@@ -87,14 +89,14 @@ documents.forEach(function (params, document_no) {
 
    if (typeof (input = segment.find("input[type=checkbox][name=document_use_file_name]")) === 'undefined') {
       throw 'failed to locate input element!';
-      return false;
+      break;
    }
    input.attr("name", "document_use_file_name" + document_no);
    input.attr("data-target", "document_file_name["+ document_no +"]");
 
    if (typeof (input = segment.find("input[name=document_file_names]")) === 'undefined') {
       throw 'failed to locate input element!';
-      return false;
+      break;
    }
    input.attr("name", "document_file_name["+ document_no +"]");
    if (typeof filename === 'undefined') {
@@ -105,12 +107,11 @@ documents.forEach(function (params, document_no) {
 
    segment.show();
    segment.insertBefore('form.ui.form.step3 button.ui.button.lower.submit');
-   return true;
-});
+};
 
 $('form.ui.form.step3').submit(function () {
 
-   documents = new Array;
+   documents = new Object;
 
    if (typeof (document_segments = $(this).find('[id^="document_"]')) === 'undefined') {
       throw 'Failed to find document segment!';
