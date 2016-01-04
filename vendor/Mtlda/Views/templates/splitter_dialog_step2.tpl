@@ -48,7 +48,7 @@
 <script type="text/javascript"><!--
 
 $('#splitter_content input[name=document_count]').on('input', function () {
-   if ((value = $(this).val()) === undefined) {
+   if (typeof (value = $(this).val()) === 'undefined') {
       throw 'Failed to fetch document count!';
       return false;
    }
@@ -103,16 +103,16 @@ $('#splitter_content button.ui.button.one.per.page').click(function () {
 {/if}
 
 $('#splitter_content form.ui.form.step2').on('checkboxchange', function () {
-   if ((checkbox_template = $('#splitter_content #checkbox_template')) === undefined) {
+   if (typeof (checkbox_template = $('#splitter_content #checkbox_template')) === 'undefined') {
       throw 'failed to locate checkbox_template!';
       return false;
    }
    $(this).find('.grouped.fields').each(function () {
-      if ((page_no = $(this).attr('data-page')) === undefined) {
+      if (typeof (page_no = $(this).attr('data-page')) === 'undefined') {
          throw 'no data-page attribute!';
          return false;
       }
-      if ((document_checkboxes = $(this).find(".field")) !== undefined) {
+      if (typeof (document_checkboxes = $(this).find(".field")) !== 'undefined') {
          document_checkboxes.each(function () {
             $(this).remove();
          });
@@ -141,11 +141,11 @@ $('#splitter_content .ui.form.step2').submit(function () {
    }
 
    $(this).find('input:checked[name^=page_mode]').each(function () {
-      if ((name = $(this).attr('name')) === undefined) {
+      if (typeof (name = $(this).attr('name')) === 'undefined') {
          throw 'Failed to read name attribute!';
          return false;
       }
-      if ((into_document = $(this).val()) === undefined) {
+      if (typeof (into_document = $(this).val()) === 'undefined') {
          throw 'Failed to read checkbox value!';
          return false;
       }
