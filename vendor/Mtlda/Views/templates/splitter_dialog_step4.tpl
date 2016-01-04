@@ -1,5 +1,5 @@
 <script type="text/javascript"><!--
-if (documents === undefined || !documents instanceof Array) {
+if (typeof documents === 'undefined' || !documents instanceof Array) {
    throw 'Lost pages information!';
 }
 
