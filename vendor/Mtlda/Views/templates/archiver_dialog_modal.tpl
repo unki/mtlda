@@ -49,11 +49,11 @@
 $('.ui.archiver.steps a.step').on('click', ':not(.disabled)', function () {
    link = eval($(this).closest('a.step'));
    id = $(link).attr('id');
-   if (id === undefined || id == '') {
+   if (typeof id === 'undefined' || id == '') {
       id = 'archiver_step_1';
    }
    step_no = id.match(/^archiver_step_(\d)$/);
-   if (step_no === undefined || step_no[1] === undefined || step_no[1] == '') {
+   if (typeof step_no === 'undefined' || typeof step_no[1] === 'undefined' || step_no[1] == '') {
       return false;
    }
    archiver_window($(link), step_no[1]);
