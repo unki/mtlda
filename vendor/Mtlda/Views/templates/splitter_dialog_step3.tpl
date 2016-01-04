@@ -65,8 +65,10 @@ for (var document_no in documents) {
       break;
    }
    input.attr("name", "document_pages[" + document_no +"]");
-   if (typeof pages !== 'undefined') {
+   if (typeof pages !== 'undefined' && pages instanceof Array) {
       input.val(pages.join(','));
+   } else {
+      pages = new Array;
    }
 
    if (typeof (input = segment.find("input[type=checkbox][name=document_use_title]")) === 'undefined') {
@@ -91,7 +93,7 @@ for (var document_no in documents) {
       throw 'failed to locate input element!';
       break;
    }
-   input.attr("name", "document_use_file_name" + document_no);
+   input.attr("name", "document_use_file_name_" + document_no);
    input.attr("data-target", "document_file_name["+ document_no +"]");
 
    if (typeof (input = segment.find("input[name=document_file_names]")) === 'undefined') {
