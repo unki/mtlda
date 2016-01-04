@@ -28,7 +28,7 @@
 <script type="text/javascript"><!--
 $('#archiver_modal_window form.ui.form').on('submit', function () {
    rpc_object_update($(this), function (element, data) {
-      if (element === undefined || !element) {
+      if (typeof element === 'undefined' || !element) {
          throw 'lost element!';
          return false;
       }
@@ -43,11 +43,11 @@ $('#archiver_modal_window form.ui.form').on('submit', function () {
 });
 $('#archiver_modal_window form.ui.form input').on('input', function () {
    var form = $(this).closest('form');
-   if (form === undefined) {
+   if (typeof form === 'undefined') {
       return true;
    }
    var savebutton = form.find('button.save');
-   if (savebutton === undefined) {
+   if (typeof savebutton === 'undefined') {
       return true;
    }
    if (!savebutton.hasClass('red shape')) {
