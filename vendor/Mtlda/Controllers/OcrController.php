@@ -57,7 +57,7 @@ class OcrController extends \Thallium\Controllers\DefaultController
         try {
             $text = $this->tesseract->recognize();
         } catch (\Exception $e) {
-            if (strstr($e->getMessage(), "does not exist! Probably Tesseract was unsuccessful")) {
+            if (strpos($e->getMessage(), "does not exist! Probably Tesseract was unsuccessful")) {
                 return "";
             }
             $this->raiseError(get_class($ocr) .'::recognize() raised an unknown exception!', false, $e);
