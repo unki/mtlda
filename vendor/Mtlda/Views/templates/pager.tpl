@@ -64,7 +64,7 @@ $(document).ready(function () {
    $('#pager_page_select, #pager_items_select').dropdown({
       match: 'text',
       onChange : function(value, text, choice) {
-         if (value === undefined || value == "") {
+         if (typeof value === 'undefined' || value == "") {
             return false;
          }
          window.location = value;
