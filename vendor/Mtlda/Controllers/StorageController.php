@@ -329,11 +329,11 @@ class StorageController extends DefaultController
     {
         global $mtlda;
 
-        if (empty($upperpath) && strstr($path, self::ARCHIVE_DIRECTORY)) {
+        if (empty($upperpath) && strpos($path, self::ARCHIVE_DIRECTORY)) {
             $upperpath = self::ARCHIVE_DIRECTORY;
-        } elseif (empty($upperpath) && strstr($path, self::INCOMING_DIRECTORY)) {
+        } elseif (empty($upperpath) && strpos($path, self::INCOMING_DIRECTORY)) {
             $upperpath = self::INCOMING_DIRECTORY;
-        } elseif (empty($upperpath) && strstr($path, self::WORKING_DIRECTORY)) {
+        } elseif (empty($upperpath) && strpos($path, self::WORKING_DIRECTORY)) {
             $upperpath = self::WORKING_DIRECTORY;
         } elseif (empty($upperpath)) {
             $upperpath = self::DATA_DIRECTORY;
