@@ -7,21 +7,21 @@
       <input type="checkbox" class="hidden" {if $item->hasTitle()}checked="checked"{/if}" />
     </div>
   </div>
-  <div class="{if !$item->hasTitle()}disabled{/if} thirteen wide field title">
+  <div class="{if !$item->hasTitle()}disabled{/if} fourteen wide field title">
    <input type="text" name="document_titles" value="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()|regex_replace:'/\.([a-zA-Z]+)$/':''|replace:'_':' '}{/if}" />
   </div>
+ </div>
+ <div class="required field">
+  <label>Pages:</label>
+  <input type="text" name="document_pages" placeholder="Selected pages..." size="3">
  </div>
  <div class="ui required field">
   <label>Filename:</label>
   <div class="ui right labeled input">
    <div class="ui label">{$item->getFileNameBase()}_</div>
    <input name="document_file_names" type="text" value="" />
-   <div class="ui basic label">.{$item->getFileNameExtension()}</div>
+   <div class="ui label">.{$item->getFileNameExtension()}</div>
   </div>
- </div>
- <div class="ui inline required field">
-  <label>Pages:</label>
-  <input type="text" name="document_pages" placeholder="Selected pages..." size="3">
  </div>
 </div>
 <form class="ui form step3" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-modal-title="Split {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}">
@@ -29,21 +29,20 @@
  <button class="ui button lower submit" type="submit">Split!</button>
 </form>
 <script type="text/javascript"><!--
-if (documents === undefined || !documents instanceof Array) {
+if (typeof documents === 'undefined' || !documents instanceof Array) {
    throw 'Lost pages information!';
 }
-
-document_file_prefix = "{$item->getFileName()|regex_replace:'/\.([a-zA-Z]+)$/':''}";
 
 documents.forEach(function (pages, document_no) {
    segment = $(".ui.segment.template").clone();
    segment.removeClass("template");
    segment.find("h4.ui.header").text("Document "+ document_no);
+   segment.attr("id", "document_"+ document_no);
    if (typeof (input = segment.find("input[name=document_pages]")) === 'undefined') {
       throw 'failed to locate input element!';
       return false;
    }
-   input.attr("name", "document_[" + document_no +"]");
+   input.attr("name", "document_pages[" + document_no +"]");
    input.val(pages.join(','));
    if (typeof (input = segment.find("input[name=document_titles]")) === 'undefined') {
       throw 'failed to locate input element!';
@@ -55,6 +54,7 @@ documents.forEach(function (pages, document_no) {
       throw 'failed to locate input element!';
       return false;
    }
+   input.attr("name", "document_use_title_" + document_no);
    input.attr("data-target", "document_title["+ document_no +"]");
    if (typeof (input = segment.find("input[name=document_file_names]")) === 'undefined') {
       throw 'failed to locate input element!';
@@ -69,33 +69,59 @@ documents.forEach(function (pages, document_no) {
 
 $('form.ui.form.step3').submit(function () {
 
-   if ((document_elements = $(this).find('input[name^=document_]')) === undefined) {
-      throw 'Failed to find input elements';
+   documents = new Array;
+
+   if (typeof (document_segments = $(this).find('[id^="document_"]')) === 'undefined') {
+      throw 'Failed to find document segment!';
+      return false;
    }
 
-   document_elements.each(function () {
+   document_segments.each(function () {
+      var this_document, document_no, use_title, document_title, document_file_name, document_pages;
 
-      if ((value = $(this).val()) === undefined) {
-         throw 'Failed to read values of input field!';
-         return false;
-      }
-      if ((pages = value.split(',')) === undefined) {
-         throw 'Failed to split input field value!';
-         return false;
-      }
-
-      if ((name = $(this).attr("name")) === undefined) {
-         throw 'Failed to find input elements name attribute!';
-         return false;
-      }
-
-      document_no = name.match(/^document_\[(\d+)\]$/);
+      document_no = $(this).attr('id').match(/^document_(\d+)$/);
       if (!document_no || !document_no[1] || document_no[1] == '') {
          throw 'Failed to retrieve page number!';
          return false;
       }
       document_no = document_no[1];
+ 
+      if (typeof (use_title = $(this).find('input[type=checkbox][name^="document_use_title_"]').checkbox('is checked')) === 'undefined') {
+         throw 'Failed to read checkbox value!';
+         return false;
+      }
+
+      if (typeof (document_title = $(this).find('input[name^="document_title"]').val()) === 'undefined') {
+         throw 'Failed to read document title!';
+         return false;
+      }
+
+      if (typeof (document_file_name = $(this).find('input[name^="document_file_name"]').val()) === 'undefined') {
+         throw 'Failed to read document filename!';
+         return false;
+      }
+
+      if (typeof (document_pages = $(this).find('input[name^="document_pages"]').val()) === 'undefined') {
+         throw 'Failed to read document pages!';
+         return false;
+      }
+
+      if (typeof (document_pages = document_pages.split(',')) === 'undefined') {
+            throw 'Failed to split document pages value!';
+            return false;
+      }
+
+      this_document = new Array;
+      if (use_title == 'checked') {
+         this_document['title'] = document_title;
+      }
+      this_document['file_name'] = document_file_name;
+      this_document['pages'] = document_pages;
+      documents.push(this_document);
+      return true;
    });
+
+   console.log(documents);
 
    splitter_window($(this), {$next_step});
    return false;
