@@ -273,12 +273,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (strstr($file_name, '/') || strstr($file_name, '\\')) {
+        if (strpos($file_name, '/') || strpos($file_name, '\\') || strpos($file_name, '..')) {
             $this->raiseError(__METHOD__ .'(), $file_name parameter contains forbidden characters!');
             return false;
         }
 
-        $this->document_file_name = $file_name;
+        $this->document_file_name = basename($file_name);
         return true;
     }
 
