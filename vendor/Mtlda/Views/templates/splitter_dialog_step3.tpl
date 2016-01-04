@@ -106,11 +106,6 @@ $('form.ui.form.step3').submit(function () {
          return false;
       }
 
-      if (typeof (document_pages = document_pages.split(',')) === 'undefined') {
-            throw 'Failed to split document pages value!';
-            return false;
-      }
-
       this_document = new Object;
       if (use_title) {
          this_document.title = document_title;
