@@ -55,54 +55,44 @@ class JobsController extends \Thallium\Controllers\JobsController
     {
         global $mtlda, $mbus;
 
-        if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .', requires a JobModel reference as parameter!');
-            return false;
-        }
-
-        if (!$job->hasParameters() || !($body = $job->getParameters())) {
-            $this->raiseError(get_class($job) .'::getParameters() returned false!');
-            return false;
-        }
-
-        if (!is_string($body)) {
-            $this->raiseError(get_class($job) .'::getParameters() has not returned a string!');
-            return false;
-        }
-
         if (!$mbus->sendMessageToClient('archive-reply', 'Preparing', '10%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
-        if (($archive_request = unserialize($body)) === null) {
-            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
+        if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
+            $this->raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
+            return false;
+        }
+
+        if (!$job->hasParameters() || ($archive_request = $job->getParameters()) === false) {
+            $this->raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
         if (!is_object($archive_request)) {
-            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
         if (!isset($archive_request->id) || empty($archive_request->id) ||
             !isset($archive_request->guid) || empty($archive_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .', archive-request is incomplete!');
+            $this->raiseError(__METHOD__ .'(), archive-request is incomplete!');
             return false;
         }
 
         if ($archive_request->id != 'all' &&
             !$mtlda->isValidId($archive_request->id)
         ) {
-            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            $this->raiseError(__METHOD__ .'(), \$id is invalid!');
             return false;
         }
 
         if ($archive_request->guid != 'all' &&
             !$mtlda->isValidGuidSyntax($archive_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            $this->raiseError(__METHOD__ .'() \$guid is invalid!');
             return false;
         }
 
@@ -187,7 +177,7 @@ class JobsController extends \Thallium\Controllers\JobsController
         }
 
         if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .', requires a JobModel reference as parameter!');
+            $this->raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
             return false;
         }
 
@@ -215,38 +205,28 @@ class JobsController extends \Thallium\Controllers\JobsController
     {
         global $mtlda, $mbus, $config;
 
+        if (!$mbus->sendMessageToClient('scan-reply', 'Preparing', '10%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
         if (!$config->isPdfIndexingEnabled()) {
             $this->raiseError(get_class($config) .'::isPdfIndexingEnabled() returned false!');
             return false;
         }
 
         if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .', requires a JobModel reference as parameter!');
+            $this->raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
             return false;
         }
 
-        if (!$job->hasParameters() || !($body = $job->getParameters())) {
+        if (!$job->hasParameters() || ($scan_request = $job->getParameters()) === false) {
             $this->raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
-        if (!is_string($body)) {
-            $this->raiseError(get_class($job) .'::getParameters() has not returned a string!');
-            return false;
-        }
-
-        if (!$mbus->sendMessageToClient('scan-reply', 'Preparing', '10%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
-            return false;
-        }
-
-        if (!($scan_request = unserialize($body))) {
-            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
-            return false;
-        }
-
         if (!is_object($scan_request)) {
-            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
@@ -255,17 +235,17 @@ class JobsController extends \Thallium\Controllers\JobsController
             !isset($scan_request->model) || empty($scan_request->model) ||
             !in_array($scan_request->model, array('document', 'queueitem'))
         ) {
-            $this->raiseError(__METHOD__ .', scan-request is incomplete!');
+            $this->raiseError(__METHOD__ .'(), scan-request is incomplete!');
             return false;
         }
 
         if (!$mtlda->isValidId($scan_request->id)) {
-            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            $this->raiseError(__METHOD__ .'(), \$id is invalid!');
             return false;
         }
 
         if (!$mtlda->isValidGuidSyntax($scan_request->guid)) {
-            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            $this->raiseError(__METHOD__ .'(), \$guid is invalid!');
             return false;
         }
 
@@ -300,55 +280,45 @@ class JobsController extends \Thallium\Controllers\JobsController
     {
         global $mtlda, $mbus, $config;
 
+        if (!$mbus->sendMessageToClient('sign-reply', 'Preparing', '10%')) {
+            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            return false;
+        }
+
         if (!$config->isPdfSigningEnabled()) {
             $this->raiseError(get_class($config) .'::isPdfSigningEnabled() returned false!');
             return false;
         }
 
         if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .', requires a JobModel reference as parameter!');
+            $this->raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
             return false;
         }
 
-        if (!$job->hasParameters() || !($body = $job->getParameters())) {
+        if (!$job->hasParameters() || ($sign_request = $job->getParameters()) === false) {
             $this->raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
-        if (!is_string($body)) {
-            $this->raiseError(get_class($job) .'::getParameters() has not returned a string!');
-            return false;
-        }
-
-        if (!$mbus->sendMessageToClient('sign-reply', 'Preparing', '10%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
-            return false;
-        }
-
-        if (!($sign_request = unserialize($body))) {
-            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
-            return false;
-        }
-
         if (!is_object($sign_request)) {
-            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
         if (!isset($sign_request->id) || empty($sign_request->id) ||
             !isset($sign_request->guid) || empty($sign_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .', sign-request is incomplete!');
+            $this->raiseError(__METHOD__ .'() sign-request is incomplete!');
             return false;
         }
 
         if (!$mtlda->isValidId($sign_request->id)) {
-            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            $this->raiseError(__METHOD__ .'() \$id is invalid!');
             return false;
         }
 
         if (!$mtlda->isValidGuidSyntax($sign_request->guid)) {
-            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            $this->raiseError(__METHOD__ .'() \$guid is invalid!');
             return false;
         }
 
@@ -384,54 +354,44 @@ class JobsController extends \Thallium\Controllers\JobsController
     {
         global $mtlda, $mbus;
 
-        if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .', requires a JobModel reference as parameter!');
-            return false;
-        }
-
-        if (!$job->hasParameters() || !($body = $job->getParameters())) {
-            $this->raiseError(get_class($job) .'::getParameters() returned false!');
-            return false;
-        }
-
-        if (!is_string($body)) {
-            $this->raiseError(get_class($job) .'::getParameters() has not returned a string!');
-            return false;
-        }
-
         if (!$mbus->sendMessageToClient('delete-reply', 'Preparing', '10%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
-        if (($delete_request = unserialize($body)) === null) {
-            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
+        if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
+            $this->raiseError(__METHOD__ .'() requires a JobModel reference as parameter!');
+            return false;
+        }
+
+        if (!$job->hasParameters() || ($delete_request = $job->getParameters()) === false) {
+            $this->raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
         if (!is_object($delete_request)) {
-            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
         if (!isset($delete_request->id) || empty($delete_request->id) ||
             !isset($delete_request->guid) || empty($delete_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .', delete-request is incomplete!');
+            $this->raiseError(__METHOD__ .'() delete-request is incomplete!');
             return false;
         }
 
         if ($delete_request->id != 'all' &&
             !$mtlda->isValidId($delete_request->id)
         ) {
-            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            $this->raiseError(__METHOD__ .'() \$id is invalid!');
             return false;
         }
 
         if ($delete_request->guid != 'all' &&
             !$mtlda->isValidGuidSyntax($delete_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            $this->raiseError(__METHOD__ .'() \$guid is invalid!');
             return false;
         }
 
@@ -516,54 +476,44 @@ class JobsController extends \Thallium\Controllers\JobsController
     {
         global $mtlda, $mbus;
 
-        if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .', requires a JobModel reference as parameter!');
-            return false;
-        }
-
-        if (!$job->hasParameters() || !($body = $job->getParameters())) {
-            $this->raiseError(get_class($job) .'::getParameters() returned false!');
-            return false;
-        }
-
-        if (!is_string($body)) {
-            $this->raiseError(get_class($job) .'::getParameters() has not returned a string!');
-            return false;
-        }
-
         if (!$mbus->sendMessageToClient('preview-reply', 'Preparing', '10%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
-        if (($preview_request = unserialize($body)) === null) {
-            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
+        if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
+            $this->raiseError(__METHOD__ .'() requires a JobModel reference as parameter!');
+            return false;
+        }
+
+        if (!$job->hasParameters() || ($preview_request = $job->getParameters()) === false) {
+            $this->raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
         if (!is_object($preview_request)) {
-            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
         if (!isset($preview_request->id) || empty($preview_request->id) ||
             !isset($preview_request->guid) || empty($preview_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .', preview-request is incomplete!');
+            $this->raiseError(__METHOD__ .'() preview-request is incomplete!');
             return false;
         }
 
         if ($preview_request->id != 'all' &&
             !$mtlda->isValidId($preview_request->id)
         ) {
-            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            $this->raiseError(__METHOD__ .'() \$id is invalid!');
             return false;
         }
 
         if ($preview_request->guid != 'all' &&
             !$mtlda->isValidGuidSyntax($preview_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            $this->raiseError(__METHOD__ .'() \$guid is invalid!');
             return false;
         }
 
@@ -663,50 +613,40 @@ class JobsController extends \Thallium\Controllers\JobsController
     {
         global $mtlda, $mbus;
 
-        if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .', requires a JobModel reference as parameter!');
-            return false;
-        }
-
-        if (!$job->hasParameters() || !($body = $job->getParameters())) {
-            $this->raiseError(get_class($job) .'::getParameters() returned false!');
-            return false;
-        }
-
-        if (!is_string($body)) {
-            $this->raiseError(get_class($job) .'::getParameters() has not returned a string!');
-            return false;
-        }
-
         if (!$mbus->sendMessageToClient('split-reply', 'Preparing', '10%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
-        if (($split_request = unserialize($body)) === null) {
-            $this->raiseError(__METHOD__ .', unable to unserialize message body!');
+        if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
+            $this->raiseError(__METHOD__ .'() requires a JobModel reference as parameter!');
+            return false;
+        }
+
+        if (!$job->hasParameters() || ($split_request = $job->getParameters()) === false) {
+            $this->raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
         if (!is_object($split_request)) {
-            $this->raiseError(__METHOD__ .', unserialize() has not returned an object!');
+            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
         if (!isset($split_request->id) || empty($split_request->id) ||
             !isset($split_request->guid) || empty($split_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .', split-request is incomplete!');
+            $this->raiseError(__METHOD__ .'() split-request is incomplete!');
             return false;
         }
 
         if (!$mtlda->isValidId($split_request->id)) {
-            $this->raiseError(__METHOD__ .', \$id is invalid!');
+            $this->raiseError(__METHOD__ .'() \$id is invalid!');
             return false;
         }
 
         if (!$mtlda->isValidGuidSyntax($split_request->guid)) {
-            $this->raiseError(__METHOD__ .', \$guid is invalid!');
+            $this->raiseError(__METHOD__ .'() \$guid is invalid!');
             return false;
         }
 
