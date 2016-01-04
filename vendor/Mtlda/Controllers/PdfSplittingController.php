@@ -58,7 +58,7 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        if (!$this->cloneItem($srcitem)) {
+        if (!$this->cloneItem($srcitem, $pages)) {
             $this->raiseError(__CLASS__ .'::cloneItem() returned false!');
             return false;
         }
@@ -71,7 +71,7 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
         return $this->tempItem;
     }
 
-    protected function cloneItem(&$srcitem)
+    protected function cloneItem(&$srcitem, $pages)
     {
         try {
             $this->tempItem->createClone($srcitem);
@@ -85,21 +85,31 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
                 $this->raiseError(get_class($this->tempItem) .'::getTitle() returned false!');
                 return false;
             }
-        } else {
-            if (($title = $this->tempItem->getFileName()) === false) {
-                $this->raiseError(get_class($this->tempItem) .'::getFileName() returned false!');
+            $new_title = "{$title} Page(s) ". implode(', ', $pages) ." ". date("%c");
+            if (!$this->tempItem->setTitle($new_title)) {
+                $this->raiseError(get_class($this->tempItem) .'::setTitle() returned false!');
                 return false;
             }
         }
 
-        if (!$this->tempItem->setTitle("{$title}-".microtime(true))) {
-            $this->raiseError(get_class($this->tempItem) .'::setTitle() returned false!');
+        if (($base = $this->tempItem->getFileNameBase()) === false) {
+            $this->raiseError(get_class($this->tempItem) .'::getFileNameBase() returned false!');
             return false;
         }
 
-        try {
-            $this->tempItem->save();
-        } catch (\Exception $e) {
+        if (($extension = $this->tempItem->getFileNameExtension()) === false) {
+            $this->raiseError(get_class($this->tempItem) .'::getFileNameExtension() returned false!');
+            return false;
+        }
+
+        $new_filename = "{$base}_pages_". implode('-', $pages) .".{$extension}";
+
+        if (!$this->tempItem->setFileName($new_filename)) {
+            $this->raiseError(get_class($this->tempItem) .'::setFileName() returned false!');
+            return false;
+        }
+
+        if (!$this->tempItem->save()) {
             $this->raiseError(get_class($this->tempItem) .'::save() returned false!');
             return false;
         }
