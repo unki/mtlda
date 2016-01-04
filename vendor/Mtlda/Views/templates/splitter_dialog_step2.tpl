@@ -13,6 +13,7 @@
  <button class="ui icon button document count plus"><i class="green plus icon"></i></button>
 {if $page_count < 10}
  <button class="ui icon button document one per page">One page per document</button>
+ <button class="ui button" onclick="$('form.ui.form.step2').trigger('submit');">Continue</button>
 {/if}
 </div>
 <div id="checkbox_template" class="field" style="display: none;">
