@@ -214,14 +214,19 @@ class QueueItemModel extends DefaultModel
         return $this->queue_file_name;
     }
 
-    public function setFileName($filename)
+    public function setFileName($file_name)
     {
-        if (!isset($filename) || empty($filename) || !is_string($filename)) {
-            $this->raiseError(__METHOD__ .'(), $filename parameter is invalid!');
+        if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
+            $this->raiseError(__METHOD__ .'(), $file_name parameter is invalid!');
             return false;
         }
 
-        $this->queue_file_name = $filename;
+        if (strpos($file_name, '/') || strpos($file_name, '\\') || strpos($file_name, '..')) {
+            $this->raiseError(__METHOD__ .'(), $file_name parameter contains forbidden characters!');
+            return false;
+        }
+
+        $this->queue_file_name = basename($file_name);
         return true;
     }
 
