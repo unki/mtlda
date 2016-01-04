@@ -137,7 +137,7 @@ $('form.ui.form.step3').submit(function () {
          this_document.file_name = document_file_name;
       }
       this_document.pages = document_pages;
-      documents.push(this_document);
+      documents[document_no] = this_document;
       return true;
    });
 
