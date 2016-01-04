@@ -650,7 +650,7 @@ class JobsController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        if (!$mbus->sendMessageToClient('split-reply', 'Preview...', '20%')) {
+        if (!$mbus->sendMessageToClient('split-reply', 'Splitting...', '20%')) {
             $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
@@ -698,10 +698,37 @@ class JobsController extends \Thallium\Controllers\JobsController
             return true;
         }
 
-        foreach ($json as $doc => $pages) {
-            if (isset($pages) && !empty($pages) && is_string($pages) &&
-                !$splitter->splitDocument($queueitem, $pages)) {
-                $this->raiseError(get_class($splitter) .'::split() returned false!');
+        foreach ($json as $doc => $options) {
+            if (!isset($options) || empty($options) || !is_object($options) || !is_a($options, 'stdClass')) {
+                $this->raiseError(__METHOD__ ."(), parameters for document {$doc} are invalid!");
+                return false;
+            }
+
+            if (!isset($options->pages) || empty($options->pages)) {
+                continue;
+            }
+
+            if (($newdoc = $splitter->splitDocument($queueitem, $options->pages)) === false) {
+                $this->raiseError(get_class($splitter) .'::splitDocument() returned false!');
+                return false;
+            }
+
+            if (isset($options->title) && !empty($options->title) && is_string($options->title)) {
+                if (!$newdoc->setTitle($options->title)) {
+                    $this->raiseError(get_class($newdoc) .'::setTitle() returned false!');
+                    return false;
+                }
+            }
+
+            if (isset($options->file_name) && !empty($options->file_name) && is_string($options->file_name)) {
+                if (!$newdoc->setFileName($options->file_name)) {
+                    $this->raiseError(get_class($newdoc) .'::setFileName() returned false!');
+                    return false;
+                }
+            }
+
+            if (!$newdoc->save()) {
+                $this->raiseError(get_class($newdoc) .'::save() returned false!');
                 return false;
             }
         }
