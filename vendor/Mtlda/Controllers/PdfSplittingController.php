@@ -68,7 +68,7 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        return true;
+        return $this->tempItem;
     }
 
     protected function cloneItem(&$srcitem)
