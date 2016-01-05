@@ -483,7 +483,7 @@ class QueueView extends DefaultView
             $this->buildDateSuggestions();
         }
 
-        $index = $smarty->getTemplateVars("smarty.IB.suggestions_list.index");
+        $index = $smarty->getTemplateVars("smarty.IB.date_suggestions_list.index");
 
         if (!isset($index) || empty($index)) {
             $index = 0;
@@ -497,7 +497,7 @@ class QueueView extends DefaultView
         $smarty->assign("suggest", $this->dateSuggestions[$index]);
 
         $index++;
-        $smarty->assign("smarty.IB.suggestions_list.index", $index);
+        $smarty->assign("smarty.IB.date_suggestions_list.index", $index);
         $repeat = true;
 
         return $content;
@@ -654,7 +654,7 @@ class QueueView extends DefaultView
         }
 
         if (isset($this->dateSuggestions) && !empty($this->dateSuggestions)) {
-            $tmpl->assign('has_suggestions', true);
+            $tmpl->assign('has_date_suggestions', true);
         }
 
         return true;
