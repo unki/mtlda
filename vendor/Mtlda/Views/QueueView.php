@@ -835,7 +835,7 @@ class QueueView extends DefaultView
             return false;
         }
 
-        if (!arsort($words, SORT_STRING)) {
+        if (!arsort($words, SORT_NUMERIC)) {
             $this->raiseError(__METHOD__ .'(), arsort() returned false!');
             return false;
         }
@@ -963,7 +963,7 @@ class QueueView extends DefaultView
             return false;
         }
 
-        if (!arsort($words, SORT_STRING)) {
+        if (!arsort($words, SORT_NUMERIC)) {
             $this->raiseError(__METHOD__ .'(), arsort() returned false!');
             return false;
         }
