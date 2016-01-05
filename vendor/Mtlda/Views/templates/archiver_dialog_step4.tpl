@@ -49,5 +49,7 @@ $('.ui.button.archive').click(function () {
    });
 });
 
-$('button.ui.button').popup();
+$('button.ui.button').popup({
+   lastResort: true,
+});
 --></script>
