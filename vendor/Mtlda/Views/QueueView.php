@@ -287,13 +287,7 @@ class QueueView extends DefaultView
             return false;
         }
 
-        if (($assigned_keywords = $item->getKeywords()) === false) {
-            $this->raiseError(get_class($item) .'::getKeywords() returned false!');
-            return false;
-        }
-
         $tmpl->assign('keywords', $this->keywords->items);
-        $tmpl->assign('assigned_keywords', implode(',', $assigned_keywords));
         $tmpl->assign("item_safe_link", $item->getId() ."-". $item->getGuid());
 
         switch ($step) {
@@ -370,21 +364,6 @@ class QueueView extends DefaultView
         }
 
         $tmpl->assign('item', $item);
-
-        try {
-            $this->keywords = new \Mtlda\Models\KeywordsModel;
-        } catch (\Exception $e) {
-            $this->raiseError("Failed to load KeywordsModel!");
-            return false;
-        }
-
-        if (($assigned_keywords = $item->getKeywords()) === false) {
-            $this->raiseError(get_class($item) .'::getKeywords() returned false!');
-            return false;
-        }
-
-        $tmpl->assign('keywords', $this->keywords->items);
-        $tmpl->assign('assigned_keywords', implode(',', $assigned_keywords));
 
         switch ($step) {
             case 1:
