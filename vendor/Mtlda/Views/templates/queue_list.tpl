@@ -165,6 +165,8 @@ $(document).ready(function() {
     $('.ui.dropdown.action.link').dropdown({
       preserve: true
     });
-    $('a.action.link, table#datatable thead tr th, a#filterbutton').popup();
+    $('a.action.link, table#datatable thead tr th, a#filterbutton').popup({
+        lastResort: true,
+    });
 });
 --></script>
