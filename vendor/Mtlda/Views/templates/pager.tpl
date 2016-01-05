@@ -70,6 +70,8 @@ $(document).ready(function () {
          window.location = value;
       }
    });
-   $('a.pager').popup();
+   $('a.pager').popup({
+      lastResort: true,
+   });
 });
 --></script>
