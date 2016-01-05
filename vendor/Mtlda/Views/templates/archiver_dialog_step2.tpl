@@ -73,11 +73,18 @@
     <i class="delete icon"></i>
    </button>
 {if isset($has_keyword_suggestions) && $has_keyword_suggestions}
-   Suggestions:<br />
+   <br />Suggestions:<br />
 {keyword_suggestions}
    <a onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).hide();">{$keyword} ({$occurrences})</a><br />
 {/keyword_suggestions}
 {/if}
+{if isset($has_keyword_suggestions_similar) && $has_keyword_suggestions_similar}
+   <br />Similar documents use the following keywords:<br />
+{keyword_suggestions_similar}
+   <a onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).hide();">{$keyword} ({$occurrences})</a><br />
+{/keyword_suggestions_similar}
+{/if}
+
   </form>
   <br />
 {if !$item->hasIndices()}
