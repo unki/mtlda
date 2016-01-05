@@ -141,7 +141,7 @@
      <form id="document_description" class="ui form description" data-target="document_description">
       <div class="field">
        <label>Description:</label>
-       <textarea name="document_description" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{$item->getDescription()}</textarea>
+       <textarea name="document_description" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{if $item->hasDescription()}{$item->getDescription()}{/if}</textarea>
       </div>
       <button class="circular small ui icon save button" type="submit">
        <i class="save icon"></i>
