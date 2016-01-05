@@ -60,6 +60,7 @@ $('.ui.archiver.steps a.step').on('click', ':not(.disabled)', function () {
 });
 
 $('a.step, i.close.icon').popup({
+   exclusive: true,
    lastResort: true,
 });
 --></script>
