@@ -27,6 +27,7 @@ class QueueView extends DefaultView
     protected $keywords;
     protected $import;
     protected $dateSuggestions;
+    protected $keywordSuggestions;
     protected $archiveItem;
 
     public function __construct()
@@ -298,7 +299,11 @@ class QueueView extends DefaultView
                 if (!isset($this->dateSuggestions)) {
                     $this->buildDateSuggestions();
                 }
+                if (!isset($this->keywordSuggestions)) {
+                    $this->buildKeywordSuggestions();
+                }
                 $tmpl->registerPlugin("block", "date_suggestions", array(&$this, "dateSuggestions"), false);
+                $tmpl->registerPlugin("block", "keyword_suggestions", array(&$this, "keywordSuggestions"), false);
                 $template = "archiver_dialog_step2.tpl";
                 break;
             case 3:
@@ -653,6 +658,173 @@ class QueueView extends DefaultView
         }
 
         return true;
+    }
+
+    protected function buildKeywordSuggestions()
+    {
+        global $tmpl;
+
+        if (!isset($this->archiveItem) || empty($this->archiveItem)) {
+            $this->raiseError(__METHOD__ .'(), have no item to operate on!');
+            return false;
+        }
+
+        $sources = array();
+
+        if ($this->archiveItem->hasTitle()) {
+            if (($title = $this->archiveItem->getTitle()) === false) {
+                $this->raiseError(get_class($this->archiveItem) .'::getTitle() returned false!');
+                return false;
+            }
+            array_push($sources, $title);
+        }
+
+        if (($filename = $this->archiveItem->getFileNameBase()) === false) {
+            $this->raiseError(get_class($this->archiveItem) .'::getFileName() returned false');
+            return false;
+        }
+        array_push($sources, $filename);
+
+        if ($this->archiveItem->hasIndices()) {
+            if (($indices = $this->archiveItem->getIndices()) === false) {
+                $this->raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
+                return false;
+            }
+            if (!isset($indices) || empty($indices) || !is_array($indices)) {
+                $this->raiseError(get_class($this->archiveItem) .'::getIndices() returned invalid data!');
+                return false;
+            }
+            foreach ($indices as $index) {
+                if (($text = $index->getDocumentText()) === false) {
+                    $this->raiseError(get_class($index) .'::getDocumentText() returned false!');
+                    return false;
+                }
+                array_push($sources, $text);
+            }
+        }
+
+        if (is_a($this->archiveItem, 'Mtlda\Models\DocumentModel') &&
+            $this->archiveItem->hasProperties()
+        ) {
+            if (($properties = $this->archiveItem->getProperties()) === false) {
+                $this->raiseError(get_class($this->archiveItem) .'::getProperties() returned false!');
+                return false;
+            }
+            if (!isset($properties) || empty($properties) || !is_array($properties)) {
+                $this->raiseError(get_class($this->archiveItem) .'::getProperties() returned invalid data!');
+                return false;
+            }
+            foreach ($properties as $property) {
+                if (($value = $property->getDocumentValue()) === false) {
+                    $this->raiseError(get_class($property) .'::getDocumentValue() returned false!');
+                    return false;
+                }
+                array_push($sources, $value);
+            }
+        }
+
+        if (($sources = array_unique($sources)) === false) {
+            $this->raiseError(__METHOD__ .'(), failed to filter sources!');
+            return false;
+        }
+
+        $existing_keywords = array();
+
+        foreach ($this->keywords->items as $keyword) {
+            if (($name = $keyword->getName()) === false) {
+                $this->raiseError(get_class($keyword) .'::getName() returned false!');
+                return false;
+            }
+            array_push($existing_keywords, $name);
+        }
+
+        $suggestions = array();
+        $words = array();
+
+        foreach ($sources as $source) {
+            $source = str_replace('_', ' ', $source);
+            $source = preg_replace('/[^[:alnum:][:space:]]/u', '', $source);
+            if (count(($found_words = str_word_count($source, 1))) < 1) {
+                continue;
+            }
+            array_walk($found_words, function (&$word, $key) {
+                $word = trim($word);
+                return true;
+            });
+            $found_words = array_filter($found_words, function ($word) {
+                if (strlen($word) < 1) {
+                    return false;
+                }
+                return true;
+            });
+            if (count($found_words) < 1) {
+                continue;
+            }
+            foreach ($found_words as $word) {
+                array_push($words, $word);
+            }
+        }
+
+        foreach ($words as $key => $word) {
+            if (!isset($existing_keywords) || empty($existing_keywords) ||
+                in_array($word, $existing_keywords)) {
+                continue;
+            }
+            unset($words[$key]);
+        }
+
+        if (($words = array_count_values($words)) === false) {
+            $this->raiseError(__METHOD__ .'(), array_count_values() returned false!');
+            return false;
+        }
+
+        if (!arsort($words, SORT_STRING)) {
+            $this->raiseError(__METHOD__ .'(), arsort() returned false!');
+            return false;
+        }
+
+        if (($words = array_slice($words, 0, 10)) === false) {
+            $this->raiseError(__METHOD__ .'(), array_slice() returned false!');
+            return false;
+        }
+
+        $this->keywordSuggestions = $words;
+
+        if (isset($this->keywordSuggestions) && !empty($this->keywordSuggestions)) {
+            $tmpl->assign('has_keyword_suggestions', true);
+        }
+
+        return true;
+    }
+
+    public function keywordSuggestions($params, $content, &$smarty, &$repeat)
+    {
+        if (!isset($this->keywordSuggestions)) {
+            $this->buildKeywordSuggestions();
+        }
+
+        $index = $smarty->getTemplateVars("smarty.IB.keyword_suggestions_list.index");
+
+        if (!isset($index) || empty($index)) {
+            $index = 0;
+        }
+
+        if ($index >= count(array_keys($this->keywordSuggestions))) {
+            $repeat = false;
+            return $content;
+        }
+
+        $key = array_keys($this->keywordSuggestions)[$index];
+        $value = $this->keywordSuggestions[$key];
+
+        $smarty->assign("keyword", $key);
+        $smarty->assign("occurrences", $value);
+
+        $index++;
+        $smarty->assign("smarty.IB.keyword_suggestions_list.index", $index);
+        $repeat = true;
+
+        return $content;
     }
 }
 
