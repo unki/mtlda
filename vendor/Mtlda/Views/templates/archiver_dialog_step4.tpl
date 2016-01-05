@@ -17,6 +17,7 @@
 <button class="ui button archive" data-content="Invoke archiving process" data-action-title="Archiving {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem">Finish</button>
 <script type="text/javascript"><!--
 $('.ui.button.exit').click(function () {
+   $(this).popup('hide');
    if (!archiver_wnd) {
       throw 'Have no reference to the modal window!';
       return false;
@@ -24,6 +25,7 @@ $('.ui.button.exit').click(function () {
    archiver_wnd.modal('hide');
 });
 $('.ui.button.archive').click(function () {
+   $(this).popup('hide');
    if (!archiver_wnd) {
       throw 'Have no reference to the modal window!';
       return false;
