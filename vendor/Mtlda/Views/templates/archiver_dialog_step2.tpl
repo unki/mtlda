@@ -21,7 +21,7 @@
      <button class="circular ui icon button cancel" type="reset" data-content="Reset custom date"><i class="cancel icon"></i></button>
     </div>
    </div>
-{if isset($has_suggestions) && $has_suggestions}
+{if isset($has_date_suggestions) && $has_date_suggestions}
    Suggestions:<br />
 {date_suggestions}
    <a onclick="$('#queue_custom_date').val('{$suggest}')">{$suggest}</a><br />
