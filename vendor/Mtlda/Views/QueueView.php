@@ -659,8 +659,13 @@ class QueueView extends DefaultView
             return true;
         });
 
-        if (($this->dateSuggestions = array_unique($this->dateSuggestions, SORT_REGULAR)) === false) {
-            $this->raiseError(__METHOD__ .'(), failed to filter sources!');
+        if (($this->dateSuggestions = array_unique($this->dateSuggestions)) === false) {
+            $this->raiseError(__METHOD__ .'(), array_unique() returned false!');
+            return false;
+        }
+
+        if (!sort($this->dateSuggestions)) {
+            $this->raiseError(__METHOD__ .'(), sort() returned false!');
             return false;
         }
 
