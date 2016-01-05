@@ -741,7 +741,7 @@ function archiver_window(element, step, allow_unsaved_data)
                 }
             });
 
-            if (typeof allow_unsaved_data === 'undefined' || unsaved_data) {
+            if (typeof allow_unsaved_data === 'undefined' || unsaved_data === true) {
                 archiver_wnd
                     .modal('setting', { closable: false })
                     .removeClass('active')
