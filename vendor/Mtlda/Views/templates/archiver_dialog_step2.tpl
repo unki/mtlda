@@ -33,7 +33,7 @@
    <label>Expiry Date</label>
   </div>
   <div class="ui toggle checkbox" name="queue_expiry_date_checkbox">
-   <input type="checkbox" name="use_queue_expiry_date" {if $item->hasExpiryDate()}checked{/if} />
+   <input type="checkbox" name="use_queue_expiry_date" {if $item->hasExpiryDate()}checked="checked"{/if} />
    <label>Assign expiry date to document.</label>
   </div><br /><br />
   <form id="queue_expiry_date_form" class="ui form" data-target="queue_expiry_date" style="{if !$item->hasExpiryDate()}display: none;{/if}">
