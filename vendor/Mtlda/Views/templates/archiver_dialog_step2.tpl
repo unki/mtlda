@@ -72,6 +72,12 @@
    <button class="circular small ui icon clear button" type="submit" data-content="Clear keywords">
     <i class="delete icon"></i>
    </button>
+{if isset($has_keyword_suggestions) && $has_keyword_suggestions}
+   Suggestions:<br />
+{keyword_suggestions}
+   <a onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).hide();">{$keyword} ({$occurrences})</a><br />
+{/keyword_suggestions}
+{/if}
   </form>
   <br />
 {if !$item->hasIndices()}
