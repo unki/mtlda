@@ -166,6 +166,7 @@ $(document).ready(function() {
       preserve: true
     });
     $('a.action.link, table#datatable thead tr th, a#filterbutton').popup({
+        exclusive: true,
         lastResort: true,
     });
 });
