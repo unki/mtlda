@@ -733,7 +733,7 @@ function archiver_window(element, step, allow_unsaved_data)
 
     if (current_step > 0) {
         var unsaved_data = false;
-        savebuttons = $('button.save');
+        savebuttons = archiver_wnd.find('button.save');
         if (typeof savebuttons !== 'undefined' && savebuttons.length) {
             savebuttons.each(function () {
                 if ($(this).hasClass('red') && $(this).hasClass('shape')) {
