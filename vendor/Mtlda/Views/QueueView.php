@@ -694,6 +694,8 @@ class QueueView extends DefaultView
     {
         global $tmpl;
 
+        $archive_item_keywords = array();
+
         if (!isset($this->archiveItem) || empty($this->archiveItem)) {
             $this->raiseError(__METHOD__ .'(), have no item to operate on!');
             return false;
@@ -702,6 +704,26 @@ class QueueView extends DefaultView
         if (!isset($this->keywords->items) || empty($this->keywords->items) ||
             count($this->keywords->items) < 1) {
             return true;
+        }
+
+        if ($this->archiveItem->hasKeywords()) {
+            if (($assigned_keywords = $this->archiveItem->getKeywords()) === false) {
+                $this->raiseError(get_class($this->archiveItem) .'::getKeywords() returned false!');
+                return false;
+            }
+            foreach ($assigned_keywords as $idx) {
+                try {
+                    $keyword = new \Mtlda\Models\KeywordModel($idx);
+                } catch (\Exception $e) {
+                    $this->raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
+                    return false;
+                }
+                if (($name = $keyword->getName()) === false) {
+                    $this->raiseError(get_class($keyword) .'::getName() returned false!');
+                    return false;
+                }
+                array_push($archive_item_keywords, $name);
+            }
         }
 
         $sources = array();
@@ -823,7 +845,12 @@ class QueueView extends DefaultView
             return false;
         }
 
-        $this->keywordSuggestions = $words;
+        foreach ($words as $word => $occur) {
+            if (in_array($word, $archive_item_keywords)) {
+                continue;
+            }
+            $this->keywordSuggestions[$word] = $occur;
+        }
 
         if (isset($this->keywordSuggestions) && !empty($this->keywordSuggestions)) {
             $tmpl->assign('has_keyword_suggestions', true);
@@ -946,7 +973,12 @@ class QueueView extends DefaultView
             return false;
         }
 
-        $this->keywordSuggestionsSimilar = $words;
+        foreach ($words as $word => $occur) {
+            if (in_array($word, $archive_item_keywords)) {
+                continue;
+            }
+            $this->keywordSuggestionsSimilar[$word] = $occur;
+        }
 
         if (isset($this->keywordSuggestionsSimilar) && !empty($this->keywordSuggestionsSimilar)) {
             $tmpl->assign('has_keyword_suggestions_similar', true);
