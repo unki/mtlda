@@ -640,9 +640,19 @@ class QueueItemModel extends DefaultModel
         return true;
     }
 
+    public function hasDescription()
+    {
+        if (!isset($this->queue_description) || empty($this->queue_description)) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function getDescription()
     {
-        if (!isset($this->queue_description)) {
+        if (!$this->hasDescription()) {
+            $this->raiseError(__CLASS__ .'::hasDescription() returned false!');
             return false;
         }
 
