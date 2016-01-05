@@ -59,5 +59,7 @@ $('.ui.archiver.steps a.step').on('click', ':not(.disabled)', function () {
    archiver_window($(link), step_no[1]);
 });
 
-$('a.step, i.close.icon').popup();
+$('a.step, i.close.icon').popup({
+   lastResort: true,
+});
 --></script>
