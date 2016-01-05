@@ -107,6 +107,8 @@
 </table>
 <script type="text/javascript"><!--
 $(document).ready(function () {
-   $('a.action.link').popup();
+   $('a.action.link').popup({
+      lastResort: true,
+   });
 });
 --></script>
