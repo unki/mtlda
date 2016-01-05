@@ -50,6 +50,7 @@ $('.ui.button.archive').click(function () {
 });
 
 $('button.ui.button').popup({
+   exclusive: true,
    lastResort: true,
 });
 --></script>
