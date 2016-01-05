@@ -108,6 +108,7 @@
 <script type="text/javascript"><!--
 $(document).ready(function () {
    $('a.action.link').popup({
+      exclusive: true,
       lastResort: true,
    });
 });
