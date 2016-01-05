@@ -159,5 +159,7 @@ $('#archiver_modal_window form.ui.form button.clear.button').click(function () {
    $('#keyword_dropdown').dropdown('clear');
 });
 
-$('button.ui.button, a.ui.icon.button').popup();
+$('button.ui.button, a.ui.icon.button').popup({
+   lastResort: true,
+});
 --></script>
