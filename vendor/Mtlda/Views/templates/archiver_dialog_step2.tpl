@@ -103,6 +103,7 @@
 load_datepickers("queue");
 init_dropdowns();
 $("a.scan.document").click(function () {
+   $(this).popup('hide');
    $('#archiver_modal_window')
       .modal('setting', { closable: false })
       .removeClass('active')
