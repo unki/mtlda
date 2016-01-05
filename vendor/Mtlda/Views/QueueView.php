@@ -28,6 +28,7 @@ class QueueView extends DefaultView
     protected $import;
     protected $dateSuggestions;
     protected $keywordSuggestions;
+    protected $keywordSuggestionsSimilar;
     protected $archiveItem;
 
     public function __construct()
@@ -288,6 +289,13 @@ class QueueView extends DefaultView
             return false;
         }
 
+        try {
+            $this->archive = new \Mtlda\Models\ArchiveModel;
+        } catch (\Exception $e) {
+            $this->raiseError(__METHOD__ .'(), failed to load ArchiveModel!', false, $e);
+            return false;
+        }
+
         $tmpl->assign('keywords', $this->keywords->items);
         $tmpl->assign("item_safe_link", $item->getId() ."-". $item->getGuid());
 
@@ -304,6 +312,12 @@ class QueueView extends DefaultView
                 }
                 $tmpl->registerPlugin("block", "date_suggestions", array(&$this, "dateSuggestions"), false);
                 $tmpl->registerPlugin("block", "keyword_suggestions", array(&$this, "keywordSuggestions"), false);
+                $tmpl->registerPlugin(
+                    "block",
+                    "keyword_suggestions_similar",
+                    array(&$this, "keywordSuggestionsSimilar"),
+                    false
+                );
                 $template = "archiver_dialog_step2.tpl";
                 break;
             case 3:
@@ -815,6 +829,129 @@ class QueueView extends DefaultView
             $tmpl->assign('has_keyword_suggestions', true);
         }
 
+        if (!isset($this->archive->items) ||
+            empty($this->archive->items)
+        ) {
+            return true;
+        }
+
+        $items = array();
+        $filenames = array();
+        $titles = array();
+        $sources = array();
+
+        foreach ($this->archive->items as $document) {
+            if (($idx = $document->getId()) === false) {
+                $this->raiseError(get_class($document) .'::getId() returned false!');
+                return false;
+            }
+            $items[$idx] = $document;
+            if (($filename = $document->getFileName()) === false) {
+                $this->raiseError(get_class($document) .'::getFileName() returned false!');
+                return false;
+            }
+            if ($document->hasTitle() && ($title = $document->getTitle()) === false) {
+                $this->raiseError(get_class($document) .'::getTitle() returned false!');
+                return false;
+            }
+            $filenames[$idx] = $filename;
+            $titles[$idx] = $title;
+        }
+
+        if ($this->archiveItem->hasTitle()) {
+            $archive_item_title = $this->archiveItem->getTitle();
+        }
+        $archive_item_filename = $this->archiveItem->getFileName();
+
+        foreach ($filenames as $idx => $filename) {
+            if (($diff = levenshtein($archive_item_filename, $filename)) === -1) {
+                continue;
+            }
+            if ($diff > 20) {
+                continue;
+            }
+            $document = $items[$idx];
+            if (!$document->hasKeywords()) {
+                continue;
+            }
+            if (($keywords = $document->getKeywords()) === false) {
+                $this->raiseError(get_class($document) .'::getKeywords() returned false!');
+                return false;
+            }
+            if (!isset($keywords) || empty($keywords)) {
+                continue;
+            }
+            foreach ($keywords as $idx) {
+                try {
+                    $keyword = new \Mtlda\Models\KeywordModel($idx);
+                } catch (\Exception $e) {
+                    $this->raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
+                    return false;
+                }
+                if (($name = $keyword->getName()) === false) {
+                    $this->raiseErrror(get_class($keyword) .'::getName() returned false!');
+                    return false;
+                }
+                array_push($sources, $name);
+            }
+        }
+
+        if (isset($archive_item_title)) {
+            foreach ($titles as $idx => $title) {
+                if (($diff = levenshtein($archive_item_title, $title)) === -1) {
+                    continue;
+                }
+                if ($diff > 20) {
+                    continue;
+                }
+                $document = $items[$idx];
+                if (!$document->hasKeywords()) {
+                    continue;
+                }
+                if (($keywords = $document->getKeywords()) === false) {
+                    $this->raiseError(get_class($document) .'::getKeywords() returned false!');
+                    return false;
+                }
+                if (!isset($keywords) || empty($keywords)) {
+                    continue;
+                }
+                foreach ($keywords as $idx) {
+                    try {
+                        $keyword = new \Mtlda\Models\KeywordModel($idx);
+                    } catch (\Exception $e) {
+                        $this->raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
+                        return false;
+                    }
+                    if (($name = $keyword->getName()) === false) {
+                        $this->raiseErrror(get_class($keyword) .'::getName() returned false!');
+                        return false;
+                    }
+                    array_push($sources, $name);
+                }
+            }
+        }
+
+        if (($words = array_count_values($sources)) === false) {
+            $this->raiseError(__METHOD__ .'(), array_count_values() returned false!');
+            return false;
+        }
+
+        if (!arsort($words, SORT_STRING)) {
+            $this->raiseError(__METHOD__ .'(), arsort() returned false!');
+            return false;
+        }
+
+        if (($words = array_slice($words, 0, 10)) === false) {
+            $this->raiseError(__METHOD__ .'(), array_slice() returned false!');
+            return false;
+        }
+
+        $this->keywordSuggestionsSimilar = $words;
+
+        if (isset($this->keywordSuggestionsSimilar) && !empty($this->keywordSuggestionsSimilar)) {
+            $tmpl->assign('has_keyword_suggestions_similar', true);
+        }
+
         return true;
     }
 
@@ -843,6 +980,36 @@ class QueueView extends DefaultView
 
         $index++;
         $smarty->assign("smarty.IB.keyword_suggestions_list.index", $index);
+        $repeat = true;
+
+        return $content;
+    }
+
+    public function keywordSuggestionsSimilar($params, $content, &$smarty, &$repeat)
+    {
+        if (!isset($this->keywordSuggestionsSimilar)) {
+            $this->buildKeywordSuggestions();
+        }
+
+        $index = $smarty->getTemplateVars("smarty.IB.keyword_suggestions_similar_list.index");
+
+        if (!isset($index) || empty($index)) {
+            $index = 0;
+        }
+
+        if ($index >= count(array_keys($this->keywordSuggestionsSimilar))) {
+            $repeat = false;
+            return $content;
+        }
+
+        $key = array_keys($this->keywordSuggestionsSimilar)[$index];
+        $value = $this->keywordSuggestionsSimilar[$key];
+
+        $smarty->assign("keyword", $key);
+        $smarty->assign("occurrences", $value);
+
+        $index++;
+        $smarty->assign("smarty.IB.keyword_suggestions_similar_list.index", $index);
         $repeat = true;
 
         return $content;
