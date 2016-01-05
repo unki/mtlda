@@ -69,6 +69,9 @@
    <button class="circular small ui icon save button" type="submit" data-content="Save keywords">
     <i class="save icon"></i>
    </button>
+   <button class="circular small ui icon clear button" type="submit" data-content="Clear keywords">
+    <i class="delete icon"></i>
+   </button>
   </form>
   <br />
 {if !$item->hasIndices()}
@@ -130,6 +133,10 @@ $('#archiver_modal_window form.ui.form input').on('input', function () {
       savebutton.transition('bounce');
    }
    return true;
+});
+
+$('#archiver_modal_window form.ui.form button.clear.button').click(function () {
+   $('#keyword_dropdown').dropdown('clear');
 });
 
 $('button.ui.button, a.ui.icon.button').popup();
