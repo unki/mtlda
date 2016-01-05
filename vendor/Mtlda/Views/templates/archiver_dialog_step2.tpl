@@ -22,11 +22,13 @@
     </div>
    </div>
 {if isset($has_date_suggestions) && $has_date_suggestions}
-   Suggestions:<br />
+   <h5 class="ui header">Suggestions:</h5>
+   <div class="ui list">
 {date_suggestions}
-   <a onclick="$('#queue_custom_date').val('{$suggest}')">{$suggest}</a><br />
+    <div class="item" onclick="$('#queue_custom_date').val('{$suggest}')">{$suggest}</div>
 {/date_suggestions}
 {/if}
+   </div>
   </form>
 
   <div class="field">
@@ -73,16 +75,20 @@
     <i class="delete icon"></i>
    </button>
 {if isset($has_keyword_suggestions) && $has_keyword_suggestions}
-   <br />Suggestions:<br />
+   <h5 class="ui header">Suggestions:</h5>
+   <div class="ui list">
 {keyword_suggestions}
-   <a onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).remove();">{$keyword}{if isset($occurrences) && !empty($occurrences)} ({$occurrences}){/if}</a><br />
+    <div class="item" onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).remove();">{$keyword}{if isset($occurrences) && !empty($occurrences)} ({$occurrences}){/if}</div>
 {/keyword_suggestions}
+   </div>
 {/if}
 {if isset($has_keyword_suggestions_similar) && $has_keyword_suggestions_similar}
-   <br />Similar documents use the following keywords:<br />
+   <h5 class="ui header">Similar documents use the following keywords:</h5>
+   <div class="ui list">
 {keyword_suggestions_similar}
-   <a onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).remove();">{$keyword}{if isset($occurrences) && !empty($occurrences)} ({$occurrences}){/if}</a><br />
+    <div class="item" onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).remove();">{$keyword}{if isset($occurrences) && !empty($occurrences)} ({$occurrences}){/if}</div>
 {/keyword_suggestions_similar}
+   </div>
 {/if}
 
   </form>
