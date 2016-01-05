@@ -115,5 +115,7 @@ $('.ui.button.split').click(function () {
    return true;
 });
 
-$('button.ui.button').popup();
+$('button.ui.button').popup({
+   lastResort: true,
+});
 --></script>
