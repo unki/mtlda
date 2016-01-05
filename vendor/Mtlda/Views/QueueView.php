@@ -589,31 +589,47 @@ class QueueView extends DefaultView
 
         foreach ($sources as $source) {
             foreach ($regexp_map as $pattern => $map) {
+                $year = null;
+                $month = null;
+                $date = null;
                 if (!preg_match($pattern, $source, $matches)) {
                     continue;
                 }
                 if ($map == 'YY-MM' && count($matches) == 3) {
-                    array_push($suggestions, "20{$matches[1]}-{$matches[2]}-01");
-                    array_push($suggestions, "20{$matches[1]}-{$matches[2]}-31");
+                    $year = sprintf("20%d", $matches[1]);
+                    $month = $matches[2];
                 } elseif ($map == 'MM-YY' && count($matches) == 3) {
-                    array_push($suggestions, "20{$matches[2]}-{$matches[1]}-01");
-                    array_push($suggestions, "20{$matches[2]}-{$matches[1]}-31");
+                    $month = $matches[1];
+                    $year = sprintf("20%d", $matches[2]);
                 } elseif ($map == 'MM-YYYY' && count($matches) == 3) {
-                    array_push($suggestions, "{$matches[2]}-{$matches[1]}-01");
-                    array_push($suggestions, "{$matches[2]}-{$matches[1]}-31");
+                    $month = $matches[1];
+                    $year = $matches[2];
                 } elseif ($map == 'YYYY-MM' && count($matches) == 3) {
-                    array_push($suggestions, "{$matches[1]}-{$matches[2]}-01");
-                    array_push($suggestions, "{$matches[1]}-{$matches[2]}-31");
+                    $year = $matches[1];
+                    $month = $matches[2];
                 } elseif ($map == 'YYYYMMDD' && count($matches) == 4) {
-                    array_push($suggestions, "{$matches[1]}-{$matches[2]}-{$matches[3]}");
+                    $year = $matches[1];
+                    $month = $matches[2];
+                    $day = $matches[3];
                 } elseif ($map == 'DDMMYYYY' && count($matches) == 4) {
-                    array_push($suggestions, "{$matches[3]}-{$matches[2]}-{$matches[1]}");
+                    $day = $matches[1];
+                    $month = $matches[2];
+                    $year = $matches[3];
                 } elseif ($map == 'YY' && count($matches) == 2) {
-                    array_push($suggestions, sprintf("20%d-01-01", $matches[1]));
-                    array_push($suggestions, sprintf("20%d-12-31", $matches[1]));
+                    $year = sprintf("20%d", $matches[1]);
                 } elseif ($map == 'YYYY' && count($matches) == 2) {
-                    array_push($suggestions, sprintf("%d-01-01", $matches[1]));
-                    array_push($suggestions, sprintf("%d-12-31", $matches[1]));
+                    $year = $matches[1];
+                }
+
+                if (isset($day) && isset($month) && isset($year)) {
+                    array_push($suggestions, sprintf("%04d-%02d-%02d", $year, $month, $day));
+                }
+                if (isset($month) && isset($year)) {
+                    $first = sprintf("%04d-%02d-01", $year, $month);
+                    array_push($suggestions, $first);
+                    $last = date("t", strtotime($first));
+                    $last = sprintf("%04d-%02d-%02d", $year, $month, $last);
+                    array_push($suggestions, $last);
                 }
             }
         }
