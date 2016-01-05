@@ -71,6 +71,7 @@ $(document).ready(function () {
       }
    });
    $('a.pager').popup({
+      exclusive: true,
       lastResort: true,
    });
 });
