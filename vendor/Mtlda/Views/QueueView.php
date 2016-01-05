@@ -894,7 +894,7 @@ class QueueView extends DefaultView
             if (($diff = levenshtein($archive_item_filename, $filename)) === -1) {
                 continue;
             }
-            if ($diff > 20) {
+            if ($diff > 10) {
                 continue;
             }
             $document = $items[$idx];
@@ -928,7 +928,7 @@ class QueueView extends DefaultView
                 if (($diff = levenshtein($archive_item_title, $title)) === -1) {
                     continue;
                 }
-                if ($diff > 20) {
+                if ($diff > 10) {
                     continue;
                 }
                 $document = $items[$idx];
