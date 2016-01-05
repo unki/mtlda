@@ -685,6 +685,11 @@ class QueueView extends DefaultView
             return false;
         }
 
+        if (!isset($this->keywords->items) || empty($this->keywords->items) ||
+            count($this->keywords->items) < 1) {
+            return true;
+        }
+
         $sources = array();
 
         if ($this->archiveItem->hasTitle()) {
