@@ -93,6 +93,8 @@
 <script type="text/javascript"><!--
 $(document).ready(function() {
    $('#datatable').tablesort();
-   $('a.action.link').popup();
+   $('a.action.link').popup({
+      lastResort: true,
+   });
 });
 --></script>
