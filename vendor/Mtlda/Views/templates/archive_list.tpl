@@ -94,6 +94,7 @@
 $(document).ready(function() {
    $('#datatable').tablesort();
    $('a.action.link').popup({
+      exclusive: true,
       lastResort: true,
    });
 });
