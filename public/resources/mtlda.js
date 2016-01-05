@@ -302,11 +302,11 @@ function delete_object(element)
                 return true;
             }
             item = $(this).attr('id')
-            if (!item || item == '') {
+            if (typeof item === 'undefined' || !item || item == '') {
                 return false;
             }
             item = item.match(/^select_(\d+)$/);
-            if (!item || !item[1] || item[1] == '') {
+            if (typeof item === 'undefined' || !item || !item[1] || item[1] == '') {
                 return false;
             }
             item_id = item[1];
@@ -397,11 +397,11 @@ function archive_object(element)
                 return true;
             }
             item = $(this).attr('id')
-            if (!item || item == '') {
+            if (typeof item === 'undefined' || !item || item == '') {
                 return false;
             }
             item = item.match(/^select_(\d+)$/);
-            if (!item || !item[1] || item[1] == '') {
+            if (typeof item === 'undefined' || !item || !item[1] || item[1] == '') {
                 return false;
             }
             item_id = item[1];
@@ -542,7 +542,7 @@ function trigger_import_run()
 
     progressbar = import_wnd.find('.description .ui.indicating.progress');
 
-    if (!progressbar) {
+    if (typeof progressbar === 'undefined') {
         throw 'Can not find the progress bar in the modal window!';
         return false;
     }
@@ -560,11 +560,11 @@ function trigger_import_run()
             throw 'reply is empty!';
             return false;
         }
-        if (!import_wnd) {
+        if (typeof import_wnd === 'undefined') {
             throw 'Have no reference to the modal window!';
             return false;
         }
-        if (!progressbar) {
+        if (typeof progressbar === 'undefined') {
             throw 'Have no reference to the progressbar!';
             return false;
         }
@@ -818,12 +818,18 @@ function load_datepickers(mode)
     }
 
     var current_custom_date = $('#'+ mode +'_custom_date_form input[type="text"][name="'+ mode +'_custom_date"]').val();
-    if (!current_custom_date || current_custom_date == '0000-00-00') {
+    if (typeof current_custom_date === 'undefined' ||
+        !current_custom_date ||
+        current_custom_date == '0000-00-00'
+    ) {
         current_custom_date = null;
     }
 
     var current_expiry_date = $('#'+ mode +'_expiry_date_form input[type="text"][name="'+ mode +'_expiry_date"]').val();
-    if (!current_expiry_date || current_expiry_date == '0000-00-00') {
+    if (typeof current_expiry_date === 'undefined' ||
+        !current_expiry_date ||
+        current_expiry_date == '0000-00-00'
+    ) {
         current_expiry_date = null;
     }
 
@@ -882,7 +888,11 @@ function load_datepickers(mode)
                 return true;
             }
             var current_custom_date = $('#'+ mode +'_custom_date_form input[type="text"][name="'+ mode +'_custom_date"]').val();
-            if (!current_custom_date || current_custom_date == '' || current_custom_date == '0000-00-00') {
+            if (typeof current_custom_date === 'undefined' ||
+                !current_custom_date ||
+                current_custom_date == '' ||
+                current_custom_date == '0000-00-00'
+            ) {
                 $('#'+ mode +'_custom_date').datepicker('setDate', new Date());
             }
             $('#'+ mode +'_custom_date_form input').trigger('input');
@@ -900,8 +910,18 @@ function load_datepickers(mode)
                 return true;
             }
             var current_expiry_date = $('#'+ mode +'_expiry_date_form input[type="text"][name="'+ mode +'_expiry_date"]').val();
-            if (!current_expiry_date || current_expiry_date == '' || current_expiry_date == '0000-00-00') {
-                $('#'+ mode +'_expiry_date').datepicker('setDate', new Date());
+            if (typeof current_expiry_date === 'undefined' ||
+                !current_expiry_date ||
+                current_expiry_date == '' ||
+                current_expiry_date == '0000-00-00'
+            ) {
+                var current_custom_date = $('#'+ mode +'_custom_date_form input[type="text"][name="'+ mode +'_custom_date"]').val();
+                if (current_custom_date) {
+                    var current = new Date(current_custom_date);
+                    $('#'+ mode +'_expiry_date').datepicker('setDate', new Date(new Date(current).setYear(current.getFullYear()+7)));
+                } else {
+                    $('#'+ mode +'_expiry_date').datepicker('setDate', new Date());
+                }
             }
             $('#'+ mode +'_expiry_date_form input').trigger('input');
             $('#'+ mode +'_expiry_date_form').transition('fly down');
