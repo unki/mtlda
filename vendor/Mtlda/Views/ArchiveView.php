@@ -157,19 +157,11 @@ class ArchiveView extends DefaultView
             return false;
         }
 
-        if (($assigned_keywords = $this->getItemKeywords($this->item->getId())) === false) {
-            $this->raiseError(__CLASS__ ."::getItemKeywords() returned false!");
-            return false;
-        }
-
-        $assigned_keywords = implode(',', $assigned_keywords);
-
         $tmpl->assign('latest_document_version', $this->item->getLastestDocumentVersionNumber());
         $tmpl->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
         $tmpl->assign('item_versions', $descendants);
         $tmpl->assign('item', $this->item);
         $tmpl->assign('keywords', $this->keywords->items);
-        $tmpl->assign('assigned_keywords', $assigned_keywords);
         $tmpl->assign("item_safe_link", "document-". $this->item->getId() ."-". $this->item->getGuid());
 
         try {
