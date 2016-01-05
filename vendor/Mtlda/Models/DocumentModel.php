@@ -678,9 +678,19 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
+    public function hasDescription()
+    {
+        if (!isset($this->document_description) || empty($this->document_description)) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function getDescription()
     {
-        if (!isset($this->document_description)) {
+        if (!$this->hasDescription()) {
+            $this->raiseError(__CLASS__ .'::hasDescription() returned false!');
             return false;
         }
 
