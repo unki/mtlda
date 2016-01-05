@@ -7,7 +7,11 @@
  </div>
  <div class="ui segment">
   <h5 class="ui header">Description</h5>
+{if $item->hasDescription()}
   <p>{$item->getDescription()}</p>
+{else}
+  <p>No description available.</p>
+{/if}
  </div>
  <div class="ui segment">
   <p>Click on "Finish" to start archiving this document.</p>
