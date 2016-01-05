@@ -10,7 +10,7 @@
   </div>
  </div>
 </form>
-<button class="ui button" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Continue to next step" onclick="$(this).popup('hide'); archiver_window($(this), {$next_step}); return false;">Next</button>
+<button class="ui button" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Continue to next step" onclick="$(this).addClass('loading'); $(this).popup('hide'); archiver_window($(this), {$next_step}); return false;">Next</button>
 <script type="text/javascript"><!--
 $('#archiver_modal_window form.ui.form').on('submit', function () {
    rpc_object_update($(this), function (element, data) {
