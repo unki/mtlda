@@ -44,5 +44,7 @@ $('#archiver_modal_window form.ui.form textarea').on('input', function () {
    return true;
 });
 
-$('button.ui.button').popup();
+$('button.ui.button').popup({
+   lastResort: true,
+});
 --></script>
