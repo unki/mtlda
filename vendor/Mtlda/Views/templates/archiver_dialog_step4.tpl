@@ -37,8 +37,8 @@ $('.ui.button.archive').click(function () {
          if (typeof elements === 'undefined') {
             return true;
          }
-         elements.forEach(function (value) {
-            if (typeof (id = $(this).attr('data-id')) === 'undefined') {
+         elements.forEach(function (element) {
+            if (typeof (id = $(element).attr('data-id')) === 'undefined') {
                return true;
             }
             $('tr#queue_item_'+ id).hide(400, function () {
