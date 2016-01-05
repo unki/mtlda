@@ -47,7 +47,7 @@
     </div>
    </div>
   </form>
-  <button id="next_button" class="ui button" data-content="Continue to next step" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="$(this).popup('hide'); archiver_window($(this), {$next_step}); return false;">Next</button>
+  <button id="next_button" class="ui button" data-content="Continue to next step" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="$(this).addClass('loading'); $(this).popup('hide'); archiver_window($(this), {$next_step}); return false;">Next</button>
  </div>
 
  <div class="column">
