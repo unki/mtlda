@@ -160,6 +160,7 @@ $('#archiver_modal_window form.ui.form button.clear.button').click(function () {
 });
 
 $('button.ui.button, a.ui.icon.button').popup({
+   exclusive: true,
    lastResort: true,
 });
 --></script>
