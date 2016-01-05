@@ -45,6 +45,7 @@ $('#archiver_modal_window form.ui.form textarea').on('input', function () {
 });
 
 $('button.ui.button').popup({
+   exclusive: true,
    lastResort: true,
 });
 --></script>
