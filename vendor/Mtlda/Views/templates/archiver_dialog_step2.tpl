@@ -27,8 +27,8 @@
 {date_suggestions}
     <div class="item" onclick="$('#queue_custom_date').val('{$suggest}')">{$suggest}</div>
 {/date_suggestions}
-{/if}
    </div>
+{/if}
   </form>
 
   <div class="field">
