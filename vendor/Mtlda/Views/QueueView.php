@@ -593,7 +593,9 @@ class QueueView extends DefaultView
             '/(?<month>\d\d)-(?<year>\d\d)/' => 'MMYY',
             '/(?<month>\d\d)\.(?<year>\d\d)/' => 'MMYY',
             '/(?<year>\d\d\d\d)-(?<month>\d\d)/' => 'YYYYMM',
+            '/(?<year>\d\d\d\d).(?<month>\d\d)/' => 'YYYYMM',
             '/(?<month>\d\d)-(?<year>\d\d\d\d)/' => 'MMYYYY',
+            '/(?<month>\d\d).(?<year>\d\d\d\d)/' => 'MMYYYY',
             '/(?<year>\d\d\d\d)(?<month>\d\d)(?<day>\d\d)/' => 'YYYYMMDD',
             '/(?<year>\d\d\d\d)\.(?<month>\d\d)\.(?<day>\d\d)/' => 'YYYYMMDD',
             '/(?<day>\d\d)(?<month>\d\d)(?<year>\d\d\d\d)/' => 'DDMMYYYY',
@@ -607,8 +609,13 @@ class QueueView extends DefaultView
                 $year = null;
                 $month = null;
                 $date = null;
-                if (!preg_match_all($pattern, $source, $matches, PREG_SET_ORDER)) {
+                if (($result = preg_match_all($pattern, $source, $matches, PREG_SET_ORDER)) === 0) {
                     continue;
+                }
+
+                if ($result === false) {
+                    $this->raiseError(__METHOD__ .'(), an error in preg_match_all() occured! '. preg_last_error());
+                    return false;
                 }
 
                 if (!isset($matches) || empty($matches) || !is_array($matches)) {
