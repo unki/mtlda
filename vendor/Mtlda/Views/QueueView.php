@@ -586,17 +586,18 @@ class QueueView extends DefaultView
         }
 
         $regexp_map = array(
-            '/(\d\d)/' => 'YY',
-            '/(\d\d\d\d)/' => 'YYYY',
-            '/(\d\d)-(\d\d)/' => 'YY-MM',
-            '/(\d\d)-(\d\d)/' => 'YY-MM',
-            '/(\d\d)-(\d\d)/' => 'MM-YY',
-            '/(\d\d\d\d)-(\d\d)/' => 'YYYY-MM',
-            '/(\d\d)-(\d\d\d\d)/' => 'MM-YYYY',
-            '/(\d\d\d\d)(\d\d)(\d\d)/' => 'YYYYMMDD',
-            '/(\d\d\d\d)\.(\d\d)\.(\d\d)/' => 'YYYYMMDD',
-            '/(\d\d)(\d\d)(\d\d\d\d)/' => 'DDMMYYYY',
-            '/(\d\d)\.(\d\d)\.(\d\d\d\d)/' => 'DDMMYYYY',
+            '/(?<year>\d\d)/' => 'YY',
+            '/(?<year>\d\d\d\d)/' => 'YYYY',
+            '/(?<year>\d\d)-(?<month>\d\d)/' => 'YYMM',
+            '/(?<year>\d\d)\.(?<month>\d\d)/' => 'YYMM',
+            '/(?<month>\d\d)-(?<year>\d\d)/' => 'MMYY',
+            '/(?<month>\d\d)\.(?<year>\d\d)/' => 'MMYY',
+            '/(?<year>\d\d\d\d)-(?<month>\d\d)/' => 'YYYYMM',
+            '/(?<month>\d\d)-(?<year>\d\d\d\d)/' => 'MMYYYY',
+            '/(?<year>\d\d\d\d)(?<month>\d\d)(?<day>\d\d)/' => 'YYYYMMDD',
+            '/(?<year>\d\d\d\d)\.(?<month>\d\d)\.(?<day>\d\d)/' => 'YYYYMMDD',
+            '/(?<day>\d\d)(?<month>\d\d)(?<year>\d\d\d\d)/' => 'DDMMYYYY',
+            '/(?<day>\d\d)\.(?<month>\d\d)\.(?<year>\d\d\d\d)/' => 'DDMMYYYY',
         );
 
         $suggestions = array();
@@ -606,44 +607,57 @@ class QueueView extends DefaultView
                 $year = null;
                 $month = null;
                 $date = null;
-                if (!preg_match($pattern, $source, $matches)) {
+                if (!preg_match_all($pattern, $source, $matches, PREG_SET_ORDER)) {
                     continue;
                 }
-                if ($map == 'YY-MM' && count($matches) == 3) {
-                    $year = sprintf("20%d", $matches[1]);
-                    $month = $matches[2];
-                } elseif ($map == 'MM-YY' && count($matches) == 3) {
-                    $month = $matches[1];
-                    $year = sprintf("20%d", $matches[2]);
-                } elseif ($map == 'MM-YYYY' && count($matches) == 3) {
-                    $month = $matches[1];
-                    $year = $matches[2];
-                } elseif ($map == 'YYYY-MM' && count($matches) == 3) {
-                    $year = $matches[1];
-                    $month = $matches[2];
-                } elseif ($map == 'YYYYMMDD' && count($matches) == 4) {
-                    $year = $matches[1];
-                    $month = $matches[2];
-                    $day = $matches[3];
-                } elseif ($map == 'DDMMYYYY' && count($matches) == 4) {
-                    $day = $matches[1];
-                    $month = $matches[2];
-                    $year = $matches[3];
-                } elseif ($map == 'YY' && count($matches) == 2) {
-                    $year = sprintf("20%d", $matches[1]);
-                } elseif ($map == 'YYYY' && count($matches) == 2) {
-                    $year = $matches[1];
+
+                if (!isset($matches) || empty($matches) || !is_array($matches)) {
+                    continue;
                 }
 
-                if (isset($day) && isset($month) && isset($year)) {
-                    array_push($suggestions, sprintf("%04d-%02d-%02d", $year, $month, $day));
-                }
-                if (isset($month) && isset($year)) {
-                    $first = sprintf("%04d-%02d-01", $year, $month);
-                    array_push($suggestions, $first);
-                    $last = date("t", strtotime($first));
-                    $last = sprintf("%04d-%02d-%02d", $year, $month, $last);
-                    array_push($suggestions, $last);
+                foreach ($matches as $match) {
+                    if ($map == 'YYMM' && $this->requireArrayKeys($match, array('year', 'month'))) {
+                        $year = sprintf("20%d", $match['year']);
+                        $month = $match['month'];
+                    } elseif ($map == 'MMYY' && $this->requireArrayKeys($match, array('year', 'month'))) {
+                        $month = $match['month'];
+                        $year = sprintf("20%d", $match['year']);
+                    } elseif ($map == 'MMYYYY' && $this->requireArrayKeys($match, array('month', 'year'))) {
+                        $month = $match['month'];
+                        $year = $match['year'];
+                    } elseif ($map == 'YYYYMM' && $this->requireArrayKeys($match, array('year', 'month'))) {
+                        $year = $match['year'];
+                        $month = $match['month'];
+                    } elseif ($map == 'YYYYMMDD' && $this->requireArrayKeys($match, array('year', 'month'))) {
+                        $year = $match['year'];
+                        $month = $match['month'];
+                        $day = $match['day'];
+                    } elseif ($map == 'DDMMYYYY' && $this->requireArrayKeys($match, array('day', 'month', 'year'))) {
+                        $day = $match['day'];
+                        $month = $match['month'];
+                        $year = $match['year'];
+                    } elseif ($map == 'YY' && $this->requireArrayKeys($match, array('year'))) {
+                        $year = sprintf("20%d", $match['year']);
+                    } elseif ($map == 'YYYY' && $this->requireArrayKeys($match, array('year'))) {
+                        $year = $match['year'];
+                    }
+
+                    if (isset($day) && isset($month) && isset($year)) {
+                        array_push($suggestions, sprintf("%04d-%02d-%02d", $year, $month, $day));
+                    }
+                    if (isset($month) && isset($year)) {
+                        $first = sprintf("%04d-%02d-01", $year, $month);
+                        array_push($suggestions, $first);
+                        $last = date("t", strtotime($first));
+                        $last = sprintf("%04d-%02d-%02d", $year, $month, $last);
+                        array_push($suggestions, $last);
+                    }
+                    if (isset($year)) {
+                        $first = sprintf("%04d-01-01", $year);
+                        array_push($suggestions, $first);
+                        $last = sprintf("%04d-12-31", $year);
+                        array_push($suggestions, $last);
+                    }
                 }
             }
         }
@@ -667,7 +681,9 @@ class QueueView extends DefaultView
             if ($parsed['month'] < 1 || $parsed['month'] > 12) {
                 return false;
             }
-            if ($parsed['day'] < 1 || $parsed['day'] > 31) {
+            if ($parsed['day'] < 1 || $parsed['day'] > 31 ||
+                $parsed['day'] > date('t', strtotime("{$parsed['year']}-{$parsed['month']}-01"))
+            ) {
                 return false;
             }
             return true;
@@ -1045,6 +1061,37 @@ class QueueView extends DefaultView
         $repeat = true;
 
         return $content;
+    }
+
+    public function requireArrayKeys($haystack, $needles)
+    {
+        if (!isset($haystack) || empty($haystack) || (!is_string($haystack) && !is_array($haystack))) {
+            $this->raiseError(__METHOD__ .'(), $haystack parameter is invalid!');
+            return false;
+        }
+
+        if (!isset($needles) || empty($needles) || (!is_string($needles) && !is_array($needles))) {
+            $this->raiseError(__METHOD__ .'(), $needles parameter is invalid!');
+            return false;
+        }
+
+        if (is_string($haystack)) {
+            $haystack = array($haystack => null);
+        }
+
+        if (is_string($needles)) {
+            $needles = array($needles);
+        }
+
+        $result = true;
+
+        foreach ($needles as $needle) {
+            if (!array_key_exists($needle, $haystack)) {
+                $result = false;
+            }
+        }
+
+        return $result;
     }
 }
 
