@@ -846,8 +846,16 @@ class QueueView extends DefaultView
         }
 
         foreach ($words as $key => $word) {
-            if (!isset($existing_keywords) || empty($existing_keywords) ||
-                in_array($word, $existing_keywords)) {
+            if (isset($existing_keywords) &&
+                !empty($existing_keywords) &&
+                ($matching_keyword = preg_grep("/{$word}/", $existing_keywords)) &&
+                isset($matching_keyword) &&
+                !empty($matching_keyword) &&
+                is_array($matching_keyword) &&
+                count($matching_keyword) > 0 &&
+                ($matching_keyword = array_shift($matching_keyword))
+            ) {
+                $words[$key] = $matching_keyword;
                 continue;
             }
             unset($words[$key]);
