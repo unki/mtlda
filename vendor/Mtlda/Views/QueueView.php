@@ -624,11 +624,11 @@ class QueueView extends DefaultView
 
                 foreach ($matches as $match) {
                     if ($map == 'YYMM' && $this->requireArrayKeys($match, array('year', 'month'))) {
-                        $year = sprintf("20%d", $match['year']);
+                        $year = sprintf("20%02d", $match['year']);
                         $month = $match['month'];
                     } elseif ($map == 'MMYY' && $this->requireArrayKeys($match, array('year', 'month'))) {
                         $month = $match['month'];
-                        $year = sprintf("20%d", $match['year']);
+                        $year = sprintf("20%02d", $match['year']);
                     } elseif ($map == 'MMYYYY' && $this->requireArrayKeys($match, array('month', 'year'))) {
                         $month = $match['month'];
                         $year = $match['year'];
@@ -644,7 +644,7 @@ class QueueView extends DefaultView
                         $month = $match['month'];
                         $year = $match['year'];
                     } elseif ($map == 'YY' && $this->requireArrayKeys($match, array('year'))) {
-                        $year = sprintf("20%d", $match['year']);
+                        $year = sprintf("20%02d", $match['year']);
                     } elseif ($map == 'YYYY' && $this->requireArrayKeys($match, array('year'))) {
                         $year = $match['year'];
                     }
