@@ -25,7 +25,7 @@
    <h5 class="ui header">Suggestions:</h5>
    <div class="ui list">
 {date_suggestions}
-    <div class="item" onclick="$('#queue_custom_date').val('{$suggest}')">{$suggest}</div>
+    <a class="item" onclick="$('#queue_custom_date').val('{$suggest}')">{$suggest}</a>
 {/date_suggestions}
    </div>
 {/if}
@@ -63,7 +63,7 @@
      <div class="default text">No keywords assigned.</div>
      <div class="menu">
 {foreach $keywords as $keyword}
-      <div class="item" data-value="{$keyword->getId()}" data-text="{$keyword->getName()}">{$keyword->getName()}</div>
+      <a class="item" data-value="{$keyword->getId()}" data-text="{$keyword->getName()}">{$keyword->getName()}</a>
 {/foreach}
      </div>
     </div>
@@ -78,7 +78,7 @@
    <h5 class="ui header">Suggestions:</h5>
    <div class="ui list">
 {keyword_suggestions}
-    <div class="item" onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).remove();">{$keyword}{if isset($occurrences) && !empty($occurrences)} ({$occurrences}){/if}</div>
+    <a class="item" onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).remove();">{$keyword}{if isset($occurrences) && !empty($occurrences)} ({$occurrences}){/if}</a>
 {/keyword_suggestions}
    </div>
 {/if}
@@ -86,7 +86,7 @@
    <h5 class="ui header">Similar documents use the following keywords:</h5>
    <div class="ui list">
 {keyword_suggestions_similar}
-    <div class="item" onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).remove();">{$keyword}{if isset($occurrences) && !empty($occurrences)} ({$occurrences}){/if}</div>
+    <a class="item" onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).remove();">{$keyword}{if isset($occurrences) && !empty($occurrences)} ({$occurrences}){/if}</a>
 {/keyword_suggestions_similar}
    </div>
 {/if}
