@@ -54,7 +54,7 @@
     <form class="ui form" onsubmit="return false;">
      <div class="fields">
       <div class="field small ui input">
-       <input type="text" name="title_{$item->getId()}" value="{$item->getTitle()}" data-action="update" data-model="document" data-key="getTitle()" data-id="{$item->getId()}" />
+       <input type="text" name="title_{$item->getId()}" value="{$item->getTitle()}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->getId()}" />
       </div>
       <div class="field">
        <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
