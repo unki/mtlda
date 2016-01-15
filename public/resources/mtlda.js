@@ -40,7 +40,7 @@ $(document).ready(function () {
     $("a.sign.document").click(function () {
         rpc_object_sign($(this));
     });
-    $("a.scan.document").click(function () {
+    $("a.scan.document, a.scan.item").click(function () {
         rpc_object_scan($(this));
     });
     $('.inline.editable.edit.link').click(function () {
