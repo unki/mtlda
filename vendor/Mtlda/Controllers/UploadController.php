@@ -105,7 +105,10 @@ class UploadController extends DefaultController
         }
 
         if (isset($file['error']) && $file['error'] != 0) {
-            $this->raiseError("\$file has been marked erroneous ({$file['error']})!");
+            if (($error_message = $this->getUploadErrorMessage($file['error'])) === false) {
+                $error_message = 'An unspecific error occured!';
+            }
+            $this->raiseError("\$file has been marked erroneous ({$error_message})!");
             return false;
         }
 
@@ -172,6 +175,42 @@ class UploadController extends DefaultController
         }
 
         return true;
+    }
+
+    public function getUploadErrorMessage($error_code)
+    {
+        if (!isset($error_code) ||
+            empty($error_code) ||
+            !is_integer($error_code)
+        ) {
+            return false;
+        }
+
+        switch ($error_code) {
+            case UPLOAD_ERR_INI_SIZE:
+                return 'Uploaded file\'s filesize is larger than upload_max_filesize limit in php.ini!';
+                break;
+            case UPLOAD_ERR_FORM_SIZE:
+                return 'Uploaded file\'s filesize is larger than given HTML form MAX_FILE_SIZE!';
+                break;
+            case UPLOAD_ERR_PARTIAL:
+                return 'File has not been uploaded completely!';
+                break;
+            case UPLOAD_ERR_NO_FILE:
+                return 'No file has been uploaded!';
+                break;
+            case UPLOAD_ERR_NO_TMP_DIR:
+                return 'Upload tmp directory does not exist!';
+                break;
+            case UPLOAD_ERR_CANT_WRITE:
+                return 'Uploaded file can not be stored in filesystem!';
+                break;
+            case UPLOAD_ERR_EXTENSION:
+                return 'An PHP extension has interrupted upload process!';
+                break;
+        }
+
+        return false;
     }
 }
 
