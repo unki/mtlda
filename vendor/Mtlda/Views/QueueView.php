@@ -682,7 +682,7 @@ class QueueView extends DefaultView
             ) {
                 return false;
             }
-            if ($parsed['year'] < 1900 || $parsed['year'] > 2100) {
+            if ($parsed['year'] < 1900 || $parsed['year'] > date('Y')) {
                 return false;
             }
             if ($parsed['month'] < 1 || $parsed['month'] > 12) {
