@@ -86,6 +86,8 @@ function init_upload_progressbar(dropzone)
             ratio  : 'File {value} of {total}'
         },
     });
+
+    return true;
 }
 
 function init_dropzone()
@@ -106,21 +108,21 @@ function init_dropzone()
             });
             init_upload_progressbar(dropzone)
             this.on('addedfile', function () {
-                nofiles = this.getQueuedFiles().length;
+                var nofiles = this.getQueuedFiles().length;
                 $('#uploadprogress').progress('reset');
                 $('#uploadprogress').progress({
                     total: nofiles+1
                 });
             });
             this.on('removedfile', function (file) {
-                nofiles = this.getQueuedFiles().length;
+                var nofiles = this.getQueuedFiles().length;
                 $('#uploadprogress').progress('reset');
                 $('#uploadprogress').progress({
                     total: nofiles+1
                 });
             });
             this.on('canceled', function (file) {
-                nofiles = this.getQueuedFiles().length;
+                var nofiles = this.getQueuedFiles().length;
                 $('#uploadprogress').progress('reset');
                 $('#uploadprogress').progress({
                     total: nofiles+1
@@ -155,6 +157,8 @@ function init_dropzone()
             });
         }
     };
+
+    return true;
 }
 
 function show_modal(type, settings, id, do_function, modalclass)
