@@ -51,7 +51,7 @@ $(document).ready(function () {
         rpc_object_scan($(this));
     });
     $('.inline.editable.edit.link').click(function () {
-        inlineobj = new ThalliumInlineEditable($(this));
+        var inlineobj = new ThalliumInlineEditable($(this));
         inlineobj.toggle();
     });
    /*$("table td a.clone").click(function () {
@@ -189,7 +189,7 @@ function show_modal(type, settings, id, do_function, modalclass)
     }
 
     if (typeof settings === 'undefined') {
-        settings = {};
+        var settings = {};
     }
 
     if (typeof settings.header !== 'undefined') {
@@ -268,7 +268,7 @@ function show_modal(type, settings, id, do_function, modalclass)
     }
 
     if (typeof do_function === 'undefined') {
-        do_function = function () {
+        var do_function = function () {
             return true;
         };
     }
@@ -312,7 +312,7 @@ function delete_object(element)
             if (!($(this).checkbox('is checked'))) {
                 return true;
             }
-            item = $(this).attr('id')
+            var item = $(this).attr('id')
             if (typeof item === 'undefined' || !item || item == '') {
                 return false;
             }
@@ -320,7 +320,7 @@ function delete_object(element)
             if (typeof item === 'undefined' || !item || !item[1] || item[1] == '') {
                 return false;
             }
-            item_id = item[1];
+            var item_id = item[1];
             id.push(item_id);
         });
         if (id.length == 0) {
@@ -407,7 +407,7 @@ function archive_object(element)
             if (!($(this).checkbox('is checked'))) {
                 return true;
             }
-            item = $(this).attr('id')
+            var item = $(this).attr('id')
             if (typeof item === 'undefined' || !item || item == '') {
                 return false;
             }
@@ -415,7 +415,7 @@ function archive_object(element)
             if (typeof item === 'undefined' || !item || !item[1] || item[1] == '') {
                 return false;
             }
-            item_id = item[1];
+            var item_id = item[1];
             id.push(item_id);
         });
         if (id.length < 1) {
@@ -638,17 +638,17 @@ function init_table_filter()
         }
     });
     $('input[name="filter_value"]').on('input', function () {
-        filter_value = $(this).val();
+        var filter_value = $(this).val();
         try {
-            regexp = new RegExp(filter_value, 'i');
+            var regexp = new RegExp(filter_value, 'i');
         } catch (e) {
-            regexp = safe_string(filter_value);
+            var regexp = safe_string(filter_value);
         }
         $('table#datatable .filterable').each(function () {
             $(this).closest('tr').removeClass('filter matches');
         });
         $('table#datatable .filterable').each(function () {
-            content = $(this).html();
+            var content = $(this).html();
             if (typeof filter_value === 'undefined' ||
                 filter_value == "" ||
                 content.match(regexp)
@@ -680,7 +680,9 @@ function init_table_filter()
 function init_checkbox_selector()
 {
     $(".item.select.checkbox").checkbox().click(function () {
-        if (!(id = $(this).attr('id'))) {
+        var id;
+
+        if (typeof (id = $(this).attr('id')) === 'undefined') {
             throw 'Failed to locate id-attribute!';
             return false;
         }
@@ -688,7 +690,7 @@ function init_checkbox_selector()
             return true;
         }
 
-        state = $(".item.select.checkbox#select_all").checkbox("is checked");
+        var state = $(".item.select.checkbox#select_all").checkbox("is checked");
 
         if (state != true && state != false) {
             throw 'Checkbox returned an invalid state!';
@@ -696,9 +698,9 @@ function init_checkbox_selector()
         }
 
         if (state === true) {
-            to_state = "set checked";
+            var to_state = "set checked";
         } else {
-            to_state = "set unchecked";
+            var to_state = "set unchecked";
         }
 
         $(".item.select.checkbox[id!='select_all']").checkbox(to_state);
@@ -708,6 +710,8 @@ function init_checkbox_selector()
 
 function archiver_window(element, step, allow_unsaved_data)
 {
+    var id, guid, model, title;
+
     if (typeof archiver_wnd === 'undefined') {
         throw "somehow we lost our modal window!"
         return false;
@@ -744,7 +748,7 @@ function archiver_window(element, step, allow_unsaved_data)
 
     if (current_step > 0) {
         var unsaved_data = false;
-        savebuttons = archiver_wnd.find('button.save');
+        var savebuttons = archiver_wnd.find('button.save');
         if (typeof savebuttons !== 'undefined' && savebuttons.length) {
             savebuttons.each(function () {
                 if ($(this).hasClass('red') && $(this).hasClass('shape')) {
@@ -802,7 +806,7 @@ function archiver_window(element, step, allow_unsaved_data)
         .removeClass('disabled')
         .addClass('active');
 
-    request_data = {
+    var request_data = {
         content : 'archiver',
         id      : id,
         guid    : guid,
@@ -858,8 +862,8 @@ function load_datepickers(mode)
         altFormat: 'yy-mm-dd',
         altField: 'input[type="text"][name="'+ mode +'_custom_date"]',
         onSelect: function () {
-            curval = $('#'+ mode +'_custom_date_form input[type="text"][name="'+ mode +'_custom_date"]').val();
-            newval = $(this).datepicker('getDate');
+            var curval = $('#'+ mode +'_custom_date_form input[type="text"][name="'+ mode +'_custom_date"]').val();
+            var newval = $(this).datepicker('getDate');
             if (curval && newval && curval == newval) {
                 return true;
             }
@@ -881,8 +885,8 @@ function load_datepickers(mode)
         altFormat: 'yy-mm-dd',
         altField: 'input[type="text"][name="'+ mode +'_expiry_date"]',
         onSelect: function () {
-            curval = $('#'+ mode +'_expiry_date_form input[type="text"][name="'+ mode +'_expiry_date"]').val();
-            newval = $(this).datepicker('getDate');
+            var curval = $('#'+ mode +'_expiry_date_form input[type="text"][name="'+ mode +'_expiry_date"]').val();
+            var newval = $(this).datepicker('getDate');
             if (curval && newval && curval == newval) {
                 return true;
             }
@@ -941,7 +945,7 @@ function load_datepickers(mode)
     });
 
     $('#'+ mode +'_custom_date_form input').on('input', function () {
-        savebutton = $('#'+ mode +'_custom_date_form button.save');
+        var savebutton = $('#'+ mode +'_custom_date_form button.save');
         if (!savebutton.hasClass('red shape')) {
             savebutton.addClass('red shape');
             savebutton.transition('bounce');
@@ -949,7 +953,7 @@ function load_datepickers(mode)
     });
 
     $('#'+ mode +'_expiry_date_form input').on('input', function () {
-        savebutton = $('#'+ mode +'_expiry_date_form button.save');
+        var savebutton = $('#'+ mode +'_expiry_date_form button.save');
         if (!savebutton.hasClass('red shape')) {
             savebutton.addClass('red shape');
             savebutton.transition('bounce');
@@ -961,7 +965,7 @@ function load_datepickers(mode)
             if (data != "ok") {
                 return true;
             }
-            savebutton = element.find('button.save');
+            var savebutton = element.find('button.save');
             savebutton.transition('tada').removeClass('red shape');
             return true;
         });
@@ -973,7 +977,7 @@ function load_datepickers(mode)
             if (data != "ok") {
                 return true;
             }
-            savebutton = element.find('button.save');
+            var savebutton = element.find('button.save');
             savebutton.transition('tada').removeClass('red shape');
             return true;
         });
@@ -985,7 +989,7 @@ function load_datepickers(mode)
             if (data != "ok") {
                 return true;
             }
-            savebutton = element.find("button.save");
+            var savebutton = element.find("button.save");
             savebutton.transition('tada').removeClass('red shape');
             return true;
         });
@@ -1038,6 +1042,8 @@ function split_object(element)
 
 function splitter_window(element, step)
 {
+    var id, guid, model, title;
+
     if (typeof splitter_wnd === 'undefined') {
         throw "somehow we lost our modal window!"
         return false;
@@ -1078,7 +1084,7 @@ function splitter_window(element, step)
         .removeClass('disabled')
         .addClass('active');
 
-    request_data = {
+    var request_data = {
         content : 'splitter',
         id      : id,
         guid    : guid,
