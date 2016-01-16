@@ -43,5 +43,6 @@
   <script type="text/javascript" src="{$app_web_path}/resources/thallium_editable.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/thallium_messagebus.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/thallium_message.js"></script>
+  <script type="text/javascript" src="{$app_web_path}/resources/thallium_store.js"></script>
   <!-- MTLDA CSS -->
   <link type="text/css" href="{$app_web_path}/resources/mtlda.css" rel="Stylesheet" />
