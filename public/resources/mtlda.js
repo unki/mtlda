@@ -24,6 +24,13 @@ $(document).ready(function () {
         return false;
     }
 
+    try {
+        store = new ThalliumStore;
+    } catch (e) {
+        throw 'Failed to load ThalliumStore! ' + e;
+        return false;
+    }
+
     /* RPC handlers */
     $("a.delete.item").click(function () {
         delete_object($(this));
