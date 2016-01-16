@@ -32,23 +32,8 @@ $(document).ready(function () {
     }
 
     /* RPC handlers */
-    $("a.delete.item").click(function () {
-        delete_object($(this));
-    });
-    $("a.archive.item").click(function () {
-        archive_object($(this));
-    });
-    $("a.split.item").click(function () {
-        split_object($(this));
-    });
     $("form.ui.form.add").on('submit', function () {
         rpc_object_update($(this));
-    });
-    $("a.sign.document").click(function () {
-        rpc_object_sign($(this));
-    });
-    $("a.scan.document, a.scan.item").click(function () {
-        rpc_object_scan($(this));
     });
     $('.inline.editable.edit.link').click(function () {
         var inlineobj = new ThalliumInlineEditable($(this));
@@ -58,6 +43,7 @@ $(document).ready(function () {
     init_table_sort();
     init_table_filter();
     init_dropdowns();
+    init_action_links();
 });
 
 function init_upload_progressbar(dropzone)
@@ -1089,6 +1075,27 @@ function splitter_window(element, step)
 function isInteger(x)
 {
     return x % 1 === 0;
+}
+
+function init_action_links()
+{
+    $("a.delete.item").click(function () {
+        delete_object($(this));
+    });
+    $("a.archive.item").click(function () {
+        archive_object($(this));
+    });
+    $("a.split.item").click(function () {
+        split_object($(this));
+    });
+    $("a.sign.document").click(function () {
+        rpc_object_sign($(this));
+    });
+    $("a.scan.document, a.scan.item").click(function () {
+        rpc_object_scan($(this));
+    });
+
+    return true;
 }
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
