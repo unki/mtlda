@@ -54,22 +54,6 @@ $(document).ready(function () {
         var inlineobj = new ThalliumInlineEditable($(this));
         inlineobj.toggle();
     });
-   /*$("table td a.clone").click(function () {
-      obj_clone($(this));
-   });
-   $("table td div a.toggle-off, table td div a.toggle-on").click(function () {
-      obj_toggle_status($(this));
-   });
-   */
-    $('img.change_to').hover(
-        function () {
-            $(this).css('cursor','pointer');
-        },
-        function () {
-            $(this).css('cursor','auto');
-        }
-    );
-
     init_checkbox_selector();
     init_table_sort();
     init_table_filter();
