@@ -15,6 +15,8 @@
  * GNU Affero General Public License for more details.
  */
 
+'use strict';
+
 function rpc_object_archive(elements, successMethod)
 {
     if (!(elements instanceof Array)) {
@@ -703,7 +705,7 @@ function rpc_mail_import(element)
 
 function rpc_get_content(view, request_data)
 {
-    data = {
+    var data = {
         type    : 'rpc',
         action  : 'get-view',
         view    : view
