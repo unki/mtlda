@@ -3,11 +3,33 @@
     <div class="ui text loader">Creating document previews.<br />Please wait a moment.</div>
   </div>
   <br /><br /><br /><br />
-  <button class="ui button continue" onclick="splitter_window($(this), 2);" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-modal-title="Split {if $item->hasTitle}{$item->getTitle()}{else}{$item->getFileName()}{/if}">Continue</button>
+  <button class="ui button continue" onclick="splitter_window(2, '{$item->getGuid()}');" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-modal-title="Split {if $item->hasTitle}{$item->getTitle()}{else}{$item->getFileName()}{/if}">Continue</button>
   <br /><br /><br /><br />
 </div>
 <script type="text/javascript"><!--
 $(document).ready(function () {
+
+    var id, guid, model;
+
+    if (!(substore = store.getSubStore('splitter_{$item->getGuid()}'))) {
+        throw 'failed to get spitter ThalliumStore!';
+        return false;
+    }
+
+    if (!(id = substore.get('id'))) {
+       throw 'Failed to get "id" value from store!';
+       return false;
+    }
+
+    if (!(guid = substore.get('guid'))) {
+       throw 'Failed to get "guid" value from store!';
+       return false;
+    }
+
+    if (!(model = substore.get('model'))) {
+       throw 'Failed to get "model" value from store!';
+       return false;
+    }
 
     msg_body = new Object;
     msg_body.id = safe_string(id);
