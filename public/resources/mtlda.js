@@ -602,7 +602,8 @@ function init_table_filter()
         popup: '#filterpopup',
         exclusive: true,
         preserve: true,
-        on: 'click',
+        on: 'hover',
+        hoverable: true,
         onVisible: function () {
             $('input[name="filter_value"]').focus();
         }
