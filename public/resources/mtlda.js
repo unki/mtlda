@@ -327,7 +327,7 @@ function delete_object(element)
         elements.push(element);
     }
 
-    var del_wnd = show_modal('confirm', {
+    show_modal('confirm', {
         header : title,
         icon : 'red remove icon',
         content : text,
