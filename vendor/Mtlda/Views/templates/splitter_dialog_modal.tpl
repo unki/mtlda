@@ -1,4 +1,4 @@
-<div class="ui long fullscreen modal" id="splitter_modal_window">
+<div class="ui long fullscreen modal" id="splitter_modal_window_template">
  <i class="close icon"></i>
  <div class="header window title">Splitting</div>
  <div class="image content">
@@ -55,6 +55,6 @@ $('.ui.splitter.steps a.step').on('click', ':not(.disabled)', function () {
    if (typeof step_no === 'undefined' || typeof step_no[1] === 'undefined' || step_no[1] == '') {
       return false;
    }
-   splitter_window($(link), step_no[1]);
+   splitter_window(step_no[1], '{$item->getGuid()}');
 });
 --></script>
