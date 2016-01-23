@@ -15,32 +15,38 @@ if (typeof documents === 'undefined' || !documents instanceof Array) {
    throw 'Lost pages information!';
 }
 
-$('.ui.button.exit').click(function () {
-   if (typeof splitter_wnd === 'undefined') {
-      throw 'Have no reference to the modal window!';
-      return false;
-   }
-   splitter_wnd.modal('hide');
-   delete documents;
-   delete splitter_wnd;
-});
-$('.ui.button.split').click(function () {
-   if (typeof splitter_wnd === 'undefined') {
-      throw 'Have no reference to the modal window!';
-      return false;
-   }
-   splitter_wnd.modal('hide');
-   delete splitter_wnd;
+$('.ui.button.exit, .ui.button.split').click(function () {
+    var substore, splitter_wnd;
+    if (!(substore = store.getSubStore('splitter_{$item->getGuid()}'))) {
+        throw 'failed to get splitter ThalliumStore!';
+        return false;
+    }
 
-   var split_wnd = show_modal('progress', {
-      header : title,
-      icon : 'wait icon',
-      hasActions : false,
-      content : 'Please wait a moment.',
-      onShow : rpc_fetch_jobstatus()
+    if (!(splitter_wnd = substore.get('splitter_wnd'))) {
+        throw "somehow we lost our modal window!"
+        return false;
+    }
+
+    splitter_wnd.modal('hide');
+    delete splitter_wnd;
+    if (substore.has('splitter_wnd')) {
+        substore.del('splitter_wnd');
+    }
+
+    if ($(this).hasClass('exit') && !$(this).hasClass('split')) {
+        delete documents;
+        return true;
+    }
+
+    var split_wnd = show_modal('progress', {
+        header : title,
+        icon : 'wait icon',
+        hasActions : false,
+        content : 'Please wait a moment.',
+        onShow : rpc_fetch_jobstatus()
    });
 
-   progressbar = split_wnd.find('.description .ui.indicating.progress');
+   var progressbar = split_wnd.find('.description .ui.indicating.progress');
 
    if (typeof progressbar === 'undefined') {
       throw 'Can not find the progress bar in the modal window!';
