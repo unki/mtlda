@@ -160,7 +160,7 @@ $('#splitter_content .ui.form.step2').submit(function () {
       });
    });
 
-   splitter_window($(this), {$next_step});
+   splitter_window({$next_step}, '{$item->getGuid()}');
    // this form must return false!
    return false;
 });
