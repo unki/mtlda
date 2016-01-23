@@ -61,7 +61,7 @@ function rpc_object_archive(elements, successMethod)
             return false;
         }
 
-        title[id] = title;
+        titles[id] = title;
     });
 
     var archive_wnd = show_modal('progress', {
@@ -527,7 +527,7 @@ function rpc_object_delete(elements, successMethod)
             return false;
         }
 
-        title[id] = title;
+        titles[id] = title;
     });
 
     var del_wnd = show_modal('progress', {
