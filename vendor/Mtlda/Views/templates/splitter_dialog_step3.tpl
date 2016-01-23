@@ -167,7 +167,7 @@ $('form.ui.form.step3').submit(function () {
       return true;
    });
 
-   splitter_window($(this), {$next_step});
+   splitter_window({$next_step}, '{$item->getGuid()}');
    return false;
 });
 
