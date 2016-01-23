@@ -55,6 +55,8 @@ $('.ui.splitter.steps a.step').on('click', ':not(.disabled)', function () {
    if (typeof step_no === 'undefined' || typeof step_no[1] === 'undefined' || step_no[1] == '') {
       return false;
    }
+{if isset($item)}
    splitter_window(step_no[1], '{$item->getGuid()}');
+{/if}
 });
 --></script>
