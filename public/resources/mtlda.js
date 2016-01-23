@@ -15,6 +15,11 @@
  * GNU Affero General Public License for more details.
  */
 
+'use strict';
+
+var mbus;
+var store;
+
 $(document).ready(function () {
 
     try {
@@ -243,21 +248,19 @@ function show_modal(type, settings, id, do_function, modalclass)
         };
     }
 
-    var modal = wnd
-        .modal({
-            closable   : settings.closable,
-            onDeny     : settings.onDeny,
-            onApprove  : settings.onApprove,
-            onHidden   : settings.onHidden,
-            blurring   : settings.blurring,
-            detachable : settings.detachable,
-            observeChanges : settings.observeChanges,
-            allowMultiple : settings.allowMultiple,
-        })
-        .modal('show')
-        .on('click.modal', do_function);
+    var modal = wnd.modal({
+        closable   : settings.closable,
+        onDeny     : settings.onDeny,
+        onApprove  : settings.onApprove,
+        onHidden   : settings.onHidden,
+        blurring   : settings.blurring,
+        detachable : settings.detachable,
+        observeChanges : settings.observeChanges,
+        allowMultiple : settings.allowMultiple,
+    })
+    modal.modal('show').on('click.modal', do_function);
 
-        return modal;
+    return modal;
 }
 
 function safe_string(input)
@@ -982,7 +985,9 @@ function init_dropdowns()
 
 function split_object(element)
 {
-    var title = element.attr("data-modal-title");
+    var id, guid, model, title, substore, splitter_wnd;
+
+    title = element.attr("data-modal-title");
 
     if (typeof title === 'undefined' || title === "") {
         throw 'No attribute "data-modal-title" found!';
@@ -990,35 +995,6 @@ function split_object(element)
     }
 
     var text = element.attr("data-modal-text");
-
-    splitter_wnd = $("#splitter_modal_window");
-
-    if (typeof splitter_wnd === 'undefined' || splitter_wnd.length < 1) {
-        throw "failed to locate #splitter_modal_window!";
-        return false;
-    }
-
-    splitter_wnd.modal({
-        closable       : true,
-        blurring       : false,
-        title          : title,
-        observeChanges : true,
-        onShow         : splitter_window($(element))
-    })
-        .modal('show');
-        //.on('click.modal', do_function);
-
-    return splitter_wnd;
-}
-
-function splitter_window(element, step)
-{
-    var id, guid, model, title;
-
-    if (typeof splitter_wnd === 'undefined') {
-        throw "somehow we lost our modal window!"
-        return false;
-    }
 
     if (typeof element === 'undefined' || ! element instanceof Array) {
         throw "element parameter is invalid!"
@@ -1045,9 +1021,83 @@ function splitter_window(element, step)
         return false;
     }
 
-    if (typeof step === 'undefined' || !(/^[0-9]+$/).test(step)) {
-        step = 1;
+    var substore = store.createSubStore('splitter_'+guid);
+    substore.set('id', id);
+    substore.set('guid', guid);
+    substore.set('model', model);
+    substore.set('title', title);
+    splitter_wnd = substore.set('splitter_wnd', $("#splitter_modal_window_template").clone());
+
+    if (typeof splitter_wnd === 'undefined' || splitter_wnd.length < 1) {
+        throw "failed to clone #splitter_modal_window_template!";
+        return false;
     }
+
+    splitter_wnd.attr('id', 'splitter_modal_window');
+    splitter_wnd.modal({
+        closable       : true,
+        blurring       : false,
+        title          : title,
+        observeChanges : true,
+        onShow         : splitter_window(1, guid)
+    }).modal('show');
+
+    return splitter_wnd;
+}
+
+function splitter_window(step, guid)
+{
+    var id, guid, model, title, substore, splitter_wnd;
+
+    if (typeof guid === 'undefined') {
+        guid = '';
+    }
+
+    if (!(substore = store.getSubStore('splitter_'+ guid))) {
+        throw "failed to get splitter ThalliumStore!";
+        return false;
+    }
+
+    if (!(splitter_wnd = substore.get('splitter_wnd'))) {
+        throw "somehow we lost our modal window!"
+        return false;
+    }
+
+    if (!(id = substore.get('id'))) {
+        throw 'store does not have an "id" value!';
+        return false;
+    }
+
+    if (!(guid = substore.get('guid'))) {
+        throw 'store does not have an "guid" value!';
+        return false;
+    }
+
+    if (!(id = substore.get('id'))) {
+        throw 'store does not have an "id" value!';
+        return false;
+    }
+
+    if (!(model = substore.get('model'))) {
+        throw 'store does not have an "model" value!';
+        return false;
+    }
+
+    if (!(title = substore.get('title'))) {
+        throw 'store does not have an "title" value!';
+        return false;
+    }
+
+    if (typeof step === 'undefined') {
+        if (substore.has('step')) {
+            step = substore.get('step');
+        }
+        if (!step || !(/^[0-9]+$/).test(step)) {
+            step = 1;
+        }
+    }
+
+    substore.set('step', step);
 
     $('.ui.steps .active.step')
         .removeClass('active');
@@ -1064,7 +1114,7 @@ function splitter_window(element, step)
     };
 
     $.when(rpc_get_content('queue', request_data)).done(function (data) {
-        $('#splitter_content').html(data);
+        $('#splitter_modal_window #splitter_content').html(data);
         eval($('#splitter_modal_window .header.window.title').html(title));
         eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-modal-title', title));
         eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-id', id));
