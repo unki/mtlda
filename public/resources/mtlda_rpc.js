@@ -80,7 +80,7 @@ function rpc_object_archive(elements, successMethod)
     }
 
     ids.forEach(function (id) {
-        msg_body = new Object;
+        var msg_body = new Object;
         msg_body.id = safe_string(id);
         msg_body.guid = safe_string(guids[id]);
         msg_body.model = safe_string(models[id]);
@@ -484,6 +484,10 @@ function rpc_fetch_jobstatus()
 
 function rpc_object_delete(elements, successMethod)
 {
+    if (typeof elements === 'undefined') {
+        throw 'elements parameter is not defined!';
+        return false;
+    }
     if (!(elements instanceof Array)) {
         throw 'elements is not an Array!';
         return false;
@@ -493,6 +497,7 @@ function rpc_object_delete(elements, successMethod)
     var guids = new Array;
     var models = new Array;
     var titles = new Array;
+    var substore;
 
     elements.forEach(function (element) {
         var id, guid, model, title;
@@ -502,43 +507,48 @@ function rpc_object_delete(elements, successMethod)
         }
 
         if (!(id = element.attr('data-id'))) {
-            alert('no attribute "data-id" found!');
+            throw 'no attribute "data-id" found!';
             return false;
         }
 
         ids.push(id);
 
         if (!(guid = element.attr('data-guid'))) {
-            alert('no attribute "data-guid" found!');
+            throw 'no attribute "data-guid" found!';
             return false;
         }
 
         guids[id] = guid;
 
         if (!(model = element.attr('data-model'))) {
-            alert('no attribute "data-model" found!');
+            throw 'no attribute "data-model" found!';
             return false;
         }
 
         models[id] = model;
 
         if (!(title = element.attr('data-action-title'))) {
-            alert('no attribute "data-action-title" found!');
+            throw 'no attribute "data-action-title" found!';
             return false;
         }
 
         titles[id] = title;
     });
 
-    var del_wnd = show_modal('progress', {
+    if (!(substore = store.createSubStore('delete'))) {
+        throw 'failed to allocate a ThalliumStore for this action!';
+        return false;
+    }
+
+    var del_wnd = substore.set('progresswnd', show_modal('progress', {
         header : 'Deleting...',
         icon : 'remove icon',
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
-    });
+    }));
 
-    progressbar = del_wnd.find('.description .ui.indicating.progress');
+    var progressbar = substore.set('progressbar', del_wnd.find('.description .ui.indicating.progress'));
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
@@ -546,7 +556,7 @@ function rpc_object_delete(elements, successMethod)
     }
 
     ids.forEach(function (id) {
-        msg_body = new Object;
+        var msg_body = new Object;
         msg_body.id = safe_string(id);
         msg_body.guid = safe_string(guids[id]);
         msg_body.model = safe_string(models[id]);
@@ -560,16 +570,23 @@ function rpc_object_delete(elements, successMethod)
         }
     });
 
-    mbus.subscribe('delete-replies-handler', 'delete-reply', function (reply) {
-        if (!reply) {
+    mbus.subscribe('delete-replies-handler', 'delete-reply', function (reply, substore) {
+        var value, del_wnd, progressbar;
+
+        if (typeof reply === 'undefined' || !reply) {
             throw 'reply is empty!';
             return false;
         }
-        if (!del_wnd) {
+        if (typeof substore === 'undefined' || !substore) {
+            throw 'substore is not provided!';
+            return false;
+        }
+
+        if (!(del_wnd = substore.get('progresswnd'))) {
             throw 'Have no reference to the modal window!';
             return false;
         }
-        if (!progressbar) {
+        if (!(progressbar = substore.get('progressbar'))) {
             throw 'Have no reference to the progressbar!';
             return false;
         }
@@ -601,6 +618,8 @@ function rpc_object_delete(elements, successMethod)
         del_wnd.modal('hide');
         mbus.unsubscribe('delete-replies-handler');
 
+        store.removeSubStore(substore.getUUID());
+
         if (typeof successMethod !== 'undefined') {
             return successMethod();
         }
@@ -608,7 +627,7 @@ function rpc_object_delete(elements, successMethod)
         location.reload();
         return true;
 
-    }.bind(this));
+    }.bind(this), substore);
 
     if (!mbus.send()) {
         throw 'ThalliumMessageBus.send() returned false!';
