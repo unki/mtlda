@@ -65,7 +65,7 @@
    </div>
   </td>
   <td>
-   <div name="keyword_{$item->getId()}" class="filterable inline editable content" data-orig-value="{$item->getName()}" style="float: left;">{$item->getName()}</div>&nbsp;
+   <div name="keyword_{$item->getId()}" class="filterable inline editable content" data-current-value="{$item->getName()}" data-orig-value="{$item->getName()}" style="float: left;">{$item->getName()}</div>&nbsp;
    <a name="keyword_{$item->getId()}" class="inline editable edit link" data-inline-name="keyword_{$item->getId()}"><i class="tiny edit icon"></i></a>
    <div name="keyword_{$item->getId()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
