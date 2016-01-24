@@ -48,7 +48,7 @@
   </td>
   <td><a class="filterable" href="{get_url page=archive mode=show id=$item_safe_link}">{$item->getId()}</a></td>
   <td>
-   <a name="title_{$item->getId()}" class="filterable inline editable content" data-orig-value="{if $item->hasTitle()}{$item->getTitle()}{/if}" href="{get_url page=archive mode=show id=$item_safe_link}">{if $item->hasTitle()}{$item->getTitle()}{/if}</a>
+   <a name="title_{$item->getId()}" class="filterable inline editable content" data-current-value="{if $item->hasTitle()}{$item->getTitle()}{/if}" data-orig-value="{if $item->hasTitle()}{$item->getTitle()}{/if}" href="{get_url page=archive mode=show id=$item_safe_link}">{if $item->hasTitle()}{$item->getTitle()}{/if}</a>
    <a name="title_{$item->getId()}" class="inline editable edit link" data-inline-name="title_{$item->getId()}"><i class="tiny edit icon"></i></a>
    <div name="title_{$item->getId()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
