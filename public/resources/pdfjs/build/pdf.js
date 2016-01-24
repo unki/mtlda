@@ -1650,8 +1650,8 @@ function loadJpegStream(id, imageUrl, objs) {
   img.src = imageUrl;
 }
 
-   Polyfill from https://github.com/Polymer/URL
-/* Any copyright is dedicated to the Public Domain.
+/*   Polyfill from https://github.com/Polymer/URL
+ * Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 (function checkURLConstructor(scope) {
   /* jshint ignore:start */
