@@ -37,18 +37,18 @@
 <table class="ui striped single line selectable sortable celled table" id="datatable">
  <thead>
   <tr>
-   <th class="no-sort">
+   <th class="no-sort one wide">
     <div class="ui fitted checkbox item select" id="select_all">
      <input type="checkbox">
      <label></label>
     </div>
    </th>
-   <th data-content="Click to sort list">Idx</th>
-   <th data-content="Click to sort list">Filename</th>
-   <th data-content="Click to sort list">Size</th>
-   <th data-content="Click to sort list">State</th>
-   <th data-content="Click to sort list">Time</th>
-   <th class="no-sort">
+   <th class="one wide" data-content="Click to sort list">Idx</th>
+   <th class="eight wide" data-content="Click to sort list">Filename</th>
+   <th class="one wide" data-content="Click to sort list">Size</th>
+   <th class="one wide" data-content="Click to sort list">State</th>
+   <th class="two wide" data-content="Click to sort list">Time</th>
+   <th class="two wide" class="no-sort">
     <div class="two column ui grid">
      <div class="column">Actions</div>
      <div class="column right aligned">
@@ -70,7 +70,7 @@
   <td><a href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getId()}</a></td>
   <td>
 {if $item->hasTitle()}
-   <a name="title_{$item->getId()}" class="filterable inline editable content" data-orig-value="{$item->getTitle()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getTitle()}</a>
+   <a name="title_{$item->getId()}" class="filterable inline editable content cliptext" data-current-value="{$item->getTitle()}" data-orig-value="{$item->getTitle()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getTitle()}</a>
    <a name="title_{$item->getId()}" class="inline editable edit link" data-inline-name="title_{$item->getId()}"><i class="tiny edit icon"></i></a>
    <div name="title_{$item->getId()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
@@ -87,7 +87,7 @@
     </form>
    </div>&nbsp;(
 {/if}
-   <a name="filename_{$item->getId()}" class="filterable inline editable content" data-orig-value="{$item->getFileName()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getFileName()}</a>
+   <a name="filename_{$item->getId()}" class="filterable inline editable content cliptext" data-current-value="{$item->getFileName()}" data-orig-value="{$item->getFileName()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getFileName()}</a>
    <a name="filename_{$item->getId()}" class="inline editable edit link" data-inline-name="filename_{$item->getId()}"><i class="tiny edit icon"></i></a>
    <div name="filename_{$item->getId()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
