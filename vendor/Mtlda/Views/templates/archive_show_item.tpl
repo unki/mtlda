@@ -23,7 +23,7 @@
  <i class="{if $item->isSignedCopy()}protect{else}file text{/if} icon" data-title="{if $item->isSignedCopy()}This is a signed copy of the original document.{else}This is a copy of the original document.{/if}"></i>
  <div class="content">
   <div class="header">
-   <a name="filename_{$item->getId()}" class="inline editable content" data-orig-value="{$item->getFileName()}" href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>&nbsp;&nbsp;
+   <a name="filename_{$item->getId()}" class="inline editable content" data-current-value="{$item->getFileName()}" data-orig-value="{$item->getFileName()}" href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>&nbsp;&nbsp;
    <a name="filename_{$item->getId()}" class="inline editable edit link" data-inline-name="filename_{$item->getId()}"><i class="tiny edit icon"></i></a>
    <a class="delete item" title="Delete {$item->getFileName()|escape}" data-model="document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}"><i class="remove circle icon"></i></a>
    <div name="filename_{$item->getId()}" class="inline editable formsrc" style="display: none;">
