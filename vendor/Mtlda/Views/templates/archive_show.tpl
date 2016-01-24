@@ -18,7 +18,7 @@
 <h1 class="ui block header">
  <i class="file text icon"></i>
  <div class="content">
-  <div name="title" class="inline editable content" data-orig-value="{if $item->hasTitle()}{$item->getTitle()}{/if}">{if $item->hasTitle()}{$item->getTitle()}{/if}</div>
+  <div name="title" class="inline editable content" data-current-value="{if $item->hasTitle()}{$item->getTitle()}{/if}" data-orig-value="{if $item->hasTitle()}{$item->getTitle()}{/if}">{if $item->hasTitle()}{$item->getTitle()}{/if}</div>
   <a name="title" class="inline editable edit link" data-inline-name="title"><i class="tiny edit icon"></i></a>
  </div>
 </h1>
