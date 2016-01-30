@@ -38,7 +38,15 @@ $(document).ready(function () {
 
     /* RPC handlers */
     $("form.ui.form.add").on('submit', function () {
-        rpc_object_update($(this));
+        rpc_object_update($(this), function (element, data) {
+            if (data != "ok") {
+                return true;
+            }
+            var savebutton = element.find('button.save');
+            savebutton.transition('tada').removeClass('red shape');
+            return true;
+        });
+        return false;
     });
     $('.inline.editable.edit.link').click(function () {
         var inlineobj = new ThalliumInlineEditable($(this));
