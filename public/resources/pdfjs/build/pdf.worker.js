@@ -20,8 +20,8 @@ if (typeof PDFJS === 'undefined') {
   (typeof window !== 'undefined' ? window : this).PDFJS = {};
 }
 
-PDFJS.version = '1.3.90';
-PDFJS.build = 'd150a12';
+PDFJS.version = '1.3.91';
+PDFJS.build = 'd1e83b5';
 
 (function pdfjsWrapper() {
   // Use strict in our context only - users might not want it
@@ -1650,7 +1650,7 @@ function loadJpegStream(id, imageUrl, objs) {
   img.src = imageUrl;
 }
 
-   Polyfill from https://github.com/Polymer/URL
+  // Polyfill from https://github.com/Polymer/URL
 /* Any copyright is dedicated to the Public Domain.
  * http://creativecommons.org/publicdomain/zero/1.0/ */
 (function checkURLConstructor(scope) {
