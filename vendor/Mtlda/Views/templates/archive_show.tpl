@@ -197,10 +197,16 @@ $(document).ready(function() {
    });
 
    $('form.ui.form.description').on('submit', function() {
-      rpc_object_update($(this));
-      return false;
+      rpc_object_update($(this), function (element, data) {
+            if (data != "ok") {
+                return true;
+            }
+            var savebutton = element.find('button.save');
+            savebutton.transition('tada').removeClass('red shape');
+            return true;
+        });
+        return false;
    });
-
    load_datepickers("document");
 });
 {/literal}--></script>
