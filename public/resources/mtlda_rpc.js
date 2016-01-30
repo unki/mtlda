@@ -672,20 +672,22 @@ function rpc_mail_import(element)
     }
 
     mbus.subscribe('mailimport-replies-handler', 'mailimport-reply', function (reply) {
-        if (!reply) {
+        var newData, value;
+
+        if (typeof reply === 'undefined' || !reply) {
             throw 'reply is empty!';
             return false;
         }
-        if (!import_wnd) {
+        if (typeof import_wnd === 'undefined' || !import_wnd) {
             throw 'Have no reference to the modal window!';
             return false;
         }
-        if (!progressbar) {
+        if (typeof progressbar === 'undefined' || !progressbar) {
             throw 'Have no reference to the progressbar!';
             return false;
         }
 
-        var newData = new Object;
+        newData = new Object;
 
         if (reply.value && (value = reply.value.match(/([0-9]+)%$/))) {
             newData.percent = value[1];
