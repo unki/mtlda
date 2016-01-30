@@ -105,6 +105,25 @@ class MainView extends DefaultView
         $item_idx = $avail_items[$index];
         $item =  $items[$item_idx];
 
+        if (method_exists($item, "hasDescendants") && $item->hasDescendants()) {
+            if (($latest = $item->getLastestVersion()) === false) {
+                $this->raiseError(get_class($item) .'::getLastestVersion() returned false!');
+                return false;
+            }
+            if (!($idx = $latest->getId())) {
+                $this->raiseError(get_class($latest) .'::getId() returned false!');
+                return false;
+            }
+            if (!($guid = $latest->getGuid())) {
+                $this->raiseError(get_class($latest) .'::getGuid() returned false!');
+                return false;
+            }
+            $smarty->assign("document_safe_link", "document-{$idx}-{$guid}");
+            unset($latest);
+        } else {
+            $smarty->assign("document_safe_link", "document-{$item->getId()}-{$item->getGuid()}");
+        }
+
         $smarty->assign("item", $item);
         $smarty->assign("item_safe_link", "{$item->getId()}-{$item->getGuid()}");
 
