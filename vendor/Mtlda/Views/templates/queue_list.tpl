@@ -110,7 +110,7 @@
   <td class="filterable" data-sort-value="{$item->getFileSize()}">{$item->getFileSize()|filesize}</td>
   <td class="filterable archive state" id="archive-state-{$item->getId()}">{$item->getState()}</td>
   <td class="filterable">{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
-  <td>
+  <td style="overflow: visible">
    <div class="ui icon buttons">
     <a class="action link ui icon button" href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" data-content="Preview {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i></a>
     <div class="ui top left pointing dropdown button action link">
@@ -164,7 +164,9 @@ $(document).ready(function() {
 
     $('#datatable').tablesort();
     $('.ui.dropdown.action.link').dropdown({
-        preserve: true
+        preserve: true,
+        on: 'hover',
+        hoverable: true,
     });
     $('a.action.link, table#datatable thead tr th, a#filterbutton').popup({
         exclusive: true,
