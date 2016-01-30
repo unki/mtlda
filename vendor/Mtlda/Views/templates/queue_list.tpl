@@ -164,7 +164,7 @@ $(document).ready(function() {
 
     $('#datatable').tablesort();
     $('.ui.dropdown.action.link').dropdown({
-      preserve: true
+        preserve: true
     });
     $('a.action.link, table#datatable thead tr th, a#filterbutton').popup({
         exclusive: true,
