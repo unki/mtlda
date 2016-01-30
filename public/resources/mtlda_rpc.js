@@ -641,12 +641,14 @@ function rpc_object_delete(elements, successMethod)
 
 function rpc_mail_import(element)
 {
+    var import_wnd, progressbar;
+
     if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
         return false;
     }
 
-    var import_wnd = show_modal('progress', {
+    import_wnd = show_modal('progress', {
         header : 'MTLDA is importing documents from mailbox.',
         icon : 'wait icon',
         hasActions : false,
