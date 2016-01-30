@@ -155,12 +155,14 @@ function rpc_object_archive(elements, successMethod)
 
 function rpc_object_update(element, successMethod)
 {
+    var target, input, action, model, key, id, value, url;
+
     if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
         return false;
     }
 
-    var target = element.attr('data-target');
+    target = element.attr('data-target');
 
     if (typeof target === 'undefined' || target == '') {
         alert('no attribute "data-target" found!');
