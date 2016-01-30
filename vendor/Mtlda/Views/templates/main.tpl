@@ -26,7 +26,7 @@
     <i class="file text icon"></i>
     <div class="content">
      <div class="header">
-      <a href="{get_url page=archive mode=show id=$item_safe_link}">{$item->getTitle()}</a>&nbsp;
+      <a href="{get_url page=archive mode=show id=$item_safe_link}">{if $item->hasTitle()}{$item->getTitle()|truncate:50}{else}{$item->getFileName()|truncate:50}{/if}</a>&nbsp;
       <a href="{get_url page=document mode=show id="document-$item_safe_link" file=$item->getFileName()}"><i class="search icon"></i></a>
      </div>
      <div class="description">{if $item->hasCustomDate()}from {$item->getCustomDate()|date_format:"%Y.%m.%d"}{else}archived on {$item->getTime()|date_format:"%Y.%m.%d %H:%M"}{/if}.</div>
@@ -45,7 +45,7 @@
    <div class="item">
     <i class="file text icon"></i>
     <div class="content">
-     <a class="header" href="{get_url page=queue mode=show id=$item_safe_link}">{$item->getFileName()}</a>
+     <a class="header" href="{get_url page=queue mode=show id=$item_safe_link}">{if $item->hasTitle()}{$item->getTitle()|truncate:50}{/if}{$item->getFileName()|truncate:50}</a>
      <div class="description">added {$item->getTime()|date_format:"%Y.%m.%d %H:%M"}.</div>
     </div>
    </div>
