@@ -27,8 +27,8 @@
   <link type="text/css" href="{$app_web_path}/resources/dropzone/dropzone.css" rel="Stylesheet" />
   <script type="text/javascript" src="{$app_web_path}/resources/dropzone/dropzone.js"></script>
   <!-- semantic ui -->
-  <link rel="stylesheet" type="text/css" href="{$app_web_path}/resources/semantic/semantic.min.css" />
-  <script type="text/javascript" src="{$app_web_path}/resources/semantic/semantic.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="{$app_web_path}/resources/semantic-ui/semantic.min.css" />
+  <script type="text/javascript" src="{$app_web_path}/resources/semantic-ui/semantic.min.js"></script>
   <!-- forge crypto -->
   <script type="text/javascript" src="{$app_web_path}/resources/forge/js/forge.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/forge/js/util.js"></script>
