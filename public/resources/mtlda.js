@@ -371,7 +371,9 @@ function delete_object(element)
 
 function archive_object(element)
 {
-    var id = element.attr("data-id");
+    var id, title, text, elements, archiver_wnd;
+
+    id = element.attr("data-id");
 
     if (typeof id === 'undefined' || id == "") {
         alert('no attribute "data-id" found!');
@@ -412,14 +414,14 @@ function archive_object(element)
         }
     }
 
-    var title = element.attr("data-modal-title");
+    title = element.attr("data-modal-title");
 
     if (typeof title === 'undefined' || title === "") {
         throw 'No attribute "data-modal-title" found!';
         return false;
     }
 
-    var text = element.attr("data-modal-text");
+    text = element.attr("data-modal-text");
 
     if (typeof text === 'undefined' || text === "") {
         if (id instanceof String && !id.match(/-all$/)) {
