@@ -28,7 +28,7 @@
  </div>
 </form>
 <br />
-<button class="ui button" data-content="Continue to next step" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="$(this).addClass('loading'); $(this).popup('hide'); archiver_window($(this), {$next_step}); return false;">Next</button>
+<button class="ui button" data-content="Continue to next step" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="$(this).addClass('loading'); $(this).popup('hide'); archiver_window('{$item->getGuid()}', {$next_step}); return false;">Next</button>
 <script type="text/javascript"><!--
 $('#archiver_modal_window form.ui.form').on('submit', function () {
    rpc_object_update($(this), function (element, data) {
