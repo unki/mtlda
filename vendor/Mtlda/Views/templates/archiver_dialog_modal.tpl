@@ -1,4 +1,4 @@
-<div class="ui long fullscreen modal" id="archiver_modal_window">
+<div class="ui long fullscreen modal" id="archiver_modal_window_template">
  <div class="ui dimmer"></div>
  <i class="close icon" data-content="Exit archiver and close window"></i>
  <div class="header window title">Archiving</div>
@@ -56,7 +56,9 @@ $('.ui.archiver.steps a.step').on('click', ':not(.disabled)', function () {
    if (typeof step_no === 'undefined' || typeof step_no[1] === 'undefined' || step_no[1] == '') {
       return false;
    }
-   archiver_window($(link), step_no[1]);
+{if isset($item)}
+   archiver_window('{$item->getGuid()}', step_no[1]);
+{/if}
 });
 
 $('a.step, i.close.icon').popup({
