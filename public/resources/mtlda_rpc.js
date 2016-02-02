@@ -19,6 +19,8 @@
 
 function rpc_object_archive(elements, successMethod)
 {
+    var ids, guids, models, titles;
+
     if (!(elements instanceof Array)) {
         throw 'elements is not an Array!';
         return false;
@@ -30,6 +32,8 @@ function rpc_object_archive(elements, successMethod)
     titles = new Array;
 
     elements.forEach(function (element) {
+        var id, guid, model, title;
+
         if (!(element instanceof jQuery) ) {
             throw "element is not a jQuery object!";
             return false;
@@ -65,14 +69,14 @@ function rpc_object_archive(elements, successMethod)
     });
 
     var archive_wnd = show_modal('progress', {
-        header : title,
+        header : titles.pop(),
         icon : 'wait icon',
         hasActions : false,
         content : 'Please wait a moment.',
         onShow : rpc_fetch_jobstatus()
     });
 
-    progressbar = archive_wnd.find('.description .ui.indicating.progress');
+    var progressbar = archive_wnd.find('.description .ui.indicating.progress');
 
     if (!progressbar) {
         throw 'Can not find the progress bar in the modal window!';
@@ -95,15 +99,17 @@ function rpc_object_archive(elements, successMethod)
     });
 
     mbus.subscribe('archive-replies-handler', 'archive-reply', function (reply) {
-        if (!reply) {
+        var value;
+
+        if (typeof reply === 'undefined' || !reply) {
             throw 'reply is empty!';
             return false;
         }
-        if (!archive_wnd) {
+        if (typeof archive_wnd === 'undefined' || !archive_wnd) {
             throw 'Have no reference to the modal window!';
             return false;
         }
-        if (!progressbar) {
+        if (typeof progressbar === 'undefined' || !progressbar) {
             throw 'Have no reference to the progressbar!';
             return false;
         }
