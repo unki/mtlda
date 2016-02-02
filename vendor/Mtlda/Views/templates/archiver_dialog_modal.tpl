@@ -8,28 +8,28 @@
   </div>
   <div class="description">
    <div class="ui steps archiver">
-    <a class="active step" id="archiver_step_1" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem" data-content="Change to step 1 (Document)">
+    <a class="active step" id="archiver_step_1" data-content="Change to step 1 (Document)">
      <i class="configure icon"></i>
      <div class="content">
       <div class="title">Document</div>
       <div class="description">Enter document details.</div>
      </div>
     </a>
-    <a class="disabled step" id="archiver_step_2" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem" data-content="Change to step 2 (Meta)">
+    <a class="disabled step" id="archiver_step_2" data-content="Change to step 2 (Meta)">
      <i class="calendar icon"></i>
      <div class="content">
       <div class="title">Meta</div>
       <div class="description">Keywords, expiration, etc.</div>
      </div>
     </a>
-    <a class="disabled step" id="archiver_step_3" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem" data-content="Change to step 3 (Description)">
+    <a class="disabled step" id="archiver_step_3" data-content="Change to step 3 (Description)">
      <i class="comments icon"></i>
      <div class="content">
       <div class="title">Description</div>
       <div class="description">Describe document.</div>
      </div>
     </a>
-    <a class="disabled step" id="archiver_step_4" data-modal-title="unknown" data-id="unknown" data-guid="unknown" data-model="queueitem" data-content="Change to step 4 (Archive)">
+    <a class="disabled step" id="archiver_step_4" data-content="Change to step 4 (Archive)">
      <i class="info icon"></i>
      <div class="content">
       <div class="title">Archive.</div>
@@ -45,24 +45,3 @@
   </div>
  </div>
 </div>
-<script type="text/javascript"><!--
-$('.ui.archiver.steps a.step').on('click', ':not(.disabled)', function () {
-   link = eval($(this).closest('a.step'));
-   id = $(link).attr('id');
-   if (typeof id === 'undefined' || id == '') {
-      id = 'archiver_step_1';
-   }
-   step_no = id.match(/^archiver_step_(\d)$/);
-   if (typeof step_no === 'undefined' || typeof step_no[1] === 'undefined' || step_no[1] == '') {
-      return false;
-   }
-{if isset($item)}
-   archiver_window('{$item->getGuid()}', step_no[1]);
-{/if}
-});
-
-$('a.step, i.close.icon').popup({
-   exclusive: true,
-   lastResort: true,
-});
---></script>
