@@ -57,6 +57,7 @@ $(document).ready(function () {
     init_table_filter();
     init_dropdowns();
     init_action_links();
+    init_modal_steps();
 });
 
 function init_upload_progressbar(dropzone)
@@ -371,20 +372,41 @@ function delete_object(element)
 
 function archive_object(element)
 {
-    var id, title, text, elements, archiver_wnd;
+    var id, guid, model, title, text, substore, archiver_wnd;
 
-    id = element.attr("data-id");
-
-    if (typeof id === 'undefined' || id == "") {
-        alert('no attribute "data-id" found!');
-        return;
+    if (typeof (title = element.attr('data-modal-title')) === 'undefined') {
+        throw 'no "data-modal-title" attribute found!';
+        return false;
     }
 
-    id = safe_string(id);
+    if (typeof (text = element.attr("data-modal-text")) === 'undefined') {
+        throw 'no "data-modal-text" attribute found!';
+        return false;
+    }
 
-    if (id == 'all') {
+    if (typeof element === 'undefined' || ! element instanceof Array) {
+        throw "element parameter is invalid!"
+        return false;
+    }
+
+    if (typeof (id = element.attr('data-id')) === 'undefined') {
+        throw 'no "data-id" attribute found!';
+        return false;
+    }
+
+    if (typeof (guid = element.attr('data-guid')) === 'undefined') {
+        throw 'no "data-guid" attribute found!';
+        return false;
+    }
+
+    if (typeof (model = element.attr('data-model')) === 'undefined') {
+        throw 'no "data-model" attribute found!';
+        return false;
+    }
+
+    if (id == 'all' && guid == 'all') {
         $('td.archive.state').text('processing');
-    } else if (id == 'selected') {
+    } else if (id == 'selected' && guid == 'selected') {
         id = new Array;
         $('.checkbox.item.select[id!="select_all"]').each(function () {
             if (!($(this).checkbox('is checked'))) {
@@ -414,25 +436,15 @@ function archive_object(element)
         }
     }
 
-    title = element.attr("data-modal-title");
-
-    if (typeof title === 'undefined' || title === "") {
-        throw 'No attribute "data-modal-title" found!';
-        return false;
-    }
-
-    text = element.attr("data-modal-text");
-
     if (typeof text === 'undefined' || text === "") {
         if (id instanceof String && !id.match(/-all$/)) {
             text = "Do you really want to archive this item?";
         } else {
             text = "Do you really want to archive all items?";
-
         }
     }
 
-    elements = new Array;
+    var elements = new Array;
     if (id instanceof Array) {
         id.forEach(function (value) {
             elements.push($('#archive_link_'+value));
@@ -489,19 +501,25 @@ function archive_object(element)
         return true;
     }
 
-    archiver_wnd = $("#archiver_modal_window");
+    var substore = store.createSubStore('archiver_'+guid);
+    substore.set('id', id);
+    substore.set('guid', guid);
+    substore.set('model', model);
+    substore.set('title', title);
+    archiver_wnd = substore.set('archiver_wnd', $("#archiver_modal_window_template").clone());
 
     if (typeof archiver_wnd === 'undefined' || archiver_wnd.length < 1) {
-        throw "failed to locate #archiver_modal_window!";
+        throw "failed to clone #archiver_modal_window_template!";
         return false;
     }
 
+    archiver_wnd.attr('id', 'archiver_modal_window_' + guid);
     archiver_wnd.modal({
         closable       : true,
         blurring       : false,
         title          : title,
         observeChanges : true,
-        onShow         : archiver_window(elements[0]),
+        onShow         : archiver_window(guid, 1),
         allowMultiple  : true,
         onHidden       : function () {
             if (id != 'all') {
@@ -517,9 +535,8 @@ function archive_object(element)
             }
             return true;
         }
-    })
-        .modal('show');
-        //.on('click.modal', do_function);
+    }).modal('show');
+    init_modal_steps();
 
     return archiver_wnd;
 }
@@ -550,15 +567,17 @@ function trigger_import_run()
     }
 
     mbus.subscribe('import-replies-handler', 'import-reply', function (reply) {
+        var value;
+
         if (!reply) {
             throw 'reply is empty!';
             return false;
         }
-        if (typeof import_wnd === 'undefined') {
+        if (typeof import_wnd === 'undefined' || !import_wnd) {
             throw 'Have no reference to the modal window!';
             return false;
         }
-        if (typeof progressbar === 'undefined') {
+        if (typeof progressbar === 'undefined' || !progressbar) {
             throw 'Have no reference to the progressbar!';
             return false;
         }
@@ -692,45 +711,56 @@ function init_checkbox_selector()
     });
 }
 
-function archiver_window(element, step, allow_unsaved_data)
+function archiver_window(guid, step, allow_unsaved_data)
 {
-    var id, guid, model, title;
+    var id, guid, model, title, substore, archiver_wnd;
 
-    if (typeof archiver_wnd === 'undefined') {
+    if (typeof guid === 'undefined') {
+        throw "no GUID provided!"
+        return false;
+    }
+
+    if (!(substore = store.getSubStore('archiver_'+ guid))) {
+        throw "failed to get archiver ThalliumStore!";
+        return false;
+    }
+
+    if (!substore.has('archiver_wnd')) {
         throw "somehow we lost our modal window!"
         return false;
     }
 
-    if (typeof element === 'undefined' || ! element instanceof Array) {
-        throw "element parameter is invalid!"
+    archiver_wnd = substore.get('archiver_wnd');
+
+    if (!substore.has('id')) {
+        throw 'store does not have an "id" value!';
         return false;
     }
+    id = substore.get('id');
 
-    if (typeof (id = element.attr('data-id')) === 'undefined') {
-        throw 'no "data-id" attribute found!';
+    if (!substore.has('guid')) {
+        throw 'store does not have an "guid" value!';
         return false;
     }
+    guid = substore.get('guid');
 
-    if (typeof (guid = element.attr('data-guid')) === 'undefined') {
-        throw 'no "data-guid" attribute found!';
+    if (!substore.has('model')) {
+        throw 'store does not have an "model" value!';
         return false;
     }
+    model = substore.get('model');
 
-    if (typeof (model = element.attr('data-model')) === 'undefined') {
-        throw 'no "data-model" attribute found!';
+    if (!substore.has('title')) {
+        throw 'store does not have an "title" value!';
         return false;
     }
+    title = substore.get('title');
 
-    if (typeof (title = element.attr('data-modal-title')) === 'undefined') {
-        throw 'no "data-modal-title" attribute found!';
-        return false;
+    if (substore.has('current_step')) {
+        var current_step = substore.get('current_step');
     }
 
-    if (typeof current_step === 'undefined') {
-        current_step = false;
-    }
-
-    if (current_step > 0) {
+    if (typeof current_step !== 'undefined' || current_step > 0) {
         var unsaved_data = false;
         var savebuttons = archiver_wnd.find('button.save');
         if (typeof savebuttons !== 'undefined' && savebuttons.length) {
@@ -771,11 +801,11 @@ function archiver_window(element, step, allow_unsaved_data)
                             .addClass('active')
                             .modal('refresh');
                         $(this).modal('hide');
-                        archiver_window(element, step, true);
+                        archiver_window(guid, step, true);
                         return false;
                     },
                 });
-                return true;
+                return;
             }
         }
     }
@@ -799,14 +829,16 @@ function archiver_window(element, step, allow_unsaved_data)
     };
 
     $.when(rpc_get_content('queue', request_data)).done(function (data) {
-        $('#archiver_content').html(data);
-        eval($('#archiver_modal_window .header.window.title').html(title));
-        eval($('#archiver_modal_window .ui.steps.archiver .step').attr('data-modal-title', title));
-        eval($('#archiver_modal_window .ui.steps.archiver .step').attr('data-id', id));
-        eval($('#archiver_modal_window .ui.steps.archiver .step').attr('data-guid', guid));
-        current_step = step;
+        $('#archiver_modal_window_'+ guid + ' #archiver_content').html(data);
+        eval($('#archiver_modal_window_'+ guid + ' .header.window.title').html(title));
+        eval($('#archiver_modal_window_'+ guid + ' .ui.steps.archiver .step').attr('data-modal-title', title));
+        eval($('#archiver_modal_window_'+ guid + '.ui.steps.archiver .step').attr('data-id', id));
+        eval($('#archiver_modal_window_'+ guid + ' .ui.steps.archiver .step').attr('data-guid', guid));
+        substore.set('current_step', step);
         return true;
     });
+
+    return;
 }
 
 function load_datepickers(mode)
@@ -995,16 +1027,17 @@ function init_dropdowns()
 
 function split_object(element)
 {
-    var id, guid, model, title, substore, splitter_wnd;
+    var id, guid, model, title, text, substore, splitter_wnd;
 
-    title = element.attr("data-modal-title");
-
-    if (typeof title === 'undefined' || title === "") {
-        throw 'No attribute "data-modal-title" found!';
+    if (typeof (title = element.attr('data-modal-title')) === 'undefined') {
+        throw 'no "data-modal-title" attribute found!';
         return false;
     }
 
-    var text = element.attr("data-modal-text");
+    if (typeof (text = element.attr("data-modal-text")) === 'undefined') {
+        throw 'no "data-modal-text" attribute found!';
+        return false;
+    }
 
     if (typeof element === 'undefined' || ! element instanceof Array) {
         throw "element parameter is invalid!"
@@ -1023,11 +1056,6 @@ function split_object(element)
 
     if (typeof (model = element.attr('data-model')) === 'undefined') {
         throw 'no "data-model" attribute found!';
-        return false;
-    }
-
-    if (typeof (title = element.attr('data-modal-title')) === 'undefined') {
-        throw 'no "data-modal-title" attribute found!';
         return false;
     }
 
@@ -1083,11 +1111,6 @@ function splitter_window(step, guid)
         return false;
     }
 
-    if (!(id = substore.get('id'))) {
-        throw 'store does not have an "id" value!';
-        return false;
-    }
-
     if (!(model = substore.get('model'))) {
         throw 'store does not have an "model" value!';
         return false;
@@ -1131,6 +1154,8 @@ function splitter_window(step, guid)
         eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-guid', guid));
         return true;
     });
+
+    return;
 }
 
 function isInteger(x)
@@ -1157,6 +1182,46 @@ function init_action_links()
     });
 
     return true;
+}
+
+function init_modal_steps()
+{
+    var test = $('.ui.archiver.steps a.step').on('click', ':not(.disabled)', function () {
+        var modal, id, guid, link;
+        modal = eval($(this).closest('.ui.long.fullscreen.modal[id^=archiver_modal_window_][id!=archiver_modal_window_template]'));
+        if (typeof modal === 'undefined' || !modal) {
+            throw 'can not find the modal window!';
+            return false;
+        }
+        id = modal.attr('id');
+        if (typeof id === 'undefined' || !id) {
+            throw 'unable to retrieve id attribute from modal window element!';
+            return false;
+        }
+        guid = id.match(/^archiver_modal_window_(\w+)$/);
+        if (typeof guid === 'undefined' || typeof guid[1] === 'undefined' || !guid[1]) {
+            throw 'unable to extract guid from element id!';
+            return false;
+        }
+        guid = guid[1];
+
+        link = eval($(this).closest('a.step'));
+        id = $(link).attr('id');
+        if (typeof id === 'undefined' || !id) {
+            id = 'archiver_step_1';
+        }
+        var step_no = id.match(/^archiver_step_(\d)$/);
+        if (typeof step_no === 'undefined' || typeof step_no[1] === 'undefined' || !step_no[1]) {
+            throw 'unable to extract step from link id!';
+            return false;
+        }
+        archiver_window(guid, step_no[1]);
+    });
+
+    $('a.step, i.close.icon').popup({
+        exclusive: true,
+        lastResort: true,
+    });
 }
 
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
