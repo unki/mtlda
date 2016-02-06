@@ -152,6 +152,9 @@
 {include "archiver_dialog_modal.tpl"}
 {include "splitter_dialog_modal.tpl"}
 <script type="text/javascript"><!--
+
+'use strict';
+
 $(document).ready(function() {
 
     $("a.mail.import").click(function() {
