@@ -9,36 +9,47 @@
  </div>
 </div>
 <button class="ui button exit" data-content="Exit splitting and close this window">Exit</button>
-<button class="ui button split" data-content="Invoke splitting process" data-action-title="Splitting {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem">Finish</button>
+<button class="ui button split" data-content="Invoke splitting process" data-action-title="Splitting {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}">Finish</button>
 <script type="text/javascript"><!--
-if (typeof documents === 'undefined' || !documents instanceof Array) {
-   throw 'Lost pages information!';
+
+'use strict';
+
+var documents, splitter_wnd;
+
+if (!(substore = store.getSubStore('splitter_{$item->getGuid()}'))) {
+    throw new Error('failed to get spitter ThalliumStore!');
+}
+
+if (!(splitter_wnd = substore.get('splitter_wnd'))) {
+   throw new Error("somehow we lost our modal window!");
+}
+
+if (substore.has('documents')) {
+   documents = substore.get('documents');
+}
+
+if (typeof documents === 'undefined' || !documents instanceof Object) {
+   throw new Error('Lost pages information!');
 }
 
 $('.ui.button.exit, .ui.button.split').click(function () {
-    var substore, splitter_wnd;
-    if (!(substore = store.getSubStore('splitter_{$item->getGuid()}'))) {
-        throw 'failed to get splitter ThalliumStore!';
-        return false;
-    }
-
-    if (!(splitter_wnd = substore.get('splitter_wnd'))) {
-        throw "somehow we lost our modal window!"
-        return false;
-    }
+    var split_wnd, progressbar;
 
     splitter_wnd.modal('hide');
-    delete splitter_wnd;
+    //delete splitter_wnd;
     if (substore.has('splitter_wnd')) {
         substore.del('splitter_wnd');
     }
 
     if ($(this).hasClass('exit') && !$(this).hasClass('split')) {
-        delete documents;
+        //delete documents;
+        if (substore.has('documents')) {
+            substore.del('documents');
+        }
         return true;
     }
 
-    var split_wnd = show_modal('progress', {
+    split_wnd = show_modal('progress', {
         header : title,
         icon : 'wait icon',
         hasActions : false,
@@ -46,10 +57,10 @@ $('.ui.button.exit, .ui.button.split').click(function () {
         onShow : rpc_fetch_jobstatus()
    });
 
-   var progressbar = split_wnd.find('.description .ui.indicating.progress');
+   progressbar = split_wnd.find('.description .ui.indicating.progress');
 
    if (typeof progressbar === 'undefined') {
-      throw 'Can not find the progress bar in the modal window!';
+      throw new Error('Can not find the progress bar in the modal window!');
       return false;
    }
 
@@ -64,20 +75,20 @@ $('.ui.button.exit, .ui.button.split').click(function () {
    msg.setMessage(msg_body);
 
    if (!mbus.add(msg)) {
-      throw 'ThalliumMessageBus.add() returned false!';
+      throw new Error('ThalliumMessageBus.add() returned false!');
    }
 
    mbus.subscribe('split-replies-handler', 'split-reply', function (reply) {
       if (!reply) {
-         throw 'reply is empty!';
+         throw new Error('reply is empty!');
          return false;
       }
       if (typeof progressbar === 'undefined') {
-         throw 'Have no reference to the progressbar!';
+         throw new Error('Have no reference to the progressbar!');
          return false;
       }
       if (typeof split_wnd === 'undefined') {
-         throw 'Have no reference to the split_wnd!';
+         throw new Error('Have no reference to the split_wnd!');
          return false;
       }
 
@@ -105,8 +116,14 @@ $('.ui.button.exit, .ui.button.split').click(function () {
       progressbar.removeClass('active').addClass('success');
 
       split_wnd.modal('hide');
-      delete documents;
-      delete split_wnd;
+      if (substore.has('documents')) {
+         substore.del('documents');
+      }
+      if (substore.has('splitter_wnd')) {
+         substore.del('splitter_wnd');
+      }
+      //delete documents;
+      //delete split_wnd;
       mbus.unsubscribe('split-replies-handler');
 
       location.reload();
@@ -115,7 +132,7 @@ $('.ui.button.exit, .ui.button.split').click(function () {
    }.bind(this));
 
    if (!mbus.send()) {
-      throw 'ThalliumMessageBus.send() returned false!';
+      throw new Error('ThalliumMessageBus.send() returned false!');
    }
 
    return true;
