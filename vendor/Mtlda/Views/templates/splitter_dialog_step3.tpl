@@ -27,19 +27,33 @@
   <input type="text" name="document_pages" placeholder="Selected pages..." size="3">
  </div>
 </div>
-<form class="ui form step3" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-modal-title="Split {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}">
+<form class="ui form step3">
  <button class="ui button upper submit" type="submit">Split!</button>
  <button class="ui button lower submit" type="submit">Split!</button>
 </form>
 <script type="text/javascript"><!--
-if (typeof documents === 'undefined' || !documents instanceof Array) {
-   throw 'Lost pages information!';
+
+'use strict';
+
+var substore, documents, document_no, params;
+var pages, title, filename, segment, input;
+
+var file_name_base = "{$item->getFileNameBase()}";
+var file_name_ext = "{$item->getFileNameExtension()}";
+
+if (!(substore = store.getSubStore('splitter_{$item->getGuid()}'))) {
+    throw new Error('failed to get spitter ThalliumStore!');
 }
 
-file_name_base = "{$item->getFileNameBase()}";
-file_name_ext = "{$item->getFileNameExtension()}";
+if (substore.has('documents')) {
+   documents = substore.get('documents');
+}
 
-for (var document_no in documents) {
+if (typeof documents === 'undefined' || !documents instanceof Object) {
+   throw new Error('Lost pages information!');
+}
+
+for (document_no in documents) {
 
    params = documents[document_no];
 
@@ -112,7 +126,7 @@ for (var document_no in documents) {
 };
 
 $('form.ui.form.step3').submit(function () {
-
+   var document_segments;
    documents = new Object;
 
    if (typeof (document_segments = $(this).find('[id^="document_"]')) === 'undefined') {
@@ -121,7 +135,8 @@ $('form.ui.form.step3').submit(function () {
    }
 
    document_segments.each(function () {
-      var this_document, document_no, use_title, use_file_name, document_title, document_file_name, document_pages;
+      var this_document, document_no, use_title, use_file_name;
+      var document_title, document_file_name, document_pages;
 
       document_no = $(this).attr('id').match(/^document_(\d+)$/);
       if (!document_no || !document_no[1] || document_no[1] == '') {
@@ -167,7 +182,8 @@ $('form.ui.form.step3').submit(function () {
       return true;
    });
 
-   splitter_window({$next_step}, '{$item->getGuid()}');
+   substore.set('documents', documents);
+   splitter_window('{$item->getGuid()}', {$next_step});
    return false;
 });
 
