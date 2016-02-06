@@ -1071,19 +1071,20 @@ function split_object(element)
         return false;
     }
 
-    splitter_wnd.attr('id', 'splitter_modal_window');
+    splitter_wnd.attr('id', 'splitter_modal_window_' + guid);
     splitter_wnd.modal({
         closable       : true,
         blurring       : false,
         title          : title,
         observeChanges : true,
-        onShow         : splitter_window(1, guid)
+        onShow         : splitter_window(guid, 1)
     }).modal('show');
+    init_modal_steps();
 
     return splitter_wnd;
 }
 
-function splitter_window(step, guid)
+function splitter_window(guid, step)
 {
     var id, guid, model, title, substore, splitter_wnd;
 
@@ -1149,9 +1150,19 @@ function splitter_window(step, guid)
     $.when(rpc_get_content('queue', request_data)).done(function (data) {
         $('#splitter_modal_window #splitter_content').html(data);
         eval($('#splitter_modal_window .header.window.title').html(title));
-        eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-modal-title', title));
-        eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-id', id));
-        eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-guid', guid));
+        //eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-modal-title', title));
+        //eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-id', id));
+        //eval($('#splitter_modal_window .ui.steps.splitter .step').attr('data-guid', guid));
+        return true;
+    });
+
+    $.when(rpc_get_content('queue', request_data)).done(function (data) {
+        $('#splitter_modal_window_'+ guid + ' #splitter_content').html(data);
+        eval($('#splitter_modal_window_'+ guid + ' .header.window.title').html(title));
+        //eval($('#splitter_modal_window_'+ guid + ' .ui.steps.splitter .step').attr('data-modal-title', title));
+        //eval($('#splitter_modal_window_'+ guid + '.ui.steps.splitter .step').attr('data-id', id));
+        //eval($('#splitter_modal_window_'+ guid + ' .ui.steps.splitter .step').attr('data-guid', guid));
+        substore.set('current_step', step);
         return true;
     });
 
@@ -1186,9 +1197,11 @@ function init_action_links()
 
 function init_modal_steps()
 {
-    var test = $('.ui.archiver.steps a.step').on('click', ':not(.disabled)', function () {
-        var modal, id, guid, link;
-        modal = eval($(this).closest('.ui.long.fullscreen.modal[id^=archiver_modal_window_][id!=archiver_modal_window_template]'));
+    $('.ui.archiver.steps a.step, .ui.splitter.steps a.step').on('click', ':not(.disabled)', function () {
+        var modal, id, guid, link, type;
+        modal = eval($(this).closest(
+            '.ui.long.fullscreen.modal[id^=archiver_modal_window_][id!=archiver_modal_window_template], .ui.long.fullscreen.modal[id^=splitter_modal_window_][id!=splitter_modal_window_template]'
+        ));
         if (typeof modal === 'undefined' || !modal) {
             throw 'can not find the modal window!';
             return false;
@@ -1198,24 +1211,32 @@ function init_modal_steps()
             throw 'unable to retrieve id attribute from modal window element!';
             return false;
         }
-        guid = id.match(/^archiver_modal_window_(\w+)$/);
-        if (typeof guid === 'undefined' || typeof guid[1] === 'undefined' || !guid[1]) {
+        guid = id.match(/^(splitter|archiver)_modal_window_(\w+)$/);
+        if (typeof guid === 'undefined' || typeof guid[2] === 'undefined' || !guid[2]) {
             throw 'unable to extract guid from element id!';
             return false;
         }
-        guid = guid[1];
+        type = guid[1];
+        guid = guid[2];
 
         link = eval($(this).closest('a.step'));
         id = $(link).attr('id');
         if (typeof id === 'undefined' || !id) {
-            id = 'archiver_step_1';
+            id = type +'_step_1';
         }
-        var step_no = id.match(/^archiver_step_(\d)$/);
-        if (typeof step_no === 'undefined' || typeof step_no[1] === 'undefined' || !step_no[1]) {
+        var step_no = id.match(/^(archiver|splitter)_step_(\d)$/);
+        if (typeof step_no === 'undefined' || typeof step_no[2] === 'undefined' || !step_no[2]) {
             throw 'unable to extract step from link id!';
             return false;
         }
-        archiver_window(guid, step_no[1]);
+        if (type == 'archiver') {
+            archiver_window(guid, step_no[2]);
+        } else if (type == 'splitter') {
+            splitter_window(guid, step_no[2]);
+        } else {
+            throw 'unsupported type '+ type +' found';
+            return false;
+        }
     });
 
     $('a.step, i.close.icon').popup({
