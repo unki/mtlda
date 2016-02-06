@@ -49,7 +49,7 @@
     </div>
    </div>
   </form>
-  <button id="next_button" class="ui button" data-content="Continue to next step" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" onclick="$(this).addClass('loading'); $(this).popup('hide'); archiver_window('{$item->getGuid()}', {$next_step}); return false;">Next</button>
+  <button id="next_button" class="ui button" data-content="Continue to next step" onclick="$(this).addClass('loading'); $(this).popup('hide'); archiver_window('{$item->getGuid()}', {$next_step}); return false;">Next</button>
  </div>
 
  <div class="column">
@@ -100,20 +100,24 @@
  </div>
 </div>
 <script type="text/javascript"><!--
+
+'use strict';
+
 load_datepickers("queue");
 init_dropdowns();
+
 $("a.scan.document").click(function () {
    $(this).popup('hide');
-   $('#archiver_modal_window')
+   $('#archiver_modal_window_{$item->getGuid()}')
       .modal('setting', { closable: false })
       .removeClass('active')
       .modal('refresh');
-   $('#archiver_modal_window').addClass('blurring');
-   $('#archiver_modal_window .ui.dimmer').addClass('active');
+   $('#archiver_modal_window_{$item->getGuid()}').addClass('blurring');
+   $('#archiver_modal_window_{$item->getGuid()} .ui.dimmer').addClass('active');
    return rpc_object_scan($(this), function (scan_wnd) {
-      $('#archiver_modal_window .ui.dimmer').removeClass('active');
-      $('#archiver_modal_window').removeClass('blurring');
-      $('#archiver_modal_window')
+      $('#archiver_modal_window_{$item->getGuid()} .ui.dimmer').removeClass('active');
+      $('#archiver_modal_window_{$item->getGuid()}').removeClass('blurring');
+      $('#archiver_modal_window_{$item->getGuid()}')
          .modal('setting', { closable: true })
          .addClass('active')
          .modal('refresh');
@@ -123,10 +127,10 @@ $("a.scan.document").click(function () {
    });
 });
 
-$('#archiver_modal_window form.ui.form').on('submit', function () {
+$('#archiver_modal_window_{$item->getGuid()} form.ui.form').on('submit', function () {
    rpc_object_update($(this), function (element, data) {
       if (typeof element === 'undefined' || !element) {
-         throw 'lost element!';
+         throw new Error('lost element!');
          return false;
       }
       if (data != "ok") {
@@ -139,7 +143,7 @@ $('#archiver_modal_window form.ui.form').on('submit', function () {
    return false;
 });
 
-$('#archiver_modal_window form.ui.form input').on('input', function () {
+$('#archiver_modal_window_{$item->getGuid()} form.ui.form input').on('input', function () {
    var form = $(this).closest('form');
    if (typeof form === 'undefined') {
       return true;
@@ -155,7 +159,7 @@ $('#archiver_modal_window form.ui.form input').on('input', function () {
    return true;
 });
 
-$('#archiver_modal_window form.ui.form button.clear.button').click(function () {
+$('#archiver_modal_window_{$item->getGuid()} form.ui.form button.clear.button').click(function () {
    $('#keyword_dropdown').dropdown('clear');
 });
 
