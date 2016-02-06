@@ -18,6 +18,8 @@
 <a id="truncate_link" href='#' data-url="{get_url page=options mode=truncate}">Reset data</a>
 <script type="text/javascript"><!--
 
+'use strict';
+
 $(document).ready(function() {
 
    $('#truncate_link').click(function() {
