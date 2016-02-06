@@ -106,6 +106,9 @@
  </tfoot>
 </table>
 <script type="text/javascript"><!--
+
+'use strict';
+
 $(document).ready(function () {
    $('a.action.link').popup({
       exclusive: true,
