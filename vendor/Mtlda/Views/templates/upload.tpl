@@ -42,6 +42,9 @@
 </div>
 {include "dropzone.tpl"}
 <script type="text/javascript"><!--
+
+'use strict';
+
 $(document).ready(function() {
    init_dropzone();
 });
