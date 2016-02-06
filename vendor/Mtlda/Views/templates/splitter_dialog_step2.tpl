@@ -22,7 +22,7 @@
   <label>template text</label>
  </div>
 </div>
-<form class="ui form step2" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-modal-title="Split {if $item->hasTitle}{$item->getTitle()}{else}{$item->getFileName()}{/if}">
+<form class="ui form step2">
 {for $page_no=1 to $page_count}
  <div class="ui segment">
   <div class="ui grid">
@@ -47,6 +47,11 @@
 {/for}
 </form>
 <script type="text/javascript"><!--
+
+'use strict';
+
+var id, substore, value;
+var documents, document_count, page_no;
 
 $('#splitter_content input[name=document_count]').on('input', function () {
    if (typeof (value = $(this).val()) === 'undefined') {
@@ -109,6 +114,7 @@ $('#splitter_content form.ui.form.step2').on('checkboxchange', function () {
       return false;
    }
    $(this).find('.grouped.fields').each(function () {
+      var document_checkboxes, checkbox, i;
       if (typeof (page_no = $(this).attr('data-page')) === 'undefined') {
          throw 'no data-page attribute!';
          return false;
@@ -135,13 +141,14 @@ $('#splitter_content form.ui.form.step2').on('checkboxchange', function () {
 });
 
 $('#splitter_content .ui.form.step2').submit(function () {
+   var pages, i;
+
    for (i = 1; i <= document_count; i++) {
       documents[i] = new Object;
       documents[i].pages = new Array;
    }
 
-   var pages = $(this).find('.grouped.fields').each(function () {
-      var page_no;
+   pages = $(this).find('.grouped.fields').each(function () {
       if (typeof (page_no = $(this).attr("data-page")) === 'undefined') {
          throw 'Failed to read data-page attribute!';
          return false;
@@ -160,10 +167,15 @@ $('#splitter_content .ui.form.step2').submit(function () {
       });
    });
 
-   splitter_window({$next_step}, '{$item->getGuid()}');
+   substore.set('documents', documents);
+   splitter_window('{$item->getGuid()}', {$next_step});
    // this form must return false!
    return false;
 });
+
+if (!(substore = store.getSubStore('splitter_{$item->getGuid()}'))) {
+    throw new Error('failed to get spitter ThalliumStore!');
+}
 
 if (typeof document_count === 'undefined') {
    document_count = 1;
@@ -174,8 +186,12 @@ if (typeof document_count === 'undefined') {
       document_count = 1
    }
 }
-if (typeof documents === 'undefined') {
+if (substore.has('documents')) {
+   documents = substore.get('documents');
+} else if (typeof documents === 'undefined') {
    documents = new Object;
+} else if (!documents instanceof Object) {
+   throw new Error('documents variables is not type of "Object"!');
 }
 
 $('#splitter_content form.ui.form.step2').trigger('checkboxchange');
