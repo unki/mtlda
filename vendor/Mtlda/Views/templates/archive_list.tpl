@@ -91,6 +91,9 @@
  </tfoot>
 </table>
 <script type="text/javascript"><!--
+
+'use strict';
+
 $(document).ready(function() {
    $('#datatable').tablesort();
    $('a.action.link').popup({
