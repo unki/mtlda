@@ -82,6 +82,11 @@ pdf_indexing = 1
 ;
 document_no_delete = 1
 
+;
+; permit reset via "Reset data" in Options view.
+;
+permit_reset_data = 0
+
 [database]
 
 ;
