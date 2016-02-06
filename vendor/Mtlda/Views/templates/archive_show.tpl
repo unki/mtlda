@@ -177,12 +177,14 @@
   </div>
  </div>
 </div>
-<script type="text/javascript"><!--{literal}
+<script type="text/javascript"><!--
+
+'use strict';
 
 $(document).ready(function() {
 
    $('form.ui.form.description textarea').on('input', function() {
-      savebutton = $('form.ui.form.description button.save');
+      var savebutton = $('form.ui.form.description button.save');
       if(!savebutton.hasClass('red shape')) {
          savebutton.addClass('red shape');
          savebutton.transition('bounce');
@@ -190,7 +192,7 @@ $(document).ready(function() {
    });
    // bounce save icon once more if focus leaves the textarea field
    $('form.ui.form.description textarea').on('focusout', function() {
-      savebutton = $('form.ui.form.description button.save');
+      var savebutton = $('form.ui.form.description button.save');
       if(savebutton.hasClass('red shape')) {
          savebutton.transition('bounce');
       }
@@ -209,4 +211,4 @@ $(document).ready(function() {
    });
    load_datepickers("document");
 });
-{/literal}--></script>
+--></script>
