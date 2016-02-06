@@ -10,12 +10,15 @@
   </div>
  </div>
 </form>
-<button class="ui button" data-modal-title="Archive {$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Continue to next step" onclick="$(this).addClass('loading'); $(this).popup('hide'); archiver_window('{$item->getGuid()}', {$next_step}); return false;">Next</button>
+<button class="ui button" data-content="Continue to next step" onclick="$(this).addClass('loading'); $(this).popup('hide'); archiver_window('{$item->getGuid()}', {$next_step}); return false;">Next</button>
 <script type="text/javascript"><!--
-$('#archiver_modal_window form.ui.form').on('submit', function () {
+
+'use strict';
+
+$('#archiver_modal_window_{$item->getGuid()} form.ui.form').on('submit', function () {
    rpc_object_update($(this), function (element, data) {
       if (typeof element === 'undefined' || !element) {
-         throw 'lost element!';
+         throw new Error('lost element!');
          return false;
       }
       if (data != "ok") {
@@ -28,7 +31,7 @@ $('#archiver_modal_window form.ui.form').on('submit', function () {
    return false;
 });
 
-$('#archiver_modal_window form.ui.form textarea').on('input', function () {
+$('#archiver_modal_window_{$item->getGuid()} form.ui.form textarea').on('input', function () {
    var form = $(this).closest('form');
    if (typeof form === 'undefined') {
       return true;
