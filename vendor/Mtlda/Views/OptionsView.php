@@ -24,6 +24,18 @@ class OptionsView extends DefaultView
     public $default_mode = 'show';
     public $class_name = 'options';
 
+    public function __construct()
+    {
+        global $config, $tmpl;
+
+        if ($config->isResetDataPermitted()) {
+            $tmpl->assign('reset_data_is_permitted', true);
+        }
+
+        parent::__construct();
+        return true;
+    }
+
     public function show()
     {
         global $db, $query, $tmpl;
@@ -45,7 +57,12 @@ class OptionsView extends DefaultView
 
     private function truncate()
     {
-        global $db;
+        global $db, $config;
+
+        if (!$config->isResetDataPermitted()) {
+            $this->raiseError(get_class($config) .'::isResetDataPermitted() returned false!');
+            return false;
+        }
 
         if (!$db->truncateDatabaseTables()) {
             $this->raiseError(get_class($db) .'::truncateDatabaseTables() returned false!');
