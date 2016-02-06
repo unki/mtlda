@@ -20,28 +20,42 @@
 <button class="ui button exit" data-content="Exit archiving and close this window">Exit</button>
 <button class="ui button archive" data-content="Invoke archiving process" data-action-title="Archiving {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem">Finish</button>
 <script type="text/javascript"><!--
+
+'use strict';
+
+var substore, archiver_wnd;
+
+if (!(substore = store.getSubStore('archiver_{$item->getGuid()}'))) {
+    throw new Error('failed to get spitter ThalliumStore!');
+}
+
+if (substore.has('archiver_wnd')) {
+   archiver_wnd = substore.get('archiver_wnd')
+}
+
 $('.ui.button.exit').click(function () {
    $(this).popup('hide');
-   if (!archiver_wnd) {
-      throw 'Have no reference to the modal window!';
+   if (typeof archiver_wnd === 'undefined' || !archiver_wnd) {
+      throw new Error('Have no reference to the modal window!');
       return false;
    }
    archiver_wnd.modal('hide');
 });
 $('.ui.button.archive').click(function () {
    $(this).popup('hide');
-   if (!archiver_wnd) {
-      throw 'Have no reference to the modal window!';
+   if (typeof archiver_wnd === 'undefined' || !archiver_wnd) {
+      throw new Error('Have no reference to the modal window!');
       return false;
    }
    archiver_wnd.modal('hide');
-   elements = new Array;
+   var elements = new Array;
    elements.push($(this));
    rpc_object_archive(elements, function () {
          if (typeof elements === 'undefined') {
             return true;
          }
          elements.forEach(function (element) {
+            var id;
             if (typeof (id = $(element).attr('data-id')) === 'undefined') {
                return true;
             }
