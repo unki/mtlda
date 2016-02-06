@@ -487,6 +487,30 @@ class ConfigController extends \Thallium\Controllers\ConfigController
         );
         return false;
     }
+
+    public function isResetDataPermitted()
+    {
+        if (!isset($this->config['app']['permit_reset_data']) ||
+            empty($this->config['app']['permit_reset_data'])
+        ) {
+            return false;
+        }
+
+        if ($this->isDisabled($this->config['app']['permit_reset_data'])) {
+            return false;
+        }
+
+        if ($this->isEnabled($this->config['app']['permit_reset_data'])) {
+            return true;
+        }
+
+        $this->raiseError(
+            __METHOD__ .'(), "permit_reset_data" configuration option in [app] section is invalid!',
+            true
+        );
+        return false;
+
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
