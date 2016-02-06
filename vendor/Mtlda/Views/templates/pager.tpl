@@ -60,6 +60,9 @@
  </div>
 </div>
 <script type="text/javascript"><!--
+
+'use strict';
+
 $(document).ready(function () {
    $('#pager_page_select, #pager_items_select').dropdown({
       match: 'text',
