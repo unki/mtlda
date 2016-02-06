@@ -15,6 +15,7 @@
  * GNU Affero General Public License for more details.
 *}
 <h1 class="ui header"><i class="options icon"></i>Options</h1>
+{if isset($reset_data_is_permitted) && $reset_data_is_permitted}
 <a id="truncate_link" href='#' data-url="{get_url page=options mode=truncate}">Reset data</a>
 <script type="text/javascript"><!--
 
@@ -43,3 +44,4 @@ $(document).ready(function() {
    });
 });
 --></script>
+{/if}
