@@ -31,6 +31,8 @@ class OcrController extends \Thallium\Controllers\DefaultController
 
     public function scanFile($fqfn)
     {
+        global $config;
+
         if (!isset($fqfn) || empty($fqfn)) {
             $this->raiseError(__METHOD__ .'(), \$fqfn parameter is invalid!');
             return false;
@@ -53,7 +55,18 @@ class OcrController extends \Thallium\Controllers\DefaultController
             return false;
         }
 
-        $this->tesseract->setLanguage('deu');
+        if (($language = $config->getDefaultOcrLanguage()) === false) {
+            $this->raiseError(get_class($config) .'::getDefaultOcrLanguage() returned false!');
+            return false;
+        }
+
+        if (!$this->isSupportedLanguage($language)) {
+            $this->raiseError(__CLASS__ .'::isSupportedLanguage() returned false!');
+            return false;
+        }
+
+        $this->tesseract->setLanguage($language);
+
         try {
             $text = $this->tesseract->recognize();
         } catch (\Exception $e) {
@@ -116,6 +129,31 @@ class OcrController extends \Thallium\Controllers\DefaultController
         }
 
         return $text_ary;
+    }
+
+    protected function isSupportedLanguage($language)
+    {
+        if (!isset($language) || empty($language)) {
+            $this->raiseError(__METHOD__ .'(), $language parameter is invalid!');
+            return false;
+        }
+
+        $languages = array(
+            'afr', 'ara', 'aze', 'bel', 'ben', 'bul', 'cat', 'ces', 'chi-sim',
+            'chi-tra', 'chr', 'dan', 'deu', 'deu-frak', 'ell', 'eng', 'enm',
+            'epo', 'equ', 'est', 'eus', 'fin', 'fra', 'frk', 'frm', 'glg',
+            'grc', 'heb', 'hin', 'hrv', 'hun', 'ind', 'isl', 'ita', 'ita-old',
+            'jpn', 'kan', 'kor', 'lav', 'lit', 'mal', 'mkd', 'mlt', 'msa', 'nld',
+            'nor', 'osd', 'pol', 'por', 'ron', 'rus', 'slk', 'slk-frak', 'slv',
+            'spa', 'spa-old', 'sqi', 'srp', 'swa', 'swe', 'tam', 'tel', 'tgl',
+            'tha', 'tur', 'ukr', 'vie',
+        );
+
+        if (!in_array($language, $languages)) {
+            return false;
+        }
+
+        return true;
     }
 }
 
