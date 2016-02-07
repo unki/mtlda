@@ -99,7 +99,7 @@ function rpc_object_archive(elements, successMethod)
     });
 
     mbus.subscribe('archive-replies-handler', 'archive-reply', function (reply) {
-        var value;
+        var newData, value;
 
         if (typeof reply === 'undefined' || !reply) {
             throw 'reply is empty!';
@@ -114,7 +114,7 @@ function rpc_object_archive(elements, successMethod)
             return false;
         }
 
-        var newData = new Object;
+        newData = new Object;
 
         if (reply.value && (value = reply.value.match(/([0-9]+)%$/))) {
             newData.percent = value[1];
@@ -314,6 +314,8 @@ function rpc_object_sign(element)
     }
 
     mbus.subscribe('signing-replies-handler', 'sign-reply', function (reply) {
+        var newData, value;
+
         if (!reply) {
             throw 'reply is empty!';
             return false;
@@ -326,8 +328,6 @@ function rpc_object_sign(element)
             throw 'Have no reference to the progressbar!';
             return false;
         }
-
-        var newData = new Object;
 
         if (reply.value && (value = reply.value.match(/([0-9]+)%$/))) {
             newData.percent = value[1];
@@ -370,6 +370,8 @@ function rpc_object_sign(element)
 
 function rpc_object_scan(element, successMethod)
 {
+    var id, guid, model, title, scan_wnd, msg_body, msg, progressbar;
+
     if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
         return false;
@@ -395,7 +397,7 @@ function rpc_object_scan(element, successMethod)
         return false;
     }
 
-    var scan_wnd = show_modal('progress', {
+    scan_wnd = show_modal('progress', {
         header : 'MTLDA is scanning your document "'+ title + '".',
         icon : 'wait icon',
         hasActions : false,
@@ -412,12 +414,12 @@ function rpc_object_scan(element, successMethod)
         return false;
     }
 
-    var msg_body = new Object;
+    msg_body = new Object;
     msg_body.id = safe_string(id);
     msg_body.guid = safe_string(guid);
     msg_body.model = safe_string(model);
 
-    var msg = new ThalliumMessage;
+    msg = new ThalliumMessage;
     msg.setCommand('scan-request');
     msg.setMessage(msg_body);
 
@@ -427,6 +429,8 @@ function rpc_object_scan(element, successMethod)
     }
 
     mbus.subscribe('scanner-replies-handler', 'scan-reply', function (reply) {
+        var newData, value;
+
         if (!reply) {
             throw 'reply is empty!';
             return false;
@@ -440,7 +444,7 @@ function rpc_object_scan(element, successMethod)
             return false;
         }
 
-        var newData = new Object;
+        newData = new Object;
 
         if (reply.value && (value = reply.value.match(/([0-9]+)%$/))) {
             newData.percent = value[1];
@@ -579,7 +583,7 @@ function rpc_object_delete(elements, successMethod)
     });
 
     mbus.subscribe('delete-replies-handler', 'delete-reply', function (reply, substore) {
-        var value, del_wnd, progressbar;
+        var newData, value, del_wnd, progressbar;
 
         if (typeof reply === 'undefined' || !reply) {
             throw 'reply is empty!';
@@ -599,7 +603,7 @@ function rpc_object_delete(elements, successMethod)
             return false;
         }
 
-        var newData = new Object;
+        newData = new Object;
 
         if (reply.value && (value = reply.value.match(/([0-9]+)%$/))) {
             newData.percent = value[1];
