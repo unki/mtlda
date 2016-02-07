@@ -238,3 +238,78 @@ extract_text_from_document = 1
 ;    0 = disabled, 1 = enabled
 ;
 use_ocr_for_embedded_images = 1
+
+;
+; default OCR language used for tesseract-ocr
+;    if not configured to one of the below options,
+;    default language is set to eng - English.
+;
+;    afr,Afrikaans
+;    ara,Arabic
+;    aze,Azerbaijani
+;    bel,Belarusian
+;    ben,Bengali
+;    bul,Bulgarian
+;    cat,Catalan
+;    ces,Czech
+;    chi-sim,Simplified
+;    chi-tra,Traditional
+;    chr,Cherokee
+;    dan,Danish
+;    deu,German
+;    deu-frak,German
+;    ell,Greek
+;    eng,English
+;    enm,Middle
+;    epo,Esperanto
+;    equ,equations
+;    est,Estonian
+;    eus,Basque
+;    fin,Finnish
+;    fra,French
+;    frk,Frankish
+;    frm,Middle
+;    glg,Galician
+;    grc,ancient
+;    heb,Hebrew
+;    hin,Hindi
+;    hrv,Croatian
+;    hun,Hungarian
+;    ind,Indonesian
+;    isl,Icelandic
+;    ita,Italian
+;    ita-old,Old
+;    jpn,Japanese
+;    kan,Kannada
+;    kor,Korean
+;    lav,Latvian
+;    lit,Lithuanian
+;    mal,Malayalam
+;    mkd,Macedonian
+;    mlt,Maltese
+;    msa,Malay
+;    nld,Dutch
+;    nor,Norwegian
+;    osd,script
+;    pol,Polish
+;    por,Portuguese
+;    ron,Romanain
+;    rus,Russian
+;    slk,Slovak
+;    slk-frak,Slovak
+;    slv,Slovenian
+;    spa,Spanish
+;    spa-old,Old
+;    sqi,Albanian
+;    srp,Serbian
+;    swa,Swahili
+;    swe,Swedish
+;    tam,Tamil
+;    tel,Telugu
+;    tgl,Tagalog
+;    tha,Thai
+;    tur,Turkish
+;    ukr,Ukranian
+;    vie,Vietnamese
+;
+default_ocr_language = eng
