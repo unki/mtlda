@@ -511,6 +511,17 @@ class ConfigController extends \Thallium\Controllers\ConfigController
         return false;
 
     }
+
+    public function getDefaultOcrLanguage()
+    {
+        if (!isset($this->config['pdfindexing']['default_ocr_language']) ||
+            empty($this->config['pdfindexing']['default_ocr_language'])
+        ) {
+            return 'eng';
+        }
+
+        return $this->config['pdfindexing']['default_ocr_language'];
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
