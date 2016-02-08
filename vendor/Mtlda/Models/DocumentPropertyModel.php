@@ -21,14 +21,24 @@ namespace Mtlda\Models ;
 
 class DocumentPropertyModel extends DefaultModel
 {
-    public $table_name = 'document_properties';
-    public $column_name = 'dp';
-    public $fields = array(
-        'dp_idx' => 'integer',
-        'dp_guid' => 'string',
-        'dp_file_hash' => 'string',
-        'dp_property' => 'string',
-        'dp_value' => 'string',
+    protected static $model_table_name = 'document_properties';
+    protected static $model_column_prefix = 'dp';
+    protected static $model_fields = array(
+        'idx' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'guid' => array(
+            FIELD_TYPE => FIELD_GUID,
+        ),
+        'file_hash' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'property' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'value' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
     );
 
     public function setDocumentProperty($property)
@@ -82,7 +92,7 @@ class DocumentPropertyModel extends DefaultModel
     public function setFileHash($hash)
     {
         if (!isset($hash) || empty($hash)) {
-            $this->raiseError(__METHOD__ .'(), \$hash needs to be set!');
+            static::raiseError(__METHOD__ .'(), \$hash needs to be set!');
             return false;
         }
 
