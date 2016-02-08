@@ -60,7 +60,7 @@ class KeywordsView extends DefaultView
             $current_items_limit = $items_limit;
         }
 
-        if (empty($this->keywords->items)) {
+        if ($this->keywords->hasItems()) {
             return parent::showList();
         }
 
@@ -73,7 +73,7 @@ class KeywordsView extends DefaultView
             return false;
         }
 
-        if (!$pager->setPagingData($this->keywords->items)) {
+        if (!$pager->setPagingData($this->keywords->getItems())) {
             $this->raiseError(get_class($pager) .'::setPagingData() returned false!');
             return false;
         }
@@ -139,7 +139,7 @@ class KeywordsView extends DefaultView
         $item =  $this->items[$item_idx];
 
         $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", "keyword-{$item->keyword_idx}-{$item->keyword_guid}");
+        $smarty->assign("item_safe_link", "keyword-{$item->getIdx()}-{$item->getGuid()}");
 
         $index++;
         $smarty->assign('smarty.IB.item_list.index', $index);
@@ -169,7 +169,7 @@ class KeywordsView extends DefaultView
         }
 
         $tmpl->assign('item', $item);
-        $tmpl->assign("item_safe_link", "keyword-". $item->keyword_idx ."-". $item->keyword_guid);
+        $tmpl->assign("item_safe_link", "keyword-". $item->getIdx() ."-". $item->getGuid());
         return $tmpl->fetch("keywords_edit.tpl");
     }
 }
