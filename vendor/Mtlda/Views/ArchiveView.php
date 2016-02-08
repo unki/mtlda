@@ -41,8 +41,8 @@ class ArchiveView extends DefaultView
             return false;
         }
 
-        foreach ($this->archive->avail_items as $item_idx) {
-            if ($this->archive->items[$item_idx]->isDeleted()) {
+        foreach ($this->archive->getItemsKeys() as $item_idx) {
+            if ($this->archive->getItem($item_idx)->isDeleted()) {
                 continue;
             }
             $this->avail_items[] = $item_idx;
@@ -310,13 +310,13 @@ class ArchiveView extends DefaultView
             $index = 0;
         }
 
-        if ($index >= count($this->document_properties->avail_items)) {
+        if ($index >= count($this->document_properties->getItemsCount())) {
             $repeat = false;
             return $content;
         }
 
-        $item_idx = $this->document_properties->avail_items[$index];
-        $item =  $this->document_properties->items[$item_idx];
+        $item_idx = $this->document_properties->getItemsKeys()[$index];
+        $item =  $this->document_properties->getItem($item_idx);
 
         $smarty->assign("property", $item);
 
