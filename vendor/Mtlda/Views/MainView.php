@@ -64,7 +64,7 @@ class MainView extends DefaultView
             return false;
         }
 
-        if (count($this->queue->avail_items) > 0) {
+        if ($this->queue->getItemsCount() > 0) {
             $tmpl->assign('pending_queue_items', true);
         }
 
@@ -81,11 +81,11 @@ class MainView extends DefaultView
         }
 
         if ($params['type'] == 'archive') {
-            $avail_items =& $this->archive->avail_items;
-            $items =& $this->archive->items;
+            $avail_items =& $this->archive->getItemsKeys();
+            $items =& $this->archive;
         } elseif ($params['type'] == 'queue') {
-            $avail_items =& $this->queue->avail_items;
-            $items =& $this->queue->items;
+            $avail_items =& $this->queue->getItemsKeys();
+            $items =& $this->queue;
         } else {
             $mtlda->raiseError("Type '{$params['type']}' is not supported!");
             return false;
@@ -103,7 +103,7 @@ class MainView extends DefaultView
         }
 
         $item_idx = $avail_items[$index];
-        $item =  $items[$item_idx];
+        $item =  $items->getItem($item_idx);
 
         if (method_exists($item, "hasDescendants") && $item->hasDescendants()) {
             if (($latest = $item->getLastestVersion()) === false) {
