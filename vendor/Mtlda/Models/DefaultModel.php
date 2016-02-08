@@ -26,14 +26,14 @@ abstract class DefaultModel extends \Thallium\Models\DefaultModel
         if (!isset($this->column_name) ||
             empty($this->column_name)
         ) {
-            $this->raiseError(__METHOD__ .'(), can not continue without column name!');
+            static::raiseError(__METHOD__ .'(), can not continue without column name!');
             return false;
         }
 
         if (!isset($this->fields) ||
             empty($this->fields)
         ) {
-            $this->raiseError(__METHOD__ .'(), model has no fields defined!');
+            static::raiseError(__METHOD__ .'(), model has no fields defined!');
             return false;
         }
 
@@ -49,7 +49,7 @@ abstract class DefaultModel extends \Thallium\Models\DefaultModel
             return $this->$file_field;
         }
 
-        $this->raiseError(__METHOD__ .'(), no clue where to get the name from!');
+        static::raiseError(__METHOD__ .'(), no clue where to get the name from for '. get_called_class() .'!');
         return false;
     }
 
@@ -64,6 +64,73 @@ abstract class DefaultModel extends \Thallium\Models\DefaultModel
         );
 
         return true;
+    }
+
+    public function getItemsKeys()
+    {
+        if (!isset($this->avail_items)) {
+            $this->raiseError(__METHOD__ .'(), no items available!');
+            return false;
+        }
+
+        return $this->avail_items;
+    }
+
+    public function getItemsData()
+    {
+        if (!isset($this->items)) {
+            $this->raiseError(__METHOD__ .'(), no items available!');
+            return false;
+        }
+
+        return $this->items;
+    }
+
+    public function hasItems()
+    {
+        if (!isset($this->avail_items) || empty($this->avail_items)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getItem($idx)
+    {
+        if (!isset($idx) || empty($idx) || (!is_string($idx) && !is_numeric($idx))) {
+            $this->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
+            return false;
+        }
+
+        if (!$this->hasItem($idx)) {
+            $this->raiseError(__CLASS__ .'::hasItem() returned false!');
+            return false;
+        }
+
+        return $this->items[$idx];
+    }
+
+    public function hasItem($idx)
+    {
+        if (!isset($idx) || empty($idx) || (!is_string($idx) && !is_numeric($idx))) {
+            $this->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
+            return false;
+        }
+
+        if (!in_array($idx, array_keys($this->items))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getItemsCount()
+    {
+        if (!$this->hasItems()) {
+            return false;
+        }
+
+        return count($this->avail_items);
     }
 }
 
