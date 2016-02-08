@@ -21,13 +21,13 @@ namespace Mtlda\Models ;
 
 class KeywordsModel extends DefaultModel
 {
-    public $table_name = 'keywords';
-    public $column_name = 'keyword';
-    public $fields = array(
+    protected $table_name = 'keywords';
+    protected $column_name = 'keyword';
+    protected $fields = array(
         'keyword_idx' => 'integer',
     );
-    public $avail_items = array();
-    public $items = array();
+    protected $avail_items = array();
+    protected $items = array();
 
     public function __construct()
     {
@@ -47,7 +47,7 @@ class KeywordsModel extends DefaultModel
         return true;
     }
 
-    public function load()
+    protected function load()
     {
         global $db;
 
