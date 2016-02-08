@@ -264,7 +264,7 @@ class SearchView extends DefaultView
         global $mtlda;
 
         if (!usort($queue, function ($a, $b) {
-            return strcasecmp($a->keyword_name, $b->keyword_name);
+            return strcasecmp($a->getName(), $b->getName());
         })) {
             $mtlda->raiseError(__METHOD__ .'(), usort() returned false!');
             return false;
