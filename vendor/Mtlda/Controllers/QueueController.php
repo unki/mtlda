@@ -100,13 +100,13 @@ class QueueController extends DefaultController
             return false;
         }
 
-        $total = count($queue->avail_items);
+        $total = $queue->getItemsCount();
         $counter = 1;
         $start = 20;
 
         $steps = floor((100-$start)/$total);
 
-        foreach ($queue->avail_items as $key) {
+        foreach ($queue->getItemsKeys() as $key) {
             $queueitem = $queue->items[$key];
             $idx = $queueitem->getId();
             $guid = $queueitem->getGuid();
