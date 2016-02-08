@@ -21,164 +21,103 @@ namespace Mtlda\Models ;
 
 class QueueItemModel extends DefaultModel
 {
-    protected $table_name = 'queue';
-    protected $column_name = 'queue';
-    protected $fields = array(
-            'queue_idx' => 'integer',
-            'queue_guid' => 'string',
-            'queue_title' => 'string',
-            'queue_file_name' => 'string',
-            'queue_file_hash' => 'string',
-            'queue_file_size' => 'integer',
-            'queue_description' => 'string',
-            'queue_signing_icon_position' => 'integer',
-            'queue_state' => 'string',
-            'queue_time' => 'timestamp',
-            'queue_custom_date' => 'date',
-            'queue_expiry_date' => 'date',
-            'queue_in_processing' => 'string',
-            );
-    protected $avail_items = array();
-    protected $items = array();
+    protected static $model_table_name = 'queue';
+    protected static $model_column_prefix = 'queue';
+    protected static $model_fields = array(
+        'idx' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'guid' => array(
+            FIELD_TYPE => FIELD_GUID,
+        ),
+        'title' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'file_name' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'file_hash' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'file_size' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'description' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'signing_icon_position' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'state' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'time' => array(
+            FIELD_TYPE => FIELD_TIMESTAMP,
+        ),
+        'custom_date' => array(
+            FIELD_TYPE => FIELD_DATE,
+        ),
+        'expiry_date' => array(
+            FIELD_TYPE => FIELD_DATE,
+        ),
+        'in_processing' => array(
+            FIELD_TYPE => FIELD_YESNO,
+        ),
+    );
     private $keywords;
     private $indices;
     private $properties;
 
-    public function __construct($id = null, $guid = null)
+    protected function __init()
     {
         global $mtlda, $db;
 
-        if (!$this->permitRpcUpdates(true)) {
-            $this->raiseError(__METHOD__ .'(), permitRpcUpdates() returned false!', true);
-            return false;
-        }
-
-        try {
-            $this->addVirtualField("queue_keywords");
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to add virtual field!', true);
-            return false;
-        }
-
-        try {
-            $this->addRpcEnabledField('queue_file_name');
-            $this->addRpcEnabledField('queue_custom_date');
-            $this->addRpcEnabledField('queue_expiry_date');
-            $this->addRpcEnabledField('queue_title');
-            $this->addRpcEnabledField('queue_description');
-            $this->addRpcEnabledField('queue_keywords');
-            $this->addRpcAction('delete');
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed on invoking addRpcEnabledField() method', true);
-            return false;
-        }
-
-        // are we creating a new item?
-        if (!isset($id) && !isset($guid)) {
-            parent::__construct(null);
-            return true;
-        }
-
-        if (!empty($id) && !$mtlda->isValidId($id)) {
-            $this->raiseError(__METHOD__ .'(), $id is in an invalid format', true);
-            return false;
-        }
-
-        if (!empty($guid) && !$mtlda->isValidGuidSyntax($guid)) {
-            $this->raiseError(__METHOD__ .'(), $guid is in an invalid format', true);
-            return false;
-        }
-
-        if (empty($id) && empty($guid)) {
-            $this->raiseError(__METHOD__ .'(), need to know either $id or $guid to load item!', true);
-            return false;
-        }
-
-        $sql =
-            "SELECT
-                queue_idx
-            FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE";
-
-        $arr_query = array();
-        if (isset($id)) {
-            $sql.= "
-                queue_idx LIKE ?
-            ";
-            $arr_query[] = $id;
-        }
-        if (isset($id) && isset($guid)) {
-            $sql.= "
-                AND
-            ";
-        }
-        if (isset($guid)) {
-            $sql.= "
-                queue_guid LIKE ?
-            ";
-            $arr_query[] = $guid;
-        };
-
-        if (($sth = $db->prepare($sql)) === false) {
-            $this->raiseError(get_class($db) .'::prepare() returned false!', true);
-            return false;
-        }
-
-        if (!$db->execute($sth, $arr_query)) {
-            $this->raiseError(get_class($db) .'::execute() returned false!', true);
-            return false;
-        }
-
-        if (($row = $sth->fetch()) === false) {
-            $this->raiseError(get_class($sth) .'::fetch() returned false!', true);
-            return false;
-        }
-
-        if (!isset($row->queue_idx) || empty($row->queue_idx)) {
-            $this->raiseError(__METHOD__ ."(), unable to find queue item with guid value {$guid}", true);
-            return false;
-        }
-
-        parent::__construct($row->queue_idx);
-
+        $this->permitRpcUpdates(true);
+        $this->addVirtualField("keywords");
+        $this->addRpcEnabledField('file_name');
+        $this->addRpcEnabledField('custom_date');
+        $this->addRpcEnabledField('expiry_date');
+        $this->addRpcEnabledField('title');
+        $this->addRpcEnabledField('description');
+        $this->addRpcEnabledField('keywords');
+        $this->addRpcAction('delete');
         return true;
     }
 
     public function verify()
     {
         if (!isset($this->queue_file_name)) {
-            $this->raiseError(__METHOD__ .'(), queue_file_name is not set!');
+            static::raiseError(__METHOD__ .'(), queue_file_name is not set!');
             return false;
         }
 
         if (!isset($this->queue_file_hash)) {
-            $this->raiseError(__METHOD__ .'(), queue_file_hash is not set!');
+            static::raiseError(__METHOD__ .'(), queue_file_hash is not set!');
             return false;
         }
 
         if (($fqpn = $this->getFilePath()) === false) {
-            $this->raiseError(__CLASS__ .'::getFilePath() returned false!');
+            static::raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
 
         if (!file_exists($fqpn)) {
-            $this->raiseError(__METHOD__ ."(), file {$fqpn} does not exist!");
+            static::raiseError(__METHOD__ ."(), file {$fqpn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqpn)) {
-            $this->raiseError(__METHOD__ ."(), file {$fqpn} is not readable!");
+            static::raiseError(__METHOD__ ."(), file {$fqpn} is not readable!");
             return false;
         }
 
         if (($file_hash = sha1_file($fqpn)) === false) {
-            $this->raiseError(__METHOD__ ."(), unable to calculate SHA1 hash of file {$fqpn}!");
+            static::raiseError(__METHOD__ ."(), unable to calculate SHA1 hash of file {$fqpn}!");
             return false;
         }
 
         if (isset($hash) && $hash != $file_hash) {
-            $this->raiseError(__METHOD__ ."(), hash value of ${file} does not match!");
+            static::raiseError(__METHOD__ ."(), hash value of ${file} does not match!");
             return false;
         }
 
@@ -197,7 +136,7 @@ class QueueItemModel extends DefaultModel
     public function setFileHash($filehash)
     {
         if (!isset($filehash) || empty($filehash) || !is_string($filehash)) {
-            $this->raiseError(__METHOD__ .'(), $filehash parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $filehash parameter is invalid!');
             return false;
         }
 
@@ -217,12 +156,12 @@ class QueueItemModel extends DefaultModel
     public function setFileName($file_name)
     {
         if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
-            $this->raiseError(__METHOD__ .'(), $file_name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $file_name parameter is invalid!');
             return false;
         }
 
         if (strpos($file_name, '/') || strpos($file_name, '\\') || strpos($file_name, '..')) {
-            $this->raiseError(__METHOD__ .'(), $file_name parameter contains forbidden characters!');
+            static::raiseError(__METHOD__ .'(), $file_name parameter contains forbidden characters!');
             return false;
         }
 
@@ -242,7 +181,7 @@ class QueueItemModel extends DefaultModel
     public function setFileSize($filesize)
     {
         if (!isset($filesize) || empty($filesize) || !is_numeric($filesize)) {
-            $this->raiseError(__METHOD__ .'(), $filesize parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $filesize parameter is invalid!');
             return false;
         }
 
@@ -250,20 +189,20 @@ class QueueItemModel extends DefaultModel
         return true;
     }
 
-    public function preDelete()
+    protected function preDelete()
     {
         if (!$this->removeAssignedKeywords()) {
-            $this->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false!');
+            static::raiseError(__CLASS__ .'::removeAssignedKeywords() returned false!');
             return false;
         }
 
         if (!$this->deleteAllDocumentIndices()) {
-            $this->raiseError(__CLASS__ .'::deleteAllDocumentIndices() returned false!');
+            static::raiseError(__CLASS__ .'::deleteAllDocumentIndices() returned false!');
             return false;
         }
 
         if (!$this->deleteAllDocumentProperties()) {
-            $this->raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
+            static::raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
             return false;
         }
 
@@ -271,19 +210,19 @@ class QueueItemModel extends DefaultModel
         $storage = new \Mtlda\Controllers\StorageController;
 
         if (!$storage) {
-            $this->raiseError(__METHOD__ .'(), failed to load StorageController!');
+            static::raiseError(__METHOD__ .'(), failed to load StorageController!');
             return false;
         }
 
         if (!$storage->deleteItemFile($this)) {
-            $this->raiseError(get_class($storage) .'::deleteItemFile() returned false!');
+            static::raiseError(get_class($storage) .'::deleteItemFile() returned false!');
             return false;
         }
 
         return true;
     }
 
-    public function postDelete()
+    protected function postDelete()
     {
         global $audit;
 
@@ -295,74 +234,74 @@ class QueueItemModel extends DefaultModel
                 $this->queue_guid
             );
         } catch (\Exception $e) {
-            $this->raiseError("AuditController::log() returned false!");
+            static::raiseError("AuditController::log() returned false!");
             return false;
         }
 
         return true;
     }
 
-    public function preSave()
+    protected function preSave()
     {
         if ($this->isDuplicate()) {
-            $this->raiseError(__METHOD__ .'(), duplicated record detected!');
+            static::raiseError(__METHOD__ .'(), duplicated record detected!');
             return false;
         }
 
         if (!isset($this->queue_file_name) ||
             empty($this->queue_file_name)
         ) {
-            $this->raiseError(__METHOD__ .'(), $queue_file_name must not be empty!');
+            static::raiseError(__METHOD__ .'(), $queue_file_name must not be empty!');
             return false;
         }
 
         /* new queueitem? no more action here */
-        if (!isset($this->queue_idx) && !isset($this->id)) {
+        if ($this->isNew()) {
             return true;
         }
 
-        if (!isset($this->init_values['queue_file_name']) ||
-            empty($this->init_values['queue_file_name'])
+        if (!isset($this->model_init_values['queue_file_name']) ||
+            empty($this->model_init_values['queue_file_name'])
         ) {
             return true;
         }
 
         /* filename hasn't changed? we are done */
-        if ($this->init_values['queue_file_name'] == $this->queue_file_name) {
+        if ($this->model_init_values['queue_file_name'] == $this->queue_file_name) {
             return true;
         }
 
         if (!$fqpn = $this->getFilePath()) {
-            $this->raiseError(__CLASS__ .'::getFilePath() returned false!');
+            static::raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
 
         $path = dirname($fqpn);
 
         if (empty($path)) {
-            $this->raiseError(__METHOD__ .'(), why is $path empty?');
+            static::raiseError(__METHOD__ .'(), why is $path empty?');
             return false;
         }
 
-        $old_file = $path .'/'. basename($this->init_values['queue_file_name']);
+        $old_file = $path .'/'. basename($this->model_init_values['queue_file_name']);
         $new_file = $path .'/'. basename($this->queue_file_name);
 
         if (file_exists($new_file)) {
-            $this->raiseError(
+            static::raiseError(
                 __METHOD__ ."(), unable to rename {$old_file} to {$new_file} - destination already exists!"
             );
             return false;
         }
 
         if (rename($old_file, $new_file) === false) {
-            $this->raiseError(__METHOD__ .'(), rename() returned false!');
+            static::raiseError(__METHOD__ .'(), rename() returned false!');
             return false;
         }
 
         return true;
     }
 
-    public function postSave()
+    protected function postSave()
     {
         global $audit;
 
@@ -376,7 +315,7 @@ class QueueItemModel extends DefaultModel
         );
 
         if (!$json_str) {
-            $this->raiseError(__METHOD__ .'(), json_encode() returned false!');
+            static::raiseError(__METHOD__ .'(), json_encode() returned false!');
             return false;
         }
 
@@ -389,7 +328,7 @@ class QueueItemModel extends DefaultModel
             );
         } catch (\Exception $e) {
             $queueitem->delete();
-            $this->raiseError("AuditController::log() returned false!");
+            static::raiseError("AuditController::log() returned false!");
             return false;
         }
 
@@ -399,27 +338,27 @@ class QueueItemModel extends DefaultModel
     public function getFilePath()
     {
         if (!($guid = $this->getGuid())) {
-            $this->raiseError(__CLASS__ ."::getGuid() returned false!");
+            static::raiseError(__CLASS__ ."::getGuid() returned false!");
             return false;
         }
 
         if (!($dir_name = $this->generateDirectoryName($guid))) {
-            $this->raiseError(__CLASS__ ."::generateDirectoryName() returned false!");
+            static::raiseError(__CLASS__ ."::generateDirectoryName() returned false!");
             return false;
         }
 
         if (!isset($dir_name) || empty($dir_name)) {
-            $this->raiseError(__METHOD__ .'(), unable to get directory name!');
+            static::raiseError(__METHOD__ .'(), unable to get directory name!');
             return false;
         }
 
         if (($file_name = $this->getFileName()) === false) {
-            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
+            static::raiseError(__CLASS__ ."::getFileName() returned false!");
             return false;
         }
 
         if (!isset($file_name) || empty($file_name)) {
-            $this->raiseError(__METHOD__ .'(), unable to get file name!');
+            static::raiseError(__METHOD__ .'(), unable to get file name!');
             return false;
         }
 
@@ -435,7 +374,7 @@ class QueueItemModel extends DefaultModel
         $dir_name = "";
 
         if (!isset($guid) || empty($guid)) {
-            $this->raiseError(__METHOD__ .'(), $guid parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $guid parameter is invalid!');
             return false;
         }
 
@@ -443,7 +382,7 @@ class QueueItemModel extends DefaultModel
             $guid_part = substr($guid, $i, 2);
 
             if ($guid_part === false) {
-                $this->raiseError(__METHOD__ .'(), substr() returned false!');
+                static::raiseError(__METHOD__ .'(), substr() returned false!');
                 return false;
             }
 
@@ -477,7 +416,7 @@ class QueueItemModel extends DefaultModel
     public function setState($state)
     {
         if (!isset($state) || empty($state) || !is_string($state)) {
-            $this->raiseError(__METHOD__ .'(), $state parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $state parameter is invalid!');
             return false;
         }
 
@@ -497,7 +436,7 @@ class QueueItemModel extends DefaultModel
     public function setTime($time)
     {
         if (!isset($time) || empty($time) || !is_numeric($time)) {
-            $this->raiseError(__METHOD__ .'(), $time parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $time parameter is invalid!');
             return false;
         }
 
@@ -544,7 +483,7 @@ class QueueItemModel extends DefaultModel
             empty($date) ||
             (!is_string($date) && !is_numeric($date))
         ) {
-            $this->raiseError(__METHOD__ .'(), \$date parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), \$date parameter is invalid!');
             return false;
         }
 
@@ -567,7 +506,7 @@ class QueueItemModel extends DefaultModel
     public function getCustomDate()
     {
         if (!$this->hasCustomDate()) {
-            $this->raiseError(__CLASS__ .'::hasCustomDate() returned false!');
+            static::raiseError(__CLASS__ .'::hasCustomDate() returned false!');
             return false;
         }
 
@@ -580,7 +519,7 @@ class QueueItemModel extends DefaultModel
             empty($date) ||
             (!is_string($date) && !is_numeric($date))
         ) {
-            $this->raiseError(__METHOD__ .'(), \$date parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), \$date parameter is invalid!');
             return false;
         }
 
@@ -603,7 +542,7 @@ class QueueItemModel extends DefaultModel
     public function getExpiryDate()
     {
         if (!$this->hasExpiryDate()) {
-            $this->raiseError(__CLASS__ .'::hasExpiryDate() returned false!');
+            static::raiseError(__CLASS__ .'::hasExpiryDate() returned false!');
             return false;
         }
 
@@ -622,7 +561,7 @@ class QueueItemModel extends DefaultModel
     public function getTitle()
     {
         if (!$this->hasTitle()) {
-            $this->raiseError(__CLASS__ .'::hasTitle() returned false!');
+            static::raiseError(__CLASS__ .'::hasTitle() returned false!');
             return false;
         }
 
@@ -632,7 +571,7 @@ class QueueItemModel extends DefaultModel
     public function setTitle($title)
     {
         if (!isset($title) || !is_string($title)) {
-            $this->raiseError(__METHOD__ .'(), $title parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $title parameter is invalid!');
             return false;
         }
 
@@ -652,7 +591,7 @@ class QueueItemModel extends DefaultModel
     public function getDescription()
     {
         if (!$this->hasDescription()) {
-            $this->raiseError(__CLASS__ .'::hasDescription() returned false!');
+            static::raiseError(__CLASS__ .'::hasDescription() returned false!');
             return false;
         }
 
@@ -662,7 +601,7 @@ class QueueItemModel extends DefaultModel
     public function setDescription($description)
     {
         if (!isset($description) || empty($description) || !is_string($description)) {
-            $this->raiseError(__METHOD__ .'(), $description parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $description parameter is invalid!');
             return false;
         }
 
@@ -688,12 +627,12 @@ class QueueItemModel extends DefaultModel
                 return true;
             });
         } else {
-            $this->raiseError(__METHOD__ .'(), $values parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $values parameter is invalid!');
             return false;
         }
 
         if (!$this->removeAssignedKeywords()) {
-            $this->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false');
+            static::raiseError(__CLASS__ .'::removeAssignedKeywords() returned false');
             return false;
         }
 
@@ -704,29 +643,29 @@ class QueueItemModel extends DefaultModel
         foreach ($values as $value) {
             $value = trim($value);
             if (!is_numeric($value)) {
-                $this->raiseError(__METHOD__ .'(), value found that is not a number!');
+                static::raiseError(__METHOD__ .'(), value found that is not a number!');
                 return false;
             }
 
             try {
-                $keyword = new KeywordAssignmentModel;
+                $keyword = new \Mtlda\Models\KeywordAssignmentModel;
             } catch (\Exception $e) {
-                $this->raiseError("Failed to load KeywordAssignmentModel!");
+                static::raiseError("Failed to load KeywordAssignmentModel!");
                 return false;
             }
 
             if (!$keyword->setQueue($this->getId())) {
-                $this->raiseError("KeywordAssignmentModel::setArchive() returned false!");
+                static::raiseError("KeywordAssignmentModel::setArchive() returned false!");
                 return false;
             }
 
             if (!$keyword->setKeyword($value)) {
-                $this->raiseError("KeywordAssignmentModel::setKeyword() returned false!");
+                static::raiseError("KeywordAssignmentModel::setKeyword() returned false!");
                 return false;
             }
 
             if (!$keyword->save()) {
-                $this->raiseError("KeywordAssignmentModel::save() returned false!");
+                static::raiseError("KeywordAssignmentModel::save() returned false!");
                 return false;
             }
         }
@@ -752,24 +691,24 @@ class QueueItemModel extends DefaultModel
         );
 
         if (!$sth) {
-            $this->raiseError(__METHOD__ .", failed to prepare query!");
+            static::raiseError(__METHOD__ .", failed to prepare query!");
             return false;
         }
 
         if (!$db->execute($sth, array($this->getId()))) {
-            $this->raiseError(__METHOD__ .", failed to execute query!");
+            static::raiseError(__METHOD__ .", failed to execute query!");
             return false;
         }
 
         $rows = $sth->fetchAll(\PDO::FETCH_COLUMN);
 
         if ($rows === false) {
-            $this->raiseError(__METHOD__ .", failed to fetch result!");
+            static::raiseError(__METHOD__ .", failed to fetch result!");
             return false;
         }
 
         if (!is_array($rows)) {
-            $this->raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
+            static::raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
             return false;
         }
 
@@ -784,7 +723,7 @@ class QueueItemModel extends DefaultModel
     public function hasKeywords()
     {
         if (($keywords = $this->getKeywords()) === false) {
-            $this->raiseError(__CLASS__ .'::getKeywords() returned false!');
+            static::raiseError(__CLASS__ .'::getKeywords() returned false!');
             return false;
         }
 
@@ -809,12 +748,12 @@ class QueueItemModel extends DefaultModel
         );
 
         if (!$sth) {
-            $this->raiseError("Unable to prepare query!");
+            static::raiseError("Unable to prepare query!");
             return false;
         }
 
         if (!$db->execute($sth, array($this->getId()))) {
-            $this->raiseError("Unable to execute query!");
+            static::raiseError("Unable to execute query!");
             return false;
         }
 
@@ -825,7 +764,7 @@ class QueueItemModel extends DefaultModel
     public function getAssignedKeywords()
     {
         if (($keywords = $this->getKeywords()) === false) {
-            $this->raiseError(__CLASS__ .'::getKeywords() returned false!');
+            static::raiseError(__CLASS__ .'::getKeywords() returned false!');
             return false;
         }
 
@@ -837,13 +776,15 @@ class QueueItemModel extends DefaultModel
 
         foreach ($keywords as $keyword_idx) {
             try {
-                $keyword = new \Mtlda\Models\KeywordModel($keyword_idx);
+                $keyword = new \Mtlda\Models\KeywordModel(array(
+                    'idx' => $keyword_idx
+                ));
             } catch (\Exception $e) {
-                $this->raiseError(__METHOD__ ."(), failed to load KeywordModel({$keyword_idx})!");
+                static::raiseError(__METHOD__ ."(), failed to load KeywordModel({$keyword_idx})!");
                 return false;
             }
             if (($name = $keyword->getName()) === false) {
-                $this->raiseError(get_class($keyword) .'::getName() returned false!');
+                static::raiseError(get_class($keyword) .'::getName() returned false!');
                 return false;
             }
             array_push($names, $name);
@@ -864,7 +805,7 @@ class QueueItemModel extends DefaultModel
     public function setSigningIconPosition($position)
     {
         if (!isset($position) || empty($position) || !is_numeric($position)) {
-            $this->raiseError(__METHOD__ .'(), $position parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $position parameter is invalid!');
             return false;
         }
 
@@ -877,32 +818,32 @@ class QueueItemModel extends DefaultModel
         try {
             $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load StorageController!");
+            static::raiseError("Failed to load StorageController!");
             return false;
         }
 
         if (!$guid = $this->getGuid()) {
-            $this->raiseError(__CLASS__ .'::getGuid() returned false!');
+            static::raiseError(__CLASS__ .'::getGuid() returned false!');
             return false;
         }
 
         if (!$src_file = $srcobj->getFilePath()) {
-            $this->raiseError(__METHOD__ .'(), unable to retrieve source objects full qualified path name!');
+            static::raiseError(__METHOD__ .'(), unable to retrieve source objects full qualified path name!');
             return false;
         }
 
         if (!$dst_file = $this->getFilePath()) {
-            $this->raiseError(__CLASS__ .'::getFilePath() returned false!');
+            static::raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
 
         if (!$storage->createDirectoryStructure(dirname($dst_file))) {
-            $this->raiseError(get_class($storage) .'::createDirectoryStructure() returned false!');
+            static::raiseError(get_class($storage) .'::createDirectoryStructure() returned false!');
             return false;
         }
 
         if (!$storage->copyFile($src_file, $dst_file)) {
-            $this->raiseError(get_class($storage) .'::copyFile() returned false!');
+            static::raiseError(get_class($storage) .'::copyFile() returned false!');
             return false;
         }
 
@@ -912,39 +853,39 @@ class QueueItemModel extends DefaultModel
     public function refresh()
     {
         if (!$fqpn = $this->getFilePath()) {
-            $this->raiseError("getFilePath() returned false!");
+            static::raiseError("getFilePath() returned false!");
             return false;
         }
 
         if (!file_exists($fqpn)) {
-            $this->raiseError("File {$fqpn} does not exist!");
+            static::raiseError("File {$fqpn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqpn)) {
-            $this->raiseError("File {$fqpn} is not readable!");
+            static::raiseError("File {$fqpn} is not readable!");
             return false;
         }
 
         clearstatcache(true, $fqpn);
 
         if (($hash = sha1_file($fqpn)) === false) {
-            $this->raiseError(__METHOD__ ." SHA1 value of {$fqpn} can not be calculated!");
+            static::raiseError(__METHOD__ ." SHA1 value of {$fqpn} can not be calculated!");
             return false;
         }
 
         if (empty($hash)) {
-            $this->raiseError(__METHOD__ ." sha1_file() returned an empty hash value!");
+            static::raiseError(__METHOD__ ." sha1_file() returned an empty hash value!");
             return false;
         }
 
         if (($size = filesize($fqpn)) === false) {
-            $this->raiseError(__METHOD__ ." filesize of {$fqpn} is not available!");
+            static::raiseError(__METHOD__ ." filesize of {$fqpn} is not available!");
             return false;
         }
 
         if (empty($size) || !is_numeric($size) || ($size <= 0)) {
-            $this->raiseError(__METHOD__ ." fizesize of {$fqpn} is invalid!");
+            static::raiseError(__METHOD__ ." fizesize of {$fqpn} is invalid!");
             return false;
         }
 
@@ -964,25 +905,27 @@ class QueueItemModel extends DefaultModel
         if (isset($this->indices) &&
             !empty($this->indices) &&
             is_a($this->indices, 'Mtlda\Models\DocumentIndicesModel') &&
-            count($this->indices->items) > 0
+            $this->indices->hasItems()
         ) {
             return true;
         }
 
         if (($hash = $this->getFileHash()) === false) {
-            $this->raiseError(__CLASS__ .'::getFileHash() returned false!');
+            static::raiseError(__CLASS__ .'::getFileHash() returned false!');
             return false;
         }
 
         try {
-            $indices = new \Mtlda\Models\DocumentIndicesModel($hash);
+            $indices = new \Mtlda\Models\DocumentIndicesModel(array(
+                'file_hash' => $hash
+            ));
         } catch (\Exception $e) {
             return false;
         }
 
         $this->indices = $indices;
 
-        if (count($this->indices->items) <= 0) {
+        if ($this->indices->hasItems()) {
             return false;
         }
 
@@ -1008,10 +951,10 @@ class QueueItemModel extends DefaultModel
         }
 
         try {
-            $properties = new \Mtlda\Models\DocumentPropertiesModel(
-                $this->getId(),
-                $this->getGuid()
-            );
+            $properties = new \Mtlda\Models\DocumentPropertiesModel(array(
+                'idx' => $this->getId(),
+                'guid' => $this->getGuid()
+            ));
         } catch (\Exception $e) {
             return false;
         }
@@ -1035,8 +978,13 @@ class QueueItemModel extends DefaultModel
             return true;
         }
 
+        if (!isset($this->indices) || empty($this->indices)) {
+            static::raiseError(__METHOD__ .'(), indices not available!');
+            return false;
+        }
+
         if (!$this->indices->delete()) {
-            $this->raiseError(get_class($indices) .'::delete() returned false!');
+            static::raiseError(get_class($this->indices) .'::delete() returned false!');
             return false;
         }
 
@@ -1050,7 +998,7 @@ class QueueItemModel extends DefaultModel
         }
 
         if (!$this->properties->delete()) {
-            $this->raiseError(get_class($properties) .'::delete() returned false!');
+            static::raiseError(get_class($properties) .'::delete() returned false!');
             return false;
         }
 
@@ -1060,12 +1008,12 @@ class QueueItemModel extends DefaultModel
     public function getFileNameExtension()
     {
         if (($file_name = $this->getFileName()) === false) {
-            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
+            static::raiseError(__CLASS__ ."::getFileName() returned false!");
             return false;
         }
 
         if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
-            $this->raiseError(__CLASS__ ."::getFileName() returned invalid data!");
+            static::raiseError(__CLASS__ ."::getFileName() returned invalid data!");
             return false;
         }
 
@@ -1083,12 +1031,12 @@ class QueueItemModel extends DefaultModel
     public function getFileNameBase()
     {
         if (($file_name = $this->getFileName()) === false) {
-            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
+            static::raiseError(__CLASS__ ."::getFileName() returned false!");
             return false;
         }
 
         if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
-            $this->raiseError(__CLASS__ ."::getFileName() returned invalid data!");
+            static::raiseError(__CLASS__ ."::getFileName() returned invalid data!");
             return false;
         }
 
