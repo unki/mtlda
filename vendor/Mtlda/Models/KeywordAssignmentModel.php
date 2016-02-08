@@ -21,14 +21,24 @@ namespace Mtlda\Models ;
 
 class KeywordAssignmentModel extends DefaultModel
 {
-    public $table_name = 'assign_keywords_to_document';
-    public $column_name = 'akd';
-    public $fields = array(
-        'akd_idx' => 'integer',
-        'akd_guid' => 'string',
-        'akd_archive_idx' => 'integer',
-        'akd_queue_idx' => 'integer',
-        'akd_keyword_idx' => 'integer',
+    protected static $model_table_name = 'assign_keywords_to_document';
+    protected static $model_column_prefix = 'akd';
+    protected static $model_fields = array(
+        'idx' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'guid' => array(
+            FIELD_TYPE => FIELD_GUID,
+        ),
+        'archive_idx' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'queue_idx' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'keyword_idx' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
     );
 
     public function setArchive($idx)
