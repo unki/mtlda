@@ -125,7 +125,7 @@
         <div class="default text">No keywords assigned.</div>
         <div class="menu">
 {foreach $keywords as $keyword}
-         <div class="item" data-value="{$keyword->keyword_idx}" data-text="{$keyword->keyword_name}">{$keyword->keyword_name}</div>
+         <div class="item" data-value="{$keyword->getId()}" data-text="{$keyword->getName()}">{$keyword->getName()}</div>
 {/foreach}
         </div>
        </div>
