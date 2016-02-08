@@ -194,7 +194,7 @@ class QueueView extends DefaultView
             $current_items_limit = $items_limit;
         }
 
-        if (empty($this->queue->items)) {
+        if (!$this->queue->hasItems()) {
             return parent::showList();
         }
 
@@ -207,7 +207,7 @@ class QueueView extends DefaultView
             return false;
         }
 
-        if (!$pager->setPagingData($this->queue->items)) {
+        if (!$pager->setPagingData($this->queue->getItemsData())) {
             $this->raiseError(get_class($pager) .'::setPagingData() returned false!');
             return false;
         }
@@ -296,7 +296,7 @@ class QueueView extends DefaultView
             return false;
         }
 
-        $tmpl->assign('keywords', $this->keywords->items);
+        $tmpl->assign('keywords', $this->keywords->getItemsData());
         $tmpl->assign("item_safe_link", $item->getId() ."-". $item->getGuid());
 
         switch ($step) {
@@ -724,8 +724,7 @@ class QueueView extends DefaultView
             return false;
         }
 
-        if (!isset($this->keywords->items) || empty($this->keywords->items) ||
-            count($this->keywords->items) < 1) {
+        if (!$this->keywords->hasItems()) {
             return true;
         }
 
@@ -810,7 +809,7 @@ class QueueView extends DefaultView
 
         $existing_keywords = array();
 
-        foreach ($this->keywords->items as $keyword) {
+        foreach ($this->keywords->getItemsData() as $keyword) {
             if (($name = $keyword->getName()) === false) {
                 $this->raiseError(get_class($keyword) .'::getName() returned false!');
                 return false;
@@ -887,9 +886,7 @@ class QueueView extends DefaultView
             $tmpl->assign('has_keyword_suggestions', true);
         }
 
-        if (!isset($this->archive->items) ||
-            empty($this->archive->items)
-        ) {
+        if (!$this->archive->hasItems()) {
             return true;
         }
 
@@ -898,7 +895,7 @@ class QueueView extends DefaultView
         $titles = array();
         $sources = array();
 
-        foreach ($this->archive->items as $document) {
+        foreach ($this->archive->getItemsData() as $document) {
             if (($idx = $document->getId()) === false) {
                 $this->raiseError(get_class($document) .'::getId() returned false!');
                 return false;
