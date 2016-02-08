@@ -73,7 +73,7 @@ class KeywordsView extends DefaultView
             return false;
         }
 
-        if (!$pager->setPagingData($this->keywords->getItems())) {
+        if (!$pager->setPagingData($this->keywords->getItemsData())) {
             $this->raiseError(get_class($pager) .'::setPagingData() returned false!');
             return false;
         }
@@ -139,7 +139,7 @@ class KeywordsView extends DefaultView
         $item =  $this->items[$item_idx];
 
         $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", "keyword-{$item->getIdx()}-{$item->getGuid()}");
+        $smarty->assign("item_safe_link", "keyword-{$item->getId()}-{$item->getGuid()}");
 
         $index++;
         $smarty->assign('smarty.IB.item_list.index', $index);
@@ -169,7 +169,7 @@ class KeywordsView extends DefaultView
         }
 
         $tmpl->assign('item', $item);
-        $tmpl->assign("item_safe_link", "keyword-". $item->getIdx() ."-". $item->getGuid());
+        $tmpl->assign("item_safe_link", "keyword-". $item->getId() ."-". $item->getGuid());
         return $tmpl->fetch("keywords_edit.tpl");
     }
 }
