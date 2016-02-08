@@ -21,19 +21,27 @@ namespace Mtlda\Models ;
 
 class DocumentIndexModel extends DefaultModel
 {
-    public $table_name = 'document_indices';
-    public $column_name = 'di';
-    public $fields = array(
-        'di_idx' => 'integer',
-        'di_guid' => 'string',
-        'di_file_hash' => 'string',
-        'di_text' => 'string',
+    protected static $model_table_name = 'document_indices';
+    protected static $model_column_prefix = 'di';
+    protected static $model_fields = array(
+        'idx' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'guid' => array(
+            FIELD_TYPE => FIELD_GUID,
+        ),
+        'file_hash' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'text' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
     );
 
     public function setFileHash($hash)
     {
         if (!isset($hash) || empty($hash)) {
-            $this->raiseError(__METHOD__ .'(), \$hash needs to be set!');
+            static::raiseError(__METHOD__ .'(), \$hash needs to be set!');
             return false;
         }
 
@@ -44,7 +52,7 @@ class DocumentIndexModel extends DefaultModel
     public function setDocumentText($text)
     {
         if (!isset($text) || empty($text)) {
-            $this->raiseError(__METHOD__ .'(), \$text needs to be set!');
+            static::raiseError(__METHOD__ .'(), \$text needs to be set!');
             return false;
         }
 
