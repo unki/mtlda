@@ -21,82 +21,21 @@ namespace Mtlda\Models ;
 
 class DocumentPropertiesModel extends DefaultModel
 {
-    public $table_name = 'document_properties';
-    public $column_name = 'dp';
-    public $fields = array(
-            'dp_idx' => 'integer',
-    );
-    public $avail_items = array();
-    public $items = array();
+    protected static $model_table_name = 'document_properties';
+    protected static $model_column_prefix = 'dp';
+    protected static $model_has_items = true;
+    protected static $model_items_model = 'DocumentPropertyModel';
 
-    public function __construct($hash = null)
+    protected function __init()
     {
-        if (!$hash) {
-            parent::__construct();
-            return true;
-        }
-
-        if (!$this->load($hash)) {
-            $this->raiseError(__CLASS__ .', load() returned false!', true);
-            return false;
-        }
-
+        $this->addVirtualField('idx');
+        $this->addVirtualField('guid');
         return true;
     }
 
-    public function load($hash)
+    public function hasProperties()
     {
-        global $db;
-
-        if (!$hash) {
-            return parent::load();
-        }
-
-        $idx_field = $this->column_name ."_idx";
-
-        $sql =
-            "SELECT
-                {$idx_field}
-            FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-                {$this->column_name}_file_hash LIKE ?";
-
-        if (!($sth = $db->prepare($sql))) {
-            $this->raiseError(get_class($db) .'::prepare() returned false!');
-            return false;
-        }
-
-        if (!($db->execute($sth, array($hash)))) {
-            $db->freeStatement($sth);
-            $this->raiseError(get_class($db) .'::execute() returned false!');
-            return false;
-        }
-
-        while ($row = $sth->fetch()) {
-            array_push($this->avail_items, $row->$idx_field);
-            try {
-                $this->items[$row->$idx_field] = new DocumentPropertyModel($row->$idx_field);
-            } catch (\Exception $e) {
-                $mtlda->raiseError(__METHOD__ .'(), failed to load DocumentProperty!');
-                return false;
-            }
-        }
-
-        $db->freeStatement($sth);
-        return true;
-    }
-
-    public function delete()
-    {
-        global $mtlda;
-
-        foreach ($this->items as $item) {
-            if ($item->delete()) {
-                continue;
-            }
-
-            $mtlda->raiseError(get_class($item) .'::delete() returned false!');
+        if (!$this->hasItems()) {
             return false;
         }
 
@@ -105,11 +44,12 @@ class DocumentPropertiesModel extends DefaultModel
 
     public function getProperties()
     {
-        if (!isset($this->items)) {
+        if (!$this->hasProperties()) {
+            static::raiseError(__METHOD__ .'::hasProperties() returned false!');
             return false;
         }
 
-        return $this->items;
+        return $this->getItems();
     }
 }
 
