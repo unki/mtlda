@@ -21,13 +21,13 @@ namespace Mtlda\Models ;
 
 class DocumentIndicesModel extends DefaultModel
 {
-    public $table_name = 'document_indices';
-    public $column_name = 'di';
-    public $fields = array(
+    protected $table_name = 'document_indices';
+    protected $column_name = 'di';
+    protected $fields = array(
             'di_idx' => 'integer',
     );
-    public $avail_items = array();
-    public $items = array();
+    protected $avail_items = array();
+    protected $items = array();
 
     public function __construct($hash = null)
     {
@@ -44,7 +44,7 @@ class DocumentIndicesModel extends DefaultModel
         return true;
     }
 
-    public function load($hash)
+    protected function load($hash)
     {
         global $db;
 
