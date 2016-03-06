@@ -23,114 +23,23 @@ abstract class DefaultModel extends \Thallium\Models\DefaultModel
 {
     public function getName()
     {
-        if (!isset($this->column_name) ||
-            empty($this->column_name)
-        ) {
-            static::raiseError(__METHOD__ .'(), can not continue without column name!');
-            return false;
-        }
-
-        if (!isset($this->fields) ||
-            empty($this->fields)
-        ) {
+        if (!static::hasFields()) {
             static::raiseError(__METHOD__ .'(), model has no fields defined!');
             return false;
         }
 
-        $name_field = $this->column_name .'_name';
-
-        if (in_array($name_field, array_keys($this->fields))) {
-            return $this->$name_field;
+        if (static::hasField('name')) {
+            $name_field = static::column('name');
+            return $this->getName();
         }
 
-        $file_field = $this->column_name .'_file_name';
-
-        if (in_array($file_field, array_keys($this->fields))) {
-            return $this->$file_field;
+        if (static::hasField('file_name')) {
+            $file_field = static::column('file_name');
+            return $this->getFileName();
         }
 
         static::raiseError(__METHOD__ .'(), no clue where to get the name from for '. get_called_class() .'!');
         return false;
-    }
-
-    public function raiseError($string, $stop_execution = false, $exception = null)
-    {
-        global $mtlda;
-
-        $mtlda->raiseError(
-            $string,
-            $stop_execution,
-            $exception
-        );
-
-        return true;
-    }
-
-    public function getItemsKeys()
-    {
-        if (!isset($this->avail_items)) {
-            $this->raiseError(__METHOD__ .'(), no items available!');
-            return false;
-        }
-
-        return $this->avail_items;
-    }
-
-    public function getItemsData()
-    {
-        if (!isset($this->items)) {
-            $this->raiseError(__METHOD__ .'(), no items available!');
-            return false;
-        }
-
-        return $this->items;
-    }
-
-    public function hasItems()
-    {
-        if (!isset($this->avail_items) || empty($this->avail_items)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function getItem($idx)
-    {
-        if (!isset($idx) || empty($idx) || (!is_string($idx) && !is_numeric($idx))) {
-            $this->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
-            return false;
-        }
-
-        if (!$this->hasItem($idx)) {
-            $this->raiseError(__CLASS__ .'::hasItem() returned false!');
-            return false;
-        }
-
-        return $this->items[$idx];
-    }
-
-    public function hasItem($idx)
-    {
-        if (!isset($idx) || empty($idx) || (!is_string($idx) && !is_numeric($idx))) {
-            $this->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
-            return false;
-        }
-
-        if (!in_array($idx, array_keys($this->items))) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function getItemsCount()
-    {
-        if (!$this->hasItems()) {
-            return false;
-        }
-
-        return count($this->avail_items);
     }
 }
 
