@@ -4,7 +4,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -23,24 +23,24 @@ class MessageBusController extends DefaultController
 {
     const EXPIRE_TIMEOUT = 300;
     protected $suppressOutboundMessaging = false;
+    protected $json_errors = array();
 
     public function __construct()
     {
         global $session;
 
         if (!$session) {
-            $this->raiseError(__METHOD__ ." requires SessionController to be initialized!", true);
+            static::raiseError(__METHOD__ ." requires SessionController to be initialized!", true);
             return false;
         }
 
         if (!$this->removeExpiredMessages()) {
-            $this->raiseError('removeExpiredMessages() returned false!', true);
+            static::raiseError('removeExpiredMessages() returned false!', true);
             return false;
         }
 
         // Define the JSON errors.
         $constants = get_defined_constants(true);
-        $this->json_errors = array();
         foreach ($constants["json"] as $name => $value) {
             if (!strncmp($name, "JSON_ERROR_", 11)) {
                 $this->json_errors[$value] = $name;
@@ -55,22 +55,22 @@ class MessageBusController extends DefaultController
         global $session;
 
         if (!($sessionid = $session->getSessionId())) {
-            $this->raiseError(get_class($session) .'::getSessionId() returned false!');
+            static::raiseError(get_class($session) .'::getSessionId() returned false!');
             return false;
         }
 
         if (empty($messages_raw)) {
-            $this->raiseError(__METHOD__ .', first parameter can not be empty!');
+            static::raiseError(__METHOD__ .', first parameter can not be empty!');
             return false;
         }
 
         if (!is_string($messages_raw)) {
-            $this->raiseError(__METHOD__ .', first parameter has to be a string!');
+            static::raiseError(__METHOD__ .', first parameter has to be a string!');
             return false;
         }
 
         if (($json = json_decode($messages_raw, false, 2)) === null) {
-            $this->raiseError(__METHOD__ .'(), json_decode() returned false! '. $this->json_errors[json_last_error()]);
+            static::raiseError(__METHOD__ .'(), json_decode() returned false! '. $this->json_errors[json_last_error()]);
             return false;
         }
 
@@ -83,50 +83,50 @@ class MessageBusController extends DefaultController
             !isset($json->hash) || empty($json->hash) ||
             !isset($json->json) || empty($json->json)
         ) {
-            $this->raiseError(__METHOD__ .', submitted message object is incomplete!');
+            static::raiseError(__METHOD__ .', submitted message object is incomplete!');
             return false;
         }
 
         if (strlen($json->json) != $json->size) {
-            $this->raiseError(__METHOD__ .', verification failed - size differs!');
+            static::raiseError(__METHOD__ .', verification failed - size differs!');
             return false;
         }
 
         if (sha1($json->json) != $json->hash) {
-            $this->raiseError(__METHOD__ .', verification failed - hash differs!');
+            static::raiseError(__METHOD__ .', verification failed - hash differs!');
             return false;
         }
 
         if (($messages = json_decode($json->json, false, 10)) === null) {
-            $this->raiseError(__METHOD__ .'(), json_decode() returned false! '. $this->json_errors[json_last_error()]);
+            static::raiseError(__METHOD__ .'(), json_decode() returned false! '. $this->json_errors[json_last_error()]);
             return false;
         }
 
         foreach ($messages as $message) {
             if (!is_object($message)) {
-                $this->raiseError(__METHOD__ .', $message is not an object!');
+                static::raiseError(__METHOD__ .', $message is not an object!');
                 return false;
             }
 
             if (!isset($message->command) || empty($message->command)) {
-                $this->raiseError(__METHOD__ .', $message does not contain a command!');
+                static::raiseError(__METHOD__ .', $message does not contain a command!');
                 return false;
             }
 
             try {
                 $mbmsg = new \Thallium\Models\MessageModel;
             } catch (\Exception $e) {
-                $this->raiseError('Failed to load MessageModel!');
+                static::raiseError('Failed to load MessageModel!');
                 return false;
             }
 
             if (!$mbmsg->setCommand($message->command)) {
-                $this->raiseError(get_class($mbmsg) .'::setCommand() returned false!');
+                static::raiseError(get_class($mbmsg) .'::setCommand() returned false!');
                 return false;
             }
 
             if (!$mbmsg->setSessionId($sessionid)) {
-                $this->raiseError(get_class($mbmsg) .'::setSessionId() returned false!');
+                static::raiseError(get_class($mbmsg) .'::setSessionId() returned false!');
                 return false;
             }
 
@@ -134,18 +134,18 @@ class MessageBusController extends DefaultController
 
             if (isset($message->message) && !empty($message->message)) {
                 if (!$mbmsg->setBody($message->message)) {
-                    $this->raiseError(get_class($mbmsg) .'::setBody() returned false!');
+                    static::raiseError(get_class($mbmsg) .'::setBody() returned false!');
                     return false;
                 }
             }
 
             if (!$mbmsg->setScope('inbound')) {
-                $this->raiseError(get_class($mbmsg) .'::setScope() returned false!');
+                static::raiseError(get_class($mbmsg) .'::setScope() returned false!');
                 return false;
             }
 
             if (!$mbmsg->save()) {
-                $this->raiseError(get_class($mbmsg) .'::save() returned false!');
+                static::raiseError(get_class($mbmsg) .'::save() returned false!');
                 return false;
             }
         }
@@ -162,17 +162,17 @@ class MessageBusController extends DefaultController
         try {
             $msgs = new \Thallium\Models\MessageBusModel;
         } catch (\Exception $e) {
-            $this->raiseError('Failed to load MessageBusModel!');
+            static::raiseError('Failed to load MessageBusModel!');
             return false;
         }
 
         if (!($sessionid = $session->getSessionId())) {
-            $this->raiseError(get_class($session) .'::getSessionId() returned false!');
+            static::raiseError(get_class($session) .'::getSessionId() returned false!');
             return false;
         }
 
         if (($messages = $msgs->getMessagesForSession($sessionid)) === false) {
-            $this->raiseError(get_class($msgs) .'::getMessagesForSession() returned false!');
+            static::raiseError(get_class($msgs) .'::getMessagesForSession() returned false!');
             return false;
         }
 
@@ -187,13 +187,13 @@ class MessageBusController extends DefaultController
             );
 
             if (!$message->delete()) {
-                $this->raiseError(get_class($message) .'::delete() returned false!');
+                static::raiseError(get_class($message) .'::delete() returned false!');
                 return false;
             }
         }
 
         if (!($json = json_encode($raw_messages))) {
-            $this->raiseError('json_encode() returned false!');
+            static::raiseError('json_encode() returned false!');
             return false;
         }
 
@@ -209,7 +209,7 @@ class MessageBusController extends DefaultController
         );
 
         if (!($reply = json_encode($reply_raw))) {
-            $this->raiseError('json_encode() returned false!');
+            static::raiseError('json_encode() returned false!');
             return false;
         }
 
@@ -221,17 +221,17 @@ class MessageBusController extends DefaultController
         try {
             $msgs = new \Thallium\Models\MessageBusModel;
         } catch (\Exception $e) {
-            $this->raiseError('Failed to load MessageBusModel!');
+            static::raiseError('Failed to load MessageBusModel!');
             return false;
         }
 
         if (($messages = $msgs->getServerRequests()) === false) {
-            $this->raiseError(get_class($msgs) .'::getServerRequests() returned false!');
+            static::raiseError(get_class($msgs) .'::getServerRequests() returned false!');
             return false;
         }
 
         if (!is_array($messages)) {
-            $this->raiseError(get_class($msgs) .'::getServerRequests() has not returned an arary!');
+            static::raiseError(get_class($msgs) .'::getServerRequests() has not returned an arary!');
             return false;
         }
 
@@ -243,12 +243,12 @@ class MessageBusController extends DefaultController
         try {
             $msgs = new \Thallium\Models\MessageBusModel;
         } catch (\Exception $e) {
-            $this->raiseError('Failed to load MessageBusModel!');
+            static::raiseError('Failed to load MessageBusModel!');
             return false;
         }
 
         if (!$msgs->deleteExpiredMessages(self::EXPIRE_TIMEOUT)) {
-            $this->raiseError(get_class($msgs) .'::deleteExpiredMessages() returned false!');
+            static::raiseError(get_class($msgs) .'::deleteExpiredMessages() returned false!');
             return false;
         }
 
@@ -264,63 +264,63 @@ class MessageBusController extends DefaultController
         }
 
         if (!isset($command) || empty($command) || !is_string($command)) {
-            $this->raiseError(__METHOD__ .', parameter $command is mandatory and has to be a string!');
+            static::raiseError(__METHOD__ .', parameter $command is mandatory and has to be a string!');
             return false;
         }
         if (!isset($body) || empty($body) || !is_string($body)) {
-            $this->raiseError(__METHOD__ .', parameter $body is mandatory and has to be a string!');
+            static::raiseError(__METHOD__ .', parameter $body is mandatory and has to be a string!');
             return false;
         }
 
         if (isset($value) && !empty($value) && !is_string($value)) {
-            $this->raiseError(__METHOD__ .', parameter $value has to be a string!');
+            static::raiseError(__METHOD__ .', parameter $value has to be a string!');
             return false;
         }
 
         if (empty($sessionid) && !($sessionid = $this->getSessionIdFromJob())) {
-            $this->raiseError(__METHOD__ .', no session id returnd by getSessionIdFromJob()!');
+            static::raiseError(__METHOD__ .', no session id returnd by getSessionIdFromJob()!');
             return false;
         }
 
         if (!isset($sessionid) || empty($sessionid) || !is_string($sessionid)) {
-            $this->raiseError(__METHOD__ .', the specified $sessionid is invalid!');
+            static::raiseError(__METHOD__ .', the specified $sessionid is invalid!');
             return false;
         }
 
         try {
             $msg = new \Thallium\Models\MessageModel;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .', failed to load MessageModel!');
+            static::raiseError(__METHOD__ .', failed to load MessageModel!');
             return false;
         }
 
         if (!$msg->setCommand($command)) {
-            $this->raiseError(get_class($msg) .'::setCommand() returned false!');
+            static::raiseError(get_class($msg) .'::setCommand() returned false!');
             return false;
         }
 
         if (!$msg->setBody($body)) {
-            $this->raiseError(get_class($msg) .'::setBody() returned false!');
+            static::raiseError(get_class($msg) .'::setBody() returned false!');
             return false;
         }
 
         if (!$msg->setValue($value)) {
-            $this->raiseError(get_class($msg) .'::setValue() returned false!');
+            static::raiseError(get_class($msg) .'::setValue() returned false!');
             return false;
         }
 
         if (!$msg->setSessionId($sessionid)) {
-            $this->raiseError(get_class($msg) .'::setSessionId() returned false!');
+            static::raiseError(get_class($msg) .'::setSessionId() returned false!');
             return false;
         }
 
         if (!$msg->setScope('outbound')) {
-            $this->raiseError(get_class($msg) .'::setScope() returned false!');
+            static::raiseError(get_class($msg) .'::setScope() returned false!');
             return false;
         }
 
         if (!$msg->save()) {
-            $this->raiseError(get_class($msg) .'::save() returned false!');
+            static::raiseError(get_class($msg) .'::save() returned false!');
             return false;
         }
 
@@ -333,29 +333,31 @@ class MessageBusController extends DefaultController
 
         if (!isset($job_guid) || empty($job_guid)) {
             if (($job_guid = $jobs->getCurrentJob()) === false) {
-                $this->raiseError(get_class($jobs) .'::getCurrentJob() returned false!');
+                static::raiseError(get_class($jobs) .'::getCurrentJob() returned false!');
                 return false;
             }
             if (!isset($job_guid) || empty($job_guid)) {
-                $this->raiseError(__METHOD__ .'(), no job found to work on!');
+                static::raiseError(__METHOD__ .'(), no job found to work on!');
                 return false;
             }
         }
 
         if (!$thallium->isValidGuidSyntax($job_guid)) {
-            $this->raiseError(__METHOD__ .', $job_guid is not a valid GUID!');
+            static::raiseError(__METHOD__ .', $job_guid is not a valid GUID!');
             return false;
         }
 
         try {
-            $job = new \Thallium\Models\JobModel(null, $job_guid);
+            $job = new \Thallium\Models\JobModel(array(
+                'guid' => $job_guid
+            ));
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .', failed to load JobModel(null, {$job})!');
+            static::raiseError(__METHOD__ .', failed to load JobModel(null, {$job})!');
             return false;
         }
 
         if (!($sessionid = $job->getSessionId())) {
-            $this->raiseError(get_class($job) .'::getSessionId() returned false!');
+            static::raiseError(get_class($job) .'::getSessionId() returned false!');
             return false;
         }
 
@@ -374,7 +376,7 @@ class MessageBusController extends DefaultController
     public function suppressOutboundMessaging($state)
     {
         if (!is_bool($state)) {
-            $this->raiseError(__METHOD__ .', parameter need to be boolean!');
+            static::raiseError(__METHOD__ .', parameter need to be boolean!');
             return false;
         }
 

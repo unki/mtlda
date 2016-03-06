@@ -2,7 +2,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -17,7 +17,7 @@
 <h1>Welcome to Thallium!</h1>
 <h2>About</h1>
 <h4>Thallium - PHP framework.</h4>
-&copy; 2015 Andreas Unterkircher &lt;unki@netshadow.net&gt;
+&copy; 2015-{'Y'|date} Andreas Unterkircher &lt;unki@netshadow.net&gt;
 <br />
 <a href="https://oss.netshadow.net/redmine/projects/thallium" target="_blank">https://oss.netshadow.net/redmine/projects/thallium</a>
 <br /><br />

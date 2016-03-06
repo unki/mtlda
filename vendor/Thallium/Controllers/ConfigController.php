@@ -4,7 +4,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -28,7 +28,7 @@ class ConfigController extends DefaultController
     public function __construct()
     {
         if (!file_exists(self::CONFIG_DIRECTORY)) {
-            $this->raiseError(
+            static::raiseError(
                 __METHOD__ ."(), configuration directory ". self::CONFIG_DIRECTORY ." does not exist!",
                 true
             );
@@ -36,7 +36,7 @@ class ConfigController extends DefaultController
         }
 
         if (!is_executable(self::CONFIG_DIRECTORY)) {
-            $this->raiseError(
+            static::raiseError(
                 __METHOD__ ."(), unable to enter config directory ". self::CONFIG_DIRECTORY ."!",
                 true
             );
@@ -44,7 +44,7 @@ class ConfigController extends DefaultController
         }
 
         if (!function_exists("parse_ini_file")) {
-            $this->raiseError(
+            static::raiseError(
                 __METHOD__ .'(), PHP does not provide required parse_ini_file() function!',
                 true
             );
@@ -55,7 +55,7 @@ class ConfigController extends DefaultController
 
         foreach (array('dist', 'local') as $config) {
             if (!($config_pure[$config] = $this->readConfig($config))) {
-                $this->raiseError(__METHOD__ ."(), readConfig({$config}) returned false!", true);
+                static::raiseError(__METHOD__ ."(), readConfig({$config}) returned false!", true);
                 return false;
             }
         }
@@ -64,7 +64,7 @@ class ConfigController extends DefaultController
             empty($config_pure['dist']) ||
             !is_array($config_pure['dist'])
         ) {
-            $this->raiseError(__METHOD__ .'(), no valid config.ini.dist available!', true);
+            static::raiseError(__METHOD__ .'(), no valid config.ini.dist available!', true);
             return false;
         }
 
@@ -75,7 +75,7 @@ class ConfigController extends DefaultController
         }
 
         if (!($this->config = array_replace_recursive($config_pure['dist'], $config_pure['local']))) {
-            $this->raiseError(
+            static::raiseError(
                 __METHOD__ ."(), failed to merge {$this->config_file_local} with {$this->config_file_dist}."
             );
             return false;
@@ -95,12 +95,12 @@ class ConfigController extends DefaultController
         }
 
         if (!file_exists($config_fqpn)) {
-            $this->raiseError(__METHOD__ ."(), configuration file {$config_fqpn} does not exist!", true);
+            static::raiseError(__METHOD__ ."(), configuration file {$config_fqpn} does not exist!", true);
             return false;
         }
 
         if (!is_readable($config_fqpn)) {
-            $this->raiseError(
+            static::raiseError(
                 __METHOD__ ."(), unable to read configuration file {$config_fqpn}!",
                 true
             );
@@ -108,7 +108,7 @@ class ConfigController extends DefaultController
         }
 
         if (($config_ary = parse_ini_file($config_fqpn, true)) === false) {
-            $this->raiseError(
+            static::raiseError(
                 __METHOD__ ."(), parse_ini_file() function failed on {$config_fqpn} - please check syntax!",
                 true
             );
@@ -116,7 +116,7 @@ class ConfigController extends DefaultController
         }
 
         if (empty($config_ary) || !is_array($config_ary)) {
-            $this->raiseError(
+            static::raiseError(
                 __METHOD__ ."(), invalid configuration retrieved from {$config_fqpn} - please check syntax!",
                 true
             );
@@ -124,7 +124,7 @@ class ConfigController extends DefaultController
         }
 
         if (!isset($config_ary['app']) || empty($config_ary['app']) || !array($config_ary['app'])) {
-            $this->raiseError(__METHOD__.'(), mandatory config section [app] is not configured!', true);
+            static::raiseError(__METHOD__.'(), mandatory config section [app] is not configured!', true);
             return false;
         }
 
@@ -146,7 +146,6 @@ class ConfigController extends DefaultController
             !is_array($this->config['database'])
         ) {
             return false;
-
         }
 
         return $this->config['database'];
@@ -158,7 +157,6 @@ class ConfigController extends DefaultController
             if (isset($dbconfig['type']) && !empty($dbconfig['type']) && is_string($dbconfig['type'])) {
                 return $dbconfig['type'];
             }
-
         }
 
         return false;
@@ -183,7 +181,6 @@ class ConfigController extends DefaultController
             is_string($this->config['app']['page_title'])
         ) {
             return $this->config['app']['page_title'];
-
         }
 
         return false;
@@ -223,7 +220,10 @@ class ConfigController extends DefaultController
             return true;
         }
 
-        $this->raiseError(__METHOD__ .'(), configuration option "maintenance_mode" in [app] section is invalid!', true);
+        static::raiseError(
+            __METHOD__ .'(), configuration option "maintenance_mode" in [app] section is invalid!',
+            true
+        );
     }
 }
 

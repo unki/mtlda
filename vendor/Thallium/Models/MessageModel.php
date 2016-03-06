@@ -4,7 +4,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,112 +21,151 @@ namespace Thallium\Models ;
 
 class MessageModel extends DefaultModel
 {
-    public $table_name = 'message_bus';
-    public $column_name = 'msg';
-    public $fields = array(
-        'msg_idx' => 'integer',
-        'msg_guid' => 'integer',
-        'msg_scope' => 'string',
-        'msg_submit_time' => 'timestamp',
-        'msg_session_id' => 'string',
-        'msg_command' => 'string',
-        'msg_body' => 'string',
-        'msg_value' => 'string',
-        'msg_in_processing' => 'string',
+    protected static $model_table_name = 'message_bus';
+    protected static $model_column_prefix = 'msg';
+    protected static $model_fields = array(
+        'idx' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'guid' => array(
+            FIELD_TYPE => FIELD_GUID,
+        ),
+        'scope' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'submit_time' => array(
+            FIELD_TYPE => FIELD_TIMESTAMP,
+        ),
+        'session_id' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'command' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'body' => array(
+            FIELD_TYPE => FIELD_STRING,
+            FIELD_LENGTH => 4096,
+        ),
+        'value' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'in_processing' => array(
+            FIELD_TYPE => FIELD_YESNO,
+        ),
     );
 
     public function setCommand($command)
     {
         if (empty($command)) {
-            $this->raiseError(__METHOD__ .'(), an empty command is not allowed!');
+            static::raiseError(__METHOD__ .'(), an empty command is not allowed!');
             return false;
         }
 
         if (!is_string($command)) {
-            $this->raiseError(__METHOD__ .'(), parameter has to be a string!');
+            static::raiseError(__METHOD__ .'(), parameter has to be a string!');
             return false;
         }
 
-        $this->msg_command = $command;
+        if (!$this->setFieldValue('command', $command)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function setSessionId($sessionid)
     {
         if (empty($sessionid)) {
-            $this->raiseError(__METHOD__ .'(), an empty session id is not allowed!');
+            static::raiseError(__METHOD__ .'(), an empty session id is not allowed!');
             return false;
         }
 
         if (!is_string($sessionid)) {
-            $this->raiseError(__METHOD__ .'(), parameter has to be a string!');
+            static::raiseError(__METHOD__ .'(), parameter has to be a string!');
             return false;
         }
 
-        $this->msg_session_id = $sessionid;
+        if (!$this->setFieldValue('session_id', $sessionid)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function getSessionId()
     {
-        if (!isset($this->msg_session_id)) {
-            $this->raiseError(__METHOD__ .'(), \$msg_session_id has not been set yet!');
+        if (!$this->hasFieldValue('session_id')) {
+            static::raiseError(__CLASS__ .'::hasFieldValue() returned false!');
             return false;
         }
 
-        return $this->msg_session_id;
+        if (($session_id = $this->getFieldValue('session_id')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $session_id;
     }
 
     public function getCommand()
     {
-        if (!isset($this->msg_command)) {
-            $this->raiseError(__METHOD__ .'(), \$msg_command has not been set yet!');
+        if (!$this->hasFieldValue('command')) {
+            static::raiseError(__CLASS__ .'::hasFieldValue() returned false!');
             return false;
         }
 
-        return $this->msg_command;
+        if (($command = $this->getFieldValue('command')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $command;
     }
 
     public function setBody($body)
     {
         if (!isset($body) || empty($body)) {
-            $this->raiseError(__METHOD__ .'(), $body parameter needs to be set!');
+            static::raiseError(__METHOD__ .'(), $body parameter needs to be set!');
             return false;
         }
 
         if (is_string($body)) {
-            $this->msg_body = base64_encode(serialize($body));
+            if (!$this->setFieldValue('body', base64_encode(serialize($body)))) {
+                static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+                return false;
+            }
             return true;
-        }
-
-        if (is_array($body)) {
+        } elseif (is_array($body)) {
             $filtered_body = array_filter($body, function ($var) {
                 if (is_numeric($var) || is_string($var)) {
                     return true;
                 }
                 return false;
             });
-            $this->msg_body = base64_encode(serialize($filtered_body));
+            if (!$this->setFieldValue('body', base64_encode(serialize($filtered_body)))) {
+                static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+                return false;
+            }
             return true;
-        }
-
-        if (!is_object($body)) {
-            $this->raiseError(__METHOD__ .'(), unknown $body type!');
+        } elseif (!is_object($body)) {
+            static::raiseError(__METHOD__ .'(), unknown $body type!');
             return false;
         }
 
         if (!is_a($body, 'stdClass')) {
-            $this->raiseError(__METHOD__ .'(), only stdClass objects are supported!');
+            static::raiseError(__METHOD__ .'(), only stdClass objects are supported!');
             return false;
         }
 
         if (($vars = get_object_vars($body)) === null) {
-            $this->raiseError(__METHOD__ .'(), $body object has no properties assigned!');
+            static::raiseError(__METHOD__ .'(), $body object has no properties assigned!');
             return false;
         }
 
         if (!isset($vars) || empty($vars) || !is_array($vars)) {
-            $this->raiseError(__METHOD__ .'(), get_object_vars() has not reveal any class properties!');
+            static::raiseError(__METHOD__ .'(), get_object_vars() has not reveal any class properties!');
             return false;
         }
 
@@ -140,13 +179,17 @@ class MessageModel extends DefaultModel
             $filtered_body->$key = $value;
         }
 
-        $this->msg_body = base64_encode(serialize($filtered_body));
+        if (!$this->setFieldValue('body', base64_encode(serialize($filtered_body)))) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function hasBody()
     {
-        if (!isset($this->msg_body) || empty($this->msg_body)) {
+        if (!$this->hasFieldValue('body')) {
             return false;
         }
 
@@ -155,18 +198,23 @@ class MessageModel extends DefaultModel
 
     public function getBody()
     {
-        if (!isset($this->msg_body)) {
-            $this->raiseError(__METHOD__ .'(), \$msg_body has not been set yet!');
+        if (!$this->hasFieldValue('body')) {
+            static::raiseError(__CLASS__ .'::hasFieldValue() returned false!');
             return false;
         }
 
-        if (($body = base64_decode($this->msg_body)) === false) {
-            $this->raiseError(__METHOD__ .'(), base64_decode() failed on msg_body!');
+        if (($body_raw = $this->getBodyRaw()) === false) {
+            static::raiseError(__CLASS__ .'::getBodyRaw() returned false!');
+            return false;
+        }
+
+        if (($body = base64_decode($body_raw)) === false) {
+            static::raiseError(__METHOD__ .'(), base64_decode() failed on msg_body!');
             return false;
         }
 
         if (($body = unserialize($body)) === false) {
-            $this->raiseError(__METHOD__ .'(), unserialize() msg_body failed!');
+            static::raiseError(__METHOD__ .'(), unserialize() msg_body failed!');
             return false;
         }
 
@@ -175,44 +223,58 @@ class MessageModel extends DefaultModel
 
     public function getBodyRaw()
     {
-        if (!isset($this->msg_body)) {
-            $this->raiseError(__METHOD__ .'(), \$msg_body has not been set yet!');
+        if (!$this->hasFieldValue('body')) {
+            static::raiseError(__CLASS__ .'::hasFieldValue() returned false!');
             return false;
         }
 
-        return $this->msg_body;
+        if (($body_raw = $this->getFieldValue('body')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $body_raw;
     }
 
     public function setScope($scope)
     {
         if (!is_string($scope)) {
-            $this->raiseError(__METHOD__ .'(), parameter has to be a string!');
+            static::raiseError(__METHOD__ .'(), parameter has to be a string!');
             return false;
         }
 
         if (!in_array($scope, array('inbound', 'outbound'))) {
-            $this->raiseError(__METHOD__ .'(), allowed values for scope are "inbound" and "outbound" only!');
+            static::raiseError(__METHOD__ .'(), allowed values for scope are "inbound" and "outbound" only!');
             return false;
         }
 
-        $this->msg_scope = $scope;
+        if (!$this->setFieldValue('scope', $scope)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function getScope()
     {
-        if (!isset($this->msg_scope)) {
-            $this->raiseError(__METHOD__ .'(), \$msg_scope has not been set yet!');
+        if (!$this->hasFieldValue('scope')) {
+            static::raiseError(__CLASS__ .'::hasFieldValue() returned false!');
             return false;
         }
 
-        return $this->msg_scope;
+        if (($scope = $this->getFieldValue('scope')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $scope;
     }
 
     public function isClientMessage()
     {
         if (!($scope = $this->getScope())) {
-            $this->raiseError(__CLASS__ .'::getScope() returned false!');
+            static::raiseError(__CLASS__ .'::getScope() returned false!');
             return false;
         }
 
@@ -226,7 +288,7 @@ class MessageModel extends DefaultModel
     public function isServerMessage()
     {
         if (!($scope = $this->getScope())) {
-            $this->raiseError(__CLASS__ .'::getScope() returned false!');
+            static::raiseError(__CLASS__ .'::getScope() returned false!');
             return false;
         }
 
@@ -240,21 +302,33 @@ class MessageModel extends DefaultModel
     public function setProcessingFlag($value = true)
     {
         if (!$value) {
-            $this->msg_in_processing = 'N';
+            if (!$this->setFieldValue('in_processing', 'N')) {
+                static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+                return false;
+            }
             return true;
         }
 
-        $this->msg_in_processing = 'Y';
+        if (!$this->setFieldValue('in_processing', 'Y')) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function getProcessingFlag()
     {
-        if (!isset($this->msg_in_processing)) {
+        if (!$this->hasFieldValue('in_processing')) {
             return 'N';
         }
 
-        return $this->msg_in_processing;
+        if (($in_processing = $this->getFieldValue('in_processing')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $in_processing;
     }
 
     public function isProcessing()
@@ -263,7 +337,12 @@ class MessageModel extends DefaultModel
             return false;
         }
 
-        if ($this->msg_in_processing != 'Y') {
+        if (($in_processing = $this->getFieldValue('in_processing')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        if ($in_processing != 'Y') {
             return false;
         }
 
@@ -273,11 +352,15 @@ class MessageModel extends DefaultModel
     public function setValue($value)
     {
         if (!isset($value) || empty($value) || !is_string($value)) {
-            $this->raiseError(__METHOD__ .'(), first parameter \$value has to be a string!');
+            static::raiseError(__METHOD__ .'(), first parameter \$value has to be a string!');
             return false;
         }
 
-        $this->msg_value = $value;
+        if (!$this->setFieldValue('value', $value)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
@@ -287,12 +370,17 @@ class MessageModel extends DefaultModel
             return false;
         }
 
-        return $this->msg_value;
+        if (($value = $this->getFieldValue('value')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function hasValue()
     {
-        if (!isset($this->msg_value) || empty($this->msg_value)) {
+        if (!$this->hasFieldValue('value')) {
             return false;
         }
 
@@ -301,8 +389,11 @@ class MessageModel extends DefaultModel
 
     protected function preSave()
     {
-        if (!isset($this->msg_in_processing) || empty($this->msg_in_processing)) {
-            $this->msg_in_processing = 'N';
+        if (!$this->hasFieldValue('in_processing')) {
+            if (!$this->setFieldValue('in_processing', 'N')) {
+                static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+                return false;
+            }
         }
 
         return true;

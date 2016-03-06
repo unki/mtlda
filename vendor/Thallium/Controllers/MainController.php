@@ -4,7 +4,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -49,11 +49,10 @@ class MainController extends DefaultController
         }
 
         $this->loadController("Requirements", "requirements");
-
         global $requirements;
 
         if (!$requirements->check()) {
-            $this->raiseError("Error - not all requirements are met. Please check!", true);
+            static::raiseError("Error - not all requirements are met. Please check!", true);
         }
 
         // no longer needed
@@ -66,8 +65,8 @@ class MainController extends DefaultController
             $this->loadController("HttpRouter", "router");
             global $router;
             if (($GLOBALS['query'] = $router->select()) === false) {
-                $this->raiseError(__METHOD__ .'(), HttpRouterController::select() returned false!');
-                return false;
+                static::raiseError(__METHOD__ .'(), HttpRouterController::select() returned false!', true);
+                return;
             }
             global $query;
         }
@@ -77,7 +76,7 @@ class MainController extends DefaultController
         }
 
         if ($mode != "install" && $this->checkUpgrade()) {
-            return false;
+            return;
         }
 
         if (isset($mode) and $mode == "queue_only") {
@@ -85,12 +84,11 @@ class MainController extends DefaultController
             global $import;
 
             if (!$import->handleQueue()) {
-                $this->raiseError("ImportController::handleQueue returned false!");
-                return false;
+                static::raiseError("ImportController::handleQueue returned false!", true);
+                return;
             }
 
             unset($import);
-
         } elseif (isset($mode) and $mode == "install") {
             $this->loadController("Installer", "installer");
             global $installer;
@@ -103,35 +101,51 @@ class MainController extends DefaultController
             exit(0);
         }
 
-        $this->loadController("Session", "session");
-        $this->loadController("Jobs", "jobs");
-        $this->loadController("MessageBus", "mbus");
+        if (!$this->loadController("Cache", "cache")) {
+            static::raiseError(__METHOD__ .'(), failed to load CacheController!', true);
+            return;
+        }
+
+        if (!$this->loadController("Session", "session")) {
+            static::raiseError(__METHOD__ .'(), failed to load SessionController!', true);
+            return;
+        }
+
+        if (!$this->loadController("Jobs", "jobs")) {
+            static::raiseError(__METHOD__ .'(), failed to load JobsController!', true);
+            return;
+        }
+
+        if (!$this->loadController("MessageBus", "mbus")) {
+            static::raiseError(__METHOD__ .'(), failed to load MessageBusController!', true);
+            return;
+        }
 
         if (!$this->processRequestMessages()) {
-            $this->raiseError(__CLASS__ .'::processRequestMessages() returned false!', true);
-            return false;
+            static::raiseError(__CLASS__ .'::processRequestMessages() returned false!', true);
+            return;
         }
 
         try {
             $this->registerHandler('rpc', array($this, 'rpcHandler'));
             $this->registerHandler('view', array($this, 'viewHandler'));
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to register handlers!', true);
-            return false;
+            static::raiseError(__METHOD__ .'(), failed to register handlers!', true);
+            return;
         }
 
-        return true;
+        return;
     }
 
     public function startup()
     {
         if (!ob_start()) {
-            $this->raiseError(__METHOD__ .'(), internal error, ob_start() returned false!', true);
+            static::raiseError(__METHOD__ .'(), internal error, ob_start() returned false!', true);
             return false;
         }
 
         if (!$this->callHandlers()) {
-            $this->raiseError(__CLASS__ .'::callHandlers() returned false!');
+            static::raiseError(__CLASS__ .'::callHandlers() returned false!');
             return false;
         }
 
@@ -152,12 +166,12 @@ class MainController extends DefaultController
         register_shutdown_function(array($this, 'flushOutputBufferToLog'));
 
         if (!ob_start()) {
-            $this->raiseError(__METHOD__ .'(), internal error, ob_start() returned false!', true);
+            static::raiseError(__METHOD__ .'(), internal error, ob_start() returned false!', true);
             return false;
         }
 
         if (!$this->runBackgroundJobs()) {
-            $this->raiseError(__CLASS__ .'::runBackgroundJobs() returned false!');
+            static::raiseError(__CLASS__ .'::runBackgroundJobs() returned false!');
             return false;
         }
 
@@ -174,7 +188,7 @@ class MainController extends DefaultController
         $this->backgroundJobsRunning = true;
 
         if (!$jobs->runJobs()) {
-            $this->raiseError(get_class($jobs) .'::runJobs() returned false!');
+            static::raiseError(get_class($jobs) .'::runJobs() returned false!');
             return false;
         }
 
@@ -184,7 +198,7 @@ class MainController extends DefaultController
     public function setVerbosity($level)
     {
         /*if (!in_array($level, array(0 => LOG_INFO, 1 => LOG_WARNING, 2 => LOG_DEBUG))) {
-            $this->raiseError("Unknown verbosity level ". $level);
+            static::raiseError("Unknown verbosity level ". $level);
         }
 
         $this->verbosity_level = $level;*/
@@ -197,7 +211,7 @@ class MainController extends DefaultController
         global $rpc;
 
         if (!$rpc->perform()) {
-            $this->raiseError(get_class($rpc) .'::perform() returned false!');
+            static::raiseError(get_class($rpc) .'::perform() returned false!');
             return false;
         }
 
@@ -210,7 +224,7 @@ class MainController extends DefaultController
         global $upload;
 
         if (!$upload->perform()) {
-            $this->raiseError("UploadController::perform() returned false!");
+            static::raiseError("UploadController::perform() returned false!");
             return false;
         }
 
@@ -220,14 +234,22 @@ class MainController extends DefaultController
 
     public function isValidId($id)
     {
-        // disable for now, 20150809
-        /*$id = (int) $id;
-
-        if (is_numeric($id)) {
-            return true;
+        if (!isset($id) || is_null($id)) {
+            return false;
         }
 
-        return false;*/
+        if (gettype($id) === 'integer' && !is_int($id)) {
+            return false;
+        }
+
+        if (gettype($id) !== 'string') {
+            return false;
+        }
+
+        if (!intval($id)) {
+            return false;
+        }
+
         return true;
     }
 
@@ -237,7 +259,7 @@ class MainController extends DefaultController
             empty($model_name) ||
             !is_string($model_name)
         ) {
-            $this->raiseError(__METHOD__ .'(), \$model_name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $model_name parameter is invalid!');
             return false;
         }
 
@@ -298,7 +320,7 @@ class MainController extends DefaultController
         }
 
         if (($guid = openssl_random_pseudo_bytes("32")) === false) {
-            $this->raiseError("openssl_random_pseudo_bytes() returned false!");
+            static::raiseError("openssl_random_pseudo_bytes() returned false!");
             return false;
         }
 
@@ -309,12 +331,12 @@ class MainController extends DefaultController
     public function loadModel($model_name, $id = null, $guid = null)
     {
         if (!($prefix = $this->getNamespacePrefix())) {
-            $this->raiseError(__METHOD__ .'(), failed to fetch namespace prefix!');
+            static::raiseError(__METHOD__ .'(), failed to fetch namespace prefix!');
             return false;
         }
 
         if (!($known_models =  $this->getRegisteredModels())) {
-            $this->raiseError(__METHOD__ .'(), getRegisteredModels returned false!');
+            static::raiseError(__METHOD__ .'(), getRegisteredModels returned false!');
             return false;
         }
 
@@ -329,10 +351,18 @@ class MainController extends DefaultController
 
         $model = $prefix .'\\Models\\'. $model;
 
+        $load_by = array();
+        if (isset($id) && !empty($id)) {
+            $load_by['idx'] = $id;
+        }
+        if (isset($guid) && !empty($guid)) {
+            $load_by['guid'] = $guid;
+        }
+
         try {
-            $obj = new $model($id, $guid);
+            $obj = new $model($load_by);
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load model {$object_name}! ". $e->getMessage());
+            static::raiseError("Failed to load model {$object_name}!", false, $e);
             return false;
         }
 
@@ -348,7 +378,7 @@ class MainController extends DefaultController
         global $db, $config;
 
         if (!($base_path = $config->getWebPath())) {
-            $this->raiseError("ConfigController::getWebPath() returned false!");
+            static::raiseError("ConfigController::getWebPath() returned false!");
             return false;
         }
 
@@ -357,7 +387,7 @@ class MainController extends DefaultController
         }
 
         if (!$db->checkTableExists("TABLEPREFIXmeta")) {
-            $this->raiseError(
+            static::raiseError(
                 "You are missing meta table in database! "
                 ."You may run <a href=\"{$base_path}/install\">"
                 ."Installer</a> to fix this.",
@@ -372,14 +402,14 @@ class MainController extends DefaultController
             $application_db_schema_version = $db->getApplicationDatabaseSchemaVersion();
             $application_sw_schema_version = $db->getApplicationSoftwareSchemaVersion();
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to read current schema state!');
+            static::raiseError(__METHOD__ .'(), failed to read current schema state!');
             return false;
         }
 
         if ($application_db_schema_version < $application_sw_schema_version ||
             $framework_db_schema_version < $framework_sw_schema_version
         ) {
-            $this->raiseError(
+            static::raiseError(
                 "A database schema upgrade is pending.&nbsp;"
                 ."You have to run <a href=\"{$base_path}/install\">Installer</a> "
                 ."again to upgrade.",
@@ -394,7 +424,7 @@ class MainController extends DefaultController
     public function loadController($controller, $global_name)
     {
         if (empty($controller)) {
-            $this->raiseError("\$controller must not be empty!", true);
+            static::raiseError(__METHOD__ .'(), $controller parameter is invalid!', true);
             return false;
         }
 
@@ -403,24 +433,25 @@ class MainController extends DefaultController
         }
 
         if (!($prefix = $this->getNamespacePrefix())) {
-            $this->raiseError(__METHOD__ .'(), failed to fetch namespace prefix!');
+            static::raiseError(__METHOD__ .'(), failed to fetch namespace prefix!');
             return false;
         }
 
         $controller = '\\'. $prefix .'\\Controllers\\'.$controller.'Controller';
 
         if (!class_exists($controller, true)) {
-            $this->raiseError("{$controller} class is not available!", true);
+            static::raiseError("{$controller} class is not available!", true);
             return false;
         }
 
         try {
-            $GLOBALS[$global_name] =& new $controller;
+            $$global_name = new $controller;
         } catch (Exception $e) {
-            $this->raiseError("Failed to load {$controller_name}! ". $e->getMessage(), true);
+            static::raiseError("Failed to load {$controller_name}!", false, $e->getMessage());
             return false;
         }
 
+        $GLOBALS[$global_name] =& $$global_name;
         return true;
     }
 
@@ -478,7 +509,7 @@ class MainController extends DefaultController
         }
 
         if (!is_array($messages)) {
-            $this->raiseError(get_class($mbus) .'::getRequestMessages() has not returned an array!');
+            static::raiseError(get_class($mbus) .'::getRequestMessages() has not returned an array!');
             return false;
         }
 
@@ -486,17 +517,17 @@ class MainController extends DefaultController
             $message->setProcessingFlag();
 
             if (!$message->save()) {
-                $this->raiseError(get_class($message) .'::save() returned false!');
+                static::raiseError(get_class($message) .'::save() returned false!');
                 return false;
             }
 
             if (!$this->handleMessage($message)) {
-                $this->raiseError('handleMessage() returned false!');
+                static::raiseError('handleMessage() returned false!');
                 return false;
             }
 
             if (!$message->delete()) {
-                $this->raiseError(get_class($message) .'::delete() returned false!');
+                static::raiseError(get_class($message) .'::delete() returned false!');
                 return false;
             }
         }
@@ -509,28 +540,28 @@ class MainController extends DefaultController
         global $jobs;
 
         if (get_class($message) != 'Thallium\\Models\\MessageModel') {
-            $this->raiseError(__METHOD__ .' requires a MessageModel reference as parameter!');
+            static::raiseError(__METHOD__ .' requires a MessageModel reference as parameter!');
             return false;
         }
 
         if (!$message->isClientMessage()) {
-            $this->raiseError(__METHOD__ .' can only handle client requests!');
+            static::raiseError(__METHOD__ .' can only handle client requests!');
             return false;
         }
 
         if (($command = $message->getCommand()) === false) {
-            $this->raiseError(get_class($message) .'::getCommand() returned false!');
+            static::raiseError(get_class($message) .'::getCommand() returned false!');
             return false;
         }
 
         if (!is_string($command)) {
-            $this->raiseError(get_class($message) .'::getCommand() has not returned a string!');
+            static::raiseError(get_class($message) .'::getCommand() has not returned a string!');
             return false;
         }
 
         if ($message->hasBody()) {
             if (($parameters = $message->getBody()) === false) {
-                $this->raiseError(get_class($message) .'::getBody() returned false!');
+                static::raiseError(get_class($message) .'::getBody() returned false!');
                 return false;
             }
         } else {
@@ -538,17 +569,17 @@ class MainController extends DefaultController
         }
 
         if (($sessionid = $message->getSessionId()) === false) {
-            $this->raiseError(get_class($message) .'::getSessionId() returned false!');
+            static::raiseError(get_class($message) .'::getSessionId() returned false!');
             return false;
         }
 
         if (($msg_guid = $message->getGuid()) === false || !$this->isValidGuidSyntax($msg_guid)) {
-            $this->raiseError(get_class($message) .'::getGuid() has not returned a valid GUID!');
+            static::raiseError(get_class($message) .'::getGuid() has not returned a valid GUID!');
             return false;
         }
 
         if ($jobs->createJob($command, $parameters, $sessionid, $msg_guid) === false) {
-            $this->raiseError(get_class($jobs) .'::createJob() returned false!');
+            static::raiseError(get_class($jobs) .'::createJob() returned false!');
             return false;
         }
 
@@ -578,7 +609,7 @@ class MainController extends DefaultController
             empty($namespace_parts[0]) ||
             !is_string($namespace_parts[0])
         ) {
-            $this->raiseError('Failed to extract prefix from NAMESPACE constant!');
+            static::raiseError('Failed to extract prefix from NAMESPACE constant!');
             return false;
         }
 
@@ -588,7 +619,7 @@ class MainController extends DefaultController
     final public function setNamespacePrefix($prefix)
     {
         if (!isset($prefix) || empty($prefix) || !is_string($prefix)) {
-            $this->raiseError(__METHOD__ .', \$prefix parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $prefix parameter is invalid!');
             return false;
         }
 
@@ -602,7 +633,7 @@ class MainController extends DefaultController
             empty($this->registeredModels) ||
             !is_array($this->registeredModels)
         ) {
-            $this->raiseError(__METHOD__ .'(), registeredModels property is invalid!');
+            static::raiseError(__METHOD__ .'(), registeredModels property is invalid!');
             return false;
         }
 
@@ -615,22 +646,34 @@ class MainController extends DefaultController
             empty($this->registeredModels) ||
             !is_array($this->registeredModels)
         ) {
-            $this->raiseError(__METHOD__ .'(), registeredModels property is invalid!');
+            static::raiseError(__METHOD__ .'(), registeredModels property is invalid!', true);
             return false;
         }
 
         if (!isset($nick) || empty($nick) || !is_string($nick)) {
-            $this->raiseError(__METHOD__ .'(), \$nick parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $nick parameter is invalid!', true);
             return false;
         }
 
         if (!isset($model) || empty($model) || !is_string($model)) {
-            $this->raiseError(__METHOD__ .'(), \$model parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $model parameter is invalid!', true);
             return false;
         }
 
         if ($this->isRegisteredModel($nick, $model)) {
             return true;
+        }
+
+        if (!($prefix = $this->getNamespacePrefix())) {
+            static::raiseError(__METHOD__ .'(), failed to fetch namespace prefix!', true);
+            return false;
+        }
+
+        $full_model_name = "\\{$prefix}\\Models\\{$model}";
+
+        if (!class_exists($full_model_name, true)) {
+            static::raiseError(__METHOD__ ."(), model {$model} class does not exist!", true);
+            return false;
         }
 
         $this->registeredModels[$nick] = $model;
@@ -640,14 +683,14 @@ class MainController extends DefaultController
     final public function isRegisteredModel($nick = null, $model = null)
     {
         if ((!isset($nick) || empty($nick) || !is_string($nick)) &&
-            (!isset($model) || empty($model) || !is_string($nick))
+            (!isset($model) || empty($model) || !is_string($model))
         ) {
-            $this->raiseError(__METHOD__ .'(), can not look for nothing!');
+            static::raiseError(__METHOD__ .'(), can not look for nothing!');
             return false;
         }
 
         if (($known_models = $this->getRegisteredModels()) === false) {
-            $this->raiseError(__METHOD__ .'(), getRegisteredModels() returned false!');
+            static::raiseError(__METHOD__ .'(), getRegisteredModels() returned false!');
             return false;
         }
 
@@ -683,12 +726,12 @@ class MainController extends DefaultController
     public function getModelByNick($nick)
     {
         if (!isset($nick) || empty($nick) || !is_string($nick)) {
-            $this->raiseError(__METHOD__ .'(), $nick parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $nick parameter is invalid!');
             return false;
         }
 
         if (($known_models = $this->getRegisteredModels()) === false) {
-            $this->raiseError(__METHOD__ .'(), getRegisteredModels() returned false!');
+            static::raiseError(__METHOD__ .'(), getRegisteredModels() returned false!');
             return false;
         }
 
@@ -702,7 +745,7 @@ class MainController extends DefaultController
     public function isBelowDirectory($dir, $topmost = null)
     {
         if (empty($dir)) {
-            $this->raiseError("\$dir can not be empty!");
+            static::raiseError(__METHOD__ .'(), $dir parameter is invalid!');
             return false;
         }
 
@@ -737,12 +780,12 @@ class MainController extends DefaultController
     protected function registerHandler($handler_name, $handler)
     {
         if (!isset($handler_name) || empty($handler_name) || !is_string($handler_name)) {
-            $this->raiseError(__METHOD__ .'(), $handler_name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $handler_name parameter is invalid!');
             return false;
         }
 
         if (!isset($handler) || empty($handler) || (!is_string($handler) && !is_array($handler))) {
-            $this->raiseError(__METHOD__ .'(), $handler parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $handler parameter is invalid!');
             return false;
         }
 
@@ -753,13 +796,13 @@ class MainController extends DefaultController
                 !isset($handler[0]) || empty($handler[0]) || !is_object($handler[0]) ||
                 !isset($handler[1]) || empty($handler[1]) || !is_string($handler[1])
             ) {
-                $this->raiseError(__METHOD__ .'(), $handler parameter contains invalid data!');
+                static::raiseError(__METHOD__ .'(), $handler parameter contains invalid data!');
                 return false;
             }
         }
 
         if ($this->isRegisteredHandler($handler_name)) {
-            $this->raiseError(__METHOD__ ."(), a handler for {$handler_name} is already registered!");
+            static::raiseError(__METHOD__ ."(), a handler for {$handler_name} is already registered!");
             return false;
         }
 
@@ -769,7 +812,7 @@ class MainController extends DefaultController
     protected function unregisterHandler($handler_name)
     {
         if (!isset($handler_name) || empty($handler_name) || !is_string($handler_name)) {
-            $this->raiseError(__METHOD__ .'(), $handler_name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $handler_name parameter is invalid!');
             return false;
         }
 
@@ -784,7 +827,7 @@ class MainController extends DefaultController
     protected function isRegisteredHandler($handler_name)
     {
         if (!isset($handler_name) || empty($handler_name) || !is_string($handler_name)) {
-            $this->raiseError(__METHOD__ .'(), $handler_name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $handler_name parameter is invalid!');
             return false;
         }
 
@@ -798,12 +841,12 @@ class MainController extends DefaultController
     protected function getHandler($handler_name)
     {
         if (!isset($handler_name) || empty($handler_name) || !is_string($handler_name)) {
-            $this->raiseError(__METHOD__ .'(), $handler_name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $handler_name parameter is invalid!');
             return false;
         }
 
         if (!$this->isRegisteredHandler($handler_name)) {
-            $this->raiseError(__METHOD__ .'(), no such handler!');
+            static::raiseError(__METHOD__ .'(), no such handler!');
             return false;
         }
 
@@ -816,17 +859,12 @@ class MainController extends DefaultController
         global $views, $query;
 
         if (!isset($query->view) || empty($query->view)) {
-            $this->raiseError(__METHOD__ .'(), no view has been requested!');
+            static::raiseError(__METHOD__ .'(), no view has been requested!');
             return false;
         }
 
-        if (($page_name = $views->getViewName($query->view)) === false) {
-            $this->raiseError(__METHOD__ ."(), unable to find a view for {$query->view}!");
-            return false;
-        }
-
-        if (($page = $views->load($page_name)) === false) {
-            $this->raiseError("ViewController:load() returned false!");
+        if (($page = $views->load($query->view)) === false) {
+            static::raiseError("ViewController:load() returned false!");
             return false;
         }
 
@@ -848,20 +886,20 @@ class MainController extends DefaultController
 
         if ($router->isRpcCall()) {
             if (!$this->callHandler('rpc')) {
-                $this->raiseError(__CLASS__ .'::callHandler() returned false!');
+                static::raiseError(__CLASS__ .'::callHandler() returned false!');
                 return false;
             }
             return true;
         } elseif ($router->isUploadCall()) {
             if (!$this->callHandler('upload')) {
-                $this->raiseError(__CLASS__ .'::callHandler() returned false!');
+                static::raiseError(__CLASS__ .'::callHandler() returned false!');
                 return false;
             }
             return true;
         }
 
         if (!$this->callHandler('view')) {
-            $this->raiseError(__CLASS__ .'::callHandler() returned false!');
+            static::raiseError(__CLASS__ .'::callHandler() returned false!');
             return false;
         }
 
@@ -871,12 +909,12 @@ class MainController extends DefaultController
     protected function callHandler($handler_name)
     {
         if (!isset($handler_name) || empty($handler_name) || !is_string($handler_name)) {
-            $this->raiseError(__METHOD__ .'(), $handler_name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $handler_name parameter is invalid!');
             return false;
         }
 
         if (($handler = $this->getHandler($handler_name)) === false) {
-            $this->raiseError(__CLASS__ .'::getHandler() returned false!');
+            static::raiseError(__CLASS__ .'::getHandler() returned false!');
             return false;
         }
 
@@ -884,17 +922,17 @@ class MainController extends DefaultController
             !isset($handler[0]) || empty($handler[0]) || !is_object($handler[0]) ||
             !isset($handler[1]) || empty($handler[1]) || !is_string($handler[1])
         ) {
-            $this->raiseError(__CLASS__ .'::getHandler() returned invalid data!');
+            static::raiseError(__CLASS__ .'::getHandler() returned invalid data!');
             return false;
         }
 
         if (!is_callable($handler, true)) {
-            $this->raiseError(__METHOD__ .'(), handler is not callable!');
+            static::raiseError(__METHOD__ .'(), handler is not callable!');
             return false;
         }
 
         if (!call_user_func($handler)) {
-            $this->raiseError(get_class($handler[0]) ."::{$handler[1]}() returned false!");
+            static::raiseError(get_class($handler[0]) ."::{$handler[1]}() returned false!");
             return false;
         }
 
@@ -918,9 +956,25 @@ class MainController extends DefaultController
         ob_flush();
         flush();
 
-        error_log(__METHOD__ .'(), background jobs issued output!');
+        error_log(__METHOD__ .'(), background jobs have issued output! output follows:');
         error_log(__METHOD__ .'(), '. $buffer);
         return true;
+    }
+
+    public function getFullModelName($model)
+    {
+        if (!$this->isRegisteredModel($model, $model)) {
+            static::raiseError(__CLASS__ .'::isRegisteredModel() returned false!');
+            return false;
+        }
+
+        if (!($prefix = $this->getNamespacePrefix())) {
+            static::raiseError(__METHOD__ .'(), failed to fetch namespace prefix!');
+            return false;
+        }
+
+        $full_model_name = "\\{$prefix}\\Models\\{$model}";
+        return $full_model_name;
     }
 }
 

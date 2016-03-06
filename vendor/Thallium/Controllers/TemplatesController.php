@@ -4,7 +4,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -29,30 +29,20 @@ class TemplatesController extends DefaultController
     protected $config_compile_dir;
     protected $config_config_dir;
     protected $config_cache_dir;
-    protected $supported_modes = array (
-            'list',
-            'show',
-            'edit',
-            'delete',
-            'add',
-            'upload',
-            'truncate',
-            );
-    protected $default_mode = "list";
 
     public function __construct()
     {
-        global $config, $views, $thallium;
+        global $config, $thallium;
 
         try {
             $this->smarty = new Smarty;
         } catch (\Exception $e) {
-            $this->raiseError('Failed to load Smarty!', true);
+            static::raiseError('Failed to load Smarty!', true);
             return false;
         }
 
         if (!($prefix = $thallium->getNamespacePrefix())) {
-            $this->raiseError(get_class($thallium) .'::getNameSpacePrefix() returned false!', true);
+            static::raiseError(get_class($thallium) .'::getNameSpacePrefix() returned false!', true);
             return false;
         }
 
@@ -67,7 +57,7 @@ class TemplatesController extends DefaultController
         $this->config_cache_dir    = self::CACHE_DIRECTORY .'/smarty_cache';
 
         if (!file_exists($this->config_compile_dir) && !is_writeable(self::CACHE_DIRECTORY)) {
-            $this->raiseError(
+            static::raiseError(
                 "Cache directory ". CACHE_DIRECTORY ." is not writeable"
                 ."for user (". $this->getuid() .").<br />\n"
                 ."Please check that permissions are set correctly to this directory.<br />\n",
@@ -76,15 +66,15 @@ class TemplatesController extends DefaultController
         }
 
         if (!file_exists($this->config_compile_dir) && !mkdir($this->config_compile_dir, 0700)) {
-            $this->raiseError("Failed to create directory ". $this->config_compile_dir, true);
+            static::raiseError("Failed to create directory ". $this->config_compile_dir, true);
             return false;
         }
 
         if (!is_writeable($this->config_compile_dir)) {
-            $this->raiseError(
-                "Error - Smarty compile directory ". $this->config_compile_dir ." is not writeable
-                for the current user (". $this->getuid() .").<br />\n
-                Please check that permissions are set correctly to this directory.<br />\n",
+            static::raiseError(
+                "Error - Smarty compile directory {$this->config_compile_dir} is not "
+                ."writeable for the current user ({$this->getuid()}).<br />"
+                ."Please check that permissions are set correctly to this directory.<br />",
                 true
             );
             return false;
@@ -96,7 +86,7 @@ class TemplatesController extends DefaultController
         $this->smarty->setCacheDir($this->config_cache_dir);
 
         if (!($app_web_path = $config->getWebPath())) {
-            $this->raiseError("Web path is missing!", true);
+            static::raiseError("Web path is missing!", true);
             return false;
         }
 
@@ -142,7 +132,7 @@ class TemplatesController extends DefaultController
         $no_output_filter = false
     ) {
         if (!file_exists($this->config_template_dir ."/". $template)) {
-            $this->raiseError("Unable to locate ". $template ." in directory ". $this->config_template_dir);
+            static::raiseError("Unable to locate ". $template ." in directory ". $this->config_template_dir);
             return false;
         }
 
@@ -158,10 +148,10 @@ class TemplatesController extends DefaultController
                 $no_output_filter
             );
         } catch (\SmartyException $e) {
-            $this->raiseError("Smarty throwed an exception! ". $e->getMessage());
+            static::raiseError("Smarty throwed an exception! ". $e->getMessage());
             return false;
         } catch (\Exception $e) {
-            $this->raiseError('An exception occured: '. $e->getMessage());
+            static::raiseError('An exception occured: '. $e->getMessage());
             return false;
         }
 
@@ -173,7 +163,7 @@ class TemplatesController extends DefaultController
         global $query;
 
         if (!array_key_exists('page', $params)) {
-            $this->raiseError("getMenuState: missing 'page' parameter", E_USER_WARNING);
+            static::raiseError("getMenuState: missing 'page' parameter", E_USER_WARNING);
             $repeat = false;
             return false;
         }
@@ -190,7 +180,7 @@ class TemplatesController extends DefaultController
         global $query;
 
         if (!array_key_exists('size', $params)) {
-            $this->raiseError("getMenuState: missing 'size' parameter", E_USER_WARNING);
+            static::raiseError("getMenuState: missing 'size' parameter", E_USER_WARNING);
             $repeat = false;
             return false;
         }
@@ -205,7 +195,7 @@ class TemplatesController extends DefaultController
     public function assign($key, $value)
     {
         if (!$this->smarty->assign($key, $value)) {
-            $this->raiseError(get_class($this->smarty) .'::assign() returned false!');
+            static::raiseError(get_class($this->smarty) .'::assign() returned false!');
             return false;
         }
 
@@ -214,8 +204,12 @@ class TemplatesController extends DefaultController
 
     public function registerPlugin($type, $name, $callback, $cacheable = true)
     {
+        if (isset($this->smarty->smarty->registered_plugins[$type][$name])) {
+            return true;
+        }
+
         if (!$this->smarty->registerPlugin($type, $name, $callback, $cacheable)) {
-            $this->raiseError(get_class($this->smarty) .'::registerPlugin() returned false!');
+            static::raiseError(get_class($this->smarty) .'::registerPlugin() returned false!');
             return false;
         }
 
@@ -233,22 +227,49 @@ class TemplatesController extends DefaultController
 
     public function getUrl($params, &$smarty)
     {
-        global $config;
+        global $config, $views;
 
-        if (!array_key_exists('page', $params)) {
-            $this->raiseError("getUrl: missing 'page' parameter", E_USER_WARNING);
+        if (!isset($params) ||
+            empty($params) ||
+            !is_array($params)
+        ) {
+            static::raiseError(__METHOD__ .'(), $params parameter is invalid!');
             $repeat = false;
             return false;
         }
 
-        if (array_key_exists('mode', $params) && !$this->isSupportedMode($params['mode'])) {
-            $this->raiseError("getUrl: value of parameter 'mode' ({$params['mode']}) isn't supported", E_USER_WARNING);
+        if (!array_key_exists('page', $params) ||
+            empty($params['page']) ||
+            !is_string($params['page'])
+        ) {
+            static::raiseError(__METHOD__ .'(), missing "page" parameter!');
             $repeat = false;
             return false;
         }
 
-        if (!($url = $config->getWebPath())) {
-            $this->raiseError("Web path is missing!");
+        if (array_key_exists('mode', $params)) {
+            if (($view = $views->getView($params['page'])) === false) {
+                static::raiseError(get_class($views) .'::getView() returned false!');
+                $repeat = false;
+                return false;
+            }
+
+            if (!isset($view) || empty($view) || !is_object($view)) {
+                static::raiseError(get_class($views) .'::getView() returned invalid data!');
+                $repeat = false;
+                return false;
+            }
+
+            if (!$view->isValidMode($params['mode'])) {
+                static::raiseError(get_class($view) .'::isValidMode() returned false!');
+                $repeat = false;
+                return false;
+            }
+        }
+
+        if (($url = $config->getWebPath()) === false) {
+            static::raiseError(get_class($config) .'::getWebPath() returned false!');
+            $repeat = false;
             return false;
         }
 
@@ -256,65 +277,34 @@ class TemplatesController extends DefaultController
             $url = "";
         }
 
-        $url.= "/";
-        $url.= $params['page'] ."/";
+        $url.= '/'. $params['page'] .'/';
 
-        if (isset($params['mode']) && !empty($params['mode'])) {
-            $url.= $params['mode'] ."/";
+        if (array_key_exists('mode', $params) && !empty($params['mode'])) {
+            $url.= $params['mode'] .'/';
         }
 
         if (array_key_exists('id', $params) && !empty($params['id'])) {
-            $url.= $params['id'];
+            $url.= $params['id'] .'/';
         }
+
         if (array_key_exists('file', $params) && !empty($params['file'])) {
-            $url.= '/'. $params['file'];
+            $url.= $params['file'] .'/';
+        }
+
+        if (!array_key_exists('number', $params) &&
+            !array_key_exists('items_per_page', $params)) {
+            return $url;
+        }
+
+        if (array_key_exists('number', $params)) {
+            $url.= "list-{$params['number']}.html";
+        }
+
+        if (array_key_exists('items_per_page', $params)) {
+            $url.= "?items-per-page=". $params['items_per_page'];
         }
 
         return $url;
-
-    } // getUrl()
-
-    public function addSupportedMode($mode)
-    {
-        if (!isset($mode) || empty($mode) || !is_string($mode)) {
-            $this->raiseError(__METHOD__ .'(), $mode parameter is invalid!');
-            return false;
-        }
-
-        if (in_array($mode, $this->supported_modes)) {
-            return true;
-        }
-
-        array_push($this->supported_modes, $mode);
-        return true;
-    }
-
-    public function isSupportedMode($mode)
-    {
-        if (!isset($mode) || empty($mode) || !is_string($mode)) {
-            $this->raiseError(__METHOD__ .'(), $mode parameter is invalid!');
-            return false;
-        }
-
-        if (($modes = $this->getSupportedModes()) === false) {
-            $this->raiseError(__CLASS__ .'::getSupportedModes() returned false!');
-            return false;
-        }
-
-        if (!in_array($mode, $modes)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function getSupportedModes()
-    {
-        if (!isset($this->supported_modes)) {
-            return false;
-        }
-
-        return $this->supported_modes;
     }
 }
 

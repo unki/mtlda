@@ -4,7 +4,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,57 +21,26 @@ namespace Thallium\Models ;
 
 class AuditLogModel extends DefaultModel
 {
-    public $table_name = 'audit';
-    public $column_name = 'audit';
-    public $fields = array(
-        'audit_log' => 'array',
+    protected static $model_table_name = 'audit';
+    protected static $model_column_prefix = 'audit';
+    protected static $model_fields = array(
+        'log' => array(
+            FIELD_TYPE => FIELD_ARRAY,
+        ),
     );
-
-    public function __construct($guid = null)
-    {
-        global $db;
-
-        // are we creating a new item?
-        if (!isset($guid) || empty($guid)) {
-            $this->raiseError('$guid parameter is missing!', true);
-            return false;
-        }
-
-        $this->audit_log = array();
-
-        // get $id from db
-        $sql = "
-            SELECT
-                *
-            FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-                audit_guid
-            LIKE
-                ?
-        ";
-
-        if (!($sth = $db->prepare($sql))) {
-            $this->raiseError("DatabaseController::prepare() returned false!");
-            return false;
-        }
-
-        if (!$db->execute($sth, array($guid))) {
-            $this->raiseError("DatabaseController::execute() returned false!");
-            return false;
-        }
-
-        while ($row = $sth->fetch()) {
-            $this->audit_log[] = $row->audit_message;
-        }
-
-        $db->freeStatement($sth);
-        return true;
-    }
 
     public function getLog()
     {
-        return $this->audit_log;
+        if (!$this->hasFieldValue('log')) {
+            return false;
+        }
+
+        if (($log = $this->getFieldValue('log')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $log;
     }
 }
 

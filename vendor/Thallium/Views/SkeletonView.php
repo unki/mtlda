@@ -4,7 +4,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -21,7 +21,7 @@ namespace Thallium\Views;
 
 class SkeletonView extends DefaultView
 {
-    public $class_name = 'skeleton';
+    protected static $view_class_name = 'skeleton';
 
     /**
      * overwrite parent show() method as we do not have a lot
@@ -30,6 +30,12 @@ class SkeletonView extends DefaultView
     public function show()
     {
         global $tmpl;
+
+        if (!$tmpl->templateExists('skeleton.tpl')) {
+            static::raiseError(__METHOD__ .'(), skeleton.tpl does not exist!');
+            return false;
+        }
+
         return $tmpl->fetch('skeleton.tpl');
     }
 }

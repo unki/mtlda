@@ -4,7 +4,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -29,6 +29,7 @@ class DatabaseController extends DefaultController
     protected $db;
     protected $db_cfg;
     protected $is_connected = false;
+    protected $is_open_transaction = false;
 
     public function __construct()
     {
@@ -37,7 +38,7 @@ class DatabaseController extends DefaultController
         $this->is_connected = false;
 
         if (!($dbconfig = $config->getDatabaseConfiguration())) {
-            $this->raiseError(
+            static::raiseError(
                 "Database configuration is missing or incomplete"
                 ." - please check configuration!",
                 true
@@ -62,12 +63,12 @@ class DatabaseController extends DefaultController
         $this->db_cfg = $dbconfig;
 
         if (!$this->connect()) {
-            $this->raiseError(__CLASS__ ."::connect() returned false!");
+            static::raiseError(__CLASS__ ."::connect() returned false!");
             return false;
         }
 
         if (!$this->checkDatabaseSoftwareVersion()) {
-            $this->raiseError(__CLASS__ ."::checkDatabaseSoftwareVersion() returned false!");
+            static::raiseError(__CLASS__ ."::checkDatabaseSoftwareVersion() returned false!");
             return false;
         }
 
@@ -101,7 +102,7 @@ class DatabaseController extends DefaultController
             $this->db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
             $this->db->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_OBJ);
         } catch (\PDOException $e) {
-            $this->raiseError("Error - unable to connect to database: ". $e->getMessage(), true);
+            static::raiseError(__METHOD__ .'(), unable to connect to database!', true, $e);
             return false;
         }
 
@@ -132,13 +133,19 @@ class DatabaseController extends DefaultController
         /* for manipulating queries use exec instead of query. can save
          * some resource because nothing has to be allocated for results.
          */
-        if (preg_match('/^(update|insert|create|replace|truncate|delete)/i', $query)) {
+        if (preg_match('/^[[:blank:]]*(update|insert|create|replace|truncate|delete|alter)[[:blank:]]/i', $query)) {
             try {
                 $result = $this->db->exec($query);
             } catch (\PDOException $e) {
-                $this->raiseError(__METHOD__ .'(), query failed!', false, $e);
+                static::raiseError(__METHOD__ .'(), query failed!', false, $e);
             }
 
+            /* PDO::exec() sometimes returns false even if operation was successful.
+             * http://php.net/manual/de/pdo.exec.php#118156
+             * so overrule fow now.
+             */
+
+            return true;
             if (!isset($result) || $result === false) {
                 return false;
             }
@@ -148,7 +155,7 @@ class DatabaseController extends DefaultController
         try {
             $result = $this->db->query($query, $mode);
         } catch (\PDOException $e) {
-            $this->raiseError(__METHOD__ .'(), query failed!', false, $e);
+            static::raiseError(__METHOD__ .'(), query failed!', false, $e);
         }
 
         if (!isset($result) || $result === false) {
@@ -161,7 +168,8 @@ class DatabaseController extends DefaultController
     public function prepare($query = "")
     {
         if (!$this->getConnectionStatus()) {
-            $this->raiseError("Can't prepare query - we are not connected!");
+            static::raiseError(__CLASS__ .'::getConnectionStatus() returned false!');
+            return false;
         }
 
         if ($this->hasTablePrefix()) {
@@ -171,7 +179,7 @@ class DatabaseController extends DefaultController
         try {
             $result = $this->db->prepare($query);
         } catch (\PDOException $e) {
-            $this->raiseError("Unable to prepare statement: ". $e->getMessage());
+            static::raiseError(__METHOD__ .'(), unable to prepare statement!', false, $e);
             return false;
         }
 
@@ -182,7 +190,8 @@ class DatabaseController extends DefaultController
     public function execute($sth, $data = array())
     {
         if (!$this->getConnectionStatus()) {
-            $this->raiseError("Can't prepare query - we are not connected!");
+            static::raiseError(__CLASS__ .'::getConnectionStatus() returned false!');
+            return false;
         }
 
         if (!is_object($sth)) {
@@ -199,12 +208,19 @@ class DatabaseController extends DefaultController
         */
         if (!isset($data) || empty($data) || !is_array($data)) {
             $data = null;
+        } else {
+            foreach ($data as $key => $value) {
+                $sth->bindParam(
+                    ":{$key}",
+                    $value
+                );
+            }
         }
 
         try {
             $result = $sth->execute($data);
         } catch (\PDOException $e) {
-            $this->raiseError("Unable to execute statement: ". $e->getMessage());
+            static::raiseError(__METHOD__ .'(), unable to execute statement!', false, $e);
             return false;
         }
 
@@ -236,7 +252,8 @@ class DatabaseController extends DefaultController
     public function fetchSingleRow($query = "", $mode = \PDO::FETCH_OBJ)
     {
         if (!$this->getConnectionStatus()) {
-            $this->raiseError("Can't fetch row - we are not connected!");
+            static::raiseError(__CLASS__ .'::getConnectionStatus() returned false!');
+            return false;
         }
 
         if (empty($query)) {
@@ -254,7 +271,7 @@ class DatabaseController extends DefaultController
         try {
             $row = $result->fetch($mode);
         } catch (\PDOException $e) {
-            $this->raiseError("Unable to query database: ". $e->getMessage());
+            static::raiseError(__METHOD__ .'(), unable to fetch from database!', false, $e);
             return false;
         }
 
@@ -295,31 +312,30 @@ class DatabaseController extends DefaultController
     public function getid()
     {
         if (!$this->getConnectionStatus()) {
-            $this->raiseError("Can't fetch row - we are not connected!");
+            static::raiseError(__CLASS__ .'::getConnectionStatus() returned false!');
             return false;
         }
 
         try {
             $lastid = $this->db->lastInsertId();
         } catch (\PDOException $e) {
-            $this->raiseError("unable to detect last inserted row ID!");
+            static::raiseError(__METHOD__ .'(), unable to detect last inserted row ID!');
             return false;
         }
 
         /* Get the last primary key ID from execute query */
         return $lastid;
-
     }
 
     public function checkTableExists($table_name)
     {
         if (!$this->getConnectionStatus()) {
-            $this->raiseError("Can't check table - we are not connected!");
+            static::raiseError(__CLASS__ .'::getConnectionStatus() returned false!');
             return false;
         }
 
         if (($tables = $this->getDatabaseTables()) === false) {
-            $this->raiseError(__CLASS__ .'::getDatabaseTables() returned false!');
+            static::raiseError(__CLASS__ .'::getDatabaseTables() returned false!');
             return false;
         }
 
@@ -339,7 +355,7 @@ class DatabaseController extends DefaultController
         $tables = array();
 
         if (!($result = $this->query("SHOW TABLES"))) {
-            $this->raiseError(__METHOD__ .'(), SHOW TABLES query failed!');
+            static::raiseError(__METHOD__ .'(), SHOW TABLES query failed!');
             return false;
         }
 
@@ -359,7 +375,7 @@ class DatabaseController extends DefaultController
     public function getApplicationDatabaseSchemaVersion()
     {
         if (!$this->getConnectionStatus()) {
-            $this->raiseError("Can't check table - we are not connected!");
+            static::raiseError(__CLASS__ .'::getConnectionStatus() returned false!');
             return false;
         }
 
@@ -389,7 +405,7 @@ class DatabaseController extends DefaultController
     public function getFrameworkDatabaseSchemaVersion()
     {
         if (!$this->getConnectionStatus()) {
-            $this->raiseError("Can't check table - we are not connected!");
+            static::raiseError(__CLASS__ .'::getConnectionStatus() returned false!');
             return false;
         }
 
@@ -419,7 +435,7 @@ class DatabaseController extends DefaultController
     public function setDatabaseSchemaVersion($version = null, $mode = 'application')
     {
         if (!$this->checkTableExists("TABLEPREFIXmeta")) {
-            $this->raiseError("Can not set schema version when 'meta' table does not exist!");
+            static::raiseError(__METHOD__ .'(), can not set schema version as "meta" table does not exist!');
             return false;
         }
 
@@ -428,7 +444,7 @@ class DatabaseController extends DefaultController
         } elseif ($mode == 'framework') {
             $key = 'framework_schema_version';
         } else {
-            $this->raiseError(__METHOD__ .'(), unsupported $mode parameter!');
+            static::raiseError(__METHOD__ .'(), unsupported $mode parameter!');
             return false;
         }
 
@@ -451,7 +467,7 @@ class DatabaseController extends DefaultController
         );
 
         if (!$result) {
-            $this->raiseError(__METHOD__ ."(), unable to set {$key} in meta table!");
+            static::raiseError(__METHOD__ ."(), unable to set {$key} in meta table!");
             return false;
         }
 
@@ -471,13 +487,13 @@ class DatabaseController extends DefaultController
     public function truncateDatabaseTables()
     {
         if (($tables = $this->getDatabaseTables()) === false) {
-            $this->raiseError(__CLASS__ .'::getDatabaseTables() returned false!');
+            static::raiseError(__CLASS__ .'::getDatabaseTables() returned false!');
             return false;
         }
 
         foreach ($tables as $table) {
             if (($this->query("TRUNCATE TABLE ${table}")) === false) {
-                $this->raiseError(__METHOD__ ."(), failed to truncate '{$table}' table!");
+                static::raiseError(__METHOD__ ."(), failed to truncate '{$table}' table!");
                 return false;
             }
         }
@@ -488,23 +504,23 @@ class DatabaseController extends DefaultController
     public function checkDatabaseSoftwareVersion()
     {
         if (!$version = $this->db->getAttribute(\PDO::ATTR_SERVER_VERSION)) {
-            $this->raiseError("Failed to detect database software version!");
+            static::raiseError(__METHOD__ .'(), failed to detect database software version!');
             return false;
         }
 
         if (!isset($version) || empty($version)) {
-            $this->raiseError("Unable to fetch version information from database!");
+            static::raiseError(__METHOD__ .'(), unable to fetch version information from database!');
             return false;
         }
 
         // extract the pure version without extra build specifics
         if (($version = preg_replace("/^(\d+)\.(\d+)\.(\d+).*$/", '${1}.${2}.${3}', $version)) === false) {
-            $this->raiseError("Failed to parse version string (${version})!");
+            static::raiseError(__METHOD__ ."(), failed to parse version string (${version})!");
             return false;
         }
 
         if (strtolower($this->db_cfg['type']) == "mysql" && version_compare($version, "5.6.4", "<")) {
-            $this->raiseError("MySQL server version 5.6.4 or later is required (found {$version})!");
+            static::raiseError(__METHOD__ ."(), MySQL server version 5.6.4 or later is required (found {$version})!");
             return false;
         }
 
@@ -514,22 +530,22 @@ class DatabaseController extends DefaultController
     public function quote($text)
     {
         if (!method_exists($this->db, 'quote')) {
-            $this->raiseError(__METHOD__ .'(), PDO driver does not provide quote method!');
+            static::raiseError(__METHOD__ .'(), PDO driver does not provide quote method!');
             return false;
         }
 
         if (!is_string($text)) {
-            $this->raiseError(__METHOD__ .'(), \$text is not a string!');
+            static::raiseError(__METHOD__ .'(), \$text is not a string!');
             return false;
         }
 
         if (($quoted = $this->db->quote($text)) === false) {
-            $this->raiseError(__METHOD__ .'(), PDO driver does not support quote!');
+            static::raiseError(__METHOD__ .'(), PDO driver does not support quote!');
             return false;
         }
 
         if (!empty($text) && empty($quoted)) {
-            $this->raiseError(__METHOD__ .'(), something must have gone wrong!');
+            static::raiseError(__METHOD__ .'(), something must have gone wrong!');
             return false;
         }
 
@@ -539,19 +555,19 @@ class DatabaseController extends DefaultController
     public function checkColumnExists($table_name, $column)
     {
         if (!$this->getConnectionStatus()) {
-            $this->raiseError(__METHOD__ .'(), needs to be connected to database!');
+            static::raiseError(__CLASS__ .'::getConnectionStatus() returned false!');
             return false;
         }
 
         if (!isset($table_name) || empty($table_name) ||
             !isset($column) || empty($column)
         ) {
-            $this->raiseError(__METHOD__ .'(), incomplete parameters!');
+            static::raiseError(__METHOD__ .'(), incomplete parameters!');
             return false;
         }
 
         if (!($result = $this->query("DESC ". $table_name, \PDO::FETCH_NUM))) {
-            $this->raiseError(__METHOD__ .'(), failed to fetch table structure!');
+            static::raiseError(__METHOD__ .'(), failed to fetch table structure!');
             return false;
         }
 
@@ -562,6 +578,182 @@ class DatabaseController extends DefaultController
         }
 
         return false;
+    }
+
+    public function buildQuery(
+        $type,
+        $table_name,
+        $query_columns = "*",
+        $query_data = array(),
+        &$bind_params = array(),
+        $extend_where_query = null
+    ) {
+        if (!isset($type) || empty($type) || !is_string($type)) {
+            static::raiseError(__METHOD__ .'(), $type parameter is invalid!');
+            return false;
+        }
+
+        if (!isset($table_name) || empty($table_name) || !is_string($table_name)) {
+            static::raiseError(__METHOD__ .'(), $table_name parameter is invalid!');
+            return false;
+        }
+
+        if (!isset($query_columns) || (!is_array($query_columns) && !is_string($query_columns))) {
+            static::raiseError(__METHOD__ .'(), $query_columns parameter is invalid!');
+            return false;
+        }
+
+        if (!isset($query_data) || !is_array($query_data)) {
+            static::raiseError(__METHOD__ .'(), $query_data parameter is invalid!');
+            return false;
+        }
+
+        if (!isset($bind_params) || !is_array($bind_params)) {
+            static::raiseError(__METHOD__ .'(), $bind_params parameter is invalid!');
+            return false;
+        }
+
+        if (isset($extend_where_query) &&
+            !empty($extend_where_query) &&
+            !is_string($extend_where_query)
+        ) {
+            static::raiseError(__METHOD__ .'(), $extend_where_query is invalid!');
+            return false;
+        }
+
+        if (is_string($query_columns)) {
+            $query_columns_str = $query_columns;
+        } elseif (is_array($query_columns)) {
+            if (count($query_columns) < 1) {
+                $query_columns_str = "*";
+            } else {
+                $columns = array();
+                foreach ($query_columns as $key => $value) {
+                    $columns[] = $value;
+                }
+                if (($query_columns_str = implode(', ', $columns)) === false) {
+                    static::raiseError(__METHOD__ .'(), implode() returned false!');
+                    return false;
+                }
+            }
+        } else {
+            static::raiseError(__METHOD__ .'(), $query_columns parameter has an unsupported type!');
+            return false;
+        }
+
+        if (is_string($query_data)) {
+            if (empty($query_data)) {
+                return sprintf(
+                    "%s %s FROM %s %s",
+                    $type,
+                    $query_columns_str,
+                    $table_name,
+                    !empty($extend_where_query) ? "WHERE {$extend_where_query}" : null
+                );
+            } else {
+                return sprintf(
+                    "%s %s FROM %s WHERE %s %s",
+                    $type,
+                    $query_columns_str,
+                    $table_names,
+                    $query_data,
+                    $extend_where_query
+                );
+            }
+        } elseif (is_array($query_data) && count($query_data) < 1) {
+            return sprintf(
+                "%s %s FROM %s %s",
+                $type,
+                $query_columns_str,
+                $table_name,
+                !empty($extend_where_query) ? "WHERE {$extend_where_query}" : null
+            );
+            return $sql;
+        }
+
+        $query_where_str = '';
+        $wheres = array();
+
+        foreach ($query_data as $key => $value) {
+            $value_key = sprintf("v_%s", $key);
+            $wheres[] = sprintf("%s LIKE :%s", $key, $value_key);
+            $bind_params[$value_key] = $value;
+        }
+        if (($query_wheres_str = implode(' AND ', $wheres)) === false) {
+            static::raiseError(__METHOD__ .'(), implode() returned false!');
+            return false;
+        }
+
+        $sql = sprintf(
+            "%s %s FROM %s WHERE %s %s",
+            $type,
+            $query_columns_str,
+            $table_name,
+            $query_wheres_str,
+            $extend_where_query
+        );
+
+        return $sql;
+    }
+
+    public function getColumns($table_name)
+    {
+        if (!$this->getConnectionStatus()) {
+            static::raiseError(__CLASS__ .'::getConnectionStatus() returned false!');
+            return false;
+        }
+
+        if (!($result = $this->query("DESC ". $table_name, \PDO::FETCH_NUM))) {
+            static::raiseError(__METHOD__ .'(), failed to fetch table structure!');
+            return false;
+        }
+
+        return $result->fetchAll();
+    }
+
+    public function newTransaction()
+    {
+        if (!$this->getConnectionStatus()) {
+            static::raiseError(__CLASS__ .'::getConnectionStatus() returned false!');
+            return false;
+        }
+
+        if (isset($this->is_open_transaction) and $this->is_open_transaction === true) {
+            static::raiseError(__METHOD__ .'(), there is already an ongoing transaction!');
+            return false;
+        }
+
+        try {
+            $this->db->beginTransaction();
+        } catch (\PDOException $e) {
+            static::raiseError(get_class($this->db) .'::beginTransaction() failed!', false, $e);
+            return false;
+        }
+
+        $this->is_open_transaction = true;
+        return true;
+    }
+
+    public function closeTransaction()
+    {
+        if (!isset($this->is_open_transaction) or $this->is_open_transaction !== true) {
+            return true;
+        }
+
+        try {
+            $this->db->commit();
+        } catch (\PDOException $e) {
+            static::raiseError(get_class($this->db) .'::commit() failed!', false, $e);
+            return false;
+        }
+
+        $this->is_open_transaction = false;
+        return true;
+    }
+
+    public function getDatabaseName()
+    {
+        return $this->db_cfg['db_name'];
     }
 }
 
