@@ -21,88 +21,25 @@ namespace Mtlda\Models ;
 
 class KeywordModel extends DefaultModel
 {
-    protected $table_name = 'keywords';
-    protected $column_name = 'keyword';
-    protected $fields = array(
-        'keyword_idx' => 'integer',
-        'keyword_guid' => 'string',
-        'keyword_name' => 'string',
+    protected static $model_table_name = 'keywords';
+    protected static $model_column_prefix = 'keyword';
+    protected static $model_fields = array(
+        'idx' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'guid' => array(
+            FIELD_TYPE => FIELD_GUID,
+        ),
+        'name' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
     );
 
-    public function __construct($id = null, $guid = null)
+    protected function __init()
     {
-        global $mtlda, $db;
-
-        if (!$this->permitRpcUpdates(true)) {
-            $mtlda->raiseError("permitRpcUpdates() returned false!");
-            return false;
-        }
-
-        try {
-            $this->addRpcEnabledField('keyword_name');
-            $this->addRpcAction('delete');
-        } catch (\Exception $e) {
-            $mtlda->raiseError("Failed on invoking addRpcEnabledField() method");
-            return false;
-        }
-
-        // are we creating a new item?
-        if (!isset($id) && !isset($guid)) {
-            parent::__construct(null);
-            return true;
-        }
-
-        // get $id from db
-        $sql = "
-            SELECT
-                keyword_idx
-            FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-        ";
-
-        $arr_query = array();
-        if (isset($id)) {
-            $sql.= "
-                keyword_idx LIKE ?
-            ";
-            $arr_query[] = $id;
-        }
-        if (isset($id) && isset($guid)) {
-            $sql.= "
-                AND
-            ";
-        }
-        if (isset($guid)) {
-            $sql.= "
-                keyword_guid LIKE ?
-            ";
-            $arr_query[] = $guid;
-        };
-
-        if (!($sth = $db->prepare($sql))) {
-            $mtlda->raiseError("DatabaseController::prepare() returned false!");
-            return false;
-        }
-
-        if (!$db->execute($sth, $arr_query)) {
-            $mtlda->raiseError("DatabaseController::execute() returned false!");
-            return false;
-        }
-
-        if (!($row = $sth->fetch())) {
-            $mtlda->raiseError("Unable to find keyword with guid value {$guid}");
-            return false;
-        }
-
-        if (!isset($row->keyword_idx) || empty($row->keyword_idx)) {
-            $mtlda->raiseError("Unable to find keyword entry with guid value {$guid}");
-            return false;
-        }
-
-        $db->freeStatement($sth);
-        parent::__construct($row->keyword_idx);
-
+        $this->permitRpcUpdates(true);
+        $this->addRpcEnabledField('name');
+        $this->addRpcAction('delete');
         return true;
     }
 
