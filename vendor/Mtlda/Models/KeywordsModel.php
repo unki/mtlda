@@ -21,118 +21,15 @@ namespace Mtlda\Models ;
 
 class KeywordsModel extends DefaultModel
 {
-    protected $table_name = 'keywords';
-    protected $column_name = 'keyword';
-    protected $fields = array(
-        'keyword_idx' => 'integer',
-    );
-    protected $avail_items = array();
-    protected $items = array();
+    protected static $model_table_name = 'keywords';
+    protected static $model_column_prefix = 'keyword';
+    protected static $model_has_items = true;
+    protected static $model_items_model = 'KeywordModel';
 
-    public function __construct()
+    protected function __init()
     {
-        if (!$this->load()) {
-            $this->raiseError(__CLASS__ .'::load() returned false!', true);
-            return false;
-        }
-
-        try {
-            $this->permitRpcUpdates(true);
-            $this->addRpcAction('delete');
-        } catch (\Exception $e) {
-            $this->raiseError(__CLASS__ .', failed to set RPC parameters!', true, $e);
-            return false;
-        }
-
-        return true;
-    }
-
-    protected function load()
-    {
-        global $db;
-
-        $idx_field = $this->column('idx');
-        $guid_field = $this->column('guid');
-
-        $result = $db->query(
-            "SELECT
-                {$idx_field},
-                {$guid_field}
-            FROM
-                TABLEPREFIX{$this->table_name}"
-        );
-
-        if ($result === false) {
-            $this->raiseError(__METHOD__ .'(), failed to fetch keywords!');
-            return false;
-        }
-
-        while ($row = $result->fetch()) {
-            try {
-                $keyword = new \Mtlda\Models\KeywordModel(
-                    $row->$idx_field,
-                    $row->$guid_field
-                );
-            } catch (\Exception $e) {
-                $this->raiseError(__METHOD__ .'(), failed to load KeywordModel!');
-                return false;
-            }
-            array_push($this->avail_items, $row->$idx_field);
-            $this->items[$row->$idx_field] = $keyword;
-        }
-
-        return true;
-    }
-
-    public function flush()
-    {
-        global $mtlda, $db, $audit;
-
-        // delete each KeywordModel
-        foreach ($this->items as $item) {
-            if (!$item->getId() || !$item->getGuid()) {
-                $this->raiseError(__METHOD__ .'(), invalid $item found!');
-                return false;
-            }
-
-            $keyword = $mtlda->loadModel("keyword", $item->getId(), $item->getGuid());
-
-            if (!$keyword) {
-                $this->raiseError(
-                    "Error loading KeywordModel idx:{$item->getId()} guid:{$item->getGuid()}!"
-                );
-                return false;
-            }
-
-            if (!$keyword->delete()) {
-                $this->raiseError(
-                    "Error deleting KeywordModel idx:{$item->getId()} guid:{$item->getGuid()}!"
-                );
-                return false;
-            }
-        }
-
-        // finally truncate the table
-        $result = $db->query(
-            "TRUNCATE TABLE TABLEPREFIX{$this->table_name}"
-        );
-
-        if ($result === false) {
-            $this->raiseError(__METHOD__ ."(), failed to truncate '{$this->table_name}' table!");
-            return false;
-        }
-
-        try {
-            $audit->log(
-                "flushing",
-                "flushed",
-                "keywords"
-            );
-        } catch (\Exception $e) {
-            $this->raiseError(get_class($audit) .'::log() returned false!');
-            return false;
-        }
-
+        $this->permitRpcUpdates(true);
+        $this->addRpcAction('delete');
         return true;
     }
 }
