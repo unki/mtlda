@@ -21,79 +21,18 @@ namespace Mtlda\Models ;
 
 class DocumentIndicesModel extends DefaultModel
 {
-    protected $table_name = 'document_indices';
-    protected $column_name = 'di';
-    protected $fields = array(
-            'di_idx' => 'integer',
-    );
-    protected $avail_items = array();
-    protected $items = array();
+    protected static $model_table_name = 'document_indices';
+    protected static $model_column_prefix = 'di';
+    protected static $model_has_items = true;
+    protected static $model_items_model = 'DocumentIndexModel';
 
-    public function __construct($hash = null)
+    public function hasIndices()
     {
-        if (!$hash) {
-            parent::__construct();
-            return true;
-        }
-
-        if (!$this->load($hash)) {
-            $this->raiseError(__CLASS__ .', load() returned false!', true);
+        if (!isset($this->model_items) ||
+            empty($this->model_items) ||
+            count($this->model_items) < 1
+        ) {
             return false;
-        }
-
-        return true;
-    }
-
-    protected function load($hash)
-    {
-        global $db;
-
-        if (!$hash) {
-            return parent::load();
-        }
-    
-        $idx_field = $this->column_name ."_idx";
-
-        $sql =
-            "SELECT
-                {$idx_field}
-            FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-                {$this->column_name}_file_hash LIKE ?";
-
-        if (!($sth = $db->prepare($sql))) {
-            $this->raiseError(get_class($db) .'::prepare() returned false!');
-            return false;
-        }
-
-        if (!($db->execute($sth, array($hash)))) {
-            $db->freeStatement($sth);
-            $this->raiseError(get_class($db) .'::execute() returned false!');
-            return false;
-        }
-
-        while ($row = $sth->fetch()) {
-            array_push($this->avail_items, $row->$idx_field);
-            try {
-                $this->items[$row->$idx_field] = new DocumentIndexModel($row->$idx_field);
-            } catch (\Exception $e) {
-                $this->raiseError(__METHOD__ .'(), failed to load DocumentProperty!');
-                return false;
-            }
-        }
-
-        $db->freeStatement($sth);
-        return true;
-    }
-
-    public function delete()
-    {
-        foreach ($this->items as $item) {
-            if (!$item->delete()) {
-                $this->raiseError(get_class($item) .'::delete() returned false!');
-                return false;
-            }
         }
 
         return true;
@@ -101,11 +40,12 @@ class DocumentIndicesModel extends DefaultModel
 
     public function getIndices()
     {
-        if (!isset($this->items)) {
+        if (!$this->hasIndices()) {
+            static::raiseError(__METHOD__ .'(), no indices available!');
             return false;
         }
 
-        return $this->items;
+        return $this->model_items;
     }
 }
 
