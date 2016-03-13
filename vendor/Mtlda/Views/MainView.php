@@ -21,18 +21,18 @@ namespace Mtlda\Views;
 
 class MainView extends DefaultView
 {
-    public $class_name = 'main';
+    protected static $view_class_name = 'main';
     private $queue;
     private $archive;
 
     public function __construct()
     {
-        global $mtlda, $tmpl;
+        global $tmpl;
 
         $tmpl->registerPlugin("block", "top10", array(&$this, 'showTop10List'));
 
         if (!$this->load()) {
-            $mtlda->raiseError(__CLASS__ .', load() returned false!');
+            static::raiseError(__CLASS__ .', load() returned false!');
             return false;
         }
 
@@ -42,29 +42,33 @@ class MainView extends DefaultView
 
     protected function load()
     {
-        global $mtlda, $tmpl;
+        global $tmpl;
 
         try {
-            $this->queue = new \Mtlda\Models\QueueModel(array(
-                'by' => 'queue_time',
-                'order' => 'DESC'
-            ));
+            $this->queue = new \Mtlda\Models\QueueModel(
+                array(),
+                array(
+                    'time' => 'DESC'
+                )
+            );
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load QueueModel!", true);
+            static::raiseError("Failed to load QueueModel!", true);
             return false;
         }
 
         try {
-            $this->archive = new \Mtlda\Models\ArchiveModel(array(
-                'by' => 'document_time',
-                'order' => 'DESC'
-            ));
+            $this->archive = new \Mtlda\Models\ArchiveModel(
+                array(),
+                array(
+                    'time' => 'DESC'
+                )
+            );
         } catch (\Exception $e) {
-            $mtlda->raiseError("Failed to load ArchiveModel!", true);
+            static::raiseError("Failed to load ArchiveModel!", true);
             return false;
         }
 
-        if ($this->queue->getItemsCount() > 0) {
+        if ($this->queue->hasItems()) {
             $tmpl->assign('pending_queue_items', true);
         }
 
@@ -73,10 +77,8 @@ class MainView extends DefaultView
 
     public function showTop10List($params, $content, &$smarty, &$repeat)
     {
-        global $mtlda;
-
         if (!isset($params['type'])) {
-            $mtlda->raiseError("top10 block misses 'type' parameter!");
+            static::raiseError("top10 block misses 'type' parameter!");
             return false;
         }
 
@@ -87,7 +89,7 @@ class MainView extends DefaultView
             $avail_items =& $this->queue->getItemsKeys();
             $items =& $this->queue;
         } else {
-            $mtlda->raiseError("Type '{$params['type']}' is not supported!");
+            static::raiseError("Type '{$params['type']}' is not supported!");
             return false;
         }
 
@@ -103,19 +105,31 @@ class MainView extends DefaultView
         }
 
         $item_idx = $avail_items[$index];
-        $item =  $items->getItem($item_idx);
+
+        if (!isset($item_idx) ||
+            empty($item_idx) ||
+            !$items->hasItem($item_idx)
+        ) {
+            $repeat = false;
+            return $content;
+        }
+
+        if (!$item =  $items->getItem($item_idx)) {
+            static::raiseError(get_class($items) .'::getItem() returned false!');
+            return false;
+        }
 
         if (method_exists($item, "hasDescendants") && $item->hasDescendants()) {
             if (($latest = $item->getLastestVersion()) === false) {
-                $this->raiseError(get_class($item) .'::getLastestVersion() returned false!');
+                static::raiseError(get_class($item) .'::getLastestVersion() returned false!');
                 return false;
             }
             if (!($idx = $latest->getId())) {
-                $this->raiseError(get_class($latest) .'::getId() returned false!');
+                static::raiseError(get_class($latest) .'::getId() returned false!');
                 return false;
             }
             if (!($guid = $latest->getGuid())) {
-                $this->raiseError(get_class($latest) .'::getGuid() returned false!');
+                static::raiseError(get_class($latest) .'::getGuid() returned false!');
                 return false;
             }
             $smarty->assign("document_safe_link", "document-{$idx}-{$guid}");
