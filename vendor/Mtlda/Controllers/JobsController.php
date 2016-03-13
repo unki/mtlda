@@ -33,11 +33,10 @@ class JobsController extends \Thallium\Controllers\JobsController
             $this->registerHandler('mailimport-request', array($this, 'handleMailImportRequest'));
             $this->registerHandler('scan-request', array($this, 'handleScanDocumentRequests'));
             $this->registerHandler('archive-request', array($this, 'handleArchiveRequest'));
-            $this->registerHandler('delete-request', array($this, 'handleDeleteRequest'));
             $this->registerHandler('preview-request', array($this, 'handlePreviewRequest'));
             $this->registerHandler('split-request', array($this, 'handleSplitRequest'));
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to register handlers!', true);
+            static::raiseError(__METHOD__ .'(), failed to register handlers!', true);
             return false;
         }
 
@@ -56,77 +55,77 @@ class JobsController extends \Thallium\Controllers\JobsController
         global $mtlda, $mbus;
 
         if (!$mbus->sendMessageToClient('archive-reply', 'Preparing', '10%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
+            static::raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
             return false;
         }
 
         if (!$job->hasParameters() || ($archive_request = $job->getParameters()) === false) {
-            $this->raiseError(get_class($job) .'::getParameters() returned false!');
+            static::raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
         if (!is_object($archive_request)) {
-            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
+            static::raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
         if (!isset($archive_request->id) || empty($archive_request->id) ||
             !isset($archive_request->guid) || empty($archive_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .'(), archive-request is incomplete!');
+            static::raiseError(__METHOD__ .'(), archive-request is incomplete!');
             return false;
         }
 
         if ($archive_request->id != 'all' &&
             !$mtlda->isValidId($archive_request->id)
         ) {
-            $this->raiseError(__METHOD__ .'(), \$id is invalid!');
+            static::raiseError(__METHOD__ .'(), \$id is invalid!');
             return false;
         }
 
         if ($archive_request->guid != 'all' &&
             !$mtlda->isValidGuidSyntax($archive_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .'() \$guid is invalid!');
+            static::raiseError(__METHOD__ .'() \$guid is invalid!');
             return false;
         }
 
         try {
             $queue = new \Mtlda\Controllers\QueueController;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load QueueController!");
+            static::raiseError("Failed to load QueueController!");
             return false;
         }
 
         if (!$mbus->sendMessageToClient('archive-reply', 'Loading document', '20%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if ($archive_request->id == 'all' && $archive_request->guid == 'all') {
             if (!$queue->archiveAll()) {
-                $this->raiseError(get_class($queue) .'::archiveAll() returned false!');
+                static::raiseError(get_class($queue) .'::archiveAll() returned false!');
                 return false;
             }
             if (!$mbus->sendMessageToClient('archive-reply', 'Done', '100%')) {
-                $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+                static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
                 return false;
             }
             return true;
         }
 
         if (!$queue->archive($archive_request->id, $archive_request->guid)) {
-            $this->raiseError(get_class($queue) .'::archive() returned false!');
+            static::raiseError(get_class($queue) .'::archive() returned false!');
             return false;
         }
 
         if (!$mbus->sendMessageToClient('archive-reply', 'Done', '100%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -138,29 +137,29 @@ class JobsController extends \Thallium\Controllers\JobsController
         global $mbus, $config;
 
         if (!$config->isUserTriggersImportEnabled()) {
-            $this->raiseError(get_class($config) .'::isUserTriggersImportEnabled() returned false!');
+            static::raiseError(get_class($config) .'::isUserTriggersImportEnabled() returned false!');
             return false;
         }
 
         try {
             $import = new \Mtlda\Controllers\ImportController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load ImportController!');
+            static::raiseError(__METHOD__ .'(), failed to load ImportController!');
             return false;
         }
 
         if (!$mbus->sendMessageToClient('import-reply', 'Preparing', '10%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (!$import->handleQueue()) {
-            $this->raiseError(get_class($import) .'::handleQueue() returned false!');
+            static::raiseError(get_class($import) .'::handleQueue() returned false!');
             return false;
         }
 
         if (!$mbus->sendMessageToClient('import-reply', 'Done', '100%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -172,29 +171,29 @@ class JobsController extends \Thallium\Controllers\JobsController
         global $mbus, $config;
 
         if (!$config->isMailImportEnabled()) {
-            $this->raiseError(get_class($config) .'::isUserTriggersImportEnabled() returned false!');
+            static::raiseError(get_class($config) .'::isUserTriggersImportEnabled() returned false!');
             return false;
         }
 
         if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
+            static::raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
             return false;
         }
 
         try {
-            $importer = new MailImportController;
+            $importer = new \Mtlda\Controllers\MailImportController;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load MailImportController!");
+            static::raiseError("Failed to load MailImportController!");
             return false;
         }
 
         if (!$importer->fetch()) {
-            $this->raiseError("MailImportController::fetch() returned false!");
+            static::raiseError("MailImportController::fetch() returned false!");
             return false;
         }
 
         if (!$mbus->sendMessageToClient('mailimport-reply', 'Done', '100%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -206,27 +205,27 @@ class JobsController extends \Thallium\Controllers\JobsController
         global $mtlda, $mbus, $config;
 
         if (!$mbus->sendMessageToClient('scan-reply', 'Preparing', '10%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (!$config->isPdfIndexingEnabled()) {
-            $this->raiseError(get_class($config) .'::isPdfIndexingEnabled() returned false!');
+            static::raiseError(get_class($config) .'::isPdfIndexingEnabled() returned false!');
             return false;
         }
 
         if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
+            static::raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
             return false;
         }
 
         if (!$job->hasParameters() || ($scan_request = $job->getParameters()) === false) {
-            $this->raiseError(get_class($job) .'::getParameters() returned false!');
+            static::raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
         if (!is_object($scan_request)) {
-            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
+            static::raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
@@ -235,22 +234,22 @@ class JobsController extends \Thallium\Controllers\JobsController
             !isset($scan_request->model) || empty($scan_request->model) ||
             !in_array($scan_request->model, array('document', 'queueitem'))
         ) {
-            $this->raiseError(__METHOD__ .'(), scan-request is incomplete!');
+            static::raiseError(__METHOD__ .'(), scan-request is incomplete!');
             return false;
         }
 
         if (!$mtlda->isValidId($scan_request->id)) {
-            $this->raiseError(__METHOD__ .'(), \$id is invalid!');
+            static::raiseError(__METHOD__ .'(), \$id is invalid!');
             return false;
         }
 
         if (!$mtlda->isValidGuidSyntax($scan_request->guid)) {
-            $this->raiseError(__METHOD__ .'(), \$guid is invalid!');
+            static::raiseError(__METHOD__ .'(), \$guid is invalid!');
             return false;
         }
 
         if (!$mbus->sendMessageToClient('scan-reply', 'Loading document', '20%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -259,17 +258,17 @@ class JobsController extends \Thallium\Controllers\JobsController
             $scan_request->id,
             $scan_request->guid
         )) === false) {
-            $this->raiseError(__METHOD__ .", unable to load DocumentModel!");
+            static::raiseError(__METHOD__ .", unable to load DocumentModel!");
             return false;
         }
 
         if (!$mtlda->scanDocument($document)) {
-            $this->raiseError(get_class($mtlda) .'::scanDocument() returned false!');
+            static::raiseError(get_class($mtlda) .'::scanDocument() returned false!');
             return false;
         }
 
         if (!$mbus->sendMessageToClient('scan-reply', 'Done', '100%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -281,191 +280,69 @@ class JobsController extends \Thallium\Controllers\JobsController
         global $mtlda, $mbus, $config;
 
         if (!$mbus->sendMessageToClient('sign-reply', 'Preparing', '10%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (!$config->isPdfSigningEnabled()) {
-            $this->raiseError(get_class($config) .'::isPdfSigningEnabled() returned false!');
+            static::raiseError(get_class($config) .'::isPdfSigningEnabled() returned false!');
             return false;
         }
 
         if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
+            static::raiseError(__METHOD__ .'(), requires a JobModel reference as parameter!');
             return false;
         }
 
         if (!$job->hasParameters() || ($sign_request = $job->getParameters()) === false) {
-            $this->raiseError(get_class($job) .'::getParameters() returned false!');
+            static::raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
         if (!is_object($sign_request)) {
-            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
+            static::raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
         if (!isset($sign_request->id) || empty($sign_request->id) ||
             !isset($sign_request->guid) || empty($sign_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .'() sign-request is incomplete!');
+            static::raiseError(__METHOD__ .'() sign-request is incomplete!');
             return false;
         }
 
         if (!$mtlda->isValidId($sign_request->id)) {
-            $this->raiseError(__METHOD__ .'() \$id is invalid!');
+            static::raiseError(__METHOD__ .'() \$id is invalid!');
             return false;
         }
 
         if (!$mtlda->isValidGuidSyntax($sign_request->guid)) {
-            $this->raiseError(__METHOD__ .'() \$guid is invalid!');
+            static::raiseError(__METHOD__ .'() \$guid is invalid!');
             return false;
         }
 
         if (!$mbus->sendMessageToClient('sign-reply', 'Loading document', '20%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         try {
-            $document = new \Mtlda\Models\DocumentModel(
-                $sign_request->id,
-                $sign_request->guid
-            );
+            $document = new \Mtlda\Models\DocumentModel(array(
+                'idx' => $sign_request->id,
+                'guid' => $sign_request->guid
+            ));
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .", unable to load DocumentModel!");
+            static::raiseError(__METHOD__ .", unable to load DocumentModel!");
             return false;
         }
 
         if (!$this->signDocument($document)) {
-            $this->raiseError(__CLASS__ .'::signDocument() returned false!');
+            static::raiseError(__CLASS__ .'::signDocument() returned false!');
             return false;
         }
 
         if (!$mbus->sendMessageToClient('sign-reply', 'Done', '100%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
-            return false;
-        }
-
-        return true;
-    }
-
-    protected function handleDeleteRequest($job)
-    {
-        global $mtlda, $mbus;
-
-        if (!$mbus->sendMessageToClient('delete-reply', 'Preparing', '10%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
-            return false;
-        }
-
-        if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .'() requires a JobModel reference as parameter!');
-            return false;
-        }
-
-        if (!$job->hasParameters() || ($delete_request = $job->getParameters()) === false) {
-            $this->raiseError(get_class($job) .'::getParameters() returned false!');
-            return false;
-        }
-
-        if (!is_object($delete_request)) {
-            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
-            return false;
-        }
-
-        if (!isset($delete_request->id) || empty($delete_request->id) ||
-            !isset($delete_request->guid) || empty($delete_request->guid)
-        ) {
-            $this->raiseError(__METHOD__ .'() delete-request is incomplete!');
-            return false;
-        }
-
-        if ($delete_request->id != 'all' &&
-            !$mtlda->isValidId($delete_request->id)
-        ) {
-            $this->raiseError(__METHOD__ .'() \$id is invalid!');
-            return false;
-        }
-
-        if ($delete_request->guid != 'all' &&
-            !$mtlda->isValidGuidSyntax($delete_request->guid)
-        ) {
-            $this->raiseError(__METHOD__ .'() \$guid is invalid!');
-            return false;
-        }
-
-        if (!$mbus->sendMessageToClient('delete-reply', 'Deleting...', '20%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
-            return false;
-        }
-
-        if (!isset($delete_request->model) || empty($delete_request->model)) {
-            $this->raiseError(__METHOD__ .'(), delete-request does not contain model information!');
-            return false;
-        }
-
-        if ($delete_request->model == 'queue') {
-            $obj_name = '\Mtlda\Models\QueueModel';
-            $id = null;
-            $guid = null;
-        } elseif ($delete_request->model == 'queueitem') {
-            $obj_name = '\Mtlda\Models\QueueItemModel';
-            $id = $delete_request->id;
-            $guid = $delete_request->guid;
-        } elseif ($delete_request->model == 'document') {
-            $obj_name = '\Mtlda\Models\DocumentModel';
-            $id = $delete_request->id;
-            $guid = $delete_request->guid;
-        } elseif ($delete_request->model == 'keyword') {
-            $obj_name = '\Mtlda\Models\KeywordModel';
-            $id = $delete_request->id;
-            $guid = $delete_request->guid;
-        } elseif ($delete_request->model == 'keywords') {
-            $obj_name = '\Mtlda\Models\KeywordsModel';
-            $id = $delete_request->id;
-            $guid = $delete_request->guid;
-        } else {
-            $this->raiseError(__METHOD__ .'(), delete-request contains an unsupported model!');
-            return false;
-        }
-
-        try {
-            $obj = new $obj_name($id, $guid);
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load QueueModel!');
-            return false;
-        }
-
-        if (!$obj->permitsRpcActions('delete')) {
-            $this->raiseError(__METHOD__ ."(), {$obj_name} does not permit 'delete' action!");
-            return false;
-        }
-
-        if ($delete_request->id == 'all' && $delete_request->guid == 'all') {
-            if (method_exists($obj, 'flush')) {
-                $rm_method = 'flush';
-            } else {
-                $rm_method = 'delete';
-            }
-            if (!$obj->$rm_method()) {
-                $this->raiseError(get_class($obj) ."::${rm_method}() returned false!");
-                return false;
-            }
-            if (!$mbus->sendMessageToClient('delete-reply', 'Done', '100%')) {
-                $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
-                return false;
-            }
-            return true;
-        }
-
-        if (!$obj->delete()) {
-            $this->raiseError(get_class($obj) .'::delete() returned false!');
-            return false;
-        }
-
-        if (!$mbus->sendMessageToClient('delete-reply', 'Done', '100%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -477,119 +354,119 @@ class JobsController extends \Thallium\Controllers\JobsController
         global $mtlda, $mbus;
 
         if (!$mbus->sendMessageToClient('preview-reply', 'Preparing', '10%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .'() requires a JobModel reference as parameter!');
+            static::raiseError(__METHOD__ .'() requires a JobModel reference as parameter!');
             return false;
         }
 
         if (!$job->hasParameters() || ($preview_request = $job->getParameters()) === false) {
-            $this->raiseError(get_class($job) .'::getParameters() returned false!');
+            static::raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
         if (!is_object($preview_request)) {
-            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
+            static::raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
         if (!isset($preview_request->id) || empty($preview_request->id) ||
             !isset($preview_request->guid) || empty($preview_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .'() preview-request is incomplete!');
+            static::raiseError(__METHOD__ .'() preview-request is incomplete!');
             return false;
         }
 
         if ($preview_request->id != 'all' &&
             !$mtlda->isValidId($preview_request->id)
         ) {
-            $this->raiseError(__METHOD__ .'() \$id is invalid!');
+            static::raiseError(__METHOD__ .'() \$id is invalid!');
             return false;
         }
 
         if ($preview_request->guid != 'all' &&
             !$mtlda->isValidGuidSyntax($preview_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .'() \$guid is invalid!');
+            static::raiseError(__METHOD__ .'() \$guid is invalid!');
             return false;
         }
 
         if (!$mbus->sendMessageToClient('preview-reply', 'Preview...', '20%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (!isset($preview_request->model) || empty($preview_request->model)) {
-            $this->raiseError(__METHOD__ .'(), preview-request does not contain model information!');
+            static::raiseError(__METHOD__ .'(), preview-request does not contain model information!');
             return false;
         }
 
         if ($preview_request->model != 'queueitem') {
-            $this->raiseError(__METHOD__ .'(), unsupported model!');
+            static::raiseError(__METHOD__ .'(), unsupported model!');
             return false;
         }
 
         try {
-            $queueitem = new \Mtlda\Models\QueueItemModel(
-                $preview_request->id,
-                $preview_request->guid
-            );
+            $queueitem = new \Mtlda\Models\QueueItemModel(array(
+                'idx' => $preview_request->id,
+                'guid' => $preview_request->guid
+            ));
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
+            static::raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
             return false;
         }
 
         try {
             $image = new \Mtlda\Controllers\ImageController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load ImageController!');
+            static::raiseError(__METHOD__ .'(), failed to load ImageController!');
             return false;
         }
 
         try {
             $pdf = new \FPDI();
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load FPDI!');
+            static::raiseError(__METHOD__ .'(), failed to load FPDI!');
             return false;
         }
 
         if (($fqfn = $queueitem->getFilePath()) === false) {
-            $this->raiseError(get_class($queueitem) .'::getFilePath() returned false!');
+            static::raiseError(get_class($queueitem) .'::getFilePath() returned false!');
             return false;
         }
 
         if (!isset($fqfn) || empty($fqfn)) {
-            $this->raiseError(get_class($queueitem) .'::getFilePath() returned an invalid file name!');
+            static::raiseError(get_class($queueitem) .'::getFilePath() returned an invalid file name!');
             return false;
         }
 
         if (!file_exists($fqfn)) {
-            $this->raiseError(__METHOD__ ."(), file {$fqfn} does not exist!");
+            static::raiseError(__METHOD__ ."(), file {$fqfn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqfn)) {
-            $this->raiseError(__METHOD__ ."(), file {$fqfn} is not readable!");
+            static::raiseError(__METHOD__ ."(), file {$fqfn} is not readable!");
             return false;
         }
 
         try {
             $page_count = $pdf->setSourceFile($fqfn);
         } catch (\Exception $e) {
-            $this->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            static::raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
         for ($page_no = 1; $page_no <= $page_count; $page_no++) {
             if (!$image->createPreviewImage($queueitem, false, $page_no, 300)) {
-                $this->raiseError(get_class($image) .'::createPreviewImage() returned false!');
+                static::raiseError(get_class($image) .'::createPreviewImage() returned false!');
                 return false;
             }
             if (!$image->createPreviewImage($queueitem, false, $page_no, 'full')) {
-                $this->raiseError(get_class($image) .'::createPreviewImage() returned false!');
+                static::raiseError(get_class($image) .'::createPreviewImage() returned false!');
                 return false;
             }
         }
@@ -597,12 +474,12 @@ class JobsController extends \Thallium\Controllers\JobsController
         try {
             @$pdf->cleanUp();
         } catch (\Exception $e) {
-            $this->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+            static::raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
         if (!$mbus->sendMessageToClient('preview-reply', 'Done', '100%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -614,71 +491,71 @@ class JobsController extends \Thallium\Controllers\JobsController
         global $mtlda, $mbus;
 
         if (!$mbus->sendMessageToClient('split-reply', 'Preparing', '10%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (empty($job) || !is_a($job, 'Thallium\Models\JobModel')) {
-            $this->raiseError(__METHOD__ .'() requires a JobModel reference as parameter!');
+            static::raiseError(__METHOD__ .'() requires a JobModel reference as parameter!');
             return false;
         }
 
         if (!$job->hasParameters() || ($split_request = $job->getParameters()) === false) {
-            $this->raiseError(get_class($job) .'::getParameters() returned false!');
+            static::raiseError(get_class($job) .'::getParameters() returned false!');
             return false;
         }
 
         if (!is_object($split_request)) {
-            $this->raiseError(get_class($job) .'::getParameters() returned invalid data!');
+            static::raiseError(get_class($job) .'::getParameters() returned invalid data!');
             return false;
         }
 
         if (!isset($split_request->id) || empty($split_request->id) ||
             !isset($split_request->guid) || empty($split_request->guid)
         ) {
-            $this->raiseError(__METHOD__ .'() split-request is incomplete!');
+            static::raiseError(__METHOD__ .'() split-request is incomplete!');
             return false;
         }
 
         if (!$mtlda->isValidId($split_request->id)) {
-            $this->raiseError(__METHOD__ .'() \$id is invalid!');
+            static::raiseError(__METHOD__ .'() \$id is invalid!');
             return false;
         }
 
         if (!$mtlda->isValidGuidSyntax($split_request->guid)) {
-            $this->raiseError(__METHOD__ .'() \$guid is invalid!');
+            static::raiseError(__METHOD__ .'() \$guid is invalid!');
             return false;
         }
 
         if (!$mbus->sendMessageToClient('split-reply', 'Splitting...', '20%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (!isset($split_request->model) || empty($split_request->model)) {
-            $this->raiseError(__METHOD__ .'(), split-request does not contain model information!');
+            static::raiseError(__METHOD__ .'(), split-request does not contain model information!');
             return false;
         }
 
         if ($split_request->model != 'queueitem') {
-            $this->raiseError(__METHOD__ .'(), unsupported model!');
+            static::raiseError(__METHOD__ .'(), unsupported model!');
             return false;
         }
 
         try {
-            $queueitem = new \Mtlda\Models\QueueItemModel(
-                $split_request->id,
-                $split_request->guid
-            );
+            $queueitem = new \Mtlda\Models\QueueItemModel(array(
+                'idx' => $split_request->id,
+                'guid' => $split_request->guid
+            ));
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
+            static::raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
             return false;
         }
 
         try {
             $splitter = new \Mtlda\Controllers\PdfSplittingController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), unable to load PdfSplittingController!');
+            static::raiseError(__METHOD__ .'(), unable to load PdfSplittingController!');
             return false;
         }
 
@@ -690,7 +567,7 @@ class JobsController extends \Thallium\Controllers\JobsController
         }
 
         if (($json = json_decode($split_request->documents, false, 3)) === null) {
-            $this->raiseError(__METHOD__ .'(), json_decode() returned false! '. $this->json_errors[json_last_error()]);
+            static::raiseError(__METHOD__ .'(), json_decode() returned false! '. $this->json_errors[json_last_error()]);
             return false;
         }
 
@@ -700,7 +577,7 @@ class JobsController extends \Thallium\Controllers\JobsController
 
         foreach ($json as $doc => $options) {
             if (!isset($options) || empty($options) || !is_object($options) || !is_a($options, 'stdClass')) {
-                $this->raiseError(__METHOD__ ."(), parameters for document {$doc} are invalid!");
+                static::raiseError(__METHOD__ ."(), parameters for document {$doc} are invalid!");
                 return false;
             }
 
@@ -709,32 +586,32 @@ class JobsController extends \Thallium\Controllers\JobsController
             }
 
             if (($newdoc = $splitter->splitDocument($queueitem, $options->pages)) === false) {
-                $this->raiseError(get_class($splitter) .'::splitDocument() returned false!');
+                static::raiseError(get_class($splitter) .'::splitDocument() returned false!');
                 return false;
             }
 
             if (isset($options->title) && !empty($options->title) && is_string($options->title)) {
                 if (!$newdoc->setTitle($options->title)) {
-                    $this->raiseError(get_class($newdoc) .'::setTitle() returned false!');
+                    static::raiseError(get_class($newdoc) .'::setTitle() returned false!');
                     return false;
                 }
             }
 
             if (isset($options->file_name) && !empty($options->file_name) && is_string($options->file_name)) {
                 if (!$newdoc->setFileName($options->file_name)) {
-                    $this->raiseError(get_class($newdoc) .'::setFileName() returned false!');
+                    static::raiseError(get_class($newdoc) .'::setFileName() returned false!');
                     return false;
                 }
             }
 
             if (!$newdoc->save()) {
-                $this->raiseError(get_class($newdoc) .'::save() returned false!');
+                static::raiseError(get_class($newdoc) .'::save() returned false!');
                 return false;
             }
         }
 
         if (!$mbus->sendMessageToClient('split-reply', 'Done', '100%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
