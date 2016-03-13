@@ -543,7 +543,7 @@ function archive_object(element)
 
 function trigger_import_run()
 {
-    import_wnd = show_modal('progress', {
+    var import_wnd = show_modal('progress', {
         header : 'Check Incoming Directory',
         icon : 'wait icon',
         hasActions : false,
@@ -551,7 +551,7 @@ function trigger_import_run()
         onShow : rpc_fetch_jobstatus()
     });
 
-    progressbar = import_wnd.find('.description .ui.indicating.progress');
+    var progressbar = import_wnd.find('.description .ui.indicating.progress');
 
     if (typeof progressbar === 'undefined') {
         throw 'Can not find the progress bar in the modal window!';
