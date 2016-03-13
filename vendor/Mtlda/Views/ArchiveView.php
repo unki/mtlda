@@ -21,14 +21,14 @@ namespace Mtlda\Views;
 
 class ArchiveView extends DefaultView
 {
-    public $class_name = 'archive';
+    protected static $view_class_name = 'archive';
     public $item_name = 'Document';
     public $archive;
-    private $item;
-    private $keywords;
-    private $document_properties;
-    private $avail_items = array();
-    private $items = array();
+    protected $item;
+    protected $keywords;
+    protected $document_properties;
+    protected $archive_avail_items = array();
+    protected $archive_items = array();
 
     public function __construct()
     {
@@ -37,26 +37,172 @@ class ArchiveView extends DefaultView
         try {
             $this->archive = new \Mtlda\Models\ArchiveModel;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load ArchiveModel!", true);
+            static::raiseError("Failed to load ArchiveModel!", true);
+            return;
+        }
+
+        $tmpl->registerPlugin("function", "list_versions", array(&$this, "listVersions"), false);
+        parent::__construct();
+
+        return;
+    }
+
+    public function showList($pageno = null, $items_limit = null)
+    {
+        global $session;
+
+        if (!isset($pageno) || empty($pageno) || !is_numeric($pageno)) {
+            if (($current_page = $session->getVariable(static::$view_class_name .'_current_page')) === false) {
+                $current_page = 1;
+            }
+        } else {
+            $current_page = $pageno;
+        }
+
+        if (!isset($items_limit) || is_null($items_limit) || !is_numeric($items_limit)) {
+            if (($current_items_limit = $session->getVariable(
+                static::$view_class_name .'_current_items_limit'
+            )) === false) {
+                $current_items_limit = -1;
+            }
+        } else {
+            $current_items_limit = $items_limit;
+        }
+
+        if (!$this->archive->hasItems()) {
+            return parent::showList();
+        }
+
+        try {
+            $pager = new \Mtlda\Controllers\PagingController(array(
+                'delta' => 2,
+            ));
+        } catch (\Exception $e) {
+            static::raiseError(__METHOD__ .'(), failed to load PagingController!');
             return false;
         }
 
-        foreach ($this->archive->getItemsKeys() as $item_idx) {
-            if ($this->archive->getItem($item_idx)->isDeleted()) {
-                continue;
-            }
-            $this->avail_items[] = $item_idx;
-            $this->items[$item_idx] = $this->archive->items[$item_idx];
+        if (!$pager->setPagingData($this->archive->getItems())) {
+            static::raiseError(get_class($pager) .'::setPagingData() returned false!');
+            return false;
         }
 
-        parent::__construct();
+        if (!$pager->setCurrentPage($current_page)) {
+            static::raiseError(get_class($pager) .'::setCurrentPage() returned false!');
+            return false;
+        }
 
-        $tmpl->registerPlugin("function", "list_versions", array(&$this, "listVersions"), false);
+        if (!$pager->setItemsLimit($current_items_limit)) {
+            static::raiseError(get_class($pager) .'::setItemsLimit() returned false!');
+            return false;
+        }
+
+        global $tmpl;
+        $tmpl->assign('pager', $pager);
+
+        if (($data = $pager->getPageData()) === false) {
+            static::raiseError(get_class($pager) .'::getPageData() returned false!');
+            return false;
+        }
+
+        if (!isset($data) || empty($data) || !is_array($data)) {
+            static::raiseError(get_class($pager) .'::getPageData() returned invalid data!');
+            return false;
+        }
+
+        $this->archive_avail_items = array_keys($data);
+        $this->archive_items = $data;
+
+        if (!$session->setVariable(static::$view_class_name .'_current_page', $current_page)) {
+            static::raiseError(get_class($session) .'::setVariable() returned false!');
+            return false;
+        }
+
+        if (!$session->setVariable(static::$view_class_name .'_current_items_limit', $current_items_limit)) {
+            static::raiseError(get_class($session) .'::setVariable() returned false!');
+            return false;
+        }
+
+        return parent::showList();
     }
 
     public function showEdit()
     {
         /* this model provides no edit function */
+        return true;
+    }
+
+    public function showItem($id, $guid)
+    {
+        global $config, $tmpl;
+
+        if ($this->item_name != "Document") {
+            static::raiseError(__METHOD__ .' can only work with documents!');
+            return false;
+        }
+
+        try {
+            $this->item = new \Mtlda\Models\DocumentModel(array(
+                'idx' => $id,
+                'guid' => $guid
+            ));
+        } catch (\Exception $e) {
+            static::raiseError("Failed to load DocumentModel!");
+            return false;
+        }
+
+        if (!isset($this->item) || empty($this->item)) {
+            return false;
+        }
+
+        $descendants = array();
+
+        if ($this->item->hasDescendants()) {
+            if (!$descendants = $this->item->getDescendants()) {
+                static::raiseError(get_class($this->item) .'::getDescendants() returned false!');
+                return false;
+            }
+        }
+
+        if (!($base_path = $config->getWebPath())) {
+            static::raiseError("Web path is missing!");
+            return false;
+        }
+
+        if ($config->isPdfIndexingEnabled()) {
+            $tmpl->assign('pdf_indexing_is_enabled', true);
+        }
+
+        if ($base_path == '/') {
+            $base_path = '';
+        }
+
+        try {
+            $this->keywords = new \Mtlda\Models\KeywordsModel;
+        } catch (\Exception $e) {
+            static::raiseError("Failed to load KeywordsModel!");
+            return false;
+        }
+
+        $tmpl->assign('latest_document_version', $this->item->getLastestDocumentVersionNumber());
+        $tmpl->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
+        $tmpl->assign('item_versions', $descendants);
+        $tmpl->assign('item', $this->item);
+        $tmpl->assign('keywords', $this->keywords->getItems());
+        $tmpl->assign("item_safe_link", "document-". $this->item->getId() ."-". $this->item->getGuid());
+
+        try {
+            $this->document_properties = new \Mtlda\Models\DocumentPropertiesModel(array(
+                'idx' => $this->item->getId(),
+                'guid' => $this->item->getGuid()
+            ));
+        } catch (\Exception $e) {
+            static::raiseError(__METHOD__ .'(), failed to load DocumentPropertiesModel!');
+            return false;
+        }
+
+        $tmpl->registerPlugin("block", "document_properties", array(&$this, "listDocumentProperties"), false);
+        return parent::showItem($id, $guid);
     }
 
     public function archiveList($params, $content, &$smarty, &$repeat)
@@ -67,30 +213,30 @@ class ArchiveView extends DefaultView
             $index = 0;
         }
 
-        if (!isset($this->avail_items) || empty($this->avail_items)) {
+        if (!isset($this->archive_avail_items) || empty($this->archive_avail_items)) {
             $repeat = false;
             return $content;
         }
 
-        if ($index >= count($this->avail_items)) {
+        if ($index >= count($this->archive_avail_items)) {
             $repeat = false;
             return $content;
         }
 
-        $item_idx = $this->avail_items[$index];
-        $item =  $this->items[$item_idx];
+        $item_idx = $this->archive_avail_items[$index];
+        $item =  $this->archive_items[$item_idx];
 
         if ($item->hasDescendants()) {
             if (($latest = $item->getLastestVersion()) === false) {
-                $this->raiseError(get_class($item) .'::getLastestVersion() returned false!');
+                static::raiseError(get_class($item) .'::getLastestVersion() returned false!');
                 return false;
             }
             if (!($idx = $latest->getId())) {
-                $this->raiseError(get_class($latest) .'::getId() returned false!');
+                static::raiseError(get_class($latest) .'::getId() returned false!');
                 return false;
             }
             if (!($guid = $latest->getGuid())) {
-                $this->raiseError(get_class($latest) .'::getGuid() returned false!');
+                static::raiseError(get_class($latest) .'::getGuid() returned false!');
                 return false;
             }
             $smarty->assign("document_safe_link", "document-{$idx}-{$guid}");
@@ -108,77 +254,7 @@ class ArchiveView extends DefaultView
         return $content;
     }
 
-    public function showItem($id, $hash)
-    {
-        global $config, $tmpl;
-
-        if ($this->item_name != "Document") {
-            $this->raiseError(__METHOD__ .' can only work with documents!');
-            return false;
-        }
-
-        try {
-            $this->item = new \Mtlda\Models\DocumentModel($id, $hash);
-        } catch (\Exception $e) {
-            $this->raiseError("Failed to load DocumentModel!");
-            return false;
-        }
-
-        if (!isset($this->item) || empty($this->item)) {
-            return false;
-        }
-
-        $descendants = array();
-
-        if ($this->item->hasDescendants()) {
-            if (!$descendants = $this->item->getDescendants()) {
-                $this->raiseError(get_class($this->item) .'::getDescendants() returned false!');
-                return false;
-            }
-        }
-
-        if (!($base_path = $config->getWebPath())) {
-            $this->raiseError("Web path is missing!");
-            return false;
-        }
-
-        if ($config->isPdfIndexingEnabled()) {
-            $tmpl->assign('pdf_indexing_is_enabled', true);
-        }
-
-        if ($base_path == '/') {
-            $base_path = '';
-        }
-
-        try {
-            $this->keywords = new \Mtlda\Models\KeywordsModel;
-        } catch (\Exception $e) {
-            $this->raiseError("Failed to load KeywordsModel!");
-            return false;
-        }
-
-        $tmpl->assign('latest_document_version', $this->item->getLastestDocumentVersionNumber());
-        $tmpl->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
-        $tmpl->assign('item_versions', $descendants);
-        $tmpl->assign('item', $this->item);
-        $tmpl->assign('keywords', $this->keywords->items);
-        $tmpl->assign("item_safe_link", "document-". $this->item->getId() ."-". $this->item->getGuid());
-
-        try {
-            $this->document_properties = new \Mtlda\Models\DocumentPropertiesModel(
-                $this->item->getId(),
-                $this->item->getGuid()
-            );
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load DocumentPropertiesModel!');
-            return false;
-        }
-
-        $tmpl->registerPlugin("block", "document_properties", array(&$this, "listDocumentProperties"), false);
-        return parent::showItem($id, $hash);
-    }
-
-    private function getItemKeywords($item_idx)
+    protected function getItemKeywords($item_idx)
     {
         global $db;
 
@@ -192,24 +268,24 @@ class ArchiveView extends DefaultView
         );
 
         if (!$sth) {
-            $this->raiseError(__METHOD__ .", failed to prepare query!");
+            static::raiseError(__METHOD__ .", failed to prepare query!");
             return false;
         }
 
         if (!$db->execute($sth, array($item_idx))) {
-            $this->raiseError(__METHOD__ .", failed to execute query!");
+            static::raiseError(__METHOD__ .", failed to execute query!");
             return false;
         }
 
         $rows = $sth->fetchAll(\PDO::FETCH_COLUMN);
 
         if ($rows === false) {
-            $this->raiseError(__METHOD__ .", failed to fetch result!");
+            static::raiseError(__METHOD__ .", failed to fetch result!");
             return false;
         }
 
         if (!is_array($rows)) {
-            $this->raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
+            static::raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
             return false;
         }
 
@@ -231,14 +307,14 @@ class ArchiveView extends DefaultView
         $content = "";
 
         if (($content = $this->buildVersionsList()) === false) {
-            $this->raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
+            static::raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
             return false;
         }
 
         return $content;
     }
 
-    private function buildVersionsList($descendants = null, $level = 0)
+    protected function buildVersionsList($descendants = null, $level = 0)
     {
         global $tmpl;
 
@@ -246,7 +322,7 @@ class ArchiveView extends DefaultView
 
         if (!isset($descendants)) {
             if (!$descendants = $this->item->getDescendants()) {
-                $this->raiseError(get_class($this->item) .'::getDescendants() returned false!');
+                static::raiseError(get_class($this->item) .'::getDescendants() returned false!');
                 return false;
             }
         }
@@ -274,7 +350,7 @@ class ArchiveView extends DefaultView
             }
 
             if (!$src = $tmpl->fetch('archive_show_item.tpl')) {
-                $this->raiseError(__CLASS__ .'::fetch() returned false!');
+                static::raiseError(__CLASS__ .'::fetch() returned false!');
                 return false;
             }
 
@@ -286,12 +362,12 @@ class ArchiveView extends DefaultView
             }
 
             if (!$item_descendants = $item->getDescendants()) {
-                $this->raiseError(get_class($item) .'::getDescendants() returned false!');
+                static::raiseError(get_class($item) .'::getDescendants() returned false!');
                 return false;
             }
 
             if (($item_content = $this->buildVersionsList($item_descendants, $level+1)) === false) {
-                $this->raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
+                static::raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
                 return false;
             }
 
@@ -310,6 +386,11 @@ class ArchiveView extends DefaultView
             $index = 0;
         }
 
+        if (!$this->document_properties->hasItems()) {
+            $repeat = false;
+            return $content;
+        }
+
         if ($index >= count($this->document_properties->getItemsCount())) {
             $repeat = false;
             return $content;
@@ -325,83 +406,6 @@ class ArchiveView extends DefaultView
         $repeat = true;
 
         return $content;
-    }
-
-    public function showList($pageno = null, $items_limit = null)
-    {
-        global $session;
-
-        if (!isset($pageno) || empty($pageno) || !is_numeric($pageno)) {
-            if (($current_page = $session->getVariable("{$this->class_name}_current_page")) === false) {
-                $current_page = 1;
-            }
-        } else {
-            $current_page = $pageno;
-        }
-
-        if (!isset($items_limit) || is_null($items_limit) || !is_numeric($items_limit)) {
-            if (($current_items_limit = $session->getVariable("{$this->class_name}_current_items_limit")) === false) {
-                $current_items_limit = -1;
-            }
-        } else {
-            $current_items_limit = $items_limit;
-        }
-
-        if (empty($this->archive->items)) {
-            return parent::showList();
-        }
-
-        try {
-            $pager = new \Mtlda\Controllers\PagingController(array(
-                'delta' => 2,
-            ));
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load PagingController!');
-            return false;
-        }
-
-        if (!$pager->setPagingData($this->archive->items)) {
-            $this->raiseError(get_class($pager) .'::setPagingData() returned false!');
-            return false;
-        }
-
-        if (!$pager->setCurrentPage($current_page)) {
-            $this->raiseError(get_class($pager) .'::setCurrentPage() returned false!');
-            return false;
-        }
-
-        if (!$pager->setItemsLimit($current_items_limit)) {
-            $this->raiseError(get_class($pager) .'::setItemsLimit() returned false!');
-            return false;
-        }
-
-        global $tmpl;
-        $tmpl->assign('pager', $pager);
-
-        if (($data = $pager->getPageData()) === false) {
-            $this->raiseError(get_class($pager) .'::getPageData() returned false!');
-            return false;
-        }
-
-        if (!isset($data) || empty($data) || !is_array($data)) {
-            $this->raiseError(get_class($pager) .'::getPageData() returned invalid data!');
-            return false;
-        }
-
-        $this->avail_items = array_keys($data);
-        $this->items = $data;
-
-        if (!$session->setVariable("{$this->class_name}_current_page", $current_page)) {
-            $this->raiseError(get_class($session) .'::setVariable() returned false!');
-            return false;
-        }
-
-        if (!$session->setVariable("{$this->class_name}_current_items_limit", $current_items_limit)) {
-            $this->raiseError(get_class($session) .'::setVariable() returned false!');
-            return false;
-        }
-
-        return parent::showList();
     }
 }
 
