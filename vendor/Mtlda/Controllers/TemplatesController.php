@@ -28,14 +28,14 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
         try {
             parent::__construct();
         } catch (\Exception $e) {
-            $this->raiseError(get_class($parent) .'::__construct() failed!', true, $e);
+            static::raiseError(get_class($parent) .'::__construct() failed!', true, $e);
             return false;
         }
 
         $this->smarty->addPluginsDir(APP_BASE .'/vendor/Mtlda/SmartyPlugins');
 
         if (!($base_path = $config->getWebPath())) {
-            $this->raiseError(get_class($config) .'getWebPath() returned false!', true);
+            static::raiseError(get_class($config) .'getWebPath() returned false!', true);
             return false;
         }
 
@@ -64,7 +64,7 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
         global $query;
 
         if (!array_key_exists('page', $params)) {
-            $this->raiseError("getMenuState: missing 'page' parameter", E_USER_WARNING);
+            static::raiseError("getMenuState: missing 'page' parameter", E_USER_WARNING);
             $repeat = false;
             return false;
         }
@@ -83,7 +83,7 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
     public function getUrl($params, &$smarty)
     {
         if (($url = parent::getUrl($params, $smarty)) === false) {
-            $this->raiseError(get_class($parent) .'::getUrl() returned false!');
+            static::raiseError(get_class($parent) .'::getUrl() returned false!');
             return false;
         }
 
