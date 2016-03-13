@@ -51,7 +51,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                     ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $this->raiseError("Failed to create 'archive' table");
+                static::raiseError("Failed to create 'archive' table");
                 return false;
             }
         }
@@ -77,7 +77,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                     ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $this->raiseError("Failed to create 'queue' table");
+                static::raiseError("Failed to create 'queue' table");
                 return false;
             }
         }
@@ -92,7 +92,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $this->raiseError("Failed to create 'keywords' table");
+                static::raiseError("Failed to create 'keywords' table");
                 return false;
             }
         }
@@ -113,7 +113,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $this->raiseError("Failed to create 'assign_keywords_to_document' table");
+                static::raiseError("Failed to create 'assign_keywords_to_document' table");
                 return false;
             }
         }
@@ -131,7 +131,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $this->raiseError("Failed to create 'document_indices' table");
+                static::raiseError("Failed to create 'document_indices' table");
                 return false;
             }
         }
@@ -149,13 +149,13 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 ENGINE=MyISAM DEFAULT CHARSET=utf8;";
 
             if ($db->query($table_sql) === false) {
-                $this->raiseError("Failed to create 'document_properties' table");
+                static::raiseError("Failed to create 'document_properties' table");
                 return false;
             }
         }
 
         if (!parent::createApplicationDatabaseTables()) {
-            $this->raiseError(get_class(parent) .'::createDatabaseTables() returned false!');
+            static::raiseError(get_class(parent) .'::createDatabaseTables() returned false!');
             return false;
         }
 
@@ -176,7 +176,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -206,7 +206,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -237,7 +237,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -268,7 +268,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -292,7 +292,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         ");
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -322,7 +322,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -334,13 +334,13 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ .' failed!');
+            static::raiseError(__METHOD__ .' failed!');
             return false;
         }
 
         while ($row = $result->fetch()) {
             if (!$guid = $mtlda->createGuid()) {
-                $this->raiseError('Mtlda::createGuid() returned no valid GUID!');
+                static::raiseError('Mtlda::createGuid() returned no valid GUID!');
                 return false;
             }
 
@@ -353,7 +353,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                     akd_idx LIKE '{$row->akd_idx}'"
             );
             if ($res === false) {
-                $this->raiseError(__METHOD__ .', update failed!');
+                static::raiseError(__METHOD__ .', update failed!');
                 return false;
             }
         }
@@ -382,7 +382,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -415,7 +415,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -445,7 +445,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -478,7 +478,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -505,7 +505,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -540,7 +540,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -575,7 +575,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -605,7 +605,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -627,7 +627,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -654,7 +654,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -681,7 +681,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -708,7 +708,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -733,7 +733,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -760,7 +760,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -787,7 +787,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -814,7 +814,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -845,7 +845,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -872,7 +872,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -903,7 +903,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -930,7 +930,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -951,7 +951,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -969,7 +969,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -996,7 +996,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -1017,7 +1017,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
@@ -1035,7 +1035,7 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         );
 
         if ($result === false) {
-            $this->raiseError(__METHOD__ ." failed!");
+            static::raiseError(__METHOD__ ." failed!");
             return false;
         }
 
