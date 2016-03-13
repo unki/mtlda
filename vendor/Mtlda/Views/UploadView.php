@@ -21,17 +21,17 @@ namespace Mtlda\Views;
 
 class UploadView extends DefaultView
 {
-    public $class_name = 'upload';
+    protected static $view_class_name = 'upload';
+    protected static $view_default_mode = 'show';
     public $item_name = 'UploadItem';
-    public $default_mode = 'show';
     public $queue;
 
     public function __construct()
     {
-        global $mtlda, $config;
+        global $config;
 
         if (!$config->isHttpUploadEnabled()) {
-            $mtlda->raiseError(__CLASS__ .', HTTP uploading is not enabled in configuration!', true);
+            static::raiseError(__CLASS__ .', HTTP uploading is not enabled in configuration!', true);
             return false;
         }
 
@@ -41,10 +41,10 @@ class UploadView extends DefaultView
 
     public function show()
     {
-        global $mtlda, $session, $tmpl;
+        global $session, $tmpl;
 
         if (!($token = $session->getOnetimeIdentifierId("upload"))) {
-            $mtlda->raiseError("SessionController::getOnetimeIdentifierId() returned false!");
+            static::raiseError("SessionController::getOnetimeIdentifierId() returned false!");
             return false;
         }
     
