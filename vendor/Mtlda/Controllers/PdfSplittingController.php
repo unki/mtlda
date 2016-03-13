@@ -26,17 +26,17 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
     public function splitDocument(&$srcitem, $pages)
     {
         if (!isset($srcitem) || empty($srcitem)) {
-            $this->raiseError(__METHOD__ .'(), $srcitem parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $srcitem parameter is invalid!');
             return false;
         }
 
         if (!is_a($srcitem, 'Mtlda\Models\QueueItemModel')) {
-            $this->raiseError(__METHOD__ .'(), can only operate with QueueItemModels!');
+            static::raiseError(__METHOD__ .'(), can only operate with QueueItemModels!');
             return false;
         }
 
         if (!isset($pages) || (!is_array($pages) and !is_string($pages))) {
-            $this->raiseError(__METHOD__ .'(), $pages parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $pages parameter is invalid!');
             return false;
         }
 
@@ -46,7 +46,7 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
 
         if (is_string($pages)) {
             if (($pages = explode(',', $pages)) === false) {
-                $this->raiseError(__METHOD__ .'(), failed to explode() pages string!');
+                static::raiseError(__METHOD__ .'(), failed to explode() pages string!');
                 return false;
             }
         }
@@ -54,17 +54,17 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
         try {
             $this->tempItem = new \Mtlda\Models\QueueItemModel;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to initialize QueueItemModels!');
+            static::raiseError(__METHOD__ .'(), failed to initialize QueueItemModels!');
             return false;
         }
 
         if (!$this->cloneItem($srcitem, $pages)) {
-            $this->raiseError(__CLASS__ .'::cloneItem() returned false!');
+            static::raiseError(__CLASS__ .'::cloneItem() returned false!');
             return false;
         }
 
         if (!$this->splitPages($pages)) {
-            $this->raiseError(__CLASS__ .'::splitPages() returned false!');
+            static::raiseError(__CLASS__ .'::splitPages() returned false!');
             return false;
         }
 
@@ -76,41 +76,41 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
         try {
             $this->tempItem->createClone($srcitem);
         } catch (\Exception $e) {
-            $this->raiseError(get_class($this->tempItem) .'::createClone() returned false!');
+            static::raiseError(get_class($this->tempItem) .'::createClone() returned false!');
             return false;
         }
 
         if ($this->tempItem->hasTitle()) {
             if (($title = $this->tempItem->getTitle()) === false) {
-                $this->raiseError(get_class($this->tempItem) .'::getTitle() returned false!');
+                static::raiseError(get_class($this->tempItem) .'::getTitle() returned false!');
                 return false;
             }
             $new_title = "{$title} Page(s) ". implode(', ', $pages) ." ". date("%c");
             if (!$this->tempItem->setTitle($new_title)) {
-                $this->raiseError(get_class($this->tempItem) .'::setTitle() returned false!');
+                static::raiseError(get_class($this->tempItem) .'::setTitle() returned false!');
                 return false;
             }
         }
 
         if (($base = $this->tempItem->getFileNameBase()) === false) {
-            $this->raiseError(get_class($this->tempItem) .'::getFileNameBase() returned false!');
+            static::raiseError(get_class($this->tempItem) .'::getFileNameBase() returned false!');
             return false;
         }
 
         if (($extension = $this->tempItem->getFileNameExtension()) === false) {
-            $this->raiseError(get_class($this->tempItem) .'::getFileNameExtension() returned false!');
+            static::raiseError(get_class($this->tempItem) .'::getFileNameExtension() returned false!');
             return false;
         }
 
         $new_filename = "{$base}_pages_". implode('-', $pages) .".{$extension}";
 
         if (!$this->tempItem->setFileName($new_filename)) {
-            $this->raiseError(get_class($this->tempItem) .'::setFileName() returned false!');
+            static::raiseError(get_class($this->tempItem) .'::setFileName() returned false!');
             return false;
         }
 
         if (!$this->tempItem->save()) {
-            $this->raiseError(get_class($this->tempItem) .'::save() returned false!');
+            static::raiseError(get_class($this->tempItem) .'::save() returned false!');
             return false;
         }
 
@@ -120,26 +120,26 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
     protected function splitPages($pages)
     {
         if (!isset($pages) || empty($pages) || !is_array($pages)) {
-            $this->raiseError(__METHOD__ .'(), $pages parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $pages parameter is invalid!');
             return false;
         }
 
         try {
             $pdf = new \FPDI();
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load FPDI!');
+            static::raiseError(__METHOD__ .'(), failed to load FPDI!');
             return false;
         }
 
         if (($fqfn = $this->tempItem->getFilePath()) === false) {
-            $this->raiseError(get_class($this->tempItem) .'::getFilePath() returned false!');
+            static::raiseError(get_class($this->tempItem) .'::getFilePath() returned false!');
             return false;
         }
 
         try {
             $page_count = $pdf->setSourceFile($fqfn);
         } catch (\Exception $e) {
-            $this->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            static::raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
@@ -147,7 +147,7 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
             try {
                 @$pdf->cleanUp();
             } catch (\Exception $e) {
-                $this->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+                static::raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
                 return false;
             }
             return true;
@@ -177,12 +177,12 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
         try {
             $pdf->Output($fqfn, 'F');
         } catch (\Exception $e) {
-            $this->raiseError(get_class($pdf) .'::Output() returned false!');
+            static::raiseError(get_class($pdf) .'::Output() returned false!');
                 return false;
         }
 
         if (!$this->tempItem->refresh()) {
-            $this->raiseError(get_class($this->tempItem) .'::refresh() returned false!');
+            static::raiseError(get_class($this->tempItem) .'::refresh() returned false!');
             return false;
         }
 
