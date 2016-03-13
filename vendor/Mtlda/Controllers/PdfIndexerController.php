@@ -30,21 +30,21 @@ class PdfIndexerController extends DefaultController
         global $config;
 
         if (!($this->indexing_cfg = $config->getPdfIndexingConfiguration())) {
-            $this->raiseError(get_class($config) .'::getPdfIndexingConfiguration() returned false!', true);
+            static::raiseError(get_class($config) .'::getPdfIndexingConfiguration() returned false!', true);
             return false;
         }
 
         if ($this->isPlainTextIndexingEnabled() &&
             !$this->loadPdfParser()
         ) {
-            $this->raiseError(__CLASS__ .'::loadPdfParser() returned false!', true);
+            static::raiseError(__CLASS__ .'::loadPdfParser() returned false!', true);
             return false;
         }
 
         if ($this->isOcrIndexingEnabled() &&
             !$this->loadOcrParser()
         ) {
-            $this->raiseError(__CLASS__ .'::loadOcrParser() returned false!', true);
+            static::raiseError(__CLASS__ .'::loadOcrParser() returned false!', true);
             return false;
         }
 
@@ -56,7 +56,7 @@ class PdfIndexerController extends DefaultController
         try {
             $this->parser = new \Smalot\PdfParser\Parser();
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load PdfParser!');
+            static::raiseError(__METHOD__ .'(), failed to load PdfParser!');
             return false;
         }
 
@@ -66,9 +66,9 @@ class PdfIndexerController extends DefaultController
     private function loadOcrParser()
     {
         try {
-            $this->ocr = new OcrController;
+            $this->ocr = new \Mtlda\Controllers\OcrController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load OcrController!');
+            static::raiseError(__METHOD__ .'(), failed to load OcrController!');
             return false;
         }
 
@@ -81,39 +81,39 @@ class PdfIndexerController extends DefaultController
             (!is_a($document, 'Mtlda\Models\DocumentModel') &&
             !is_a($document, 'Mtlda\Models\QueueItemModel'))
         ) {
-            $this->raiseError(__METHOD__ .'(), provided model is not supported!');
+            static::raiseError(__METHOD__ .'(), provided model is not supported!');
             return false;
         }
 
         if (!($idx = $document->getId())) {
-            $this->raiseError(get_class($document) .'::getId() returned false!');
+            static::raiseError(get_class($document) .'::getId() returned false!');
             return false;
         }
 
         if (!($guid = $document->getGuid())) {
-            $this->raiseError(get_class($document) .'::getGuid() returned false!');
+            static::raiseError(get_class($document) .'::getGuid() returned false!');
             return false;
         }
 
         if (!($hash = $document->getFileHash())) {
-            $this->raiseError(get_class($document) .'::getFileHash() returned false!');
+            static::raiseError(get_class($document) .'::getFileHash() returned false!');
             return false;
         }
 
         $this->sendMessage('scan-reply', 'Retrieving document from archive.', '10%');
 
         if (!$fqpn = $document->getFilePath()) {
-            $this->raiseError(get_class($document) .'::getFilePath() returned false!');
+            static::raiseError(get_class($document) .'::getFilePath() returned false!');
             return false;
         }
 
         if (!file_exists($fqpn)) {
-            $this->raiseError("{$fqpn} does not exist!");
+            static::raiseError("{$fqpn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqpn)) {
-            $this->raiseError("{$fqpn} is not readable!");
+            static::raiseError("{$fqpn} is not readable!");
             return false;
         }
 
@@ -121,27 +121,32 @@ class PdfIndexerController extends DefaultController
         // cleanup existing indices & properties
         //
         try {
-            $indices = new \Mtlda\Models\DocumentIndicesModel($hash);
+            $indices = new \Mtlda\Models\DocumentIndicesModel(array(
+                'file_hash' => $hash
+            ));
         } catch (\Exception $e) {
-            $this->raiseError(__CLASS__ .', failed to load DocumentIndicesModel!');
+            static::raiseError(__CLASS__ .', failed to load DocumentIndicesModel!');
             return false;
         }
 
         if (!$indices->delete()) {
-            $this->raiseError(get_class($indices) .'::delete() returned false!');
+            static::raiseError(get_class($indices) .'::delete() returned false!');
             return false;
         }
 
         if (is_a($document, 'Mtlda\Models\DocumentModel')) {
             try {
-                $properties = new \Mtlda\Models\DocumentPropertiesModel($idx, $guid);
+                $properties = new \Mtlda\Models\DocumentPropertiesModel(array(
+                    'idx' => $idx,
+                    'guid' => $guid
+                ));
             } catch (\Exception $e) {
-                $this->raiseError(__CLASS__ .', failed to load DocumentProperties!');
+                static::raiseError(__CLASS__ .', failed to load DocumentProperties!');
                 return false;
             }
 
             if (!$properties->delete()) {
-                $this->raiseError(get_class($properties) .'::delete() returned false!');
+                static::raiseError(get_class($properties) .'::delete() returned false!');
                 return false;
             }
         }
@@ -152,7 +157,7 @@ class PdfIndexerController extends DefaultController
             $this->isOcrIndexingEnabled()) &&
             ($info = $this->parsePdf($fqpn)) === false
         ) {
-            $this->raiseError(__CLASS__ .'::parsePdf() returned false!');
+            static::raiseError(__CLASS__ .'::parsePdf() returned false!');
             return false;
         }
 
@@ -161,13 +166,13 @@ class PdfIndexerController extends DefaultController
         if ($this->isPlainTextIndexingEnabled() &&
             ($info = $this->extractPdfText()) === false
         ) {
-            $this->raiseError(__CLASS__ .'::extractPdfText() returned false!');
+            static::raiseError(__CLASS__ .'::extractPdfText() returned false!');
             return false;
         }
 
         if (isset($info['text']) && !empty($info['text'])) {
             if (!$this->saveDocumentIndex($document, $info['text'])) {
-                $this->raiseError(__METHOD__ .'(), saveDocumentIndex() returned false!');
+                static::raiseError(__METHOD__ .'(), saveDocumentIndex() returned false!');
                 return false;
             }
         }
@@ -185,7 +190,7 @@ class PdfIndexerController extends DefaultController
                 }
 
                 if (!$this->saveDocumentProperty($document, $property, $value)) {
-                    $this->raiseError(__METHOD__ .'(), saveDocumentProperty() returned false!');
+                    static::raiseError(__METHOD__ .'(), saveDocumentProperty() returned false!');
                     return false;
                 }
             }
@@ -196,7 +201,7 @@ class PdfIndexerController extends DefaultController
         if ($this->isOcrIndexingEnabled() &&
             ($text_ary = $this->runOcr()) === false
         ) {
-            $this->raiseError(__CLASS__ .'::runOcr() returned false!');
+            static::raiseError(__CLASS__ .'::runOcr() returned false!');
             return false;
         }
 
@@ -206,7 +211,7 @@ class PdfIndexerController extends DefaultController
 
         foreach ($text_ary as $text) {
             if (!$this->saveDocumentIndex($document, $text)) {
-                $this->raiseError(__METHOD__ .'(), saveDocumentIndex() returned false!');
+                static::raiseError(__METHOD__ .'(), saveDocumentIndex() returned false!');
                 return false;
             }
         }
@@ -217,14 +222,14 @@ class PdfIndexerController extends DefaultController
     private function parsePdf($fqpn)
     {
         if (!isset($fqpn) || empty($fqpn) || !is_string($fqpn)) {
-            $this->raiseError(__METHOD__ .'(), \$fqpn parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), \$fqpn parameter is invalid!');
             return false;
         }
 
         try {
             $this->pdf = $this->parser->parseFile($fqpn);
         } catch (\Exception $e) {
-            $this->raiseError(get_class($this->parser) .'::parseFile() returned false! '. $e->getMessage());
+            static::raiseError(get_class($this->parser) .'::parseFile() returned false! '. $e->getMessage());
             return false;
         }
 
@@ -234,7 +239,7 @@ class PdfIndexerController extends DefaultController
     private function extractPdfText()
     {
         if (!isset($this->pdf) || empty($this->pdf) || !is_object($this->pdf)) {
-            $this->raiseError(__METHOD__ .'(), document has not been parsed yet!');
+            static::raiseError(__METHOD__ .'(), document has not been parsed yet!');
             return false;
         }
 
@@ -243,14 +248,14 @@ class PdfIndexerController extends DefaultController
         try {
             $text = $this->pdf->getText();
         } catch (\Exception $e) {
-            $this->raiseError(get_class($this->pdf) .'::getText() returned false!');
+            static::raiseError(get_class($this->pdf) .'::getText() returned false!');
             return false;
         }
 
         try {
             $details  = $this->pdf->getDetails();
         } catch (\Exception $e) {
-            $this->raiseError(get_class($this->pdf) .'::getDetails() returned false!');
+            static::raiseError(get_class($this->pdf) .'::getDetails() returned false!');
             return false;
         }
 
@@ -265,7 +270,7 @@ class PdfIndexerController extends DefaultController
         global $config;
 
         if (!isset($this->indexing_cfg) || empty($this->indexing_cfg)) {
-            $this->raiseError(__METHOD__ .'(), invalid configuration found!');
+            static::raiseError(__METHOD__ .'(), invalid configuration found!');
             return false;
         }
 
@@ -284,7 +289,7 @@ class PdfIndexerController extends DefaultController
         global $config;
 
         if (!isset($this->indexing_cfg) || empty($this->indexing_cfg)) {
-            $this->raiseError(__METHOD__ .'(), invalid configuration found!');
+            static::raiseError(__METHOD__ .'(), invalid configuration found!');
             return false;
         }
 
@@ -303,7 +308,7 @@ class PdfIndexerController extends DefaultController
         try {
             $pages  = $this->pdf->getPages();
         } catch (\Exception $e) {
-            $this->raiseError(get_class($this->pdf) .'::getPages() returned false!');
+            static::raiseError(get_class($this->pdf) .'::getPages() returned false!');
             return false;
         }
 
@@ -312,19 +317,19 @@ class PdfIndexerController extends DefaultController
         }
 
         try {
-            $storage = new \Mtlda\Controllers\StorageController();
+            $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load StorageController!', false, $e);
+            static::raiseError(__METHOD__ .'(), failed to load StorageController!', false, $e);
             return false;
         }
 
         if (!($tempDir = $storage->createTempDir('ocr_'))) {
-            $this->raiseError(get_class($storage) .'::createTempDir() returned false!');
+            static::raiseError(get_class($storage) .'::createTempDir() returned false!');
             return false;
         }
 
         if (!file_exists($tempDir) || !is_dir($tempDir)) {
-            $this->raiseError(
+            static::raiseError(
                 get_class($storage) .'::createTempDir() has not returned a valid directory!'
             );
             return false;
@@ -335,7 +340,7 @@ class PdfIndexerController extends DefaultController
                 $objects = $page->getXObjects();
             } catch (\Exception $e) {
                 $this->unlinkDirectory($tempDir);
-                $this->raiseError(get_class($page) .'::getXObjects() returned false!');
+                static::raiseError(get_class($page) .'::getXObjects() returned false!');
                 return false;
             }
 
@@ -348,31 +353,31 @@ class PdfIndexerController extends DefaultController
                     $content = $object->getContent();
                 } catch (\Exception $e) {
                     $this->unlinkDirectory($tempDir);
-                    $this->raiseError(get_class($object) .'::getContent() returned false!');
+                    static::raiseError(get_class($object) .'::getContent() returned false!');
                     return false;
                 }
 
                 if (!($tempFile = tempnam($tempDir, 'pdfcontent_'))) {
                     $this->unlinkDirectory($tempDir);
-                    $this->raiseError(__METHOD__ .'(), tempnam() returned false!');
+                    static::raiseError(__METHOD__ .'(), tempnam() returned false!');
                     return false;
                 }
 
                 if (!(file_put_contents($tempFile, $content))) {
                     $this->unlinkDirectory($tempDir);
-                    $this->raiseError(__METHOD__ .'(), file_put_contents() returned false!');
+                    static::raiseError(__METHOD__ .'(), file_put_contents() returned false!');
                     return false;
                 }
             }
         }
 
         if (($text = $this->ocr->scanDirectory($tempDir)) === false) {
-            $this->raiseError(get_class($this->ocr) .'::scanDirectory() returned false!');
+            static::raiseError(get_class($this->ocr) .'::scanDirectory() returned false!');
             return false;
         }
 
         if (!$this->unlinkDirectory($tempDir)) {
-            $this->raiseError(__CLASS__ .'::unlinkDirectory() returned false!');
+            static::raiseError(__CLASS__ .'::unlinkDirectory() returned false!');
             return false;
         }
 
@@ -389,7 +394,7 @@ class PdfIndexerController extends DefaultController
             empty($document) ||
             !is_a($document, 'Mtlda\Models\DocumentModel')
         ) {
-            $this->raiseError(__METHOD__ .'(), \$document parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), \$document parameter is invalid!');
             return false;
         }
 
@@ -397,7 +402,7 @@ class PdfIndexerController extends DefaultController
             empty($property) ||
             !is_string($property)
         ) {
-            $this->raiseError(__METHOD__ .'(), \$property parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), \$property parameter is invalid!');
             return false;
         }
 
@@ -405,39 +410,39 @@ class PdfIndexerController extends DefaultController
             empty($value) ||
             (!is_string($value) && !is_numeric($value))
         ) {
-            $this->raiseError(__METHOD__ .'(), \$value parameter is invalid!'. $value);
+            static::raiseError(__METHOD__ .'(), \$value parameter is invalid!'. $value);
             return false;
         }
 
         if (($hash = $document->getFileHash()) === false) {
-            $this->raiseError(get_class($document).'::getFileHash() returned false!');
+            static::raiseError(get_class($document).'::getFileHash() returned false!');
             return false;
         }
 
         try {
             $pmodel = new \Mtlda\Models\DocumentPropertyModel;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load DocumentPropertyModel!');
+            static::raiseError(__METHOD__ .'(), failed to load DocumentPropertyModel!');
             return false;
         }
 
         if (!$pmodel->setFileHash($hash)) {
-            $this->raiseError(get_class($pmodel) .'::setFileHash() returned false!');
+            static::raiseError(get_class($pmodel) .'::setFileHash() returned false!');
             return false;
         }
 
         if (!$pmodel->setDocumentProperty($property)) {
-            $this->raiseError(get_class($pmodel) .'::setDocumentProperty() returned false!');
+            static::raiseError(get_class($pmodel) .'::setDocumentProperty() returned false!');
             return false;
         }
 
         if (!$pmodel->setDocumentValue($value)) {
-            $this->raiseError(get_class($pmodel) .'::setDocumentValue() returned false!');
+            static::raiseError(get_class($pmodel) .'::setDocumentValue() returned false!');
             return false;
         }
 
         if (!$pmodel->save()) {
-            $this->raiseError(get_class($pmodel) .'::save() returned false!');
+            static::raiseError(get_class($pmodel) .'::save() returned false!');
             return false;
         }
 
@@ -450,41 +455,41 @@ class PdfIndexerController extends DefaultController
             (!is_a($document, 'Mtlda\Models\DocumentModel') &&
             !is_a($document, 'Mtlda\Models\QueueItemModel'))
         ) {
-            $this->raiseError(__METHOD__ .'(), \$document parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), \$document parameter is invalid!');
             return false;
         }
 
         if (!isset($text) || empty($text) ||
             (!is_string($text) && !is_numeric($text))
         ) {
-            $this->raiseError(__METHOD__ .'(), \$property parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), \$property parameter is invalid!');
             return false;
         }
 
         if (($hash = $document->getFileHash()) === false) {
-            $this->raiseError(get_class($document).'::getFileHash() returned false!');
+            static::raiseError(get_class($document).'::getFileHash() returned false!');
             return false;
         }
 
         try {
             $index = new \Mtlda\Models\DocumentIndexModel;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load DocumentIndexModel!');
+            static::raiseError(__METHOD__ .'(), failed to load DocumentIndexModel!');
             return false;
         }
 
         if (!$index->setFileHash($hash)) {
-            $this->raiseError(get_class($index) .'::setFileHash() returned false!');
+            static::raiseError(get_class($index) .'::setFileHash() returned false!');
             return false;
         }
 
         if (!$index->setDocumentText($text)) {
-            $this->raiseError(get_class($index) .'::setDocumentText() returned false!');
+            static::raiseError(get_class($index) .'::setDocumentText() returned false!');
             return false;
         }
 
         if (!$index->save()) {
-            $this->raiseError(get_class($index) .'::save() returned false!');
+            static::raiseError(get_class($index) .'::save() returned false!');
             return false;
         }
 
@@ -496,7 +501,7 @@ class PdfIndexerController extends DefaultController
         global $mtlda;
 
         if (($files = scandir($dir)) === false) {
-            $this->raiseError("scandir on {$dir} returned false!");
+            static::raiseError("scandir on {$dir} returned false!");
             return false;
         }
 
@@ -505,12 +510,12 @@ class PdfIndexerController extends DefaultController
 
         foreach ($files as $file) {
             if (($fqfn = realpath($dir .'/'. $file)) === false) {
-                $this->raiseError("realpath() on ". $dir .'/'. $file ." returned false!");
+                static::raiseError("realpath() on ". $dir .'/'. $file ." returned false!");
                 return false;
             }
 
             if (!$mtlda->isBelowDirectory(dirname($fqfn), self::CACHE_DIRECTORY)) {
-                $this->raiseError("will only handle requested within ". $this::CACHE_DIRECTORY ."!");
+                static::raiseError("will only handle requested within ". $this::CACHE_DIRECTORY ."!");
                 return false;
             }
 
@@ -520,14 +525,14 @@ class PdfIndexerController extends DefaultController
                 }
             } else {
                 if (!unlink($fqfn)) {
-                    $this->raiseError("unlink() on {$fqfn} returned false!");
+                    static::raiseError("unlink() on {$fqfn} returned false!");
                     return false;
                 }
             }
         }
 
         if (!rmdir($dir)) {
-            $this->raiseError("rmdir() on {$dir} returned false!");
+            static::raiseError("rmdir() on {$dir} returned false!");
             return false;
         }
 
