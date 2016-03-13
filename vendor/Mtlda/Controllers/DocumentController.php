@@ -26,54 +26,54 @@ class DocumentController extends DefaultController
         global $mtlda, $query, $router;
 
         if (!isset($query->view) || empty($query->view)) {
-            $this->raiseError("\$query->view is not set!");
+            static::raiseError("\$query->view is not set!");
             return false;
         }
 
         if ($query->view != "document") {
-            $this->raiseError("\$query->view should be document but isn't so!");
+            static::raiseError("\$query->view should be document but isn't so!");
             return false;
         }
 
         if (!$params = $router->parseQueryParams()) {
-            $this->raiseError("HttpRouterController::parseQueryParams() returned false!");
+            static::raiseError("HttpRouterController::parseQueryParams() returned false!");
             return false;
         }
 
         if (empty($params) || !is_array($params)) {
-            $this->raiseError("HttpRouterController::parseQueryParams() return an invalid format!");
+            static::raiseError("HttpRouterController::parseQueryParams() return an invalid format!");
             return false;
         }
 
         if (!isset($query->params[0]) || empty($query->params[0])) {
-            $this->raiseError("Action is not set!");
+            static::raiseError("Action is not set!");
             return false;
         }
 
         if (!in_array($query->params[0], array('show'))) {
-            $this->raiseError("Invalid action!");
+            static::raiseError("Invalid action!");
             return false;
         }
 
         if (!isset($query->params[1]) || empty($query->params[1])) {
-            $this->raiseError("Object id is not set!");
+            static::raiseError("Object id is not set!");
             return false;
         }
 
         if (!$mtlda->isValidId($query->params[1])) {
-            $this->raiseError("Object id is invalid!");
+            static::raiseError("Object id is invalid!");
             return false;
         }
 
         if (!($id = $mtlda->parseId($query->params[1]))) {
-            $this->raiseError("Object id can not be parsed!");
+            static::raiseError("Object id can not be parsed!");
             return false;
         }
 
         if ($query->params[0] == "show") {
             $this->loadDocument($id);
         } else {
-            $this->raiseError("Unknown action found!");
+            static::raiseError("Unknown action found!");
             return false;
         }
 
@@ -85,14 +85,14 @@ class DocumentController extends DefaultController
         global $mtlda;
 
         if (!$mtlda->isValidGuidSyntax($id->guid)) {
-            $this->raiseError("GUID syntax is invalid!");
+            static::raiseError("GUID syntax is invalid!");
             return false;
         }
 
         if ($id->model == "document") {
             $content = $this->getArchiveDocumentContent($id);
             if (!isset($content) || empty($content)) {
-                $this->raiseError("No valid document content returned!");
+                static::raiseError("No valid document content returned!");
                 return false;
             }
             header('Content-Type: application/pdf');
@@ -101,7 +101,7 @@ class DocumentController extends DefaultController
             return true;
         }
 
-        $this->raiseError("Unsupported model requested");
+        static::raiseError("Unsupported model requested");
         return false;
     }
 
@@ -109,26 +109,20 @@ class DocumentController extends DefaultController
     {
         global $mtlda;
 
-        $document = new \Mtlda\Models\DocumentModel($id->id, $id->guid);
+        $document = new \Mtlda\Models\DocumentModel(array(
+            'idx' => $id->id,
+            'guid' => $id->guid
+        ));
 
         if (!$document) {
-            $this->raiseError("Unable to load a DocumentModel!");
+            static::raiseError("Unable to load a DocumentModel!");
             return false;
         }
-
-        // don't rembmer the purpose of this code
-        /*if ($document->getVersion() != 1 && $document->getDerivationId() != 0) {
-            $descent = new \Mtlda\Models\DocumentModel($document->getDerivationId());
-            if (!$descent) {
-                $this->raiseError("Unable to load parent DocumentModel!");
-                return false;
-            }
-        }*/
 
         $storage = new StorageController;
 
         if (!($file = $storage->retrieveFile($document))) {
-            $this->raiseError("StorageController::retrieveFile() returned false");
+            static::raiseError("StorageController::retrieveFile() returned false");
             return false;
         }
 
@@ -139,17 +133,17 @@ class DocumentController extends DefaultController
             empty($file['hash']) ||
             empty($file['content'])
         ) {
-            $this->raiseError("StorageController::retireveFile() returned an invalid file");
+            static::raiseError("StorageController::retireveFile() returned an invalid file");
             return false;
         }
 
         if (strlen($file['content']) != $document->getFileSize()) {
-            $this->raiseError("File size of retrieved file does not match archive record!");
+            static::raiseError("File size of retrieved file does not match archive record!");
             return false;
         }
 
         if ($file['hash'] != $document->getFileHash()) {
-            $this->raiseError("File hash of retrieved file does not match archive record!");
+            static::raiseError("File hash of retrieved file does not match archive record!");
             return false;
         }
 
