@@ -32,30 +32,30 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         }
 
         if (!(function_exists("curl_init"))) {
-            $this->raiseError("cURL support is missing!");
+            static::raiseError("cURL support is missing!");
             $missing = true;
         }
 
         if ($config->isPdfSigningEnabled()) {
             if (!(function_exists("openssl_pkey_get_private"))) {
-                $this->raiseError("OpenSSL support is missing!");
+                static::raiseError("OpenSSL support is missing!");
                 $missing = true;
             }
 
             if (!class_exists("SoapClient")) {
-                $this->raiseError("SOAP support is missing!");
+                static::raiseError("SOAP support is missing!");
                 $missing = true;
             }
         }
 
         if ($config->isMailImportEnabled()) {
             if (!function_exists("imap_open")) {
-                $this->raiseError("IMAP extension is missing (also provides POP3 support)!");
+                static::raiseError("IMAP extension is missing (also provides POP3 support)!");
                 $missing = true;
             }
             if ($config->isUseEmailBodyAsDescription()) {
                 if (!function_exists("mb_convert_encoding")) {
-                    $this->raiseError("Multibyte string support is missing!");
+                    static::raiseError("Multibyte string support is missing!");
                     $missing = true;
                 }
             }
@@ -75,7 +75,7 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         $missing = false;
 
         if (!($dbtype = $config->getDatabaseType())) {
-            $this->raiseError("Error - incomplete configuration found, can not check requirements!");
+            static::raiseError("Error - incomplete configuration found, can not check requirements!");
             return false;
         }
 
@@ -179,12 +179,12 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         $missing = false;
 
         if (!$uid = $mtlda->getProcessUserId()) {
-            $this->raiseError("Mtlda::getProcessUserId() returned false!");
+            static::raiseError("Mtlda::getProcessUserId() returned false!");
             return false;
         }
 
         if (!$gid = $mtlda->getProcessGroupId()) {
-            $this->raiseError("Mtlda::getProcessGroupId() returned false!");
+            static::raiseError("Mtlda::getProcessGroupId() returned false!");
             return false;
         }
 
@@ -198,12 +198,12 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         );
 
         if (!file_exists(\Mtlda\Controllers\DefaultController::DATA_DIRECTORY)) {
-            $this->raiseError(\Mtlda\Controllers\DefaultController::DATA_DIRECTORY ." does not exist!");
+            static::raiseError(\Mtlda\Controllers\DefaultController::DATA_DIRECTORY ." does not exist!");
             return false;
         }
 
         if (!is_writeable(\Mtlda\Controllers\DefaultController::DATA_DIRECTORY)) {
-            $this->raiseError(
+            static::raiseError(
                 \Mtlda\Controllers\DefaultController::DATA_DIRECTORY ." is not writeable for {$uid}:{$gid}!"
             );
             return false;
