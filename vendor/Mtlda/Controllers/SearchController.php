@@ -26,12 +26,12 @@ class SearchController extends DefaultController
     public function search($objectofdesire)
     {
         if (!$this->validateInput($objectofdesire)) {
-            $this->raiseError(__CLASS__ .'::validateInput() returned false!');
+            static::raiseError(__CLASS__ .'::validateInput() returned false!');
             return false;
         }
 
         if (!$this->query($objectofdesire)) {
-            $this->raiseError(__CLASS__ .'::query() returned false!');
+            static::raiseError(__CLASS__ .'::query() returned false!');
             return false;
         }
 
@@ -67,17 +67,17 @@ class SearchController extends DefaultController
         }
 
         if (!$this->queryArchive($query_ary)) {
-            $this->raiseError(__CLASS__ .'::queryArchive() returned false!');
+            static::raiseError(__CLASS__ .'::queryArchive() returned false!');
             return false;
         }
 
         if (!$this->queryQueue($query_ary)) {
-            $this->raiseError(__CLASS__ .'::queryQueue() returned false!');
+            static::raiseError(__CLASS__ .'::queryQueue() returned false!');
             return false;
         }
 
         if (!$this->queryKeywords($query_ary)) {
-            $this->raiseError(__CLASS__ .'::queryKeywords() returned false');
+            static::raiseError(__CLASS__ .'::queryKeywords() returned false');
             return false;
         }
 
@@ -89,7 +89,7 @@ class SearchController extends DefaultController
         global $db;
 
         if (!$this->isValidSearchQuery($query)) {
-            $this->raiseError(__CLASS__ .'::isValidSearchQuery() returned false!');
+            static::raiseError(__CLASS__ .'::isValidSearchQuery() returned false!');
             return false;
         }
 
@@ -141,22 +141,22 @@ class SearchController extends DefaultController
             )";
 
         if (!($sth = $db->prepare($sql))) {
-            $this->raiseError(get_class($db) .'::prepare() returned false!');
+            static::raiseError(get_class($db) .'::prepare() returned false!');
             return false;
         }
 
         if (!($sth->bindValue(':searchwild', '%'. $db->quote($query['data']) .'%'))) {
-            $this->raiseError(get_class($sth) .'::bindParam() returned false!');
+            static::raiseError(get_class($sth) .'::bindParam() returned false!');
             return false;
         }
 
         if (!($sth->bindValue(':search', $db->quote($query['data'])))) {
-            $this->raiseError(get_class($sth) .'::bindParam() returned false!');
+            static::raiseError(get_class($sth) .'::bindParam() returned false!');
             return false;
         }
 
         if (!($db->execute($sth))) {
-            $this->raiseError(get_class($db) .'::execute() returned false!');
+            static::raiseError(get_class($db) .'::execute() returned false!');
             return false;
         }
 
@@ -166,12 +166,12 @@ class SearchController extends DefaultController
 
         while ($row = $sth->fetch()) {
             try {
-                $document = new \Mtlda\Models\DocumentModel(
-                    $row->document_idx,
-                    $row->document_guid
-                );
+                $document = new \Mtlda\Models\DocumentModel(array(
+                    'idx' => $row->document_idx,
+                    'guid' => $row->document_guid
+                ));
             } catch (\Exception $e) {
-                $this->raiseError(__METHOD__ .'(), failed to load DocumentModel!');
+                static::raiseError(__METHOD__ .'(), failed to load DocumentModel!');
                 return false;
             }
             array_push($this->result, $document);
@@ -185,7 +185,7 @@ class SearchController extends DefaultController
         global $db;
 
         if (!$this->isValidSearchQuery($query)) {
-            $this->raiseError(__CLASS__ .'::isValidSearchQuery() returned false!');
+            static::raiseError(__CLASS__ .'::isValidSearchQuery() returned false!');
             return false;
         }
 
@@ -212,22 +212,22 @@ class SearchController extends DefaultController
         }
 
         if (!($sth = $db->prepare($sql))) {
-            $this->raiseError(get_class($db) .'::prepare() returned false!');
+            static::raiseError(get_class($db) .'::prepare() returned false!');
             return false;
         }
 
         if (!($sth->bindValue(':searchwild', '%'. $db->quote($query['data']) .'%'))) {
-            $this->raiseError(get_class($sth) .'::bindParam() returned false!');
+            static::raiseError(get_class($sth) .'::bindParam() returned false!');
             return false;
         }
 
         if (!($sth->bindValue(':search', $db->quote($query['data'])))) {
-            $this->raiseError(get_class($sth) .'::bindParam() returned false!');
+            static::raiseError(get_class($sth) .'::bindParam() returned false!');
             return false;
         }
 
         if (!($db->execute($sth))) {
-            $this->raiseError(get_class($db) .'::execute() returned false!');
+            static::raiseError(get_class($db) .'::execute() returned false!');
             return false;
         }
 
@@ -237,12 +237,12 @@ class SearchController extends DefaultController
 
         while ($row = $sth->fetch()) {
             try {
-                $queueitem = new \Mtlda\Models\QueueItemModel(
-                    $row->queue_idx,
-                    $row->queue_guid
-                );
+                $queueitem = new \Mtlda\Models\QueueItemModel(array(
+                    'idx' => $row->queue_idx,
+                    'guid' => $row->queue_guid
+                ));
             } catch (\Exception $e) {
-                $this->raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
+                static::raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
                 return false;
             }
             array_push($this->result, $queueitem);
@@ -256,7 +256,7 @@ class SearchController extends DefaultController
         global $db;
 
         if (!$this->isValidSearchQuery($query)) {
-            $this->raiseError(__CLASS__ .'::isValidSearchQuery() returned false!');
+            static::raiseError(__CLASS__ .'::isValidSearchQuery() returned false!');
             return false;
         }
 
@@ -278,22 +278,22 @@ class SearchController extends DefaultController
                 keyword_name LIKE :searchwild";
 
         if (!($sth = $db->prepare($sql))) {
-            $this->raiseError(get_class($db) .'::prepare() returned false!');
+            static::raiseError(get_class($db) .'::prepare() returned false!');
             return false;
         }
 
         if (!($sth->bindValue(':searchwild', '%'. $db->quote($query['data']) .'%'))) {
-            $this->raiseError(get_class($sth) .'::bindParam() returned false!');
+            static::raiseError(get_class($sth) .'::bindParam() returned false!');
             return false;
         }
 
         /*if (!($sth->bindValue(':search', $db->quote($query['data'])))) {
-            $this->raiseError(get_class($sth) .'::bindParam() returned false!');
+            static::raiseError(get_class($sth) .'::bindParam() returned false!');
             return false;
         }*/
 
         if (!($db->execute($sth))) {
-            $this->raiseError(get_class($db) .'::execute() returned false!');
+            static::raiseError(get_class($db) .'::execute() returned false!');
             return false;
         }
 
@@ -303,12 +303,12 @@ class SearchController extends DefaultController
 
         while ($row = $sth->fetch()) {
             try {
-                $keyword = new \Mtlda\Models\KeywordModel(
-                    $row->keyword_idx,
-                    $row->keyword_guid
-                );
+                $keyword = new \Mtlda\Models\KeywordModel(array(
+                    'idx' => $row->keyword_idx,
+                    'guid' => $row->keyword_guid
+                ));
             } catch (\Exception $e) {
-                $this->raiseError(__METHOD__ .'(), failed to load KeywordModel!');
+                static::raiseError(__METHOD__ .'(), failed to load KeywordModel!');
                 return false;
             }
             array_push($this->result, $keyword);
@@ -320,7 +320,7 @@ class SearchController extends DefaultController
     public function getResults()
     {
         if (!isset($this->result)) {
-            $this->raiseError(__METHOD__ .'(), no result available!');
+            static::raiseError(__METHOD__ .'(), no result available!');
             return false;
         }
 
