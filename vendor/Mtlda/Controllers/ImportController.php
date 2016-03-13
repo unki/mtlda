@@ -38,7 +38,7 @@ class ImportController extends DefaultController
             try {
                 $imagectrl = new \Mtlda\Controllers\ImageController;
             } catch (\Exception $e) {
-                $this->raiseError(__METHOD__ .'(), unable to load ImageController!');
+                static::raiseError(__METHOD__ .'(), unable to load ImageController!');
                 return false;
             }
         }
@@ -46,21 +46,21 @@ class ImportController extends DefaultController
         if ($config->isPdfSigningEnabled() &&
             (($sign_pos = $config->getPdfSigningIconPosition()) === false)
         ) {
-            $this->raiseError(__METHOD__ .'(), PDF-Signing is enabled but no signing-icon-position is defined!');
+            static::raiseError(__METHOD__ .'(), PDF-Signing is enabled but no signing-icon-position is defined!');
             return false;
         }
 
         try {
             $storage = new StorageController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .', failed to load StorageController!');
+            static::raiseError(__METHOD__ .', failed to load StorageController!');
             return false;
         }
 
         $files = array();
 
         if ($this->scanDirectory(self::INCOMING_DIRECTORY, $files) === false) {
-            $this->raiseError(__CLASS__ .'::scanDirectory() returned false!');
+            static::raiseError(__CLASS__ .'::scanDirectory() returned false!');
             return false;
         }
 
@@ -90,11 +90,11 @@ class ImportController extends DefaultController
             }
             if (file_exists($lockfile)) {
                 if (($timestamp = file_get_contents($lockfile)) === false) {
-                    $this->raiseError(__METHOD__ ."(), failed to read {$lockfile}!");
+                    static::raiseError(__METHOD__ ."(), failed to read {$lockfile}!");
                     return false;
                 }
                 if (!isset($timestamp) || empty($timestamp) || !is_numeric($timestamp)) {
-                    $this->raiseError(__METHOD__ ."(), {$lockfile} does not contain a timestamp!");
+                    static::raiseError(__METHOD__ ."(), {$lockfile} does not contain a timestamp!");
                     return false;
                 }
 
@@ -103,19 +103,19 @@ class ImportController extends DefaultController
                 }
             }
             if (file_put_contents($lockfile, time()) === false) {
-                $this->raiseError(__METHOD__ ."(), failed to write timestamp into {$lockfile}!");
+                static::raiseError(__METHOD__ ."(), failed to write timestamp into {$lockfile}!");
                 return false;
             }
 
             if (!($guid = $mtlda->createGuid())) {
-                $this->raiseError(get_class($mtlda) .'::createGuid() returned false!');
+                static::raiseError(get_class($mtlda) .'::createGuid() returned false!');
                 return false;
             }
 
             try {
                 $queueitem = new \Mtlda\Models\QueueItemModel;
             } catch (\Exception $e) {
-                $this->raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
+                static::raiseError(__METHOD__ .'(), failed to load QueueItemModel!');
                 return false;
             }
 
@@ -131,7 +131,7 @@ class ImportController extends DefaultController
                     $queueitem->setSigningIconPosition($sign_pos);
                 }
             } catch (\Exception $e) {
-                $this->raiseError('Failed to prepare QueueItemModel! ', false, $e);
+                static::raiseError('Failed to prepare QueueItemModel! ', false, $e);
                 return false;
             }
 
@@ -139,63 +139,63 @@ class ImportController extends DefaultController
             $in_dir = dirname($in_file);
 
             if (!file_exists($in_file)) {
-                $this->raiseError(__METHOD__ ."(), file {$in_file} does not exist!");
+                static::raiseError(__METHOD__ ."(), file {$in_file} does not exist!");
                 return false;
             }
 
             if (!($dsc_file = preg_replace('/\.pdf$/i', '.dsc', $in_file))) {
-                $this->raiseError(__METHOD__ .'(), preg_replace() returned false!');
+                static::raiseError(__METHOD__ .'(), preg_replace() returned false!');
                 return false;
             }
 
             if (!$work_file = $queueitem->getFilePath()) {
-                $this->raiseError(get_class($queueitem) .'::getFilePath() returned false!');
+                static::raiseError(get_class($queueitem) .'::getFilePath() returned false!');
                 return false;
             }
 
             if (isset($dsc_file) && !empty($dsc_file) && file_exists($dsc_file)) {
                 if (!($description = file_get_contents($dsc_file))) {
-                    $this->raiseError(__METHOD__ ."(), file_get_contents({$dsc_file}) returned false!");
+                    static::raiseError(__METHOD__ ."(), file_get_contents({$dsc_file}) returned false!");
                     return false;
                 }
                 if (!$queueitem->setDescription($description)) {
-                    $this->raiseError(get_class($queueitem) .'::setDescription() returned false!');
+                    static::raiseError(get_class($queueitem) .'::setDescription() returned false!');
                     return false;
                 }
             }
 
             // create the target directory structure
             if (!$storage->createDirectoryStructure(dirname($work_file))) {
-                $this->raiseError(get_class($storage) .'::createDirectoryStructure() returned false!');
+                static::raiseError(get_class($storage) .'::createDirectoryStructure() returned false!');
                 return false;
             }
 
             if (copy($in_file, $work_file) === false) {
-                $this->raiseError(__METHOD__ ."(), copy({$in_file}, {$work_file}) returned false!");
+                static::raiseError(__METHOD__ ."(), copy({$in_file}, {$work_file}) returned false!");
                 return false;
             }
 
             if (!$queueitem->save()) {
                 $queueitem->delete();
-                $this->raiseError(get_class($queueitem) .'::save() returned false!');
+                static::raiseError(get_class($queueitem) .'::save() returned false!');
                 return false;
             }
 
             if (!unlink($in_file)) {
-                $this->raiseError(__METHOD__ ."(), unlink({$in_file}) failed!");
+                static::raiseError(__METHOD__ ."(), unlink({$in_file}) failed!");
                 return false;
             }
 
             if (isset($dsc_file) && !empty($dsc_file) && file_exists($dsc_file)) {
                 if (!unlink($dsc_file)) {
-                    $this->raiseError(__METHOD__ ."(), unlink({$dsc_file}) failed!");
+                    static::raiseError(__METHOD__ ."(), unlink({$dsc_file}) failed!");
                     return false;
                 }
             }
 
             if ($in_dir != self::INCOMING_DIRECTORY) {
                 if (!$this->unlinkDirectory($in_dir)) {
-                    $this->raiseError(__CLASS__ .'::unlinkDirectory() returned false!');
+                    static::raiseError(__CLASS__ .'::unlinkDirectory() returned false!');
                     return false;
                 }
             }
@@ -211,7 +211,7 @@ class ImportController extends DefaultController
 
             if (!$json_str) {
                 $queueitem->delete();
-                $this->raiseError(__METHOD__ .'(), json_encode() returned false!');
+                static::raiseError(__METHOD__ .'(), json_encode() returned false!');
                 return false;
             }
 
@@ -224,13 +224,13 @@ class ImportController extends DefaultController
                 );
             } catch (\Exception $e) {
                 $queueitem->delete();
-                $this->raiseError(get_class($audit) .'::log() returned false!');
+                static::raiseError(get_class($audit) .'::log() returned false!');
                 return false;
             }
 
             if ($config->isCreatePreviewImageOnImport()) {
                 if (!$imagectrl->createPreviewImage($queueitem, false)) {
-                    $this->raiseError(get_class($imagectrl) .'::savePreviewImage() returned false!');
+                    static::raiseError(get_class($imagectrl) .'::savePreviewImage() returned false!');
                     return false;
                 }
             }
@@ -244,7 +244,7 @@ class ImportController extends DefaultController
         global $mtlda, $audit;
 
         if (($dir = opendir($path)) === false) {
-            $this->raiseError(__METHOD__ .'(), failed to access '. self::INCOMING_DIRECTORY);
+            static::raiseError(__METHOD__ .'(), failed to access '. self::INCOMING_DIRECTORY);
             return false;
         }
 
@@ -261,7 +261,7 @@ class ImportController extends DefaultController
 
             if (is_dir($path .'/'. $item)) {
                 if ($this->scanDirectory($path .'/'. $item, $files) === false) {
-                    $this->raiseError(__CLASS__ .'::scanDirectory() returned false!');
+                    static::raiseError(__CLASS__ .'::scanDirectory() returned false!');
                     return false;
                 }
                 continue;
@@ -277,17 +277,17 @@ class ImportController extends DefaultController
             }
 
             if (!file_exists($file['fqpn'])) {
-                $this->raiseError(__METHOD__ ."(), file {$file['fqpn']} does not exist!");
+                static::raiseError(__METHOD__ ."(), file {$file['fqpn']} does not exist!");
                 return false;
             }
 
             if (!is_file($file['fqpn'])) {
-                $this->raiseError(__METHOD__ ."(), {$file['fqpn']} is not a file!");
+                static::raiseError(__METHOD__ ."(), {$file['fqpn']} is not a file!");
                 return false;
             }
 
             if (!is_readable($file['fqpn'])) {
-                $this->raiseError(__METHOD__ ."(), {$file['fqpn']} is not readable!");
+                static::raiseError(__METHOD__ ."(), {$file['fqpn']} is not readable!");
                 return false;
             }
 
@@ -298,19 +298,19 @@ class ImportController extends DefaultController
                     "queue"
                 );
             } catch (\Exception $e) {
-                $this->raiseError(get_class($audit) .'::log() raised an exception!');
+                static::raiseError(get_class($audit) .'::log() raised an exception!');
                 return false;
             }
 
             if (($file['hash'] = sha1_file($file['fqpn'])) === false) {
-                $this->raiseError(__METHOD__ ."(), SHA1 value of {$file['fqpn']} can not be calculated!");
+                static::raiseError(__METHOD__ ."(), SHA1 value of {$file['fqpn']} can not be calculated!");
                 return false;
             }
 
             clearstatcache(true, $file['fqpn']);
 
             if (($file['size'] = filesize($file['fqpn'])) === false) {
-                $this->raiseError(__METHOD__ ."(), filesize of {$file['fqpn']} is not available!");
+                static::raiseError(__METHOD__ ."(), filesize of {$file['fqpn']} is not available!");
                 return false;
             }
 
@@ -325,12 +325,12 @@ class ImportController extends DefaultController
         global $mtlda;
 
         if (!file_exists($dir)) {
-            $this->raiseError(__METHOD__ ."(), directory {$dir} does not exist!");
+            static::raiseError(__METHOD__ ."(), directory {$dir} does not exist!");
             return false;
         }
 
         if (($files = scandir($dir)) === false) {
-            $this->raiseError(__METHOD__ ."(), scandir() on {$dir} returned false!");
+            static::raiseError(__METHOD__ ."(), scandir() on {$dir} returned false!");
             return false;
         }
 
@@ -339,12 +339,12 @@ class ImportController extends DefaultController
 
         foreach ($files as $file) {
             if (($fqfn = realpath($dir .'/'. $file)) === false) {
-                $this->raiseError(__METHOD__ ."(), realpath() on {$dir}/{$file} returned false!");
+                static::raiseError(__METHOD__ ."(), realpath() on {$dir}/{$file} returned false!");
                 return false;
             }
 
             if (!$this->isBelowIncomingDirectory(dirname($fqfn))) {
-                $this->raiseError(__METHOD__ .'(), will only handle requested within '. self::INCOMING_DIRECTORY .'!');
+                static::raiseError(__METHOD__ .'(), will only handle requested within '. self::INCOMING_DIRECTORY .'!');
                 return false;
             }
 
@@ -360,13 +360,13 @@ class ImportController extends DefaultController
             }
 
             if (!unlink($fqfn)) {
-                $this->raiseError(__METHOD__ ."(), unlink({$fqfn}) returned false!");
+                static::raiseError(__METHOD__ ."(), unlink({$fqfn}) returned false!");
                 return false;
             }
         }
 
         if (!rmdir($dir)) {
-            $this->raiseError(__METHOD__ ."(), rmdir({$dir}) returned false!");
+            static::raiseError(__METHOD__ ."(), rmdir({$dir}) returned false!");
             return false;
         }
 
@@ -378,7 +378,7 @@ class ImportController extends DefaultController
         global $mtlda;
 
         if (!isset($dir) || empty($dir) || !is_string($dir)) {
-            $this->raiseError(__METHOD__ .'(), $dir parameter needs to be set!');
+            static::raiseError(__METHOD__ .'(), $dir parameter needs to be set!');
             return false;
         }
 
@@ -410,7 +410,7 @@ class ImportController extends DefaultController
     {
         $files = array();
         if ($this->scanDirectory(self::INCOMING_DIRECTORY, $files) === false) {
-            $this->raiseError(__METHOD__ .'(), scandir() returned false!');
+            static::raiseError(__METHOD__ .'(), scandir() returned false!');
             return false;
         }
 
