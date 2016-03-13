@@ -32,12 +32,12 @@ class StorageController extends DefaultController
         }
 
         if (file_exists($fqpn) && !is_dir($fqpn)) {
-            $this->raiseError("StorageController::createDirectoryStructure(), {$fqpn} exists, but is not a directory");
+            static::raiseError("StorageController::createDirectoryStructure(), {$fqpn} exists, but is not a directory");
             return false;
         }
 
         if (!mkdir($fqpn, 0700, true)) {
-            $this->raiseError("mkdir() returned false!");
+            static::raiseError("mkdir() returned false!");
             return false;
         }
 
@@ -47,22 +47,22 @@ class StorageController extends DefaultController
     public function copyFile($fqpn_src, $fqpn_dst)
     {
         if (!file_exists($fqpn_src)) {
-            $this->raiseError(__METHOD__ .", {$fqpn_src} does not exist!");
+            static::raiseError(__METHOD__ .", {$fqpn_src} does not exist!");
             return false;
         }
 
         if (!is_dir(dirname($fqpn_dst))) {
-            $this->raiseError(__METHOD__ .", {$fqpn_dst} is not a directory!");
+            static::raiseError(__METHOD__ .", {$fqpn_dst} is not a directory!");
             return false;
         }
 
         if (file_exists($fqpn_dst)) {
-            $this->raiseError(__METHOD__ .", destination file {$fqpn_dst} already exists!");
+            static::raiseError(__METHOD__ .", destination file {$fqpn_dst} already exists!");
             return false;
         }
 
         if (!copy($fqpn_src, $fqpn_dst)) {
-            $this->raiseError(__METHOD__ .", copy() returned false!");
+            static::raiseError(__METHOD__ .", copy() returned false!");
             return false;
         }
 
@@ -74,44 +74,44 @@ class StorageController extends DefaultController
         global $audit;
 
         if (!isset($item) || empty($item)) {
-            $this->raiseError("\$item is not set!");
+            static::raiseError("\$item is not set!");
             return false;
         }
 
         if (!is_a($item, 'Mtlda\Models\DocumentModel') &&
             !is_a($item, 'Mtlda\Models\QueueItemModel')
         ) {
-            $this->raiseError("Unsupported model: ". get_class($item) .'!');
+            static::raiseError("Unsupported model: ". get_class($item) .'!');
             return false;
         }
 
         if (($file_name = $item->getFileName()) === false) {
-            $this->raiseError(get_class($item) .'::getFileName() returned false!');
+            static::raiseError(get_class($item) .'::getFileName() returned false!');
             return false;
         }
 
         if (empty($file_name)) {
-            $this->raiseError(get_class($item) .'::getFileName() returned an empty file name!');
+            static::raiseError(get_class($item) .'::getFileName() returned an empty file name!');
             return false;
         }
 
         if (($guid = $item->getGuid()) === false) {
-            $this->raiseError(get_class($item) .'::getGuid() returned false!');
+            static::raiseError(get_class($item) .'::getGuid() returned false!');
             return false;
         }
 
         if (empty($guid)) {
-            $this->raiseError(get_class($item) .'::getGuid() returned an empty GUID!');
+            static::raiseError(get_class($item) .'::getGuid() returned an empty GUID!');
             return false;
         }
 
         if (!($fqfn = $item->getFilePath())) {
-            $this->raiseError(get_class($item) ."::getFilePath() returned false!");
+            static::raiseError(get_class($item) ."::getFilePath() returned false!");
             return false;
         }
 
         if (!$this->deleteFile($fqfn)) {
-            $this->raiseError(__CLASS__ .'::deleteFile() returned false');
+            static::raiseError(__CLASS__ .'::deleteFile() returned false');
             return false;
         }
 
@@ -124,12 +124,12 @@ class StorageController extends DefaultController
                 $item->$guid
             );
         } catch (\Exception $e) {
-            $this->raiseError("AuditController::log() returned false!");
+            static::raiseError("AuditController::log() returned false!");
             return false;
         }
 
         if (!$this->cleanDirectoryHierarchy(dirname($fqfn))) {
-            $this->raiseError(__CLASS__ .'::cleanDirectoryHierarchy() returned false!');
+            static::raiseError(__CLASS__ .'::cleanDirectoryHierarchy() returned false!');
             return false;
         }
 
@@ -139,44 +139,44 @@ class StorageController extends DefaultController
     public function retrieveFile(&$document)
     {
         if (!is_object($document)) {
-            $this->raiseError(__METHOD__ .', first parameter should be an object!');
+            static::raiseError(__METHOD__ .', first parameter should be an object!');
             return false;
         }
 
         if (!is_a($document, 'Mtlda\Models\DocumentModel') &&
             !is_a($document, 'Mtlda\Models\QueueItemModel')
         ) {
-            $this->raiseError("Unsupported model: ". get_class($document) .'!');
+            static::raiseError("Unsupported model: ". get_class($document) .'!');
             return false;
         }
 
         if (!($src = $document->getFilePath())) {
-            $this->raiseError(get_class($document) ."::getFilePath() returned false!");
+            static::raiseError(get_class($document) ."::getFilePath() returned false!");
             return false;
         }
 
         if (!file_exists($src)) {
-            $this->raiseError("Source does not exist!");
+            static::raiseError("Source does not exist!");
             return false;
         }
 
         if (!is_readable($src)) {
-            $this->raiseError("Source is not readable!");
+            static::raiseError("Source is not readable!");
             return false;
         }
 
         if (!($content = file_get_contents($src))) {
-            $this->raiseError("file_get_contents() returned false!");
+            static::raiseError("file_get_contents() returned false!");
             return false;
         }
 
         if (!is_string($content) || strlen($content) <= 0) {
-            $this->raiseError("file_get_contents() returned an invalid file!");
+            static::raiseError("file_get_contents() returned an invalid file!");
             return false;
         }
 
         if (!($hash = sha1($content))) {
-            $this->raiseError("sha1() returned false!");
+            static::raiseError("sha1() returned false!");
             return false;
         }
 
@@ -191,22 +191,22 @@ class StorageController extends DefaultController
         global $mtlda;
 
         if (!file_exists($fqfn)) {
-            $this->raiseError(__METHOD__ .", {$fqfn} does not exist!");
+            static::raiseError(__METHOD__ .", {$fqfn} does not exist!");
             return false;
         }
 
         if (!is_file($fqfn)) {
-            $this->raiseError(__METHOD__ .", {$fqfn} is not a regular file!");
+            static::raiseError(__METHOD__ .", {$fqfn} is not a regular file!");
             return false;
         }
 
         if (!$mtlda->isBelowDirectory(dirname($fqfn), self::DATA_DIRECTORY)) {
-            $this->raiseError(__METHOD__ ."(), will only handle requested within ". $this::DATA_DIRECTORY ."!");
+            static::raiseError(__METHOD__ ."(), will only handle requested within ". $this::DATA_DIRECTORY ."!");
             return false;
         }
 
         if (!unlink($fqfn)) {
-            $this->raiseError(__METHOD__ ."(), unlink({$fqfn}) returned false!");
+            static::raiseError(__METHOD__ ."(), unlink({$fqfn}) returned false!");
             return false;
         }
 
@@ -216,17 +216,17 @@ class StorageController extends DefaultController
     public function flushArchive()
     {
         if (!file_exists($this::ARCHIVE_DIRECTORY)) {
-            $this->raiseError($this::ARCHIVE_DIRECTORY ." does not exist!");
+            static::raiseError($this::ARCHIVE_DIRECTORY ." does not exist!");
             return false;
         }
 
         if (!is_dir($this::ARCHIVE_DIRECTORY)) {
-            $this->raiseError($this::ARCHIVE_DIRECTORY ." is not a directory!");
+            static::raiseError($this::ARCHIVE_DIRECTORY ." is not a directory!");
             return false;
         }
 
         if (!$this->unlinkDirectory($this::ARCHIVE_DIRECTORY)) {
-            $this->raiseError("StorageController::unlinkDirectory() returned false!");
+            static::raiseError("StorageController::unlinkDirectory() returned false!");
             return false;
         }
 
@@ -236,17 +236,17 @@ class StorageController extends DefaultController
     public function flushQueue()
     {
         if (!file_exists($this::WORKING_DIRECTORY)) {
-            $this->raiseError($this::WORKING_DIRECTORY ." does not exist!");
+            static::raiseError($this::WORKING_DIRECTORY ." does not exist!");
             return false;
         }
 
         if (!is_dir($this::WORKING_DIRECTORY)) {
-            $this->raiseError($this::WORKING_DIRECTORY ." is not a directory!");
+            static::raiseError($this::WORKING_DIRECTORY ." is not a directory!");
             return false;
         }
 
         if (!$this->unlinkDirectory($this::WORKING_DIRECTORY)) {
-            $this->raiseError("StorageController::unlinkDirectory() returned false!");
+            static::raiseError("StorageController::unlinkDirectory() returned false!");
             return false;
         }
 
@@ -258,7 +258,7 @@ class StorageController extends DefaultController
         global $mtlda;
 
         if (($files = scandir($dir)) === false) {
-            $this->raiseError("scandir on {$dir} returned false!");
+            static::raiseError("scandir on {$dir} returned false!");
             return false;
         }
 
@@ -267,12 +267,12 @@ class StorageController extends DefaultController
 
         foreach ($files as $file) {
             if (($fqfn = realpath($dir .'/'. $file)) === false) {
-                $this->raiseError("realpath() on ". $dir .'/'. $file ." returned false!");
+                static::raiseError("realpath() on ". $dir .'/'. $file ." returned false!");
                 return false;
             }
 
             if (!$mtlda->isBelowDirectory(dirname($fqfn), self::DATA_DIRECTORY)) {
-                $this->raiseError("will only handle requested within ". $this::DATA_DIRECTORY ."!");
+                static::raiseError("will only handle requested within ". $this::DATA_DIRECTORY ."!");
                 return false;
             }
 
@@ -282,14 +282,14 @@ class StorageController extends DefaultController
                 }
             } else {
                 if (!unlink($fqfn)) {
-                    $this->raiseError("unlink() on {$fqfn} returned false!");
+                    static::raiseError("unlink() on {$fqfn} returned false!");
                     return false;
                 }
             }
         }
 
         if (!rmdir($dir)) {
-            $this->raiseError("rmdir() on {$dir} returned false!");
+            static::raiseError("rmdir() on {$dir} returned false!");
             return false;
         }
 
@@ -299,22 +299,22 @@ class StorageController extends DefaultController
     public function checkIfDirectoryEmpty($path)
     {
         if (empty($path) && !is_string($path)) {
-            $this->raiseError(__METHOD__ .', first parameter needs to be a path!');
+            static::raiseError(__METHOD__ .', first parameter needs to be a path!');
             return false;
         }
 
         if (!file_exists($path)) {
-            $this->raiseError("{$path} does not exist!");
+            static::raiseError("{$path} does not exist!");
             return false;
         }
 
         if (!is_dir($path)) {
-            $this->raiseError("{$path} is not a directory!");
+            static::raiseError("{$path} is not a directory!");
             return false;
         }
 
         if ($path != realpath($path)) {
-            $this->raiseError("Are you trying to fooling me?");
+            static::raiseError("Are you trying to fooling me?");
             return false;
         }
 
@@ -341,7 +341,7 @@ class StorageController extends DefaultController
 
         // nothing strange in the path?
         if ($path != realpath($path)) {
-            $this->raiseError(__METHOD__ .", are you trying to fooling me?");
+            static::raiseError(__METHOD__ .", are you trying to fooling me?");
             return false;
         }
 
@@ -356,7 +356,7 @@ class StorageController extends DefaultController
         }
 
         if (!rmdir($path)) {
-            $this->raiseError(__METHOD__ .", rmdir({$path}) returned false!");
+            static::raiseError(__METHOD__ .", rmdir({$path}) returned false!");
             return false;
         }
 
@@ -378,12 +378,12 @@ class StorageController extends DefaultController
         }
 
         if (!file_exists(self::CACHE_DIRECTORY)) {
-            $this->raiseError(self::CACHE_DIRECTORY .' does not exist!');
+            static::raiseError(self::CACHE_DIRECTORY .' does not exist!');
             return false;
         }
 
         if (!is_writeable(self::CACHE_DIRECTORY)) {
-            $this->raiseError(self::CACHE_DIRECTORY .' is not writeable!');
+            static::raiseError(self::CACHE_DIRECTORY .' is not writeable!');
             return false;
         }
 
@@ -396,7 +396,7 @@ class StorageController extends DefaultController
             }
 
             if (!mkdir($fqpn, 0700)) {
-                $this->raiseError('Failed to create directory '. $fqpn);
+                static::raiseError('Failed to create directory '. $fqpn);
                 return false;
             }
 
