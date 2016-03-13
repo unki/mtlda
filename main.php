@@ -18,6 +18,7 @@
  */
 
 require_once 'vendor/Thallium/static.php';
+require_once 'vendor/Mtlda/static.php';
 require_once 'vendor/autoload.php';
 
 spl_autoload_register("autoload");
