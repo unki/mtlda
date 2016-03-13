@@ -21,8 +21,8 @@ namespace Mtlda\Views;
 
 class KeywordsView extends DefaultView
 {
-    public $default_mode = 'list';
-    public $class_name = 'keywords';
+    protected static $view_default_mode = 'list';
+    protected static $view_class_name = 'keywords';
 
     public function __construct()
     {
@@ -33,11 +33,11 @@ class KeywordsView extends DefaultView
         try {
             $this->keywords = new \Mtlda\Models\KeywordsModel;
         } catch (\Exception $e) {
-            $this->raiseError(__CLASS_ .', failed to load KeywordsModel', true);
-            return false;
+            static::raiseError(__CLASS_ .', failed to load KeywordsModel', true);
+            return;
         }
 
-        return true;
+        return;
     }
 
     public function showList($pageno = null, $items_limit = null)
@@ -45,7 +45,7 @@ class KeywordsView extends DefaultView
         global $session;
 
         if (!isset($pageno) || empty($pageno) || !is_numeric($pageno)) {
-            if (($current_page = $session->getVariable("{$this->class_name}_current_page")) === false) {
+            if (($current_page = $session->getVariable(static::$view_class_name .'_current_page')) === false) {
                 $current_page = 1;
             }
         } else {
@@ -53,14 +53,16 @@ class KeywordsView extends DefaultView
         }
 
         if (!isset($items_limit) || is_null($items_limit) || !is_numeric($items_limit)) {
-            if (($current_items_limit = $session->getVariable("{$this->class_name}_current_items_limit")) === false) {
+            if (($current_items_limit = $session->getVariable(
+                static::$view_class_name .'_current_items_limit'
+            )) === false) {
                 $current_items_limit = -1;
             }
         } else {
             $current_items_limit = $items_limit;
         }
 
-        if ($this->keywords->hasItems()) {
+        if (!$this->keywords->hasItems()) {
             return parent::showList();
         }
 
@@ -69,22 +71,22 @@ class KeywordsView extends DefaultView
                 'delta' => 2,
             ));
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load PagingController!');
+            static::raiseError(__METHOD__ .'(), failed to load PagingController!');
             return false;
         }
 
-        if (!$pager->setPagingData($this->keywords->getItemsData())) {
-            $this->raiseError(get_class($pager) .'::setPagingData() returned false!');
+        if (!$pager->setPagingData($this->keywords->getItems())) {
+            static::raiseError(get_class($pager) .'::setPagingData() returned false!');
             return false;
         }
 
         if (!$pager->setCurrentPage($current_page)) {
-            $this->raiseError(get_class($pager) .'::setCurrentPage() returned false!');
+            static::raiseError(get_class($pager) .'::setCurrentPage() returned false!');
             return false;
         }
 
         if (!$pager->setItemsLimit($current_items_limit)) {
-            $this->raiseError(get_class($pager) .'::setItemsLimit() returned false!');
+            static::raiseError(get_class($pager) .'::setItemsLimit() returned false!');
             return false;
         }
 
@@ -92,25 +94,25 @@ class KeywordsView extends DefaultView
         $tmpl->assign('pager', $pager);
 
         if (($data = $pager->getPageData()) === false) {
-            $this->raiseError(get_class($pager) .'::getPageData() returned false!');
+            static::raiseError(get_class($pager) .'::getPageData() returned false!');
             return false;
         }
 
         if (!isset($data) || empty($data) || !is_array($data)) {
-            $this->raiseError(get_class($pager) .'::getPageData() returned invalid data!');
+            static::raiseError(get_class($pager) .'::getPageData() returned invalid data!');
             return false;
         }
 
         $this->avail_items = array_keys($data);
         $this->items = $data;
 
-        if (!$session->setVariable("{$this->class_name}_current_page", $current_page)) {
-            $this->raiseError(get_class($session) .'::setVariable() returned false!');
+        if (!$session->setVariable(static::$view_class_name .'_current_page', $current_page)) {
+            static::raiseError(get_class($session) .'::setVariable() returned false!');
             return false;
         }
 
-        if (!$session->setVariable("{$this->class_name}_current_items_limit", $current_items_limit)) {
-            $this->raiseError(get_class($session) .'::setVariable() returned false!');
+        if (!$session->setVariable(static::$view_class_name .'_current_items_limit', $current_items_limit)) {
+            static::raiseError(get_class($session) .'::setVariable() returned false!');
             return false;
         }
 
@@ -158,13 +160,16 @@ class KeywordsView extends DefaultView
             !empty($guid) &&
             $mtlda->isValidGuidSyntax($guid)
         ) {
-            $item = new \Mtlda\Models\KeywordModel($id, $guid);
+            $item = new \Mtlda\Models\KeywordModel(array(
+                'idx' => $id,
+                'guid' => $guid
+            ));
         } else {
             $item = new \Mtlda\Models\KeywordModel;
         }
 
         if (!isset($item) || empty($item)) {
-            $this->raiseError("Failed to load KeywordModel!");
+            static::raiseError("Failed to load KeywordModel!");
             return false;
         }
 
