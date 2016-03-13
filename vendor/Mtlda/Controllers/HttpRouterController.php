@@ -32,7 +32,7 @@ class HttpRouterController extends \Thallium\Controllers\HttpRouterController
             $this->addValidRpcAction('save-description');
             $this->addValidRpcAction('get-view');
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), unable to register further RPC actions!', true);
+            static::raiseError(__METHOD__ .'(), unable to register further RPC actions!', true);
             return false;
         }
 
