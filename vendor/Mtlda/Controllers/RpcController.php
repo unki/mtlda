@@ -63,50 +63,53 @@ class RpcController extends \Thallium\Controllers\RpcController
         );
 
         if (!isset($_POST['model'])) {
-            $this->raiseError('No model requested!');
+            static::raiseError('No model requested!');
             return false;
         }
 
         if (!in_array($_POST['model'], $valid_models)) {
-            $this->raiseError('unknown model requested: '. htmlentities($_POST['model'], ENT_QUOTES));
+            static::raiseError('unknown model requested: '. htmlentities($_POST['model'], ENT_QUOTES));
             return false;
         }
 
         if (!isset($_POST['id'])) {
-            $this->raiseError('id is not set!');
+            static::raiseError('id is not set!');
             return false;
         }
 
         $id = $_POST['id'];
 
         if (!$mtlda->isValidId($id)) {
-            $this->raiseError('\$id is invalid');
+            static::raiseError('\$id is invalid');
             return false;
         }
 
         if (!isset($_POST['direction'])) {
-            $this->raiseError('direction is not set!');
+            static::raiseError('direction is not set!');
             return false;
         }
 
         if (!in_array($_POST['direction'], $valid_directions)) {
-            $this->raiseError('invalid direction requested: '. htmlentities($_POST['direction'], ENT_QUOTES));
+            static::raiseError('invalid direction requested: '. htmlentities($_POST['direction'], ENT_QUOTES));
             return false;
         }
 
         if (($id = $mtlda->parseId($id)) === false) {
-            $this->raiseError('Unable to parse \$id');
+            static::raiseError('Unable to parse \$id');
             return false;
         }
 
         switch ($id->model) {
             case 'queueitem':
-                $model = new \Mtlda\Models\QueueItemModel($id->id, $id->guid);
+                $model = new \Mtlda\Models\QueueItemModel(array(
+                    'idx' => $id->id,
+                    'guid' => $id->guid
+                ));
                 break;
         }
 
         if (!isset($model) || empty($model)) {
-            $this->raiseError("Model not found: ". htmlentities($id->modek, ENT_QUOTES));
+            static::raiseError("Model not found: ". htmlentities($id->modek, ENT_QUOTES));
             return false;
         }
 
@@ -133,12 +136,12 @@ class RpcController extends \Thallium\Controllers\RpcController
         try {
             $archive = new \Mtlda\Controllers\ArchiveController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .', failed to load ArchiveController!');
+            static::raiseError(__METHOD__ .', failed to load ArchiveController!');
             return false;
         }
 
         if (!($archive->deleteExpiredDocuments())) {
-            $this->raiseError(get_class($archive) .'::deleteExpiredDocuments() returned false!');
+            static::raiseError(get_class($archive) .'::deleteExpiredDocuments() returned false!');
             return false;
         }
 
@@ -150,39 +153,39 @@ class RpcController extends \Thallium\Controllers\RpcController
         global $mtlda;
 
         if (!isset($_POST) || empty($_POST) || !is_array($_POST)) {
-            $this->raiseError(__METHOD__ .'(), $_POST is invalid!');
+            static::raiseError(__METHOD__ .'(), $_POST is invalid!');
             return false;
         }
 
         if (!isset($_POST['view']) || empty($_POST['view']) || !is_string($_POST['view'])) {
-            $this->raiseError(__METHOD__ .'(), $_POST["view"] is invalid!');
+            static::raiseError(__METHOD__ .'(), $_POST["view"] is invalid!');
             return false;
         }
 
         if (!isset($_POST['data']) || empty($_POST['data']) || !is_array($_POST['data'])) {
-            $this->raiseError(__METHOD__ .'(), $_POST["data"] is invalid!');
+            static::raiseError(__METHOD__ .'(), $_POST["data"] is invalid!');
             return false;
         }
 
         $data = $_POST['data'];
 
         if (!isset($data['content']) || empty($data['content']) || !is_string($data['content'])) {
-            $this->raiseError(__METHOD__ .'(), $data["content"] is invalid!');
+            static::raiseError(__METHOD__ .'(), $data["content"] is invalid!');
             return false;
         }
 
         if (!preg_match('/^[a-z]+$/', strtolower($_POST['view']))) {
-            $this->raiseError(__METHOD__ .'(), $_POST["view"] contains invalid data!');
+            static::raiseError(__METHOD__ .'(), $_POST["view"] contains invalid data!');
             return false;
         }
 
         if (!preg_match('/^[a-z]+$/', strtolower($data['content']))) {
-            $this->raiseError(__METHOD__ .'(), $data["content"] contains invalid data!');
+            static::raiseError(__METHOD__ .'(), $data["content"] contains invalid data!');
             return false;
         }
 
         if (!$mtlda->loadController("Templates", "tmpl")) {
-            $this->raiseError(__METHOD__ .'(), failed to load TemplatesController!');
+            static::raiseError(__METHOD__ .'(), failed to load TemplatesController!');
             return false;
         }
 
@@ -192,22 +195,22 @@ class RpcController extends \Thallium\Controllers\RpcController
         try {
             $view = new $view_name;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ ."(), failed to load view ${view_name}!");
+            static::raiseError(__METHOD__ ."(), failed to load view ${view_name}!");
             return false;
         }
 
         if (!$view->hasContent($data['content'])) {
-            $this->raiseError(get_class($view) .'::hasContent() returned false!');
+            static::raiseError(get_class($view) .'::hasContent() returned false!');
             return false;
         }
 
         if (($content = $view->getContent($data['content'], $data)) === false) {
-            $this->raiseError(get_class($view) .'::getContent() returned false!');
+            static::raiseError(get_class($view) .'::getContent() returned false!');
             return false;
         }
 
         if (!isset($content) || empty($content)) {
-            $this->raiseError(get_class($view) .'::getContent() returned invalid content!');
+            static::raiseError(get_class($view) .'::getContent() returned invalid content!');
             return false;
         }
 
