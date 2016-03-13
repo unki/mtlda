@@ -21,18 +21,18 @@ namespace Mtlda\Views ;
 
 class SearchView extends DefaultView
 {
-    public $class_name = 'search';
+    protected static $view_class_name = 'search';
     protected $matches;
     protected $avail_matches;
 
     public function __construct()
     {
-        global $mtlda, $query, $tmpl;
+        global $query, $tmpl;
 
         try {
             $search = new \Mtlda\Controllers\SearchController;
         } catch (\Exception $e) {
-            $mtlda->raiseError(__METHOD__ .'(), failed to load SearchController!', true);
+            static::raiseError(__METHOD__ .'(), failed to load SearchController!', true);
             return false;
         }
 
@@ -41,17 +41,17 @@ class SearchView extends DefaultView
         }
 
         if (!$search->search($searchquery)) {
-            $mtlda->raiseError(get_class($search) .'::search() returned false!', true);
+            static::raiseError(get_class($search) .'::search() returned false!', true);
             return false;
         }
 
         if (($this->matches = $search->getResults()) === false) {
-            $mtlda->raiseError(get_class($search) .'::getResults() returned false!', true);
+            static::raiseError(get_class($search) .'::getResults() returned false!', true);
             return false;
         }
 
         if (!$this->orderMatches()) {
-            $mtlda->raiseError(__CLASS__ .'::orderMatches() returned false!', true);
+            static::raiseError(__CLASS__ .'::orderMatches() returned false!', true);
             return false;
         }
 
@@ -75,8 +75,6 @@ class SearchView extends DefaultView
 
     public function listSearchResults($params, $content, &$smarty, &$repeat)
     {
-        global $mtlda;
-
         $index = $smarty->getTemplateVars("smarty.IB.search_list.index");
 
         if (!isset($index) || empty($index)) {
@@ -94,7 +92,7 @@ class SearchView extends DefaultView
         $smarty->assign("item", $item);
 
         if (!preg_match('/^(archive|keyword|queue)/', $item_idx, $parts)) {
-            $mtlda->raiseError(__METHOD__ .'(), unknown item found!');
+            static::raiseError(__METHOD__ .'(), unknown item found!');
             return false;
         }
 
@@ -109,12 +107,12 @@ class SearchView extends DefaultView
         }
 
         if (($idx = $item->getId()) === false) {
-            $mtlda->raiseError(get_class($item) .'::getId() returned false!');
+            static::raiseError(get_class($item) .'::getId() returned false!');
             return false;
         }
 
         if (($guid = $item->getGuid()) === false) {
-            $mtlda->raiseError(get_class($item) .'::getGuid() returned false!');
+            static::raiseError(get_class($item) .'::getGuid() returned false!');
             return false;
         }
 
@@ -129,8 +127,6 @@ class SearchView extends DefaultView
 
     protected function orderMatches()
     {
-        global $mtlda;
-
         if (!isset($this->matches) ||
             empty($this->matches)
         ) {
@@ -150,23 +146,23 @@ class SearchView extends DefaultView
             } elseif (is_a($match, 'Mtlda\\Models\\KeywordModel')) {
                 array_push($keywords, $match);
             } else {
-                $mtlda->raiseError(__METHOD__ .'(), unknown Model found!');
+                static::raiseError(__METHOD__ .'(), unknown Model found!');
                 return false;
             }
         }
 
         if (!$this->filterDocuments($documents)) {
-            $mtlda->raiseError(__CLASS__ .'::filterDocuments() returned false!');
+            static::raiseError(__CLASS__ .'::filterDocuments() returned false!');
             return false;
         }
 
         if (!$this->filterQueue($queue)) {
-            $mtlda->raiseError(__CLASS__ .'::filterQueue() returned false!');
+            static::raiseError(__CLASS__ .'::filterQueue() returned false!');
             return false;
         }
 
         if (!$this->filterKeywords($keywords)) {
-            $mtlda->raiseError(__CLASS__ .'::filterKeywords() returned false!');
+            static::raiseError(__CLASS__ .'::filterKeywords() returned false!');
             return false;
         }
 
@@ -195,8 +191,6 @@ class SearchView extends DefaultView
 
     protected function filterDocuments(&$documents)
     {
-        global $mtlda;
-
         $stack = array();
 
         foreach ($documents as $document) {
@@ -206,12 +200,12 @@ class SearchView extends DefaultView
             }
 
             if (!$document->hasParent()) {
-                $mtlda->raiseError(__METHOD__ .'(), document version not 0 but has no parents!');
+                static::raiseError(__METHOD__ .'(), document version not 0 but has no parents!');
                 return false;
             }
 
             if (($parent = $document->getParent()) === false) {
-                $mtlda->raiseError(get_class($document) .'::getParent() returned false!');
+                static::raiseError(get_class($document) .'::getParent() returned false!');
                 return false;
             }
 
@@ -231,7 +225,7 @@ class SearchView extends DefaultView
                 return 1;
             }
         })) {
-            $mtlda->raiseError(__METHOD__ .'(), usort() returned false!');
+            static::raiseError(__METHOD__ .'(), usort() returned false!');
             return false;
         }
 
@@ -241,8 +235,6 @@ class SearchView extends DefaultView
 
     protected function filterQueue(&$queue)
     {
-        global $mtlda;
-
         if (!usort($queue, function ($a, $b) {
             if ($a->getTime() < $b->getTime()) {
                 return -1;
@@ -252,7 +244,7 @@ class SearchView extends DefaultView
                 return 1;
             }
         })) {
-            $mtlda->raiseError(__METHOD__ .'(), usort() returned false!');
+            static::raiseError(__METHOD__ .'(), usort() returned false!');
             return false;
         }
 
@@ -261,12 +253,10 @@ class SearchView extends DefaultView
 
     protected function filterKeywords(&$queue)
     {
-        global $mtlda;
-
         if (!usort($queue, function ($a, $b) {
             return strcasecmp($a->getName(), $b->getName());
         })) {
-            $mtlda->raiseError(__METHOD__ .'(), usort() returned false!');
+            static::raiseError(__METHOD__ .'(), usort() returned false!');
             return false;
         }
 
