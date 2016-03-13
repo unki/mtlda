@@ -34,34 +34,34 @@ class OcrController extends \Thallium\Controllers\DefaultController
         global $config;
 
         if (!isset($fqfn) || empty($fqfn)) {
-            $this->raiseError(__METHOD__ .'(), \$fqfn parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), \$fqfn parameter is invalid!');
             return false;
         }
 
         if (!file_exists($fqfn)) {
-            $this->raiseError(__METHOD__ ."(), {$fqfn} does not exist!");
+            static::raiseError(__METHOD__ ."(), {$fqfn} does not exist!");
             return false;
         }
 
         if (!is_file($fqfn)) {
-            $this->raiseError(__METHOD__ ."(), {$fqfn} is not a file!");
+            static::raiseError(__METHOD__ ."(), {$fqfn} is not a file!");
             return false;
         }
 
         try {
             $this->tesseract = new \TesseractOCR($fqfn);
         } catch (\Exception $e) {
-            $this->raiseError(__CLASS__ .', failed to load TesseractOCR!', true, $e);
+            static::raiseError(__CLASS__ .', failed to load TesseractOCR!', true, $e);
             return false;
         }
 
         if (($language = $config->getDefaultOcrLanguage()) === false) {
-            $this->raiseError(get_class($config) .'::getDefaultOcrLanguage() returned false!');
+            static::raiseError(get_class($config) .'::getDefaultOcrLanguage() returned false!');
             return false;
         }
 
         if (!$this->isSupportedLanguage($language)) {
-            $this->raiseError(__CLASS__ .'::isSupportedLanguage() returned false!');
+            static::raiseError(__CLASS__ .'::isSupportedLanguage() returned false!');
             return false;
         }
 
@@ -73,7 +73,7 @@ class OcrController extends \Thallium\Controllers\DefaultController
             if (strpos($e->getMessage(), "does not exist! Probably Tesseract was unsuccessful")) {
                 return "";
             }
-            $this->raiseError(get_class($ocr) .'::recognize() raised an unknown exception!', false, $e);
+            static::raiseError(get_class($ocr) .'::recognize() raised an unknown exception!', false, $e);
             return false;
         }
         return $text;
@@ -84,22 +84,22 @@ class OcrController extends \Thallium\Controllers\DefaultController
         $text_ary = array();
 
         if (!isset($dir) || empty($dir)) {
-            $this->raiseError(__METHOD__ .'(), \$dir parameter must be set!');
+            static::raiseError(__METHOD__ .'(), \$dir parameter must be set!');
             return false;
         }
 
         if (!file_exists($dir)) {
-            $this->raiseError(__METHOD__ ."(), directory {$dir} does not exist!");
+            static::raiseError(__METHOD__ ."(), directory {$dir} does not exist!");
             return false;
         }
 
         if (!is_dir($dir)) {
-            $this->raiseError(__METHOD__ ."(), {$dir} is not a directory!");
+            static::raiseError(__METHOD__ ."(), {$dir} is not a directory!");
             return false;
         }
 
         if (($files = scandir($dir)) === false) {
-            $this->raiseError("scandir on {$dir} returned false!");
+            static::raiseError("scandir on {$dir} returned false!");
             return false;
         }
 
@@ -112,12 +112,12 @@ class OcrController extends \Thallium\Controllers\DefaultController
 
         foreach ($files as $file) {
             if (($fqfn = realpath($dir .'/'. $file)) === false) {
-                $this->raiseError("realpath() on ". $dir .'/'. $file ." returned false!");
+                static::raiseError("realpath() on ". $dir .'/'. $file ." returned false!");
                 return false;
             }
 
             if (($text = $this->scanFile($fqfn)) === false) {
-                $this->raiseError(__CLASS__ ."::scanFile() failed on {$fqfn}!");
+                static::raiseError(__CLASS__ ."::scanFile() failed on {$fqfn}!");
                 return false;
             }
 
@@ -134,7 +134,7 @@ class OcrController extends \Thallium\Controllers\DefaultController
     protected function isSupportedLanguage($language)
     {
         if (!isset($language) || empty($language)) {
-            $this->raiseError(__METHOD__ .'(), $language parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $language parameter is invalid!');
             return false;
         }
 
