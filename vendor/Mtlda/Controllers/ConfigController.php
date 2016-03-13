@@ -37,7 +37,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(__METHOD__ .'(), "image_cache" configuration option in [app] section is invalid!', true);
+        static::raiseError(__METHOD__ .'(), "image_cache" configuration option in [app] section is invalid!', true);
         return false;
     }
 
@@ -161,7 +161,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(__METHOD__ .'(), "pdf_signing" configuration option in [app] section is invalid!', true);
+        static::raiseError(__METHOD__ .'(), "pdf_signing" configuration option in [app] section is invalid!', true);
         return false;
     }
 
@@ -185,7 +185,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "auto_sign_on_import" configuration option in [pdf_signing] section is invalid!',
             true
         );
@@ -208,7 +208,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "attach_audit_log" configuration option in [pdf_signing] section is invalid!',
             true
         );
@@ -231,7 +231,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "pdf_indexing" configuration option in [app] section is invalid!',
             true
         );
@@ -254,7 +254,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "mail_import" configuration option in [app] section is invalid!',
             true
         );
@@ -277,7 +277,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "http_upload" configuration option in [app] section is invalid!',
             true
         );
@@ -304,7 +304,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "create_preview_on_import" configuration option in [app] section is invalid!',
             true
         );
@@ -327,7 +327,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "embed_icon_to_pdf" configuration option in [app] section is invalid!',
             true
         );
@@ -354,7 +354,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "mbox_delete_mail" configuration option in [mailimport] section is invalid!',
             true
         );
@@ -381,7 +381,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "mbox_imap_expunge" configuration option in [mailimport] section is invalid!',
             true
         );
@@ -408,7 +408,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "use_email_body_as_description" configuration option in [mailimport] section is invalid!',
             true
         );
@@ -431,7 +431,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "document_no_delete" configuration option in [app] section is invalid!',
             true
         );
@@ -454,7 +454,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "user_triggers_import" configuration option in [app] section is invalid!',
             true
         );
@@ -481,7 +481,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "use_ocr_for_embedded_images" configuration option in [pdfindexing] section is invalid!',
             true
         );
@@ -504,7 +504,7 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             return true;
         }
 
-        $this->raiseError(
+        static::raiseError(
             __METHOD__ .'(), "permit_reset_data" configuration option in [app] section is invalid!',
             true
         );
