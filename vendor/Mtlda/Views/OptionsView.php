@@ -21,8 +21,8 @@ namespace Mtlda\Views;
 
 class OptionsView extends DefaultView
 {
-    public $default_mode = 'show';
-    public $class_name = 'options';
+    protected static $view_default_mode = 'show';
+    protected static $view_class_name = 'options';
 
     public function __construct()
     {
@@ -60,41 +60,41 @@ class OptionsView extends DefaultView
         global $db, $config;
 
         if (!$config->isResetDataPermitted()) {
-            $this->raiseError(get_class($config) .'::isResetDataPermitted() returned false!');
+            static::raiseError(get_class($config) .'::isResetDataPermitted() returned false!');
             return false;
         }
 
         if (!$db->truncateDatabaseTables()) {
-            $this->raiseError(get_class($db) .'::truncateDatabaseTables() returned false!');
+            static::raiseError(get_class($db) .'::truncateDatabaseTables() returned false!');
             return false;
         }
 
         try {
             $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load StorageController!');
+            static::raiseError(__METHOD__ .'(), failed to load StorageController!');
             return false;
         }
 
         if (!$storage->flushArchive()) {
-            $this->raiseError(get_class($storage) .'::flushArchive() returned false!');
+            static::raiseError(get_class($storage) .'::flushArchive() returned false!');
             return false;
         }
 
         if (!$storage->flushQueue()) {
-            $this->raiseError(get_class($storage) .'::flushQueue() returned false!');
+            static::raiseError(get_class($storage) .'::flushQueue() returned false!');
             return false;
         }
 
         try {
             $queue = new \Mtlda\Models\QueueModel;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load QueueModel!');
+            static::raiseError(__METHOD__ .'(), failed to load QueueModel!');
             return false;
         }
 
         if (!$queue->flush()) {
-            $this->raiseError(get_class($queue) .'::flush() returned false!');
+            static::raiseError(get_class($queue) .'::flush() returned false!');
             return false;
         }
 
