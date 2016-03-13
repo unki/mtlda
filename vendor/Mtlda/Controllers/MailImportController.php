@@ -32,17 +32,17 @@ class MailImportController extends DefaultController
         global $config;
 
         if (!$config->isMailImportEnabled()) {
-            $this->raiseError(__METHOD__ .'(), mail import is not enabled in MTLDA configuration!', true);
+            static::raiseError(__METHOD__ .'(), mail import is not enabled in MTLDA configuration!', true);
             return false;
         }
 
         if (($this->mail_cfg = $config->getMailImportConfiguration()) === false) {
-            $this->raiseError(__METHOD__ .'(), unable to retrieve mail import configuration!', true);
+            static::raiseError(__METHOD__ .'(), unable to retrieve mail import configuration!', true);
             return false;
         }
 
         if (empty($this->mail_cfg) || !is_array($this->mail_cfg)) {
-            $this->raiseError(__METHOD__ .'(), invalid mail import configuration retrieved!', true);
+            static::raiseError(__METHOD__ .'(), invalid mail import configuration retrieved!', true);
             return false;
         }
 
@@ -51,12 +51,12 @@ class MailImportController extends DefaultController
             !isset($this->mail_cfg['mbox_password']) || empty($this->mail_cfg['mbox_password']) ||
             !isset($this->mail_cfg['mbox_type']) || empty($this->mail_cfg['mbox_type'])
         ) {
-            $this->raiseError(__METHOD__ .'(), incomplete mail import configuration found!', true);
+            static::raiseError(__METHOD__ .'(), incomplete mail import configuration found!', true);
             return false;
         }
 
         if (!in_array(strtolower($this->mail_cfg['mbox_type']), array('imap', 'pop3'))) {
-            $this->raiseError(__METHOD__ ."(), mailbox type {$this->mail_cfg['mbox_type']} is not supported!", true);
+            static::raiseError(__METHOD__ ."(), mailbox type {$this->mail_cfg['mbox_type']} is not supported!", true);
             return false;
         }
     }
@@ -76,22 +76,22 @@ class MailImportController extends DefaultController
         global $config, $mbus, $jobs;
 
         if (!$mbus->sendMessageToClient('mailimport-reply', 'Establishing connection to mailbox.', '10%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (!$this->connect()) {
-            $this->raiseError(__CLASS__ .'::connect() returned false!');
+            static::raiseError(__CLASS__ .'::connect() returned false!');
             return false;
         }
 
         if (!$mbus->sendMessageToClient('mailimport-reply', 'Checking mailbox for new E-mails.', '20%')) {
-            $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         if (($msg_cnt = $this->checkForMails()) === false) {
-            $this->raiseError(__CLASS__ .'::checkForMails() returned false!');
+            static::raiseError(__CLASS__ .'::checkForMails() returned false!');
         }
 
         if (!($msg_cnt > 0)) {
@@ -99,7 +99,7 @@ class MailImportController extends DefaultController
         }
 
         if (($list = $this->retrieveListOfMails($msg_cnt)) === false) {
-            $this->raiseError(__CLASS__ .'::retrieveListOfMails() returned false!');
+            static::raiseError(__CLASS__ .'::retrieveListOfMails() returned false!');
         }
 
         // if no mails are pending in the mailbox
@@ -116,7 +116,7 @@ class MailImportController extends DefaultController
             if (!isset($mail->message_id) || empty($mail->message_id) ||
                 !isset($mail->msgno) || empty($mail->msgno)
             ) {
-                $this->raiseError(__METHOD__ .'(), fetched mail is incomplete!');
+                static::raiseError(__METHOD__ .'(), fetched mail is incomplete!');
                 break;
             }
 
@@ -125,12 +125,12 @@ class MailImportController extends DefaultController
                 "Retrieving E-mail {$mail_no} of {$msg_cnt}.",
                 (20+($percentage_step*$id)) .'%'
             )) {
-                $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+                static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
                 return false;
             }
 
             if (($msg = $this->retrieveMail($mail->msgno)) === false) {
-                $this->raiseError(__CLASS__ .'::retrieveMail() returned false!');
+                static::raiseError(__CLASS__ .'::retrieveMail() returned false!');
                 break;
             }
 
@@ -139,35 +139,35 @@ class MailImportController extends DefaultController
                 "Extracting documents from E-mail {$mail_no} of {$msg_cnt}.",
                 (20+($percentage_step*$id)) .'%'
             )) {
-                $this->raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+                static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
                 return false;
             }
 
             if (!$this->parseMail($msg)) {
-                $this->raiseError(__CLASS__ .'::parseMail() returned false!');
+                static::raiseError(__CLASS__ .'::parseMail() returned false!');
                 break;
             }
 
             if (!$this->flagMailSeen($mail->msgno)) {
-                $this->raiseError(__CLASS__ .':flagMailSeen() returned false!');
+                static::raiseError(__CLASS__ .':flagMailSeen() returned false!');
                 return false;
             }
 
             if ($config->getMailImportMailDestinyIsDelete()) {
                 if (!$this->deleteMail($mail->msgno)) {
-                    $this->raiseError(__CLASS__ .'::deleteMail() returned false!');
+                    static::raiseError(__CLASS__ .'::deleteMail() returned false!');
                     return false;
                 }
             }
         }
 
         if (!$this->disconnect()) {
-            $this->raiseError(__CLASS__ .'::disconnect() returned false!');
+            static::raiseError(__CLASS__ .'::disconnect() returned false!');
             return false;
         }
 
         if (!$jobs->createJob('import-request')) {
-            $this->raiseError(get_class($jobs) .'::createJob() returned false!');
+            static::raiseError(get_class($jobs) .'::createJob() returned false!');
             return false;
         }
 
@@ -183,7 +183,7 @@ class MailImportController extends DefaultController
         }
 
         if (!isset($this->connect_string)) {
-            $this->raiseError(__METHOD__ .'(), do not know how to connect!');
+            static::raiseError(__METHOD__ .'(), do not know how to connect!');
             return false;
         }
 
@@ -197,12 +197,12 @@ class MailImportController extends DefaultController
         );
 
         if ($this->imap_session === false) {
-            $this->raiseError(__METHOD__ .'(), unable to connect!<br />'. imap_last_error());
+            static::raiseError(__METHOD__ .'(), unable to connect!<br />'. imap_last_error());
             return false;
         }
 
         if (!is_resource($this->imap_session)) {
-            $this->raiseError(__METHOD__ .'(), imap_open() has not returned a resource!');
+            static::raiseError(__METHOD__ .'(), imap_open() has not returned a resource!');
             return false;
         }
 
@@ -229,13 +229,13 @@ class MailImportController extends DefaultController
         ) {
             $flags = CL_EXPUNGE;
             if (!imap_expunge($this->imap_session)) {
-                $this->raiseError("imap_expunge() returned false!". imap_last_error());
+                static::raiseError("imap_expunge() returned false!". imap_last_error());
                 return false;
             }
         }
 
         if (!imap_close($this->imap_session, $flags)) {
-            $this->raiseError("imap_close() failed!". imap_last_error());
+            static::raiseError("imap_close() failed!". imap_last_error());
             return false;
         }
 
@@ -246,22 +246,22 @@ class MailImportController extends DefaultController
     private function checkForMails()
     {
         if (!$this->isConnected()) {
-            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
+            static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
         if (($status = imap_status($this->imap_session, $this->connect_string, SA_UNSEEN)) === false) {
-            $this->raiseError(__METHOD__ .'(), imap_status() failed!'. imap_last_error());
+            static::raiseError(__METHOD__ .'(), imap_status() failed!'. imap_last_error());
             return false;
         }
 
         if (!isset($status->flags) || $status->flags != SA_UNSEEN) {
-            $this->raiseError(__METHOD__ .'(), server responded with something we have not requested!');
+            static::raiseError(__METHOD__ .'(), server responded with something we have not requested!');
             return false;
         }
 
         if (!isset($status->unseen) || !is_numeric($status->unseen)) {
-            $this->raiseError(__METHOD__ .'(), server responded invalid!');
+            static::raiseError(__METHOD__ .'(), server responded invalid!');
             return false;
         }
 
@@ -271,7 +271,7 @@ class MailImportController extends DefaultController
     private function retrieveListOfMails($msg_cnt)
     {
         if (!$this->isConnected()) {
-            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
+            static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
@@ -280,12 +280,12 @@ class MailImportController extends DefaultController
         }
 
         if (($list = imap_fetch_overview($this->imap_session, "1:{$msg_cnt}")) === false) {
-            $this->raiseError(__METHOD__ .'(), imap_fetch_overview() failed!');
+            static::raiseError(__METHOD__ .'(), imap_fetch_overview() failed!');
             return false;
         }
 
         if (!is_array($list)) {
-            $this->raiseError(__METHOD__ .'(), imap_fetch_overview() returned no array!'. imap_last_error());
+            static::raiseError(__METHOD__ .'(), imap_fetch_overview() returned no array!'. imap_last_error());
             return false;
         }
 
@@ -295,7 +295,7 @@ class MailImportController extends DefaultController
     private function retrieveMail($msgno)
     {
         if (!$this->isConnected()) {
-            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
+            static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
@@ -304,12 +304,12 @@ class MailImportController extends DefaultController
         }
 
         if (($structure = imap_fetchstructure($this->imap_session, $msgno)) === false) {
-            $this->raiseError(__METHOD__ .'(), unable to retrieve structure!'. imap_last_error());
+            static::raiseError(__METHOD__ .'(), unable to retrieve structure!'. imap_last_error());
             return false;
         }
 
         if (empty($structure) || !is_object($structure)) {
-            $this->raiseError(__METHOD__ .'(), imap_fetchstructure() has not returned an object!'. imap_last_error());
+            static::raiseError(__METHOD__ .'(), imap_fetchstructure() has not returned an object!'. imap_last_error());
             return false;
         }
 
@@ -326,7 +326,7 @@ class MailImportController extends DefaultController
         global $config;
 
         if (!is_array($msg)) {
-            $this->raiseError(__METHOD__ .'(), first parameter should be an array!');
+            static::raiseError(__METHOD__ .'(), first parameter should be an array!');
             return false;
         }
 
@@ -347,14 +347,14 @@ class MailImportController extends DefaultController
 
             if ($part->type == 0 && $config->isUseEmailBodyAsDescription()) {
                 if (!$this->parseMimeText($part, $id, $descriptions)) {
-                    $this->raiseError(__METHOD__ .'(), parseMimeText() returned false!');
+                    static::raiseError(__METHOD__ .'(), parseMimeText() returned false!');
                     return false;
                 }
                 continue;
             }
 
             if (!$this->parseMimePart($part, $id, $attachments, $descriptions)) {
-                $this->raiseError(__CLASS__ .'::parseMimePart() returned false!');
+                static::raiseError(__CLASS__ .'::parseMimePart() returned false!');
                 return false;
             }
         }
@@ -367,14 +367,14 @@ class MailImportController extends DefaultController
 
         if (!empty($descriptions)) {
             if (($description = $this->fetchDescriptions($msgno, $descriptions)) === false) {
-                $this->raiseError(__METHOD__ .'(), fetchDescriptions() returned false!');
+                static::raiseError(__METHOD__ .'(), fetchDescriptions() returned false!');
                 return false;
             }
         }
 
         if (!empty($attachments)) {
             if (!$this->fetchAttachments($msgno, $attachments, $description)) {
-                $this->raiseError(__METHOD__ .'(), fetchAttachments() returned false!');
+                static::raiseError(__METHOD__ .'(), fetchAttachments() returned false!');
                 return false;
             }
         }
@@ -387,17 +387,17 @@ class MailImportController extends DefaultController
         global $config;
 
         if (!is_object($part)) {
-            $this->raiseError(__METHOD__ .'(), first parameter should be an object!');
+            static::raiseError(__METHOD__ .'(), first parameter should be an object!');
             return false;
         }
 
         if (!is_array($attachments)) {
-            $this->raiseError(__METHOD__ .'(), third parameter should be an array!');
+            static::raiseError(__METHOD__ .'(), third parameter should be an array!');
             return false;
         }
 
         if (!is_array($descriptions)) {
-            $this->raiseError(__METHOD__ .'(), forth parameter should be an array!');
+            static::raiseError(__METHOD__ .'(), forth parameter should be an array!');
             return false;
         }
 
@@ -411,7 +411,7 @@ class MailImportController extends DefaultController
                     $part->type == 0
                 ) {
                     if (!$this->parseMimeText($part, $subid, $descriptions)) {
-                        $this->raiseError(__METHOD__ .'(), parseMimeText() returned false!');
+                        static::raiseError(__METHOD__ .'(), parseMimeText() returned false!');
                         return false;
                     }
                     continue;
@@ -428,7 +428,7 @@ class MailImportController extends DefaultController
                 }
 
                 if (!$this->parseMimePart($subpart, $nextid, $attachments, $descriptions)) {
-                    $this->raiseError(__CLASS__ .'::parseMimePart() returned false!');
+                    static::raiseError(__CLASS__ .'::parseMimePart() returned false!');
                     return false;
                 }
             }
@@ -459,7 +459,7 @@ class MailImportController extends DefaultController
         }
 
         if (!$this->parseMimePartParameters($parameters, $attachments, $part->encoding, $id)) {
-            $this->raiseError(__CLASS__ .'::parseMimePartParameters() returned false!');
+            static::raiseError(__CLASS__ .'::parseMimePartParameters() returned false!');
             return false;
         }
 
@@ -469,17 +469,17 @@ class MailImportController extends DefaultController
     private function parseMimePartParameters(&$partparam, &$attachments, $encoding, $id)
     {
         if (!is_array($partparam)) {
-            $this->raiseError(__METHOD__ .'(), first parameter has to be an array!');
+            static::raiseError(__METHOD__ .'(), first parameter has to be an array!');
             return false;
         }
 
         if (!is_array($attachments)) {
-            $this->raiseError(__METHOD__ .'(), second parameter has to be an array!');
+            static::raiseError(__METHOD__ .'(), second parameter has to be an array!');
             return false;
         }
 
         if (!is_numeric($encoding)) {
-            $this->raiseError(__METHOD__ .'(), third parameter has to be a number!');
+            static::raiseError(__METHOD__ .'(), third parameter has to be a number!');
             return false;
         }
 
@@ -490,7 +490,7 @@ class MailImportController extends DefaultController
                 empty($param->attribute) ||
                 !is_string($param->attribute)
             ) {
-                $this->raiseError(__METHOD__ .'(), attribute property is not set!');
+                static::raiseError(__METHOD__ .'(), attribute property is not set!');
                 return false;
             }
 
@@ -498,7 +498,7 @@ class MailImportController extends DefaultController
                 empty($param->value) ||
                 !is_string($param->value)
             ) {
-                $this->raiseError(__METHOD__ .'(), value property is not set!');
+                static::raiseError(__METHOD__ .'(), value property is not set!');
                 return false;
             }
 
@@ -519,7 +519,7 @@ class MailImportController extends DefaultController
                 }
 
                 if (!($filename_decoded = $this->imapDecodeString($filename))) {
-                    $this->raiseError(__METHOD__ .'(), imapDecodeString() returned false!');
+                    static::raiseError(__METHOD__ .'(), imapDecodeString() returned false!');
                     return false;
                 }
 
@@ -531,7 +531,7 @@ class MailImportController extends DefaultController
                     !isset($filename_decoded->charset) ||
                     empty($filename_decoded->charset)
                 ) {
-                    $this->raiseError(__METHOD__ .'(), imapDecodeString() returned an invalid object!');
+                    static::raiseError(__METHOD__ .'(), imapDecodeString() returned an invalid object!');
                     return false;
                 }
 
@@ -540,12 +540,12 @@ class MailImportController extends DefaultController
 
             // just to be sure...
             if (!isset($filename) || empty(basename($filename))) {
-                $this->raiseError(__METHOD__ .'(), should get here only if decoding went wrong!');
+                static::raiseError(__METHOD__ .'(), should get here only if decoding went wrong!');
                 return false;
             }
 
             if (isset($info[$attribute])) {
-                $this->raiseError(__METHOD__ ."(), strangly \$info[{$attribute}] is already set!");
+                static::raiseError(__METHOD__ ."(), strangly \$info[{$attribute}] is already set!");
                 return false;
             }
 
@@ -569,7 +569,7 @@ class MailImportController extends DefaultController
         } elseif (isset($info['FILENAME']) && !empty($info['FILENAME'])) {
             $filename = $info['FILENAME'];
         } else {
-            $this->raiseError(__METHOD__ .'(), what shall I do without knowning the filename!');
+            static::raiseError(__METHOD__ .'(), what shall I do without knowning the filename!');
             return false;
         }
 
@@ -585,22 +585,22 @@ class MailImportController extends DefaultController
     private function fetchMimePartBody($msgno, $attachment)
     {
         if (!$this->isConnected()) {
-            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
+            static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
         if (!is_numeric($msgno)) {
-            $this->raiseError(__METHOD__ .'(), first parameter should be an array!');
+            static::raiseError(__METHOD__ .'(), first parameter should be an array!');
             return false;
         }
 
         if (!is_array($attachment)) {
-            $this->raiseError(__METHOD__ .'(), second parameter should be an array!');
+            static::raiseError(__METHOD__ .'(), second parameter should be an array!');
             return false;
         }
 
         if (($body = imap_fetchbody($this->imap_session, $msgno, $attachment['id'])) === false) {
-            $this->raiseError(
+            static::raiseError(
                 "imap_fetchbody() returned false!<br />Msgno: {$msgno}<br />".
                 "Attachment: {$attachment['id']}<br />". imap_last_error()
             );
@@ -608,14 +608,14 @@ class MailImportController extends DefaultController
         }
 
         if (empty($body)) {
-            $this->raiseError(__METHOD__ .'(), imap_fetchbody() returned no valid content!');
+            static::raiseError(__METHOD__ .'(), imap_fetchbody() returned no valid content!');
             return false;
         }
 
         // 3 = BASE64
         if ($attachment['encoding'] == 3) {
             if (($body = base64_decode($body)) === false) {
-                $this->raiseError(__METHOD__ .'(), base64_decode() returned false!');
+                static::raiseError(__METHOD__ .'(), base64_decode() returned false!');
                 return false;
             }
             return $body;
@@ -624,29 +624,29 @@ class MailImportController extends DefaultController
             return quoted_printable_decode($body);
         }
 
-        $this->raiseError(__METHOD__ ."(), unsupported encoding: {$attachment['encoding']}!");
+        static::raiseError(__METHOD__ ."(), unsupported encoding: {$attachment['encoding']}!");
         return false;
     }
 
     private function fetchMimeTextBody($msgno, $description)
     {
         if (!$this->isConnected()) {
-            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
+            static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
         if (!is_numeric($msgno)) {
-            $this->raiseError(__METHOD__ .'(), first parameter should be an array!');
+            static::raiseError(__METHOD__ .'(), first parameter should be an array!');
             return false;
         }
 
         if (!is_array($description)) {
-            $this->raiseError(__METHOD__ .'(), second parameter should be an array!');
+            static::raiseError(__METHOD__ .'(), second parameter should be an array!');
             return false;
         }
 
         if (($body = imap_fetchbody($this->imap_session, $msgno, $description['id'])) === false) {
-            $this->raiseError(
+            static::raiseError(
                 "imap_fetchbody() returned false!<br />Msgno: {$msgno}<br />".
                 "Attachment: {$description['id']}<br />". imap_last_error()
             );
@@ -654,14 +654,14 @@ class MailImportController extends DefaultController
         }
 
         if (empty($body)) {
-            $this->raiseError(__METHOD__ .'(), imap_fetchbody() returned no valid content!');
+            static::raiseError(__METHOD__ .'(), imap_fetchbody() returned no valid content!');
             return false;
         }
 
         // 3 = BASE64
         if ($description['encoding'] == 3) {
             if (($body = base64_decode($body)) === false) {
-                $this->raiseError(__METHOD__ .'(), base64_decode() returned false!');
+                static::raiseError(__METHOD__ .'(), base64_decode() returned false!');
                 return false;
             }
         // 4 = QUOTED-PRINTABLE
@@ -678,12 +678,12 @@ class MailImportController extends DefaultController
         try {
             $body = mb_convert_encoding($body, 'UTF-8', $description['charset']);
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), mb_convert_encoding() raised an error!', false, $e);
+            static::raiseError(__METHOD__ .'(), mb_convert_encoding() raised an error!', false, $e);
             return false;
         }
 
         if (empty($body)) {
-            $this->raiseError(__METHOD__ .'(), mb_convert_encoding() was unsuccessful on recording body to UTF-8!');
+            static::raiseError(__METHOD__ .'(), mb_convert_encoding() was unsuccessful on recording body to UTF-8!');
             return false;
         }
 
@@ -718,17 +718,17 @@ class MailImportController extends DefaultController
         global $config;
 
         if (!$this->isConnected()) {
-            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
+            static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
         if (!imap_setflag_full($this->imap_session, $msgno, '\Deleted')) {
-            $this->raiseError(__METHOD__ .'(), imap_setflag_full() returned false!'. imap_last_error());
+            static::raiseError(__METHOD__ .'(), imap_setflag_full() returned false!'. imap_last_error());
             return false;
         }
 
         if (!imap_delete($this->imap_session, $msgno)) {
-            $this->raiseError(__METHOD__ .'(), imap_delete() returned false!'. imap_last_error());
+            static::raiseError(__METHOD__ .'(), imap_delete() returned false!'. imap_last_error());
             return false;
         }
 
@@ -738,12 +738,12 @@ class MailImportController extends DefaultController
     private function flagMailSeen($msgno)
     {
         if (!$this->isConnected()) {
-            $this->raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
+            static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
             return false;
         }
 
         if (!imap_setflag_full($this->imap_session, $msgno, '\Seen')) {
-            $this->raiseError(__METHOD__ .'(), imap_setflag_full() returned false!'. imap_last_error());
+            static::raiseError(__METHOD__ .'(), imap_setflag_full() returned false!'. imap_last_error());
             return false;
         }
 
@@ -756,7 +756,7 @@ class MailImportController extends DefaultController
             empty($value) ||
             !is_string($value)
         ) {
-            $this->raiseError(__METHOD__ .'(), \$value is invalid!');
+            static::raiseError(__METHOD__ .'(), \$value is invalid!');
             return false;
         }
 
@@ -768,7 +768,7 @@ class MailImportController extends DefaultController
             !isset($value_decoded[0]) ||
             empty($value_decoded[0])
         ) {
-            $this->raiseError(__METHOD__ .'(), imap_mime_header_decode() has responded invalid!');
+            static::raiseError(__METHOD__ .'(), imap_mime_header_decode() has responded invalid!');
             return false;
         }
 
@@ -780,14 +780,14 @@ class MailImportController extends DefaultController
         if (!isset($dst_parameters) ||
             !is_array($dst_parameters)
         ) {
-            $this->raiseError(__METHOD__ .'(), \$dst_parameters is invalid!');
+            static::raiseError(__METHOD__ .'(), \$dst_parameters is invalid!');
             return false;
         }
 
         if (!isset($src_parameters) ||
             !is_array($src_parameters)
         ) {
-            $this->raiseError(__METHOD__ .'(), \$src_parameters is invalid!');
+            static::raiseError(__METHOD__ .'(), \$src_parameters is invalid!');
             return false;
         }
 
@@ -805,12 +805,12 @@ class MailImportController extends DefaultController
     private function parseMimeText(&$part, $id, &$descriptions)
     {
         if (!is_object($part)) {
-            $this->raiseError(__METHOD__ .'(), first parameter should be an object!');
+            static::raiseError(__METHOD__ .'(), first parameter should be an object!');
             return false;
         }
 
         if (!is_array($descriptions)) {
-            $this->raiseError(__METHOD__ .'(), third parameter should be an object!');
+            static::raiseError(__METHOD__ .'(), third parameter should be an object!');
             return false;
         }
 
@@ -838,7 +838,7 @@ class MailImportController extends DefaultController
         }
 
         if (!$this->parseMimeTextParameters($parameters, $descriptions, $part->encoding, $id)) {
-            $this->raiseError(__CLASS__ .'::parseMimePartParameters() returned false!');
+            static::raiseError(__CLASS__ .'::parseMimePartParameters() returned false!');
             return false;
         }
 
@@ -848,17 +848,17 @@ class MailImportController extends DefaultController
     private function parseMimeTextParameters(&$partparam, &$descriptions, $encoding, $id)
     {
         if (!is_array($partparam)) {
-            $this->raiseError(__METHOD__ .'(), first parameter has to be an array!');
+            static::raiseError(__METHOD__ .'(), first parameter has to be an array!');
             return false;
         }
 
         if (!is_array($descriptions)) {
-            $this->raiseError(__METHOD__ .'(), second parameter has to be an array!');
+            static::raiseError(__METHOD__ .'(), second parameter has to be an array!');
             return false;
         }
 
         if (!is_numeric($encoding)) {
-            $this->raiseError(__METHOD__ .'(), third parameter has to be a number!');
+            static::raiseError(__METHOD__ .'(), third parameter has to be a number!');
             return false;
         }
 
@@ -869,7 +869,7 @@ class MailImportController extends DefaultController
                 empty($param->attribute) ||
                 !is_string($param->attribute)
             ) {
-                $this->raiseError(__METHOD__ .'(), attribute property is not set!');
+                static::raiseError(__METHOD__ .'(), attribute property is not set!');
                 return false;
             }
 
@@ -877,7 +877,7 @@ class MailImportController extends DefaultController
                 empty($param->value) ||
                 !is_string($param->value)
             ) {
-                $this->raiseError(__METHOD__ .'(), value property is not set!');
+                static::raiseError(__METHOD__ .'(), value property is not set!');
                 return false;
             }
 
@@ -911,7 +911,7 @@ class MailImportController extends DefaultController
     {
         foreach ($attachments as $attachment) {
             if (!isset($attachment['filename']) || empty($attachment['filename'])) {
-                $this->raiseError(__METHOD__ .'(), something is wrong. No filename is known for this mime part!');
+                static::raiseError(__METHOD__ .'(), something is wrong. No filename is known for this mime part!');
                 return false;
             }
 
@@ -923,12 +923,12 @@ class MailImportController extends DefaultController
             }
 
             if (($attachment_body = $this->fetchMimePartBody($msgno, $attachment)) === false) {
-                $this->raiseError(__CLASS__ .'::fetchMimePartBody() returned false!');
+                static::raiseError(__CLASS__ .'::fetchMimePartBody() returned false!');
                 return false;
             }
 
             if (empty($attachment_body)) {
-                $this->raiseError(__METHOD__ .'(), no body fetched for mime part!');
+                static::raiseError(__METHOD__ .'(), no body fetched for mime part!');
                 return false;
             }
 
@@ -959,14 +959,14 @@ class MailImportController extends DefaultController
             }
 
             if (file_exists($dest)) {
-                $this->raiseError(
+                static::raiseError(
                     "A file with the name {$file['name']} is already present in the incoming directory!"
                 );
                 return false;
             }
 
             if (!file_put_contents($dest, $attachment_body)) {
-                $this->raiseError(__METHOD__ .'(), file_put_contents() failed on saving attachment!');
+                static::raiseError(__METHOD__ .'(), file_put_contents() failed on saving attachment!');
                 return false;
             }
 
@@ -976,11 +976,11 @@ class MailImportController extends DefaultController
 
             $text = implode($description);
             if (!($dest = preg_replace('/\.pdf$/i', '.dsc', $dest))) {
-                $this->raiseError(__METHOD__ .'(), preg_replace() failed!');
+                static::raiseError(__METHOD__ .'(), preg_replace() failed!');
                 return false;
             }
             if (!file_put_contents($dest, $text)) {
-                $this->raiseError(__METHOD__ .'(), file_put_contents() failed on saving description!');
+                static::raiseError(__METHOD__ .'(), file_put_contents() failed on saving description!');
                 return false;
             }
         }
@@ -993,17 +993,17 @@ class MailImportController extends DefaultController
 
         foreach ($descriptions as $description) {
             if (!isset($description['charset']) || empty($description['charset'])) {
-                $this->raiseError(__METHOD__ .'(), something is wrong. No charset is known for this mime part!');
+                static::raiseError(__METHOD__ .'(), something is wrong. No charset is known for this mime part!');
                 return false;
             }
 
             if (($description_body = $this->fetchMimeTextBody($msgno, $description)) === false) {
-                $this->raiseError(__CLASS__ .'::fetchMimeTextBody() returned false!');
+                static::raiseError(__CLASS__ .'::fetchMimeTextBody() returned false!');
                 return false;
             }
 
             if (empty($description_body)) {
-                $this->raiseError(__METHOD__ .'(), no body fetched for mime part!');
+                static::raiseError(__METHOD__ .'(), no body fetched for mime part!');
                 return false;
             }
 
