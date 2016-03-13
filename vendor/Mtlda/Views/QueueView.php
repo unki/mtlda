@@ -21,8 +21,10 @@ namespace Mtlda\Views;
 
 class QueueView extends DefaultView
 {
-    public $class_name = 'queue';
-    public $item_name = 'QueueItem';
+    protected static $view_class_name = 'queue';
+    protected static $view_item_name = 'QueueItem';
+    protected $queue_avail_items;
+    protected $queue_items;
     protected $queue;
     protected $keywords;
     protected $import;
@@ -38,34 +40,34 @@ class QueueView extends DefaultView
         try {
             $this->queue = new \Mtlda\Models\QueueModel;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load QueueModel!', true);
+            static::raiseError(__METHOD__ .'(), failed to load QueueModel!', true);
             return false;
         }
 
         try {
             $this->import = new \Mtlda\Controllers\ImportController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load ImportController!', true);
+            static::raiseError(__METHOD__ .'(), failed to load ImportController!', true);
             return false;
         }
 
         if (!$tmpl->addSupportedMode('archive')) {
-            $this->raiseError(get_class($tmpl) .'::addSupportedMode() returned false!', true);
+            static::raiseError(get_class($tmpl) .'::addSupportedMode() returned false!', true);
             return false;
         }
 
         if (!$tmpl->addSupportedMode('split')) {
-            $this->raiseError(get_class($tmpl) .'::addSupportedMode() returned false!', true);
+            static::raiseError(get_class($tmpl) .'::addSupportedMode() returned false!', true);
             return false;
         }
 
         if (!$this->addContent('archiver')) {
-            $this->raiseError(__CLASS__ .'::addContent() returned false!', true);
+            static::raiseError(__CLASS__ .'::addContent() returned false!', true);
             return false;
         }
 
         if (!$this->addContent('splitter')) {
-            $this->raiseError(__CLASS__ .'::addContent() returned false!', true);
+            static::raiseError(__CLASS__ .'::addContent() returned false!', true);
             return false;
         }
 
@@ -80,18 +82,18 @@ class QueueView extends DefaultView
             $index = 0;
         }
 
-        if (!isset($this->avail_items) || empty($this->avail_items)) {
+        if (!isset($this->queue_avail_items) || empty($this->queue_avail_items)) {
             $repeat = false;
             return $content;
         }
 
-        if ($index >= count($this->avail_items)) {
+        if ($index >= count($this->queue_avail_items)) {
             $repeat = false;
             return $content;
         }
 
-        $item_idx = $this->avail_items[$index];
-        $item =  $this->items[$item_idx];
+        $item_idx = $this->queue_avail_items[$index];
+        $item =  $this->queue_items[$item_idx];
 
         $smarty->assign("item", $item);
         $smarty->assign("item_safe_link", $item->getId() ."-". $item->getGuid());
@@ -108,31 +110,34 @@ class QueueView extends DefaultView
         global $mtlda;
 
         if (empty($id) || !$mtlda->isValidId($id)) {
-            $this->raiseError("Require a valid \$id to show!");
+            static::raiseError("Require a valid \$id to show!");
             return false;
         }
 
         if (empty($guid) || !$mtlda->isValidGuidSyntax($guid)) {
-            $this->raiseError("Require a valid \$guid to show!");
+            static::raiseError("Require a valid \$guid to show!");
             return false;
         }
 
         try {
-            $item = new \Mtlda\Models\QueueItemModel($id, $guid);
+            $item = new \Mtlda\Models\QueueItemModel(array(
+                'idx' => $id,
+                'guid' => $guid
+            ));
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load QueueItemModel({$id}, {$guid})!");
+            static::raiseError("Failed to load QueueItemModel({$id}, {$guid})!");
             return false;
         }
 
         try {
             $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load StorageController!");
+            static::raiseError("Failed to load StorageController!");
             return false;
         }
 
         if (!$file = $storage->retrieveFile($item)) {
-            $this->raiseError("StorageController::retrieveFile() returned false!");
+            static::raiseError("StorageController::retrieveFile() returned false!");
             return false;
         }
 
@@ -143,17 +148,17 @@ class QueueView extends DefaultView
             empty($file['hash']) ||
             empty($file['content'])
         ) {
-            $this->raiseError("StorageController::retireveFile() returned an invalid file");
+            static::raiseError("StorageController::retireveFile() returned an invalid file");
             return false;
         }
 
         if (strlen($file['content']) != $item->getFileSize()) {
-            $this->raiseError("File size of retrieved file does not match archive record!");
+            static::raiseError("File size of retrieved file does not match archive record!");
             return false;
         }
 
         if ($file['hash'] != $item->getFileHash()) {
-            $this->raiseError("File hash of retrieved file does not match archive record!");
+            static::raiseError("File hash of retrieved file does not match archive record!");
             return false;
         }
 
@@ -170,7 +175,7 @@ class QueueView extends DefaultView
         global $session, $tmpl;
 
         if (($pending = $this->import->pendingItems()) === false) {
-            $this->raiseError(get_class($import) .'::pendingItems() returned false!');
+            static::raiseError(get_class($import) .'::pendingItems() returned false!');
             return false;
         }
 
@@ -179,7 +184,7 @@ class QueueView extends DefaultView
         }
 
         if (!isset($pageno) || empty($pageno) || !is_numeric($pageno)) {
-            if (($current_page = $session->getVariable("{$this->class_name}_current_page")) === false) {
+            if (($current_page = $session->getVariable(static::$view_class_name .'_current_page')) === false) {
                 $current_page = 1;
             }
         } else {
@@ -187,7 +192,9 @@ class QueueView extends DefaultView
         }
 
         if (!isset($items_limit) || is_null($items_limit) || !is_numeric($items_limit)) {
-            if (($current_items_limit = $session->getVariable("{$this->class_name}_current_items_limit")) === false) {
+            if (($current_items_limit = $session->getVariable(
+                static::$view_class_name .'_current_items_limit'
+            )) === false) {
                 $current_items_limit = -1;
             }
         } else {
@@ -203,22 +210,22 @@ class QueueView extends DefaultView
                 'delta' => 2,
             ));
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load PagingController!');
+            static::raiseError(__METHOD__ .'(), failed to load PagingController!');
             return false;
         }
 
-        if (!$pager->setPagingData($this->queue->getItemsData())) {
-            $this->raiseError(get_class($pager) .'::setPagingData() returned false!');
+        if (!$pager->setPagingData($this->queue->getItems())) {
+            static::raiseError(get_class($pager) .'::setPagingData() returned false!');
             return false;
         }
 
         if (!$pager->setCurrentPage($current_page)) {
-            $this->raiseError(get_class($pager) .'::setCurrentPage() returned false!');
+            static::raiseError(get_class($pager) .'::setCurrentPage() returned false!');
             return false;
         }
 
         if (!$pager->setItemsLimit($current_items_limit)) {
-            $this->raiseError(get_class($pager) .'::setItemsLimit() returned false!');
+            static::raiseError(get_class($pager) .'::setItemsLimit() returned false!');
             return false;
         }
 
@@ -226,25 +233,25 @@ class QueueView extends DefaultView
         $tmpl->assign('pager', $pager);
 
         if (($data = $pager->getPageData()) === false) {
-            $this->raiseError(get_class($pager) .'::getPageData() returned false!');
+            static::raiseError(get_class($pager) .'::getPageData() returned false!');
             return false;
         }
 
         if (!isset($data) || empty($data) || !is_array($data)) {
-            $this->raiseError(get_class($pager) .'::getPageData() returned invalid data!');
+            static::raiseError(get_class($pager) .'::getPageData() returned invalid data!');
             return false;
         }
 
-        $this->avail_items = array_keys($data);
-        $this->items = $data;
+        $this->queue_avail_items = array_keys($data);
+        $this->queue_items = $data;
 
-        if (!$session->setVariable("{$this->class_name}_current_page", $current_page)) {
-            $this->raiseError(get_class($session) .'::setVariable() returned false!');
+        if (!$session->setVariable(static::$view_class_name .'_current_page', $current_page)) {
+            static::raiseError(get_class($session) .'::setVariable() returned false!');
             return false;
         }
 
-        if (!$session->setVariable("{$this->class_name}_current_items_limit", $current_items_limit)) {
-            $this->raiseError(get_class($session) .'::setVariable() returned false!');
+        if (!$session->setVariable(static::$view_class_name .'_current_items_limit', $current_items_limit)) {
+            static::raiseError(get_class($session) .'::setVariable() returned false!');
             return false;
         }
 
@@ -256,7 +263,7 @@ class QueueView extends DefaultView
         global $mtlda, $tmpl;
 
         if (!isset($data) || empty($data) || !is_array($data)) {
-            $this->raiseError(__METHOD__ .'(), $data parameter is not set!');
+            static::raiseError(__METHOD__ .'(), $data parameter is not set!');
             return false;
         }
 
@@ -270,12 +277,12 @@ class QueueView extends DefaultView
             !isset($data['id']) || empty($data['id']) || !is_numeric($data['id']) ||
             !isset($data['guid']) || empty($data['guid']) || !$mtlda->isValidGuidSyntax($data['guid'])
         ) {
-            $this->raiseError(__METHOD__ .'(), item data is invalid!');
+            static::raiseError(__METHOD__ .'(), item data is invalid!');
             return false;
         }
 
         if (($item = $mtlda->loadModel('queueitem', $data['id'], $data['guid'])) === false) {
-            $this->raiseError(get_class($mtlda) .'::loadModel() returned false!');
+            static::raiseError(get_class($mtlda) .'::loadModel() returned false!');
             return false;
         }
 
@@ -285,18 +292,18 @@ class QueueView extends DefaultView
         try {
             $this->keywords = new \Mtlda\Models\KeywordsModel;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load KeywordsModel!");
+            static::raiseError("Failed to load KeywordsModel!");
             return false;
         }
 
         try {
             $this->archive = new \Mtlda\Models\ArchiveModel;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load ArchiveModel!', false, $e);
+            static::raiseError(__METHOD__ .'(), failed to load ArchiveModel!', false, $e);
             return false;
         }
 
-        $tmpl->assign('keywords', $this->keywords->getItemsData());
+        $tmpl->assign('keywords', $this->keywords->getItems());
         $tmpl->assign("item_safe_link", $item->getId() ."-". $item->getGuid());
 
         switch ($step) {
@@ -327,7 +334,7 @@ class QueueView extends DefaultView
                 $template = "archiver_dialog_step4.tpl";
                 break;
             default:
-                $this->raiseError(__METHOD__ .'(), invalid step requested!');
+                static::raiseError(__METHOD__ .'(), invalid step requested!');
                 return false;
                 break;
         }
@@ -337,17 +344,17 @@ class QueueView extends DefaultView
         }
 
         if (!isset($template) || empty($template) || !is_string($template)) {
-            $this->raiseError(__METHOD__ .'(), no template selected!');
+            static::raiseError(__METHOD__ .'(), no template selected!');
             return false;
         }
 
         if (($content = $tmpl->fetch($template)) === false) {
-            $this->raiseError(get_class($tmpl) ."::fetch({$template}) returned false!");
+            static::raiseError(get_class($tmpl) ."::fetch({$template}) returned false!");
             return false;
         }
 
         if (!isset($content) || empty($content) || !is_string($content)) {
-            $this->raiseError(get_class($tmpl) ."::fetch({$template}) returned invalid data!");
+            static::raiseError(get_class($tmpl) ."::fetch({$template}) returned invalid data!");
             return false;
         }
 
@@ -359,7 +366,7 @@ class QueueView extends DefaultView
         global $mtlda, $tmpl;
 
         if (!isset($data) || empty($data) || !is_array($data)) {
-            $this->raiseError(__METHOD__ .'(), $data parameter is not set!');
+            static::raiseError(__METHOD__ .'(), $data parameter is not set!');
             return false;
         }
 
@@ -373,12 +380,12 @@ class QueueView extends DefaultView
             !isset($data['id']) || empty($data['id']) || !is_numeric($data['id']) ||
             !isset($data['guid']) || empty($data['guid']) || !$mtlda->isValidGuidSyntax($data['guid'])
         ) {
-            $this->raiseError(__METHOD__ .'(), item data is invalid!');
+            static::raiseError(__METHOD__ .'(), item data is invalid!');
             return false;
         }
 
         if (($item = $mtlda->loadModel('queueitem', $data['id'], $data['guid'])) === false) {
-            $this->raiseError(get_class($mtlda) .'::loadModel() returned false!');
+            static::raiseError(get_class($mtlda) .'::loadModel() returned false!');
             return false;
         }
 
@@ -390,7 +397,7 @@ class QueueView extends DefaultView
                 break;
             case 2:
                 if (($pages = $this->getPdfPageInfo($item)) === false) {
-                    $this->raiseError(__CLASS__ .'::getPdfPageInfo() returned false!');
+                    static::raiseError(__CLASS__ .'::getPdfPageInfo() returned false!');
                     return false;
                 }
                 $tmpl->assign('page_count', $pages);
@@ -404,7 +411,7 @@ class QueueView extends DefaultView
                 $template = "splitter_dialog_step4.tpl";
                 break;
             default:
-                $this->raiseError(__METHOD__ .'(), invalid step requested!');
+                static::raiseError(__METHOD__ .'(), invalid step requested!');
                 return false;
                 break;
         }
@@ -414,17 +421,17 @@ class QueueView extends DefaultView
         }
 
         if (!isset($template) || empty($template) || !is_string($template)) {
-            $this->raiseError(__METHOD__ .'(), no template selected!');
+            static::raiseError(__METHOD__ .'(), no template selected!');
             return false;
         }
 
         if (($content = $tmpl->fetch($template)) === false) {
-            $this->raiseError(get_class($tmpl) ."::fetch({$template}) returned false!");
+            static::raiseError(get_class($tmpl) ."::fetch({$template}) returned false!");
             return false;
         }
 
         if (!isset($content) || empty($content) || !is_string($content)) {
-            $this->raiseError(get_class($tmpl) ."::fetch({$template}) returned invalid data!");
+            static::raiseError(get_class($tmpl) ."::fetch({$template}) returned invalid data!");
             return false;
         }
 
@@ -434,53 +441,53 @@ class QueueView extends DefaultView
     protected function getPdfPageInfo(&$item)
     {
         if (!isset($item) || empty($item)) {
-            $this->raiseError(__METHOD__ .'(), $item parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $item parameter is invalid!');
             return false;
         }
 
         if (!is_a($item, 'Mtlda\Models\QueueItemModel')) {
-            $this->raiseError(__METHOD__ .'(), can only operate on QueueItemModels!');
+            static::raiseError(__METHOD__ .'(), can only operate on QueueItemModels!');
             return false;
         }
 
         try {
             $pdf = new \FPDI();
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load FPDI!');
+            static::raiseError(__METHOD__ .'(), failed to load FPDI!');
             return false;
         }
 
         if (($fqfn = $item->getFilePath()) === false) {
-            $this->raiseError(get_class($item) .'::getFilePath() returned false!');
+            static::raiseError(get_class($item) .'::getFilePath() returned false!');
             return false;
         }
 
         if (!isset($fqfn) || empty($fqfn)) {
-            $this->raiseError(get_class($item) .'::getFilePath() returned an invalid file name!');
+            static::raiseError(get_class($item) .'::getFilePath() returned an invalid file name!');
             return false;
         }
 
         if (!file_exists($fqfn)) {
-            $this->raiseError(__METHOD__ ."(), file {$fqfn} does not exist!");
+            static::raiseError(__METHOD__ ."(), file {$fqfn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqfn)) {
-            $this->raiseError(__METHOD__ ."(), file {$fqfn} is not readable!");
+            static::raiseError(__METHOD__ ."(), file {$fqfn} is not readable!");
             return false;
         }
 
         try {
             $page_count = $pdf->setSourceFile($fqfn);
         } catch (\Exception $e) {
-            $this->raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            static::raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
         try {
             @$pdf->cleanUp();
         } catch (\Exception $e) {
-            $this->raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+            static::raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
             return false;
         }
 
@@ -522,7 +529,7 @@ class QueueView extends DefaultView
         global $tmpl;
 
         if (!isset($this->archiveItem) || empty($this->archiveItem)) {
-            $this->raiseError(__METHOD__ .'(), have no item to operate on!');
+            static::raiseError(__METHOD__ .'(), have no item to operate on!');
             return false;
         }
 
@@ -530,30 +537,30 @@ class QueueView extends DefaultView
 
         if ($this->archiveItem->hasTitle()) {
             if (($title = $this->archiveItem->getTitle()) === false) {
-                $this->raiseError(get_class($this->archiveItem) .'::getTitle() returned false!');
+                static::raiseError(get_class($this->archiveItem) .'::getTitle() returned false!');
                 return false;
             }
             array_push($sources, $title);
         }
 
         if (($filename = $this->archiveItem->getFileName()) === false) {
-            $this->raiseError(get_class($this->archiveItem) .'::getFileName() returned false');
+            static::raiseError(get_class($this->archiveItem) .'::getFileName() returned false');
             return false;
         }
         array_push($sources, $filename);
 
         if ($this->archiveItem->hasIndices()) {
             if (($indices = $this->archiveItem->getIndices()) === false) {
-                $this->raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
+                static::raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
                 return false;
             }
             if (!isset($indices) || empty($indices) || !is_array($indices)) {
-                $this->raiseError(get_class($this->archiveItem) .'::getIndices() returned invalid data!');
+                static::raiseError(get_class($this->archiveItem) .'::getIndices() returned invalid data!');
                 return false;
             }
             foreach ($indices as $index) {
                 if (($text = $index->getDocumentText()) === false) {
-                    $this->raiseError(get_class($index) .'::getDocumentText() returned false!');
+                    static::raiseError(get_class($index) .'::getDocumentText() returned false!');
                     return false;
                 }
                 array_push($sources, $text);
@@ -564,16 +571,16 @@ class QueueView extends DefaultView
             $this->archiveItem->hasProperties()
         ) {
             if (($properties = $this->archiveItem->getProperties()) === false) {
-                $this->raiseError(get_class($this->archiveItem) .'::getProperties() returned false!');
+                static::raiseError(get_class($this->archiveItem) .'::getProperties() returned false!');
                 return false;
             }
             if (!isset($properties) || empty($properties) || !is_array($properties)) {
-                $this->raiseError(get_class($this->archiveItem) .'::getProperties() returned invalid data!');
+                static::raiseError(get_class($this->archiveItem) .'::getProperties() returned invalid data!');
                 return false;
             }
             foreach ($properties as $property) {
                 if (($value = $property->getDocumentValue()) === false) {
-                    $this->raiseError(get_class($property) .'::getDocumentValue() returned false!');
+                    static::raiseError(get_class($property) .'::getDocumentValue() returned false!');
                     return false;
                 }
                 array_push($sources, $value);
@@ -581,7 +588,7 @@ class QueueView extends DefaultView
         }
 
         if (($sources = array_unique($sources)) === false) {
-            $this->raiseError(__METHOD__ .'(), failed to filter sources!');
+            static::raiseError(__METHOD__ .'(), failed to filter sources!');
             return false;
         }
 
@@ -614,7 +621,7 @@ class QueueView extends DefaultView
                 }
 
                 if ($result === false) {
-                    $this->raiseError(__METHOD__ .'(), an error in preg_match_all() occured! '. preg_last_error());
+                    static::raiseError(__METHOD__ .'(), an error in preg_match_all() occured! '. preg_last_error());
                     return false;
                 }
 
@@ -697,12 +704,12 @@ class QueueView extends DefaultView
         });
 
         if (($this->dateSuggestions = array_unique($this->dateSuggestions)) === false) {
-            $this->raiseError(__METHOD__ .'(), array_unique() returned false!');
+            static::raiseError(__METHOD__ .'(), array_unique() returned false!');
             return false;
         }
 
         if (!sort($this->dateSuggestions)) {
-            $this->raiseError(__METHOD__ .'(), sort() returned false!');
+            static::raiseError(__METHOD__ .'(), sort() returned false!');
             return false;
         }
 
@@ -720,7 +727,7 @@ class QueueView extends DefaultView
         $archive_item_keywords = array();
 
         if (!isset($this->archiveItem) || empty($this->archiveItem)) {
-            $this->raiseError(__METHOD__ .'(), have no item to operate on!');
+            static::raiseError(__METHOD__ .'(), have no item to operate on!');
             return false;
         }
 
@@ -730,18 +737,20 @@ class QueueView extends DefaultView
 
         if ($this->archiveItem->hasKeywords()) {
             if (($assigned_keywords = $this->archiveItem->getKeywords()) === false) {
-                $this->raiseError(get_class($this->archiveItem) .'::getKeywords() returned false!');
+                static::raiseError(get_class($this->archiveItem) .'::getKeywords() returned false!');
                 return false;
             }
             foreach ($assigned_keywords as $idx) {
                 try {
-                    $keyword = new \Mtlda\Models\KeywordModel($idx);
+                    $keyword = new \Mtlda\Models\KeywordModel(array(
+                        'idx' => $idx
+                    ));
                 } catch (\Exception $e) {
-                    $this->raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
+                    static::raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
                     return false;
                 }
                 if (($name = $keyword->getName()) === false) {
-                    $this->raiseError(get_class($keyword) .'::getName() returned false!');
+                    static::raiseError(get_class($keyword) .'::getName() returned false!');
                     return false;
                 }
                 array_push($archive_item_keywords, $name);
@@ -752,30 +761,30 @@ class QueueView extends DefaultView
 
         if ($this->archiveItem->hasTitle()) {
             if (($title = $this->archiveItem->getTitle()) === false) {
-                $this->raiseError(get_class($this->archiveItem) .'::getTitle() returned false!');
+                static::raiseError(get_class($this->archiveItem) .'::getTitle() returned false!');
                 return false;
             }
             array_push($sources, $title);
         }
 
         if (($filename = $this->archiveItem->getFileNameBase()) === false) {
-            $this->raiseError(get_class($this->archiveItem) .'::getFileName() returned false');
+            static::raiseError(get_class($this->archiveItem) .'::getFileName() returned false');
             return false;
         }
         array_push($sources, $filename);
 
         if ($this->archiveItem->hasIndices()) {
             if (($indices = $this->archiveItem->getIndices()) === false) {
-                $this->raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
+                static::raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
                 return false;
             }
             if (!isset($indices) || empty($indices) || !is_array($indices)) {
-                $this->raiseError(get_class($this->archiveItem) .'::getIndices() returned invalid data!');
+                static::raiseError(get_class($this->archiveItem) .'::getIndices() returned invalid data!');
                 return false;
             }
             foreach ($indices as $index) {
                 if (($text = $index->getDocumentText()) === false) {
-                    $this->raiseError(get_class($index) .'::getDocumentText() returned false!');
+                    static::raiseError(get_class($index) .'::getDocumentText() returned false!');
                     return false;
                 }
                 array_push($sources, $text);
@@ -786,16 +795,16 @@ class QueueView extends DefaultView
             $this->archiveItem->hasProperties()
         ) {
             if (($properties = $this->archiveItem->getProperties()) === false) {
-                $this->raiseError(get_class($this->archiveItem) .'::getProperties() returned false!');
+                static::raiseError(get_class($this->archiveItem) .'::getProperties() returned false!');
                 return false;
             }
             if (!isset($properties) || empty($properties) || !is_array($properties)) {
-                $this->raiseError(get_class($this->archiveItem) .'::getProperties() returned invalid data!');
+                static::raiseError(get_class($this->archiveItem) .'::getProperties() returned invalid data!');
                 return false;
             }
             foreach ($properties as $property) {
                 if (($value = $property->getDocumentValue()) === false) {
-                    $this->raiseError(get_class($property) .'::getDocumentValue() returned false!');
+                    static::raiseError(get_class($property) .'::getDocumentValue() returned false!');
                     return false;
                 }
                 array_push($sources, $value);
@@ -803,15 +812,15 @@ class QueueView extends DefaultView
         }
 
         if (($sources = array_unique($sources)) === false) {
-            $this->raiseError(__METHOD__ .'(), failed to filter sources!');
+            static::raiseError(__METHOD__ .'(), failed to filter sources!');
             return false;
         }
 
         $existing_keywords = array();
 
-        foreach ($this->keywords->getItemsData() as $keyword) {
+        foreach ($this->keywords->getItems() as $keyword) {
             if (($name = $keyword->getName()) === false) {
-                $this->raiseError(get_class($keyword) .'::getName() returned false!');
+                static::raiseError(get_class($keyword) .'::getName() returned false!');
                 return false;
             }
             array_push($existing_keywords, $name);
@@ -861,17 +870,17 @@ class QueueView extends DefaultView
         }
 
         if (($words = array_count_values($words)) === false) {
-            $this->raiseError(__METHOD__ .'(), array_count_values() returned false!');
+            static::raiseError(__METHOD__ .'(), array_count_values() returned false!');
             return false;
         }
 
         if (!arsort($words, SORT_NUMERIC)) {
-            $this->raiseError(__METHOD__ .'(), arsort() returned false!');
+            static::raiseError(__METHOD__ .'(), arsort() returned false!');
             return false;
         }
 
         if (($words = array_slice($words, 0, 10)) === false) {
-            $this->raiseError(__METHOD__ .'(), array_slice() returned false!');
+            static::raiseError(__METHOD__ .'(), array_slice() returned false!');
             return false;
         }
 
@@ -895,18 +904,18 @@ class QueueView extends DefaultView
         $titles = array();
         $sources = array();
 
-        foreach ($this->archive->getItemsData() as $document) {
+        foreach ($this->archive->getItems() as $document) {
             if (($idx = $document->getId()) === false) {
-                $this->raiseError(get_class($document) .'::getId() returned false!');
+                static::raiseError(get_class($document) .'::getId() returned false!');
                 return false;
             }
             $items[$idx] = $document;
             if (($filename = $document->getFileName()) === false) {
-                $this->raiseError(get_class($document) .'::getFileName() returned false!');
+                static::raiseError(get_class($document) .'::getFileName() returned false!');
                 return false;
             }
             if ($document->hasTitle() && ($title = $document->getTitle()) === false) {
-                $this->raiseError(get_class($document) .'::getTitle() returned false!');
+                static::raiseError(get_class($document) .'::getTitle() returned false!');
                 return false;
             }
             $filenames[$idx] = $filename;
@@ -930,7 +939,7 @@ class QueueView extends DefaultView
                 continue;
             }
             if (($keywords = $document->getKeywords()) === false) {
-                $this->raiseError(get_class($document) .'::getKeywords() returned false!');
+                static::raiseError(get_class($document) .'::getKeywords() returned false!');
                 return false;
             }
             if (!isset($keywords) || empty($keywords)) {
@@ -938,9 +947,11 @@ class QueueView extends DefaultView
             }
             foreach ($keywords as $idx) {
                 try {
-                    $keyword = new \Mtlda\Models\KeywordModel($idx);
+                    $keyword = new \Mtlda\Models\KeywordModel(array(
+                        'idx' => $idx
+                    ));
                 } catch (\Exception $e) {
-                    $this->raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
+                    static::raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
                     return false;
                 }
                 if (($name = $keyword->getName()) === false) {
@@ -964,7 +975,7 @@ class QueueView extends DefaultView
                     continue;
                 }
                 if (($keywords = $document->getKeywords()) === false) {
-                    $this->raiseError(get_class($document) .'::getKeywords() returned false!');
+                    static::raiseError(get_class($document) .'::getKeywords() returned false!');
                     return false;
                 }
                 if (!isset($keywords) || empty($keywords)) {
@@ -972,9 +983,11 @@ class QueueView extends DefaultView
                 }
                 foreach ($keywords as $idx) {
                     try {
-                        $keyword = new \Mtlda\Models\KeywordModel($idx);
+                        $keyword = new \Mtlda\Models\KeywordModel(array(
+                            'idx' => $idx
+                        ));
                     } catch (\Exception $e) {
-                        $this->raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
+                        static::raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
                         return false;
                     }
                     if (($name = $keyword->getName()) === false) {
@@ -987,17 +1000,17 @@ class QueueView extends DefaultView
         }
 
         if (($words = array_count_values($sources)) === false) {
-            $this->raiseError(__METHOD__ .'(), array_count_values() returned false!');
+            static::raiseError(__METHOD__ .'(), array_count_values() returned false!');
             return false;
         }
 
         if (!arsort($words, SORT_NUMERIC)) {
-            $this->raiseError(__METHOD__ .'(), arsort() returned false!');
+            static::raiseError(__METHOD__ .'(), arsort() returned false!');
             return false;
         }
 
         if (($words = array_slice($words, 0, 10)) === false) {
-            $this->raiseError(__METHOD__ .'(), array_slice() returned false!');
+            static::raiseError(__METHOD__ .'(), array_slice() returned false!');
             return false;
         }
 
@@ -1078,12 +1091,12 @@ class QueueView extends DefaultView
     public function requireArrayKeys($haystack, $needles)
     {
         if (!isset($haystack) || empty($haystack) || (!is_string($haystack) && !is_array($haystack))) {
-            $this->raiseError(__METHOD__ .'(), $haystack parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $haystack parameter is invalid!');
             return false;
         }
 
         if (!isset($needles) || empty($needles) || (!is_string($needles) && !is_array($needles))) {
-            $this->raiseError(__METHOD__ .'(), $needles parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $needles parameter is invalid!');
             return false;
         }
 
