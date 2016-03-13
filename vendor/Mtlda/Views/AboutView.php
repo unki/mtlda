@@ -21,8 +21,8 @@ namespace Mtlda\Views;
 
 class AboutView extends DefaultView
 {
-    public $default_mode = 'show';
-    public $class_name = 'about';
+    protected static $view_default_mode = 'show';
+    protected static $view_class_name = 'about';
 
     public function show()
     {
