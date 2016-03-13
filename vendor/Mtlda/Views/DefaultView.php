@@ -40,23 +40,10 @@ abstract class DefaultView extends \Thallium\Views\DefaultView
         }
 
         parent::__construct();
-        return true;
+        return;
     }
 
-    public function raiseError($string, $stop_execution = false, $exception = null)
-    {
-        global $mtlda;
-
-        $mtlda->raiseError(
-            $string,
-            $stop_execution,
-            $exception
-        );
-
-        return true;
-    }
-
-    protected function isKnownMode($mode)
+    protected static function isKnownMode($mode)
     {
         if (parent::isKnownMode($mode)) {
             return true;
@@ -109,7 +96,7 @@ abstract class DefaultView extends \Thallium\Views\DefaultView
     public function addContent($name)
     {
         if (!isset($name) || empty($name) || !is_string($name)) {
-            $this->raiseError(__METHOD__ .'(), $name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $name parameter is invalid!');
             return false;
         }
 
@@ -124,7 +111,7 @@ abstract class DefaultView extends \Thallium\Views\DefaultView
     public function hasContent($name)
     {
         if (!isset($name) || empty($name) || !is_string($name)) {
-            $this->raiseError(__METHOD__ .'(), $name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $name parameter is invalid!');
             return false;
         }
 
@@ -138,12 +125,12 @@ abstract class DefaultView extends \Thallium\Views\DefaultView
     public function getContent($name, &$data = null)
     {
         if (!isset($name) || empty($name) || !is_string($name)) {
-            $this->raiseError(__METHOD__ .'(), $name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $name parameter is invalid!');
             return false;
         }
 
         if (!preg_match('/^[a-z]+$/', $name)) {
-            $this->raiseError(__METHOD__ .'(), $name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $name parameter is invalid!');
             return false;
         }
 
@@ -152,12 +139,12 @@ abstract class DefaultView extends \Thallium\Views\DefaultView
         if (!method_exists($this, $method_name) ||
             !is_callable(array($this, $method_name))
         ) {
-            $this->raiseError(__CLASS__ ." does not have a content method {$method_name}!");
+            static::raiseError(__CLASS__ ." does not have a content method {$method_name}!");
             return false;
         }
 
         if (($content = $this->$method_name($data)) === false) {
-            $this->raiseError(__CLASS__ ."::{$method_name} returned false!");
+            static::raiseError(__CLASS__ ."::{$method_name} returned false!");
             return false;
         }
 
