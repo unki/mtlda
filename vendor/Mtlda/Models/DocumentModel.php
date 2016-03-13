@@ -21,123 +21,81 @@ namespace Mtlda\Models ;
 
 class DocumentModel extends DefaultModel
 {
-    protected $table_name = 'archive';
-    protected $column_name = 'document';
-    protected $fields = array(
-            'document_idx' => 'integer',
-            'document_guid' => 'string',
-            'document_title' => 'string',
-            'document_description' => 'string',
-            'document_file_name' => 'string',
-            'document_file_hash' => 'string',
-            'document_file_size' => 'integer',
-            'document_signing_icon_position' => 'integer',
-            'document_time' => 'timestamp',
-            'document_custom_date' => 'date',
-            'document_expiry_date' => 'date',
-            'document_version' => 'integer',
-            'document_derivation' => 'integer',
-            'document_derivation_guid' => 'string',
-            'document_signed_copy' => 'string',
-            'document_deleted' => 'string',
-            );
-    protected $avail_items = array();
-    protected $items = array();
+    protected static $model_table_name = 'archive';
+    protected static $model_column_prefix = 'document';
+    protected static $model_fields = array(
+        'idx' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'guid' => array(
+            FIELD_TYPE => FIELD_GUID,
+        ),
+        'title' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'description' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'file_name' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'file_hash' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'file_size' => array(
+            FIELD_TYPE => FIELD_STRING,
+        ),
+        'signing_icon_position' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'time' => array(
+            FIELD_TYPE => FIELD_TIMESTAMP,
+        ),
+        'custom_date' => array(
+            FIELD_TYPE => FIELD_DATE,
+        ),
+        'expiry_date' => array(
+            FIELD_TYPE => FIELD_DATE,
+        ),
+        'version' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'derivation' => array(
+            FIELD_TYPE => FIELD_INT,
+        ),
+        'derivation_guid' => array(
+            FIELD_TYPE => FIELD_GUID,
+        ),
+        'signed_copy' => array(
+            FIELD_TYPE => FIELD_YESNO,
+        ),
+        'deleted' => array(
+            FIELD_TYPE => FIELD_YESNO,
+        ),
+    );
     protected $descendants = array();
     protected $keywords;
     protected $indices;
     protected $properties;
 
-    public function __construct($id = null, $guid = null)
+    protected function __init()
     {
-        global $db;
-
-        // are we creating a new item?
-        if (!isset($id) && !isset($guid)) {
-            parent::__construct(null);
-            return true;
-        }
-
-        // get $id from db
-        $sql = "
-            SELECT
-                document_idx
-            FROM
-                TABLEPREFIX{$this->table_name}
-            WHERE
-        ";
-
-        $arr_query = array();
-        if (isset($id)) {
-            $sql.= "
-                document_idx LIKE ?
-            ";
-            $arr_query[] = $id;
-        }
-        if (isset($id) && isset($guid)) {
-            $sql.= "
-                AND
-            ";
-        }
-        if (isset($guid)) {
-            $sql.= "
-                document_guid LIKE ?
-            ";
-            $arr_query[] = $guid;
-        };
-
-        if (($sth = $db->prepare($sql)) === false) {
-            $this->raiseError(get_class($db) .'::prepare() returned false!', true);
-            return false;
-        }
-
-        if (!$db->execute($sth, $arr_query)) {
-            $this->raiseError(get_class($db) .'::execute() returned false!', true);
-            return false;
-        }
-
-        if (($row = $sth->fetch()) === false ||
-            !isset($row->document_idx) || empty($row->document_idx)
-        ) {
-            $this->raiseError(__METHOD__ ."(), unable to find archive item with guid value {$guid}!", true);
-            return false;
-        }
-
-        $db->freeStatement($sth);
-        parent::__construct($row->document_idx);
-
-        if (!$this->permitRpcUpdates(true)) {
-            $this->raiseError(__CLASS__ .'::permitRpcUpdates() returned false!', true);
-            return false;
-        }
-
-        try {
-            $this->addVirtualField("document_keywords");
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to add virtual field!', true, $e);
-            return false;
-        }
-
-        try {
-            $this->addRpcEnabledField('document_title');
-            $this->addRpcEnabledField('document_description');
-            $this->addRpcEnabledField('document_file_name');
-            $this->addRpcEnabledField('document_custom_date');
-            $this->addRpcEnabledField('document_expiry_date');
-            $this->addRpcEnabledField('document_keywords');
-            $this->addRpcAction('delete');
-        } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed on invoking addRpcEnabledField() method!', true, $e);
-            return false;
-        }
-
+        $this->permitRpcUpdates(true);
+        $this->addVirtualField("keywords");
+        $this->addRpcEnabledField('title');
+        $this->addRpcEnabledField('description');
+        $this->addRpcEnabledField('file_name');
+        $this->addRpcEnabledField('custom_date');
+        $this->addRpcEnabledField('expiry_date');
+        $this->addRpcEnabledField('keywords');
+        $this->addRpcAction('delete');
         return true;
     }
 
     protected function postLoad()
     {
         if (!$this->loadDescendants()) {
-            $this->raiseError(__CLASS__ .'::loadDescendants() returned false!');
+            static::raiseError(__CLASS__ .'::loadDescendants() returned false!');
             return false;
         }
 
@@ -148,38 +106,40 @@ class DocumentModel extends DefaultModel
     {
         global $db;
 
-        $idx_field = $this->column_name ."_idx";
-        $guid_field = $this->column_name ."_guid";
+        $idx_field = static::column('idx');
+        $guid_field = static::column('guid');
 
-        $sql =
+        $sql = sprintf(
             "SELECT
                     document_idx,
                     document_guid
             FROM
-                TABLEPREFIX{$this->table_name}
+                TABLEPREFIX%s
             WHERE
                 document_derivation LIKE ?
             AND
-                document_derivation_guid LIKE ?";
+                document_derivation_guid LIKE ?",
+            static::$model_table_name
+        );
 
         if (!$sth = $db->prepare($sql)) {
-            $this->raiseError("Failed to prepare query");
+            static::raiseError("Failed to prepare query");
             return false;
         }
 
         if (!$db->execute($sth, array($this->$idx_field, $this->$guid_field))) {
-            $this->raiseError("Failed to execute query");
+            static::raiseError("Failed to execute query");
             return false;
         }
 
         while ($row = $sth->fetch()) {
             try {
-                $this->descendants[] = new DocumentModel(
-                    $row->document_idx,
-                    $row->document_guid
-                );
+                $this->descendants[] = new \Mtlda\Models\DocumentModel(array(
+                    'idx' => $row->document_idx,
+                    'guid' => $row->document_guid
+                ));
             } catch (\Exception $e) {
-                $this->raiseError("Failed to load DocumentModel({$id}, {$guid})!");
+                static::raiseError("Failed to load DocumentModel({$id}, {$guid})!");
                 return false;
             }
         }
@@ -191,37 +151,37 @@ class DocumentModel extends DefaultModel
     public function verify()
     {
         if (!isset($this->document_file_name)) {
-            $this->raiseError("document_file_name is not set!");
+            static::raiseError("document_file_name is not set!");
             return false;
         }
 
         if (!isset($this->document_file_hash)) {
-            $this->raiseError("document_file_hash is not set!");
+            static::raiseError("document_file_hash is not set!");
             return false;
         }
 
         if (!$fqpn = $this->getFilePath()) {
-            $this->raiseError("getFilePath() returned false!");
+            static::raiseError("getFilePath() returned false!");
             return false;
         }
 
         if (!file_exists($fqpn)) {
-            $this->raiseError("File {$fqpn} does not exist!");
+            static::raiseError("File {$fqpn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqpn)) {
-            $this->raiseError("File {$fqpn} is not readable!");
+            static::raiseError("File {$fqpn} is not readable!");
             return false;
         }
 
         if (($file_hash = sha1_file($fqpn)) === false) {
-            $this->raiseError("Unable to calculate SHA1 hash of file {$fqpn}!");
+            static::raiseError("Unable to calculate SHA1 hash of file {$fqpn}!");
             return false;
         }
 
         if ($this->document_file_hash != $file_hash) {
-            $this->raiseError("Hash value of ${file} does not match!");
+            static::raiseError("Hash value of ${file} does not match!");
             return false;
         }
 
@@ -249,7 +209,7 @@ class DocumentModel extends DefaultModel
     public function setFileSize($file_size)
     {
         if (!isset($file_size) || empty($file_size) || !is_numeric($file_size)) {
-            $this->raiseError(__METHOD__ .'(), $file_size parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $file_size parameter is invalid!');
             return false;
         }
 
@@ -269,12 +229,12 @@ class DocumentModel extends DefaultModel
     public function setFileName($file_name)
     {
         if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
-            $this->raiseError(__METHOD__ .'(), $file_name parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $file_name parameter is invalid!');
             return false;
         }
 
         if (strpos($file_name, '/') || strpos($file_name, '\\') || strpos($file_name, '..')) {
-            $this->raiseError(__METHOD__ .'(), $file_name parameter contains forbidden characters!');
+            static::raiseError(__METHOD__ .'(), $file_name parameter contains forbidden characters!');
             return false;
         }
 
@@ -285,27 +245,27 @@ class DocumentModel extends DefaultModel
     public function getFilePath()
     {
         if (!($guid = $this->getGuid())) {
-            $this->raiseError(__CLASS__ ."::getGuid() returned false!");
+            static::raiseError(__CLASS__ ."::getGuid() returned false!");
             return false;
         }
 
         if (!($dir_name = $this->generateDirectoryName($guid))) {
-            $this->raiseError(__CLASS__ ."::generateDirectoryName() returned false!");
+            static::raiseError(__CLASS__ ."::generateDirectoryName() returned false!");
             return false;
         }
 
         if (!isset($dir_name) || empty($dir_name)) {
-            $this->raiseError("Unable to get directory name!");
+            static::raiseError("Unable to get directory name!");
             return false;
         }
 
         if (!($file_name = $this->getFileName())) {
-            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
+            static::raiseError(__CLASS__ ."::getFileName() returned false!");
             return false;
         }
 
         if (!isset($file_name) || empty($file_name)) {
-            $this->raiseError("Unable to get file name!");
+            static::raiseError("Unable to get file name!");
             return false;
         }
 
@@ -321,7 +281,7 @@ class DocumentModel extends DefaultModel
         $dir_name = "";
 
         if (empty($guid)) {
-            $this->raiseError("guid is empty!");
+            static::raiseError("guid is empty!");
             return false;
         }
 
@@ -329,7 +289,7 @@ class DocumentModel extends DefaultModel
             $guid_part = substr($guid, $i, 2);
 
             if ($guid_part === false) {
-                $this->raiseError("substr() returned false!");
+                static::raiseError("substr() returned false!");
                 return false;
             }
 
@@ -358,12 +318,12 @@ class DocumentModel extends DefaultModel
         }
 
         if (!$this->setDeleted(true)) {
-            $this->raiseError(__CLASS__ .'::setDeleted() returned false!');
+            static::raiseError(__CLASS__ .'::setDeleted() returned false!');
             return false;
         }
 
         if (!$this->save()) {
-            $this->raiseError(__CLASS__ .'::save() returned false!');
+            static::raiseError(__CLASS__ .'::save() returned false!');
             return false;
         }
 
@@ -372,7 +332,7 @@ class DocumentModel extends DefaultModel
         }
 
         if (!$this->deleteAllDescendants()) {
-            $this->raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
+            static::raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
             return false;
         }
 
@@ -385,23 +345,23 @@ class DocumentModel extends DefaultModel
 
         if ($this->hasDescendants()) {
             if (!$this->deleteAllDescendants()) {
-                $this->raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
+                static::raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
                 return false;
             }
         }
 
         if (!$this->removeAssignedKeywords()) {
-            $this->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false!');
+            static::raiseError(__CLASS__ .'::removeAssignedKeywords() returned false!');
             return false;
         }
 
         if (!$this->deleteAllDocumentIndices()) {
-            $this->raiseError(__CLASS__ .'::deleteAllDocumentIndices() returned false!');
+            static::raiseError(__CLASS__ .'::deleteAllDocumentIndices() returned false!');
             return false;
         }
 
         if (!$this->deleteAllDocumentProperties()) {
-            $this->raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
+            static::raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
             return false;
         }
 
@@ -410,7 +370,7 @@ class DocumentModel extends DefaultModel
         }
 
         if (!$this->deleteFile()) {
-            $this->raiseError(__CLASS__ .'::deleteFile() returned false!');
+            static::raiseError(__CLASS__ .'::deleteFile() returned false!');
             return false;
         }
 
@@ -429,7 +389,7 @@ class DocumentModel extends DefaultModel
                 $this->document_guid
             );
         } catch (\Exception $e) {
-            $this->raiseError("AuditController::log() returned false!");
+            static::raiseError("AuditController::log() returned false!");
             return false;
         }
 
@@ -439,60 +399,60 @@ class DocumentModel extends DefaultModel
     protected function preSave()
     {
         if ($this->isDuplicate()) {
-            $this->raiseError("Duplicated record detected!");
+            static::raiseError("Duplicated record detected!");
             return false;
         }
 
         if (!isset($this->document_file_name) ||
             empty($this->document_file_name)
         ) {
-            $this->raiseError("\$document_file_name must not be empty!");
+            static::raiseError("\$document_file_name must not be empty!");
             return false;
         }
 
         /* new document? no more action here */
-        if (!isset($this->document_idx) && !isset($this->id)) {
+        if ($this->isNew()) {
             return true;
         }
 
-        if (!isset($this->init_values['document_file_name']) ||
-            empty($this->init_values['document_file_name'])
+        if (!isset($this->model_init_values['document_file_name']) ||
+            empty($this->model_init_values['document_file_name'])
         ) {
             return true;
         }
 
         /* filename hasn't changed? we are done */
-        if ($this->init_values['document_file_name'] == $this->document_file_name) {
+        if ($this->model_init_values['document_file_name'] == $this->document_file_name) {
             return true;
         }
 
         if ($this->document_version == 1) {
-            $this->raiseError("Change the filename of the root document is not allowed!");
+            static::raiseError("Change the filename of the root document is not allowed!");
             return false;
         }
 
         if (!$fqpn = $this->getFilePath()) {
-            $this->raiseError(__CLASS__ ."::getFilePath() returned false!");
+            static::raiseError(__CLASS__ ."::getFilePath() returned false!");
             return false;
         }
 
         $path = dirname($fqpn);
 
         if (empty($path)) {
-            $this->raiseError("why is \$path empty?");
+            static::raiseError("why is \$path empty?");
             return false;
         }
 
-        $old_file = $path .'/'. basename($this->init_values['document_file_name']);
+        $old_file = $path .'/'. basename($this->model_init_values['document_file_name']);
         $new_file = $path .'/'. basename($this->document_file_name);
 
         if (file_exists($new_file)) {
-            $this->raiseError("Unable to rename {$old_file} to {$new_file} - destination already exists!");
+            static::raiseError("Unable to rename {$old_file} to {$new_file} - destination already exists!");
             return false;
         }
 
         if (rename($old_file, $new_file) === false) {
-            $this->raiseError("rename() returned false!");
+            static::raiseError("rename() returned false!");
             return false;
         }
 
@@ -502,39 +462,39 @@ class DocumentModel extends DefaultModel
     public function refresh()
     {
         if (!$fqpn = $this->getFilePath()) {
-            $this->raiseError("getFilePath() returned false!");
+            static::raiseError("getFilePath() returned false!");
             return false;
         }
 
         if (!file_exists($fqpn)) {
-            $this->raiseError("File {$fqpn} does not exist!");
+            static::raiseError("File {$fqpn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqpn)) {
-            $this->raiseError("File {$fqpn} is not readable!");
+            static::raiseError("File {$fqpn} is not readable!");
             return false;
         }
 
         clearstatcache(true, $fqpn);
 
         if (($hash = sha1_file($fqpn)) === false) {
-            $this->raiseError(__METHOD__ ." SHA1 value of {$fqpn} can not be calculated!");
+            static::raiseError(__METHOD__ ." SHA1 value of {$fqpn} can not be calculated!");
             return false;
         }
 
         if (empty($hash)) {
-            $this->raiseError(__METHOD__ ." sha1_file() returned an empty hash value!");
+            static::raiseError(__METHOD__ ." sha1_file() returned an empty hash value!");
             return false;
         }
 
         if (($size = filesize($fqpn)) === false) {
-            $this->raiseError(__METHOD__ ." filesize of {$fqpn} is not available!");
+            static::raiseError(__METHOD__ ." filesize of {$fqpn} is not available!");
             return false;
         }
 
         if (empty($size) || !is_numeric($size) || ($size <= 0)) {
-            $this->raiseError(__METHOD__ ." fizesize of {$fqpn} is invalid!");
+            static::raiseError(__METHOD__ ." fizesize of {$fqpn} is invalid!");
             return false;
         }
 
@@ -594,7 +554,7 @@ class DocumentModel extends DefaultModel
         $json_str = json_encode($json_ary);
 
         if (!$json_str) {
-            $this->raiseError("json_encode() returned false!");
+            static::raiseError("json_encode() returned false!");
             return false;
         }
 
@@ -607,7 +567,7 @@ class DocumentModel extends DefaultModel
             );
         } catch (\Exception $e) {
             $queueitem->delete();
-            $this->raiseError("AuditController:log() returned false!");
+            static::raiseError("AuditController:log() returned false!");
             return false;
         }
 
@@ -632,12 +592,12 @@ class DocumentModel extends DefaultModel
                 return true;
             });
         } else {
-            $this->raiseError(__METHOD__ .'(), $values parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $values parameter is invalid!');
             return false;
         }
 
         if (!$this->removeAssignedKeywords()) {
-            $this->raiseError(__CLASS__ .'::removeAssignedKeywords() returned false');
+            static::raiseError(__CLASS__ .'::removeAssignedKeywords() returned false');
             return false;
         }
 
@@ -648,29 +608,29 @@ class DocumentModel extends DefaultModel
         foreach ($values as $value) {
             $value = trim($value);
             if (!is_numeric($value)) {
-                $this->raiseError(__METHOD__ .'(), value found that is not a number!');
+                static::raiseError(__METHOD__ .'(), value found that is not a number!');
                 return false;
             }
 
             try {
-                $keyword = new KeywordAssignmentModel;
+                $keyword = new \Mtlda\Models\KeywordAssignmentModel;
             } catch (\Exception $e) {
-                $this->raiseError("Failed to load KeywordAssignmentModel!");
+                static::raiseError("Failed to load KeywordAssignmentModel!");
                 return false;
             }
 
             if (!$keyword->setArchive($this->document_idx)) {
-                $this->raiseError("KeywordAssignmentModel::setArchive() returned false!");
+                static::raiseError("KeywordAssignmentModel::setArchive() returned false!");
                 return false;
             }
 
             if (!$keyword->setKeyword($value)) {
-                $this->raiseError("KeywordAssignmentModel::setKeyword() returned false!");
+                static::raiseError("KeywordAssignmentModel::setKeyword() returned false!");
                 return false;
             }
 
             if (!$keyword->save()) {
-                $this->raiseError("KeywordAssignmentModel::save() returned false!");
+                static::raiseError("KeywordAssignmentModel::save() returned false!");
                 return false;
             }
         }
@@ -690,7 +650,7 @@ class DocumentModel extends DefaultModel
     public function getDescription()
     {
         if (!$this->hasDescription()) {
-            $this->raiseError(__CLASS__ .'::hasDescription() returned false!');
+            static::raiseError(__CLASS__ .'::hasDescription() returned false!');
             return false;
         }
 
@@ -702,7 +662,7 @@ class DocumentModel extends DefaultModel
         global $db;
 
         if (!is_string($description)) {
-            $this->raiseError("A string must be provided as parameter to this method");
+            static::raiseError("A string must be provided as parameter to this method");
             return false;
         }
 
@@ -716,12 +676,12 @@ class DocumentModel extends DefaultModel
         );
 
         if (!$sth) {
-            $this->raiseError("Unable to prepare query!");
+            static::raiseError("Unable to prepare query!");
             return false;
         }
 
         if (!$db->execute($sth, array($description, $this->document_idx))) {
-            $this->raiseError("Failed to execute query!");
+            static::raiseError("Failed to execute query!");
             $db->freeStatement($sth);
             return false;
         }
@@ -738,12 +698,12 @@ class DocumentModel extends DefaultModel
         }
 
         if (!$latest = $this->getLastestDocumentVersionNumber()) {
-            $this->raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned false');
+            static::raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned false');
             return false;
         }
 
         if (empty($latest)) {
-            $this->raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned an invalid number!');
+            static::raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned an invalid number!');
             return false;
         }
 
@@ -757,32 +717,32 @@ class DocumentModel extends DefaultModel
         try {
             $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            $this->raiseError("Failed to load StorageController!");
+            static::raiseError("Failed to load StorageController!");
             return false;
         }
 
         if (!$guid = $this->getGuid()) {
-            $this->raiseError(__CLASS__ .'::getGuid() returned false!');
+            static::raiseError(__CLASS__ .'::getGuid() returned false!');
             return false;
         }
 
         if (!$src_file = $srcobj->getFilePath()) {
-            $this->raiseError(__METHOD__ .', unable to retrieve source objects full qualified path name!');
+            static::raiseError(__METHOD__ .', unable to retrieve source objects full qualified path name!');
             return false;
         }
 
         if (!$dst_file = $this->getFilePath()) {
-            $this->raiseError(__CLASS__ .'::getFilePath() returned false!');
+            static::raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
 
         if (!$storage->createDirectoryStructure(dirname($dst_file))) {
-            $this->raiseError("StorageController::createDirectoryStructure() returned false!");
+            static::raiseError("StorageController::createDirectoryStructure() returned false!");
             return false;
         }
 
         if (!$storage->copyFile($src_file, $dst_file)) {
-            $this->raiseError("StorageController::copyFile() returned false!");
+            static::raiseError("StorageController::copyFile() returned false!");
             return false;
         }
 
@@ -794,20 +754,20 @@ class DocumentModel extends DefaultModel
         global $db;
 
         if (!isset($this->document_idx) || empty($this->document_idx)) {
-            $this->raiseError("Unable to lookup latest document version without known \$document_idx");
+            static::raiseError("Unable to lookup latest document version without known \$document_idx");
             return false;
         }
 
         if (!isset($this->document_guid) || empty($this->document_guid)) {
-            $this->raiseError("Unable to lookup latest document version without known \$document_guid");
+            static::raiseError("Unable to lookup latest document version without known \$document_guid");
             return false;
         }
 
-        $sth = $db->prepare(
+        $sth = $db->prepare(sprintf(
             "SELECT
                     MAX(document_version) as max_version
             FROM
-                TABLEPREFIX{$this->table_name}
+                TABLEPREFIX%s
             WHERE
                 (
                     document_idx LIKE ?
@@ -819,11 +779,12 @@ class DocumentModel extends DefaultModel
                     document_derivation LIKE ?
                         AND
                     document_derivation_guid LIKE ?
-                )"
-        );
+                )",
+            self::$model_table_name
+        ));
 
         if (!$sth) {
-            $this->raiseError("Failed to prepare query");
+            static::raiseError("Failed to prepare query");
             return false;
         }
 
@@ -834,7 +795,7 @@ class DocumentModel extends DefaultModel
                 $this->document_guid
             ))
         ) {
-            $this->raiseError("Failed to execute query");
+            static::raiseError("Failed to execute query");
             return false;
         }
 
@@ -842,27 +803,27 @@ class DocumentModel extends DefaultModel
         $db->freeStatement($sth);
 
         if ($rows === false) {
-            $this->raiseError("PDO::fetchAll() returned false!");
+            static::raiseError("PDO::fetchAll() returned false!");
             return false;
         }
 
         if (!is_array($rows)) {
-            $this->raiseError("PDO::fetchAll() has not returned an array!");
+            static::raiseError("PDO::fetchAll() has not returned an array!");
             return false;
         }
 
         if (count($rows) > 1) {
-            $this->raiseError("Strangly more than one result has been returned by query!");
+            static::raiseError("Strangly more than one result has been returned by query!");
             return false;
         }
 
         if (!isset($rows[0]['max_version']) || empty($rows[0]['max_version'])) {
-            $this->raiseError("failed to retrieve latest version number!");
+            static::raiseError("failed to retrieve latest version number!");
             return false;
         };
 
         if (!is_numeric($rows[0]['max_version'])) {
-            $this->raiseError("\$max_version returned from database isn't a number!");
+            static::raiseError("\$max_version returned from database isn't a number!");
             return false;
         }
 
@@ -883,12 +844,12 @@ class DocumentModel extends DefaultModel
         );
 
         if (!$sth) {
-            $this->raiseError("Unable to prepare query!");
+            static::raiseError("Unable to prepare query!");
             return false;
         }
 
         if (!$db->execute($sth, array($this->document_idx))) {
-            $this->raiseError("Unable to execute query!");
+            static::raiseError("Unable to execute query!");
             return false;
         }
 
@@ -902,12 +863,12 @@ class DocumentModel extends DefaultModel
         $storage = new \Mtlda\Controllers\StorageController;
 
         if (!$storage) {
-            $this->raiseError("unable to load StorageController!");
+            static::raiseError("unable to load StorageController!");
             return false;
         }
 
         if (!$storage->deleteItemFile($this)) {
-            $this->raiseError("StorageController::deleteItemFile() returned false!");
+            static::raiseError("StorageController::deleteItemFile() returned false!");
             return false;
         }
 
@@ -922,7 +883,7 @@ class DocumentModel extends DefaultModel
 
         foreach ($this->getDescendants() as $descendant) {
             if (!$descendant->delete()) {
-                $this->raiseError(get_class($descendant) .'::delete() returned false!');
+                static::raiseError(get_class($descendant) .'::delete() returned false!');
                 return false;
             }
         }
@@ -940,10 +901,10 @@ class DocumentModel extends DefaultModel
         }
 
         try {
-            $properties = new \Mtlda\Models\DocumentPropertiesModel(
-                $this->getId(),
-                $this->getGuid()
-            );
+            $properties = new \Mtlda\Models\DocumentPropertiesModel(array(
+                'idx' => $this->getId(),
+                'guid' => $this->getGuid()
+            ));
         } catch (\Exception $e) {
             return false;
         }
@@ -968,7 +929,7 @@ class DocumentModel extends DefaultModel
         }
 
         if (!$this->properties->delete()) {
-            $this->raiseError(get_class($properties) .'::delete() returned false!');
+            static::raiseError(get_class($properties) .'::delete() returned false!');
             return false;
         }
 
@@ -980,25 +941,27 @@ class DocumentModel extends DefaultModel
         if (isset($this->indices) &&
             !empty($this->indices) &&
             is_a($this->indices, 'Mtlda\Models\DocumentIndicesModel') &&
-            count($this->indices->items) > 0
+            !$this->indices->hasIndices()
         ) {
             return true;
         }
 
         if (($hash = $this->getFileHash()) === false) {
-            $this->raiseError(__CLASS__ .'::getFileHash() returned false!');
+            static::raiseError(__CLASS__ .'::getFileHash() returned false!');
             return false;
         }
 
         try {
-            $indices = new \Mtlda\Models\DocumentIndicesModel($hash);
+            $indices = new \Mtlda\Models\DocumentIndicesModel(array(
+                'file_hash' => $hash
+            ));
         } catch (\Exception $e) {
             return false;
         }
 
         $this->indices = $indices;
 
-        if (count($this->indices->items) <= 0) {
+        if (!$this->indices->hasIndices()) {
             return false;
         }
 
@@ -1021,7 +984,7 @@ class DocumentModel extends DefaultModel
         }
 
         if (!$this->indices->delete()) {
-            $this->raiseError(get_class($indices) .'::delete() returned false!');
+            static::raiseError(get_class($indices) .'::delete() returned false!');
             return false;
         }
 
@@ -1052,12 +1015,12 @@ class DocumentModel extends DefaultModel
         }
 
         try {
-            $parent = new \Mtlda\Models\DocumentModel(
-                $this->document_derivation,
-                $this->document_derivation_guid
-            );
+            $parent = new \Mtlda\Models\DocumentModel(array(
+                'idx' => $this->document_derivation,
+                'guid' => $this->document_derivation_guid
+            ));
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load DocumentModel!');
+            static::raiseError(__METHOD__ .'(), failed to load DocumentModel!');
             return false;
         }
 
@@ -1076,7 +1039,7 @@ class DocumentModel extends DefaultModel
     public function getVersion()
     {
         if (!$this->hasVersion()) {
-            $this->raiseError(__CLASS__ .'::hasVersion() returned false!');
+            static::raiseError(__CLASS__ .'::hasVersion() returned false!');
             return false;
         }
 
@@ -1086,7 +1049,7 @@ class DocumentModel extends DefaultModel
     public function setVersion($number)
     {
         if (!isset($number) || empty($number) || !is_numeric($number)) {
-            $this->raiseError(__METHOD__ .'(), $number parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $number parameter is invalid!');
             return false;
         }
 
@@ -1100,7 +1063,7 @@ class DocumentModel extends DefaultModel
             empty($date) ||
             (!is_string($date) && !is_numeric($date))
         ) {
-            $this->raiseError(__METHOD__ .'(), \$date parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), \$date parameter is invalid!');
             return false;
         }
 
@@ -1123,7 +1086,7 @@ class DocumentModel extends DefaultModel
     public function getCustomDate()
     {
         if (!$this->hasCustomDate()) {
-            $this->raiseError(__CLASS__ .'::hasCustomDate() returned false!');
+            static::raiseError(__CLASS__ .'::hasCustomDate() returned false!');
             return false;
         }
 
@@ -1139,12 +1102,12 @@ class DocumentModel extends DefaultModel
         }
 
         if (($childs = $this->getDescendants()) === false) {
-            $this->raiseError(__CLASS__ .'::getDescendants() returned false!');
+            static::raiseError(__CLASS__ .'::getDescendants() returned false!');
             return false;
         }
 
         if (($version = $this->getVersion()) === false) {
-            $this->raiseError(__CLASS__ .'::getVersion() returned false!');
+            static::raiseError(__CLASS__ .'::getVersion() returned false!');
             return false;
         }
 
@@ -1170,7 +1133,7 @@ class DocumentModel extends DefaultModel
             empty($date) ||
             (!is_string($date) && !is_numeric($date))
         ) {
-            $this->raiseError(__METHOD__ .'(), \$date parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), \$date parameter is invalid!');
             return false;
         }
 
@@ -1193,7 +1156,7 @@ class DocumentModel extends DefaultModel
     public function getExpiryDate()
     {
         if (!$this->hasExpiryDate()) {
-            $this->raiseError(__CLASS__ .'::hasExpiryDate() returned false!');
+            static::raiseError(__CLASS__ .'::hasExpiryDate() returned false!');
             return false;
         }
 
@@ -1229,7 +1192,7 @@ class DocumentModel extends DefaultModel
         if (!isset($value) ||
             !is_bool($value)
         ) {
-            $this->raiseError(__METHOD__ .'(), $value is invalid!');
+            static::raiseError(__METHOD__ .'(), $value is invalid!');
             return false;
         }
 
@@ -1254,7 +1217,7 @@ class DocumentModel extends DefaultModel
     public function getTitle()
     {
         if (!$this->hasTitle()) {
-            $this->raiseError(__CLASS__ .'::hasTitle() returned false!');
+            static::raiseError(__CLASS__ .'::hasTitle() returned false!');
             return false;
         }
 
@@ -1264,7 +1227,7 @@ class DocumentModel extends DefaultModel
     public function setTitle($title)
     {
         if (!isset($title) || !is_string($title)) {
-            $this->raiseError(__METHOD__ .'(), $title parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $title parameter is invalid!');
             return false;
         }
 
@@ -1290,24 +1253,24 @@ class DocumentModel extends DefaultModel
         );
 
         if (!$sth) {
-            $this->raiseError(__METHOD__ .", failed to prepare query!");
+            static::raiseError(__METHOD__ .", failed to prepare query!");
             return false;
         }
 
         if (!$db->execute($sth, array($this->getId()))) {
-            $this->raiseError(__METHOD__ .", failed to execute query!");
+            static::raiseError(__METHOD__ .", failed to execute query!");
             return false;
         }
 
         $rows = $sth->fetchAll(\PDO::FETCH_COLUMN);
 
         if ($rows === false) {
-            $this->raiseError(__METHOD__ .", failed to fetch result!");
+            static::raiseError(__METHOD__ .", failed to fetch result!");
             return false;
         }
 
         if (!is_array($rows)) {
-            $this->raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
+            static::raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
             return false;
         }
 
@@ -1322,7 +1285,7 @@ class DocumentModel extends DefaultModel
     public function hasKeywords()
     {
         if (($keywords = $this->getKeywords()) === false) {
-            $this->raiseError(__CLASS__ .'::getKeywords() returned false!');
+            static::raiseError(__CLASS__ .'::getKeywords() returned false!');
             return false;
         }
 
@@ -1345,7 +1308,7 @@ class DocumentModel extends DefaultModel
     public function setSigningIconPosition($position)
     {
         if (!isset($position) || empty($position) || !is_numeric($position)) {
-            $this->raiseError(__METHOD__ .'(), $position parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $position parameter is invalid!');
             return false;
         }
 
@@ -1365,7 +1328,7 @@ class DocumentModel extends DefaultModel
     public function setTime($timestamp)
     {
         if (!isset($timestamp) || empty($timestamp) || !is_numeric($timestamp)) {
-            $this->raiseError(__METHOD__ .'(), $timestamp parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $timestamp parameter is invalid!');
             return false;
         }
 
@@ -1388,7 +1351,7 @@ class DocumentModel extends DefaultModel
     public function setSignedCopy($state)
     {
         if (!isset($state) || !is_bool($state)) {
-            $this->raiseError(__METHOD__ .'(), $state parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $state parameter is invalid!');
             return false;
         }
 
@@ -1413,7 +1376,7 @@ class DocumentModel extends DefaultModel
     public function getDerivationId()
     {
         if (!$this->hasDerivationId()) {
-            $this->raiseError(__CLASS__ .'::hasDerivationId() returned false!');
+            static::raiseError(__CLASS__ .'::hasDerivationId() returned false!');
             return false;
         }
 
@@ -1423,7 +1386,7 @@ class DocumentModel extends DefaultModel
     public function setDerivationId($idx)
     {
         if (!isset($idx) || empty($idx) || !is_numeric($idx)) {
-            $this->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $idx parameter is invalid!');
             return false;
         }
 
@@ -1443,7 +1406,7 @@ class DocumentModel extends DefaultModel
     public function getDerivationGuid()
     {
         if (!$this->hasDerivationGuid()) {
-            $this->raiseError(__CLASS__ .'::hasDerivationGuid() returned false!');
+            static::raiseError(__CLASS__ .'::hasDerivationGuid() returned false!');
             return false;
         }
 
@@ -1453,7 +1416,7 @@ class DocumentModel extends DefaultModel
     public function setDerivationGuid($guid)
     {
         if (!isset($guid) || empty($guid) || !is_string($guid)) {
-            $this->raiseError(__METHOD__ .'(), $guid parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $guid parameter is invalid!');
             return false;
         }
 
@@ -1464,12 +1427,12 @@ class DocumentModel extends DefaultModel
     public function getFileNameExtension()
     {
         if (($file_name = $this->getFileName()) === false) {
-            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
+            static::raiseError(__CLASS__ ."::getFileName() returned false!");
             return false;
         }
 
         if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
-            $this->raiseError(__CLASS__ ."::getFileName() returned invalid data!");
+            static::raiseError(__CLASS__ ."::getFileName() returned invalid data!");
             return false;
         }
 
@@ -1487,12 +1450,12 @@ class DocumentModel extends DefaultModel
     public function getFileNameBase()
     {
         if (($file_name = $this->getFileName()) === false) {
-            $this->raiseError(__CLASS__ ."::getFileName() returned false!");
+            static::raiseError(__CLASS__ ."::getFileName() returned false!");
             return false;
         }
 
         if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
-            $this->raiseError(__CLASS__ ."::getFileName() returned invalid data!");
+            static::raiseError(__CLASS__ ."::getFileName() returned invalid data!");
             return false;
         }
 
