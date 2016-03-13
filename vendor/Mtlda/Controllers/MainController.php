@@ -26,7 +26,7 @@ class MainController extends \Thallium\Controllers\MainController
     public function __construct($mode = null)
     {
         if (!$this->setNamespacePrefix('Mtlda')) {
-            $this->raiseError(__METHOD__ .'(), unable to set namespace prefix!', true);
+            static::raiseError(__METHOD__ .'(), unable to set namespace prefix!', true);
             return false;
         }
 
@@ -43,7 +43,7 @@ class MainController extends \Thallium\Controllers\MainController
             $this->registerModel('queueitem', 'QueueItemModel');
             $this->registerModel('queue', 'QueueModel');
         } catch (\Exception $e) {
-            $this->raiseError(__CLASS__ .'::__construct(), error on registering models!"', true);
+            static::raiseError(__CLASS__ .'::__construct(), error on registering models!"', true);
             return false;
         }
 
@@ -54,7 +54,7 @@ class MainController extends \Thallium\Controllers\MainController
 
         if (isset($mode) and $mode == "queue_only") {
             if (!$jobs->createJob('import-request')) {
-                $this->raiseError(get_class($jobs) .'::createJob() returned false!');
+                static::raiseError(get_class($jobs) .'::createJob() returned false!');
                 return false;
             }
         }
@@ -64,7 +64,7 @@ class MainController extends \Thallium\Controllers\MainController
             $this->registerHandler('document', array($this, 'documentHandler'));
             $this->registerHandler('upload', array($this, 'uploadHandler'));
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to register handlers!', true);
+            static::raiseError(__METHOD__ .'(), failed to register handlers!', true);
         }
         return true;
     }
@@ -75,13 +75,13 @@ class MainController extends \Thallium\Controllers\MainController
 
         if ($router->isImageCall()) {
             if (!$this->callHandler('image')) {
-                $this->raiseError(__CLASS__ .'::callHandler() returned false!');
+                static::raiseError(__CLASS__ .'::callHandler() returned false!');
                 return false;
             }
             return true;
         } elseif ($router->isDocumentCall()) {
             if (!$this->callHandler('document')) {
-                $this->raiseError(__CLASS__ .'::callHandler() returned false!');
+                static::raiseError(__CLASS__ .'::callHandler() returned false!');
                 return false;
             }
             return true;
@@ -97,7 +97,7 @@ class MainController extends \Thallium\Controllers\MainController
         global $image;
 
         if (!$image->perform()) {
-            $this->raiseError(get_class($image) .'::perform() returned false!');
+            static::raiseError(get_class($image) .'::perform() returned false!');
             return false;
         }
 
@@ -111,7 +111,7 @@ class MainController extends \Thallium\Controllers\MainController
         global $document;
 
         if (!$document->perform()) {
-            $this->raiseError(get_class($document) .'::perform() returned false!');
+            static::raiseError(get_class($document) .'::perform() returned false!');
             return false;
         }
 
@@ -122,29 +122,29 @@ class MainController extends \Thallium\Controllers\MainController
     private function signDocument(&$document)
     {
         if (!is_a($document, "Mtlda\Models\DocumentModel")) {
-            $this->raiseError(__METHOD__ .', can only work with DocumentModels!');
+            static::raiseError(__METHOD__ .', can only work with DocumentModels!');
             return false;
         }
 
         if ($document->isSignedCopy()) {
-            $this->raiseError(__METHOD__ .", will not resign an already signed document!");
+            static::raiseError(__METHOD__ .", will not resign an already signed document!");
             return false;
         }
 
         try {
             $archive = new \Mtlda\Controllers\ArchiveController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load ArchiveController!');
+            static::raiseError(__METHOD__ .'(), failed to load ArchiveController!');
             return false;
         }
 
         if (!$archive) {
-            $this->raiseError(__METHOD__ .'(), unable to load ArchiveController!');
+            static::raiseError(__METHOD__ .'(), unable to load ArchiveController!');
             return false;
         }
 
         if (!$archive->sign($document)) {
-            $this->raiseError(get_class($archive) .'::sign() returned false!');
+            static::raiseError(get_class($archive) .'::sign() returned false!');
             return false;
         }
 
@@ -157,31 +157,31 @@ class MainController extends \Thallium\Controllers\MainController
             (!is_a($document, "Mtlda\Models\DocumentModel") &&
             !is_a($document, "Mtlda\Models\QueueItemModel"))
         ) {
-            $this->raiseError(__METHOD__ .', unable to work with provided model!');
+            static::raiseError(__METHOD__ .', unable to work with provided model!');
             return false;
         }
 
         if (is_a($document, "Mtlda\Models\DocumentModel") && (
             $document->isSignedCopy() || $document->getVersion() != 1)
         ) {
-            $this->raiseError(__METHOD__ .", will only scan the original document!");
+            static::raiseError(__METHOD__ .", will only scan the original document!");
             return false;
         }
 
         try {
             $parser = new \Mtlda\Controllers\PdfIndexerController;
         } catch (\Exception $e) {
-            $this->raiseError(__METHOD__ .'(), failed to load PdfIndexerController!');
+            static::raiseError(__METHOD__ .'(), failed to load PdfIndexerController!');
             return false;
         }
 
         if (!$parser) {
-            $this->raiseError(__METHOD__ .'(), unable to load PdfIndexerController!');
+            static::raiseError(__METHOD__ .'(), unable to load PdfIndexerController!');
             return false;
         }
 
         if (!$parser->scan($document)) {
-            $this->raiseError(get_class($parser) .'::scan() returned false!');
+            static::raiseError(get_class($parser) .'::scan() returned false!');
             return false;
         }
 
