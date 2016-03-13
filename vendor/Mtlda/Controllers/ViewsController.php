@@ -21,7 +21,7 @@ namespace Mtlda\Controllers;
 
 class ViewsController extends \Thallium\Controllers\ViewsController
 {
-    public $page_map = array(
+    protected static $page_map = array(
         '/^$/' => 'MainView',
         '/^main$/' => 'MainView',
         '/^queue$/' => 'QueueView',
