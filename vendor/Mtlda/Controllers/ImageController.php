@@ -41,7 +41,7 @@ class ImageController extends DefaultController
         global $mtlda, $query;
 
         if (!isset($query->view) || empty($query->view)) {
-            $this->raiseError(__METHOD__ .'(), $query->view is not set!');
+            static::raiseError(__METHOD__ .'(), $query->view is not set!');
             return false;
         }
 
@@ -57,36 +57,39 @@ class ImageController extends DefaultController
         global $mtlda, $query;
 
         if (!isset($query->params) || !isset($query->params[0]) || empty($query->params[0])) {
-            $this->raiseError(__METHOD__ .'(), $query->params is not set!');
+            static::raiseError(__METHOD__ .'(), $query->params is not set!');
             return false;
         }
 
         $id = $query->params[0];
 
         if (!$mtlda->isValidId($id)) {
-            $this->raiseError(__METHOD__ .'(), $id is invalid!');
+            static::raiseError(__METHOD__ .'(), $id is invalid!');
             return false;
         }
 
         if (($id = $mtlda->parseId($id)) === false) {
-            $this->raiseError(__METHOD__ .'(), unable to parse id!');
+            static::raiseError(__METHOD__ .'(), unable to parse id!');
             return false;
         }
 
         if (!$mtlda->isValidGuidSyntax($id->guid)) {
-            $this->raiseError(__METHOD__ .'(), GUID syntax is invalid!');
+            static::raiseError(__METHOD__ .'(), GUID syntax is invalid!');
             return false;
         }
 
         if ($id->model == "queueitem") {
-            $item = new \Mtlda\Models\QueueItemModel($id->id, $id->guid);
+            $item = new \Mtlda\Models\QueueItemModel(array(
+                'idx' => $id->id,
+                'guid' => $id->guid
+            ));
         } else {
-            $this->raiseError(__METHOD__ .'(), unsupported model requested!');
+            static::raiseError(__METHOD__ .'(), unsupported model requested!');
             return false;
         }
 
         if (!$item) {
-            $this->raiseError(__METHOD__ .'(), unable to load model!');
+            static::raiseError(__METHOD__ .'(), unable to load model!');
             return false;
         }
 
@@ -100,7 +103,7 @@ class ImageController extends DefaultController
             (is_numeric($query->params[2]) || is_string($query->params[2]))
         ) {
             if (!$this->isValidImageRequestSize($query->params[2])) {
-                $this->raiseError(__CLASS__ .'::isValidImageRequestSize() returned false!');
+                static::raiseError(__CLASS__ .'::isValidImageRequestSize() returned false!');
                 return false;
             }
             $size = $query->params[2];
@@ -109,7 +112,7 @@ class ImageController extends DefaultController
         }
 
         if (!($image = $this->createPreviewImage($item, true, $page_no, $size))) {
-            $this->raiseError("createPreviewImage() returned false!");
+            static::raiseError("createPreviewImage() returned false!");
             return false;
         }
 
@@ -125,17 +128,17 @@ class ImageController extends DefaultController
         global $mtlda, $config, $audit;
 
         if (!isset($item) || empty($item)) {
-            $this->raiseError(__METHOD__ .'(), $item parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $item parameter is invalid!');
             return false;
         }
 
         if (!isset($return_content) || !is_bool($return_content)) {
-            $this->raiseError(__METHOD__ .'(), $return_content parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $return_content parameter is invalid!');
             return false;
         }
 
         if (!isset($page) || !is_numeric($page) || $page < 1) {
-            $this->raiseError(__METHOD__ .'(), $page parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $page parameter is invalid!');
             return false;
         }
 
@@ -144,7 +147,7 @@ class ImageController extends DefaultController
             (is_numeric($size) && ($size < 0 || $size > 2048)) ||
             (is_string($size) && $size != 'full')
         ) {
-            $this->raiseError(__METHOD__ .'(), $size parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $size parameter is invalid!');
             return false;
         }
 
@@ -153,22 +156,22 @@ class ImageController extends DefaultController
         }
 
         if (!is_a($item, 'Mtlda\Models\QueueItemModel')) {
-            $this->raiseError(__METHOD__ .'(), can only operate with QueueItemModels!');
+            static::raiseError(__METHOD__ .'(), can only operate with QueueItemModels!');
             return false;
         }
 
         if (!$src = $item->getFilePath()) {
-            $this->raiseError(get_class($item) ."::getFilePath() returned false!");
+            static::raiseError(get_class($item) ."::getFilePath() returned false!");
             return false;
         }
 
         if (!file_exists($src)) {
-            $this->raiseError("Source does not exist!");
+            static::raiseError("Source does not exist!");
             return false;
         }
 
         if (!is_readable($src)) {
-            $this->raiseError("Source is not readable!");
+            static::raiseError("Source is not readable!");
             return false;
         }
 
@@ -184,7 +187,7 @@ class ImageController extends DefaultController
                 $item->getGuid()
             );
         } catch (\Exception $e) {
-            $this->raiseError("AuditController::log() raised an exception!");
+            static::raiseError("AuditController::log() raised an exception!");
             return false;
         }
 
@@ -193,7 +196,7 @@ class ImageController extends DefaultController
         try {
             $im = new \Imagick($src ."[{$page_id}]");
         } catch (ImagickException $e) {
-            $this->raiseError(__METHOD__ .'(), unable to load imagick class!');
+            static::raiseError(__METHOD__ .'(), unable to load imagick class!');
             return false;
         }
 
@@ -202,26 +205,26 @@ class ImageController extends DefaultController
         }
 
         if (!$im->setImageFormat('jpg')) {
-            $this->raiseError(get_class($im) .'::setImageFormat() returned false!');
+            static::raiseError(get_class($im) .'::setImageFormat() returned false!');
             return false;
         }
 
         if (is_numeric($size) && $size > 0) {
             if (!$im->scaleImage($size, $size, true)) {
-                $this->raiseError(get_class($im) .'::scaleImage() returned false!');
+                static::raiseError(get_class($im) .'::scaleImage() returned false!');
                 return false;
             }
         }
 
         if ($config->isImageCachingEnabled()) {
             if (!$this->saveImageToCache($item->getId(), $item->getGuid(), "queueitem_preview_{$size}", $page, $im)) {
-                $this->raiseError(__CLASS__ .'::saveImageToCache() returned false!');
+                static::raiseError(__CLASS__ .'::saveImageToCache() returned false!');
                 return false;
             }
         }
 
         if (!($content = $im->getImageBlob())) {
-            $this->raiseError("imagick returned nothing!");
+            static::raiseError("imagick returned nothing!");
             return false;
         }
 
@@ -254,7 +257,7 @@ class ImageController extends DefaultController
         $file = "{$this->image_cache}/{$prefix}_{$id}_{$guid}_{$page}.jpg";
 
         if (($content = file_get_contents($file)) === false) {
-            $this->raiseError("Unable to read file {$file}!");
+            static::raiseError("Unable to read file {$file}!");
             return false;
         }
 
@@ -268,12 +271,12 @@ class ImageController extends DefaultController
         $file = "{$this->image_cache}/{$prefix}_{$id}_{$guid}_{$page}.jpg";
 
         if (($fp = fopen($file, 'w')) === false) {
-            $this->raiseError("Unable to write to {$file}");
+            static::raiseError("Unable to write to {$file}");
             return false;
         }
 
         if (fwrite($fp, $im->getImageBlob()) === false) {
-            $this->raiseError("fwrite() returned unsuccessful");
+            static::raiseError("fwrite() returned unsuccessful");
             return false;
         }
 
@@ -283,7 +286,7 @@ class ImageController extends DefaultController
     private function isValidImageRequestSize($size)
     {
         if (!isset($size) || (!is_numeric($size) && !is_string($size))) {
-            $this->raiseError(__METHOD__ .'(), $size parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $size parameter is invalid!');
             return false;
         }
 
