@@ -311,34 +311,6 @@ class DocumentModel extends DefaultModel
         return $dir_name;
     }
 
-    public function delete()
-    {
-        if (!$this->isNoDeleteEnabled()) {
-            return parent::delete();
-        }
-
-        if (!$this->setDeleted(true)) {
-            static::raiseError(__CLASS__ .'::setDeleted() returned false!');
-            return false;
-        }
-
-        if (!$this->save()) {
-            static::raiseError(__CLASS__ .'::save() returned false!');
-            return false;
-        }
-
-        if (!$this->hasDescendants()) {
-            return true;
-        }
-
-        if (!$this->deleteAllDescendants()) {
-            static::raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
-            return false;
-        }
-
-        return true;
-    }
-
     protected function preDelete()
     {
         global $db;
@@ -362,6 +334,16 @@ class DocumentModel extends DefaultModel
 
         if (!$this->deleteAllDocumentProperties()) {
             static::raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
+            return false;
+        }
+
+        if (!$this->setDeleted(true)) {
+            static::raiseError(__CLASS__ .'::setDeleted() returned false!');
+            return false;
+        }
+
+        if (!$this->save()) {
+            static::raiseError(__CLASS__ .'::save() returned false!');
             return false;
         }
 
