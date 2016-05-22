@@ -86,12 +86,12 @@ class QueueItemModel extends DefaultModel
 
     public function verify()
     {
-        if (!isset($this->queue_file_name)) {
+        if (!$this->hasFieldValue('file_name')) {
             static::raiseError(__METHOD__ .'(), queue_file_name is not set!');
             return false;
         }
 
-        if (!isset($this->queue_file_hash)) {
+        if (!$this->hasFieldValue('file_hash')) {
             static::raiseError(__METHOD__ .'(), queue_file_hash is not set!');
             return false;
         }
@@ -124,33 +124,67 @@ class QueueItemModel extends DefaultModel
         return true;
     }
 
-    public function getFileHash()
+    public function hasFileHash()
     {
-        if (!isset($this->queue_file_hash)) {
+        if (!$this->hasFieldValue('file_hash')) {
             return false;
         }
 
-        return $this->queue_file_hash;
+        return true;
     }
 
-    public function setFileHash($filehash)
+    public function getFileHash()
     {
-        if (!isset($filehash) || empty($filehash) || !is_string($filehash)) {
-            static::raiseError(__METHOD__ .'(), $filehash parameter is invalid!');
+        if (!$this->hasFileHash()) {
+            static::raiseError(__CLASS__ .'::hasFileHash() returned false!');
             return false;
         }
 
-        $this->queue_file_hash = $filehash;
+        if (($hash = $this->getFieldValue('file_hash')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $hash;
+    }
+
+    public function setFileHash($file_hash)
+    {
+        if (!isset($file_hash) || empty($file_hash) || !is_string($file_hash)) {
+            static::raiseError(__METHOD__ .'(), $file_hash parameter is invalid!');
+            return false;
+        }
+
+        if (!$this->setFieldValue('file_hash', $file_hash)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasFileName()
+    {
+        if (!$this->hasFieldValue('file_name')) {
+            return false;
+        }
+
         return true;
     }
 
     public function getFileName()
     {
-        if (!isset($this->queue_file_name)) {
+        if (!$this->hasFileName()) {
+            static::raiseError(__CLASS__ .'::hasFileName() returned false!');
             return false;
         }
 
-        return $this->queue_file_name;
+        if (($name = $this->getFieldValue('file_name')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $name;
     }
 
     public function setFileName($file_name)
@@ -165,27 +199,50 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $this->queue_file_name = basename($file_name);
+        if (!$this->setFieldValue('file_name', basename($file_name))) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasFileSize()
+    {
+        if (!$this->hasFieldValue('file_size')) {
+            return false;
+        }
+
         return true;
     }
 
     public function getFileSize()
     {
-        if (!isset($this->queue_file_size)) {
+        if (!$this->hasFileSize()) {
+            static::raiseError(__CLASS__ .'::hasFileSize() returned false!');
             return false;
         }
 
-        return $this->queue_file_size;
+        if (($size = $this->getFieldValue('file_size')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $size;
     }
 
-    public function setFileSize($filesize)
+    public function setFileSize($file_size)
     {
-        if (!isset($filesize) || empty($filesize) || !is_numeric($filesize)) {
-            static::raiseError(__METHOD__ .'(), $filesize parameter is invalid!');
+        if (!isset($file_size) || empty($file_size) || !is_numeric($file_size)) {
+            static::raiseError(__METHOD__ .'(), $file_size parameter is invalid!');
             return false;
         }
 
-        $this->queue_file_size = $filesize;
+        if (!$this->setFieldValue('file_size', $file_size)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
@@ -226,12 +283,21 @@ class QueueItemModel extends DefaultModel
     {
         global $audit;
 
+        if (!$this->hasFileName()) {
+            return true;
+        }
+
+        if (($name = $this->getFileName()) === false) {
+            static::raiseError(__CLASS__ .'::getFileName() returned false!');
+            return false;
+        }
+
         try {
             $audit->log(
-                $this->queue_file_name,
+                $name,
                 "deleted",
                 "queue",
-                $this->queue_guid
+                $this->getGuid()
             );
         } catch (\Exception $e) {
             static::raiseError("AuditController::log() returned false!");
@@ -248,10 +314,8 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        if (!isset($this->queue_file_name) ||
-            empty($this->queue_file_name)
-        ) {
-            static::raiseError(__METHOD__ .'(), $queue_file_name must not be empty!');
+        if (!$this->hasFileName()) {
+            static::raiseError(__METHOD__ .'(), no filename is known!');
             return false;
         }
 
@@ -260,18 +324,18 @@ class QueueItemModel extends DefaultModel
             return true;
         }
 
-        if (!isset($this->model_init_values['queue_file_name']) ||
-            empty($this->model_init_values['queue_file_name'])
+        if (!isset($this->model_init_values['file_name']) ||
+            empty($this->model_init_values['file_name'])
         ) {
             return true;
         }
 
         /* filename hasn't changed? we are done */
-        if ($this->model_init_values['queue_file_name'] == $this->queue_file_name) {
+        if ($this->model_init_values['file_name'] == $this->getFileName()) {
             return true;
         }
 
-        if (!$fqpn = $this->getFilePath()) {
+        if (($fqpn = $this->getFilePath()) === false) {
             static::raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
@@ -283,8 +347,8 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $old_file = $path .'/'. basename($this->model_init_values['queue_file_name']);
-        $new_file = $path .'/'. basename($this->queue_file_name);
+        $old_file = $path .'/'. basename($this->model_init_values['file_name']);
+        $new_file = $path .'/'. basename($this->getFileName());
 
         if (file_exists($new_file)) {
             static::raiseError(
@@ -307,10 +371,10 @@ class QueueItemModel extends DefaultModel
 
         $json_str = json_encode(
             array(
-                'file_name' => $this->queue_file_name,
-                'file_size' => $this->queue_file_size,
-                'file_hash' => $this->queue_file_hash,
-                'state' => $this->queue_state,
+                'file_name' => $this->getFileName(),
+                'file_size' => $this->getFileSize(),
+                'file_hash' => $this->getFileHash(),
+                'state' => $this->getState(),
             )
         );
 
@@ -324,7 +388,7 @@ class QueueItemModel extends DefaultModel
                 $json_str,
                 "saving",
                 "queue",
-                $this->queue_guid
+                $this->getGuid()
             );
         } catch (\Exception $e) {
             $queueitem->delete();
@@ -404,13 +468,28 @@ class QueueItemModel extends DefaultModel
         return $dir_name;
     }
 
-    public function getState()
+    public function hasState()
     {
-        if (!isset($this->queue_state)) {
+        if (!$this->hasFieldValue('state')) {
             return false;
         }
 
-        return $this->queue_state;
+        return true;
+    }
+
+    public function getState()
+    {
+        if (!$this->hasState()) {
+            static::raiseError(__CLASS__ .'::hasState() returned false!');
+            return false;
+        }
+
+        if (($state = $this->getFieldValue('state')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $state;
     }
 
     public function setState($state)
@@ -420,17 +499,36 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $this->queue_state = $state;
+        if (!$this->setFieldValue('state', $state)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasTime()
+    {
+        if (!$this->hasFieldValue('time')) {
+            return false;
+        }
+
         return true;
     }
 
     public function getTime()
     {
-        if (!isset($this->queue_time)) {
+        if (!$this->hasTime()) {
+            static::raiseError(__CLASS__ .'::hasTime() returned false!');
             return false;
         }
 
-        return $this->queue_time;
+        if (($time = $this->getFieldValue('time')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $time;
     }
 
     public function setTime($time)
@@ -440,63 +538,84 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $this->queue_time = $time;
+        if (!$this->setFieldValue('time', $time)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
-    public function setProcessingFlag($value = true)
+    public function hasProcessingFlag()
     {
-        if (!$value) {
-            $this->queue_in_processing = 'N';
-            return true;
+        if (!$this->hasFieldValue('in_processing')) {
+            return false;
         }
 
-        $this->queue_in_processing = 'Y';
         return true;
     }
 
     public function getProcessingFlag()
     {
-        if (!isset($this->queue_in_processing)) {
-            return 'N';
-        }
-
-        return $this->queue_in_processing;
-    }
-
-    public function isProcessing()
-    {
-        if (!isset($this->getProcessingFlag)) {
+        if (!$this->hasProcessingFlag()) {
+            static::raiseError(__CLASS__ .'::hasProcessingFlag() returned false!');
             return false;
         }
 
-        if ($this->queue_in_processing != 'Y') {
+        if (($flag = $this->getFieldValue('in_processing')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $flag;
+    }
+
+    public function setProcessingFlag($flag = true)
+    {
+        if (!isset($flag) || !is_bool($flag)) {
+            static::raiseError(__METHOD__ .'(), $flag parameter is invalid!');
+            return false;
+        }
+
+        if (!$flag) {
+            $flag = 'N';
+        } else {
+            $flag = 'Y';
+        }
+
+        if (!$this->setFieldValue('in_processing', $flag)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
             return false;
         }
 
         return true;
     }
 
-    public function setCustomDate($date)
+    public function isProcessing()
     {
-        if (!isset($date) ||
-            empty($date) ||
-            (!is_string($date) && !is_numeric($date))
-        ) {
-            static::raiseError(__METHOD__ .'(), \$date parameter is invalid!');
+        if ($this->hasProcessingFlag()) {
             return false;
         }
 
-        $this->queue_custom_date = $date;
+        if (($flag = $this->getProcessingFlag()) === false) {
+            static::raiseError(__CLASS__ .'::getProcessingFlag() returned false!');
+            return false;
+        }
+
+        if ($flag !== 'Y') {
+            return false;
+        }
+
         return true;
     }
 
     public function hasCustomDate()
     {
-        if (!isset($this->queue_custom_date) ||
-            empty($this->queue_custom_date) ||
-            $this->queue_custom_date == '0000-00-00'
-        ) {
+        if (!$this->hasFieldValue('custom_date')) {
+            return false;
+        }
+
+        if ($this->getFieldValue() === '0000-00-00') {
             return false;
         }
 
@@ -510,29 +629,39 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        return $this->queue_custom_date;
-    }
-
-    public function setExpiryDate($date)
-    {
-        if (!isset($date) ||
-            empty($date) ||
-            (!is_string($date) && !is_numeric($date))
-        ) {
-            static::raiseError(__METHOD__ .'(), \$date parameter is invalid!');
+        if (($date = $this->getFieldValue('custom_date')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
             return false;
         }
 
-        $this->queue_expiry_date = $date;
+        return $date;
+    }
+
+    public function setCustomDate($custom_date)
+    {
+        if (!isset($custom_date) ||
+             empty($custom_date) ||
+            (!is_string($date) && !is_numeric($date))
+        ) {
+            static::raiseError(__METHOD__ .'(), $custom_date parameter is invalid!');
+            return false;
+        }
+
+        if (!$this->setFieldValue('custom_date', $custom_date)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function hasExpiryDate()
     {
-        if (!isset($this->queue_expiry_date) ||
-            empty($this->queue_expiry_date) ||
-            $this->queue_expiry_date == '0000-00-00'
-        ) {
+        if (!$this->hasFieldValue('expiry_date')) {
+            return false;
+        }
+
+        if ($this->getFieldValue() === '0000-00-00') {
             return false;
         }
 
@@ -546,12 +675,35 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        return $this->queue_expiry_date;
+        if (($date = $this->getFieldValue('expiry_date')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $date;
+    }
+
+    public function setExpiryDate($expiry_date)
+    {
+        if (!isset($expiry_date) ||
+             empty($expiry_date) ||
+            (!is_string($date) && !is_numeric($date))
+        ) {
+            static::raiseError(__METHOD__ .'(), $expiry_date parameter is invalid!');
+            return false;
+        }
+
+        if (!$this->setFieldValue('expiry_date', $expiry_date)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
     }
 
     public function hasTitle()
     {
-        if (!isset($this->queue_title) || empty($this->queue_title)) {
+        if (!$this->hasFieldValue('title')) {
             return false;
         }
 
@@ -565,7 +717,12 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        return $this->queue_title;
+        if (($title = $this->getFieldValue('title')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $title;
     }
 
     public function setTitle($title)
@@ -575,13 +732,17 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $this->queue_title = $title;
+        if (!$this->setFieldValue('title', $title)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function hasDescription()
     {
-        if (!isset($this->queue_description) || empty($this->queue_description)) {
+        if (!$this->hasFieldValue('description')) {
             return false;
         }
 
@@ -595,7 +756,12 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        return $this->queue_description;
+        if (($desc = $this->getFieldValue('title')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $desc;
     }
 
     public function setDescription($description)
@@ -605,7 +771,11 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $this->queue_description = $description;
+        if (!$this->setFieldValue('description', $description)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
@@ -793,13 +963,28 @@ class QueueItemModel extends DefaultModel
         return implode(', ', $names);
     }
 
-    public function getSigningIconPosition()
+    public function hasSigningIconPosition()
     {
-        if (!isset($this->queue_signing_icon_position)) {
+        if (!$this->hasFieldValue('signing_icon_position')) {
             return false;
         }
 
-        return $this->queue_signing_icon_position;
+        return true;
+    }
+
+    public function getSigningIconPosition()
+    {
+        if (!$this->hasSigningIconPosition()) {
+            static::raiseError(__CLASS__ .'::hasSigningIconPosition() returned false!');
+            return false;
+        }
+
+        if (($pos = $this->getFieldValue('signing_icon_position')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $pos;
     }
 
     public function setSigningIconPosition($position)
@@ -809,7 +994,11 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        $this->queue_signing_icon_position = $position;
+        if (!$this->setFieldValue('signing_icon_position', $position)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
@@ -822,17 +1011,12 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        if (!$guid = $this->getGuid()) {
-            static::raiseError(__CLASS__ .'::getGuid() returned false!');
-            return false;
-        }
-
-        if (!$src_file = $srcobj->getFilePath()) {
+        if (($src_file = $srcobj->getFilePath()) === false) {
             static::raiseError(__METHOD__ .'(), unable to retrieve source objects full qualified path name!');
             return false;
         }
 
-        if (!$dst_file = $this->getFilePath()) {
+        if (($dst_file = $this->getFilePath()) === false) {
             static::raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
@@ -852,7 +1036,7 @@ class QueueItemModel extends DefaultModel
 
     public function refresh()
     {
-        if (!$fqpn = $this->getFilePath()) {
+        if (($fqpn = $this->getFilePath()) === false) {
             static::raiseError("getFilePath() returned false!");
             return false;
         }
@@ -1030,6 +1214,11 @@ class QueueItemModel extends DefaultModel
 
     public function getFileNameBase()
     {
+        if (!$this->hasFileName()) {
+            static::raiseError(__CLASS__ .'::hasFileName() returned false!');
+            return false;
+        }
+
         if (($file_name = $this->getFileName()) === false) {
             static::raiseError(__CLASS__ ."::getFileName() returned false!");
             return false;
