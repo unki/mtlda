@@ -26,10 +26,6 @@ class KeywordsView extends DefaultView
 
     public function __construct()
     {
-        global $db;
-
-        parent::__construct();
-
         try {
             $keywords = new \Mtlda\Models\KeywordsModel;
         } catch (\Exception $e) {
@@ -42,38 +38,8 @@ class KeywordsView extends DefaultView
             return;
         }
 
+        parent::__construct();
         return;
-    }
-
-    public function keywordsList($params, $content, &$smarty, &$repeat)
-    {
-        $index = $smarty->getTemplateVars('smarty.IB.item_list.index');
-
-        if (!isset($index) || empty($index)) {
-            $index = 0;
-        }
-
-        if (!isset($this->avail_items) || empty($this->avail_items)) {
-            $repeat = false;
-            return $content;
-        }
-
-        if ($index >= count($this->avail_items)) {
-            $repeat = false;
-            return $content;
-        }
-
-        $item_idx = $this->avail_items[$index];
-        $item =  $this->items[$item_idx];
-
-        $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", "keyword-{$item->getId()}-{$item->getGuid()}");
-
-        $index++;
-        $smarty->assign('smarty.IB.item_list.index', $index);
-        $repeat = true;
-
-        return $content;
     }
 
     public function showEdit($id = null, $hash = null)
