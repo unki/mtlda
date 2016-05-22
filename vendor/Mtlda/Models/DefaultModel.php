@@ -17,11 +17,11 @@
  * GNU Affero General Public License for more details.
  */
 
-namespace Mtlda\Models ;
+namespace Mtlda\Models;
 
 abstract class DefaultModel extends \Thallium\Models\DefaultModel
 {
-    public function getName()
+    public function hasName()
     {
         if (!static::hasFields()) {
             static::raiseError(__METHOD__ .'(), model has no fields defined!');
@@ -29,17 +29,43 @@ abstract class DefaultModel extends \Thallium\Models\DefaultModel
         }
 
         if (static::hasField('name')) {
-            $name_field = static::column('name');
-            return $this->getName();
+            $name_field = 'name';
+        } elseif (static::hasField('file_name')) {
+            $name_field = 'file_name';
+        } else {
+            static::raiseError(__METHOD__ .'(), have no clue from which field I can get the name from!');
+            return false;
         }
 
-        if (static::hasField('file_name')) {
-            $file_field = static::column('file_name');
-            return $this->getFileName();
+        if (!$this->hasFieldValue($name_field)) {
+            return false;
         }
 
-        static::raiseError(__METHOD__ .'(), no clue where to get the name from for '. get_called_class() .'!');
-        return false;
+        return true;
+    }
+
+    public function getName()
+    {
+        if (!$this->hasName()) {
+            static::raiseError(__CLASS__ .'::hasName() returned false!');
+            return false;
+        }
+
+        if (static::hasField('name')) {
+            $name_field = 'name';
+        } elseif (static::hasField('file_name')) {
+            $name_field = 'file_name';
+        } else {
+            static::raiseError(__METHOD__ .'(), have no clue from which field I can get the name from!');
+            return false;
+        }
+
+        if (($name = $this->getFieldValue($name_field)) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $name;
     }
 }
 
