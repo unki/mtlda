@@ -73,6 +73,10 @@ class PagingController extends DefaultController
             return false;
         }
 
+        if (!$this->pagingData->hasItems()) {
+            return array();
+        }
+
         if (($data = $this->pagingData->getItems($offset, $limit)) === false) {
             static::raiseError(get_class($this->pagingData) .'::getItems() returned false!');
             return false;
@@ -89,11 +93,15 @@ class PagingController extends DefaultController
         }
 
         if (!$this->pagingData->hasItems()) {
-            static::raiseError(get_class($this->pagingData) .'::hasItems() returned false!');
+            return 0;
+        }
+
+        if (($count = $this->pagingData->getItemsCount()) === false) {
+            static::raiseError(get_class($this->pagingData) .'::getItemsCount() returned false!');
             return false;
         }
 
-        return $this->pagingData->getItemsCount();
+        return $count;
     }
 
     final protected function setPagingParameters($params)
@@ -306,7 +314,7 @@ class PagingController extends DefaultController
             return false;
         }
 
-        if (!isset($data) || empty($data) || !is_array($data)) {
+        if (!isset($data) || !is_array($data)) {
             static::raiseError(__METHOD__ .'(), slicing paging data failed!');
             return false;
         }
