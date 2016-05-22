@@ -76,37 +76,6 @@ class QueueView extends DefaultView
         parent::__construct();
     }
 
-    public function queueList($params, $content, &$smarty, &$repeat)
-    {
-        $index = $smarty->getTemplateVars('smarty.IB.item_list.index');
-
-        if (!isset($index) || empty($index)) {
-            $index = 0;
-        }
-
-        if (!isset($this->queue_avail_items) || empty($this->queue_avail_items)) {
-            $repeat = false;
-            return $content;
-        }
-
-        if ($index >= count($this->queue_avail_items)) {
-            $repeat = false;
-            return $content;
-        }
-
-        $item_idx = $this->queue_avail_items[$index];
-        $item =  $this->queue_items[$item_idx];
-
-        $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", $item->getId() ."-". $item->getGuid());
-
-        $index++;
-        $smarty->assign('smarty.IB.item_list.index', $index);
-        $repeat = true;
-
-        return $content;
-    }
-
     public function showItem($id, $guid)
     {
         global $mtlda;
