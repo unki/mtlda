@@ -88,6 +88,7 @@ class ImportController extends DefaultController
             if (!file_exists($file['fqpn'])) {
                 continue;
             }
+
             if (file_exists($lockfile)) {
                 if (($timestamp = file_get_contents($lockfile)) === false) {
                     static::raiseError(__METHOD__ ."(), failed to read {$lockfile}!");
@@ -102,12 +103,13 @@ class ImportController extends DefaultController
                     continue;
                 }
             }
+
             if (file_put_contents($lockfile, time()) === false) {
                 static::raiseError(__METHOD__ ."(), failed to write timestamp into {$lockfile}!");
                 return false;
             }
 
-            if (!($guid = $mtlda->createGuid())) {
+            if (($guid = $mtlda->createGuid()) === false) {
                 static::raiseError(get_class($mtlda) .'::createGuid() returned false!');
                 return false;
             }
@@ -143,18 +145,18 @@ class ImportController extends DefaultController
                 return false;
             }
 
-            if (!($dsc_file = preg_replace('/\.pdf$/i', '.dsc', $in_file))) {
+            if (($dsc_file = preg_replace('/\.pdf$/i', '.dsc', $in_file)) === false) {
                 static::raiseError(__METHOD__ .'(), preg_replace() returned false!');
                 return false;
             }
 
-            if (!$work_file = $queueitem->getFilePath()) {
+            if (($work_file = $queueitem->getFilePath()) === false) {
                 static::raiseError(get_class($queueitem) .'::getFilePath() returned false!');
                 return false;
             }
 
             if (isset($dsc_file) && !empty($dsc_file) && file_exists($dsc_file)) {
-                if (!($description = file_get_contents($dsc_file))) {
+                if (($description = file_get_contents($dsc_file)) === false) {
                     static::raiseError(__METHOD__ ."(), file_get_contents({$dsc_file}) returned false!");
                     return false;
                 }
@@ -233,6 +235,11 @@ class ImportController extends DefaultController
                     static::raiseError(get_class($imagectrl) .'::savePreviewImage() returned false!');
                     return false;
                 }
+            }
+
+            if (!unlink($lockfile)) {
+                static::raiseError(__METHOD__ ."(), unlink({$lockfile}) failed!");
+                return false;
             }
         }
 
