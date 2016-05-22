@@ -83,11 +83,19 @@ class MainView extends DefaultView
         }
 
         if ($params['type'] == 'archive') {
-            $avail_items =& $this->archive->getItemsKeys();
-            $items =& $this->archive;
+            if (!$this->archive->hasItems()) {
+                $repeat = false;
+                return $content;
+            }
+            $avail_items = $this->archive->getItemsKeys();
+            $items = $this->archive;
         } elseif ($params['type'] == 'queue') {
-            $avail_items =& $this->queue->getItemsKeys();
-            $items =& $this->queue;
+            if ($this->queue->hasItems()) {
+                $repeat = false;
+                return $content;
+            }
+            $avail_items = $this->queue->getItemsKeys();
+            $items = $this->queue;
         } else {
             static::raiseError("Type '{$params['type']}' is not supported!");
             return false;
