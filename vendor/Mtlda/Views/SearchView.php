@@ -33,30 +33,33 @@ class SearchView extends DefaultView
             $search = new \Mtlda\Controllers\SearchController;
         } catch (\Exception $e) {
             static::raiseError(__METHOD__ .'(), failed to load SearchController!', true);
-            return false;
+            return;
         }
 
-        if (isset($query->params['search'])) {
-            $searchquery = $query->params['search'];
+        $tmpl->registerPlugin("block", "result_list", array(&$this, "listSearchResults"), false);
+
+        if (!isset($query->params['search']) || empty($query->params['search'])) {
+            return;
         }
+
+        $searchquery = $query->params['search'];
 
         if (!$search->search($searchquery)) {
             static::raiseError(get_class($search) .'::search() returned false!', true);
-            return false;
+            return;
         }
 
         if (($this->matches = $search->getResults()) === false) {
             static::raiseError(get_class($search) .'::getResults() returned false!', true);
-            return false;
+            return;
         }
 
         if (!$this->orderMatches()) {
             static::raiseError(__CLASS__ .'::orderMatches() returned false!', true);
-            return false;
+            return;
         }
 
-        $tmpl->registerPlugin("block", "result_list", array(&$this, "listSearchResults"), false);
-        return true;
+        return;
     }
 
     public function show()
