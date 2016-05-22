@@ -25,7 +25,6 @@ class QueueView extends DefaultView
     protected static $view_item_name = 'QueueItem';
     protected $queue_avail_items;
     protected $queue_items;
-    protected $queue;
     protected $keywords;
     protected $import;
     protected $dateSuggestions;
@@ -36,10 +35,15 @@ class QueueView extends DefaultView
     public function __construct()
     {
         try {
-            $this->queue = new \Mtlda\Models\QueueModel;
+            $queue = new \Mtlda\Models\QueueModel;
         } catch (\Exception $e) {
             static::raiseError(__METHOD__ .'(), failed to load QueueModel!', true);
             return false;
+        }
+
+        if (!$this->setViewData($queue)) {
+            static::raiseError(__CLASS__ .'::setViewData() returned false!', true);
+            return;
         }
 
         try {
@@ -166,104 +170,6 @@ class QueueView extends DefaultView
         header('Content-Length: '. strlen($file['content']));
         print $file['content'];
         return true;
-    }
-
-    public function showList($pageno = null, $items_limit = null)
-    {
-        global $session, $tmpl;
-
-        if (($pending = $this->import->pendingItems()) === false) {
-            static::raiseError(get_class($import) .'::pendingItems() returned false!');
-            return false;
-        }
-
-        if (isset($pending) || is_numeric($pending)) {
-            $tmpl->assign('pending_incoming_items', $pending);
-        }
-
-        if (!isset($pageno) || empty($pageno) || !is_numeric($pageno)) {
-            if ($session->hasVariable(static::$view_class_name .'_current_page')) {
-                if (($current_page = $session->getVariable(static::$view_class_name .'_current_page')) === false) {
-                    static::raiseError(get_class($session) .'::getVariable() returned false!');
-                    return false;
-                }
-            } else {
-                $current_page = 1;
-            }
-        } else {
-            $current_page = $pageno;
-        }
-
-        if (!isset($items_limit) || is_null($items_limit) || !is_numeric($items_limit)) {
-            if ($session->hasVariable(static::$view_class_name .'_current_items_limit')) {
-                if (($current_items_limit = $session->getVariable(
-                    static::$view_class_name .'_current_items_limit'
-                )) === false) {
-                    static::raiseError(get_class($session) .'::getVariable() returned false!');
-                    return false;
-                }
-            } else {
-                $current_items_limit = -1;
-            }
-        } else {
-            $current_items_limit = $items_limit;
-        }
-
-        if (!$this->queue->hasItems()) {
-            return parent::showList();
-        }
-
-        try {
-            $pager = new \Mtlda\Controllers\PagingController(array(
-                'delta' => 2,
-            ));
-        } catch (\Exception $e) {
-            static::raiseError(__METHOD__ .'(), failed to load PagingController!');
-            return false;
-        }
-
-        if (!$pager->setPagingData($this->queue->getItems())) {
-            static::raiseError(get_class($pager) .'::setPagingData() returned false!');
-            return false;
-        }
-
-        if (!$pager->setCurrentPage($current_page)) {
-            static::raiseError(get_class($pager) .'::setCurrentPage() returned false!');
-            return false;
-        }
-
-        if (!$pager->setItemsLimit($current_items_limit)) {
-            static::raiseError(get_class($pager) .'::setItemsLimit() returned false!');
-            return false;
-        }
-
-        global $tmpl;
-        $tmpl->assign('pager', $pager);
-
-        if (($data = $pager->getPageData()) === false) {
-            static::raiseError(get_class($pager) .'::getPageData() returned false!');
-            return false;
-        }
-
-        if (!isset($data) || empty($data) || !is_array($data)) {
-            static::raiseError(get_class($pager) .'::getPageData() returned invalid data!');
-            return false;
-        }
-
-        $this->queue_avail_items = array_keys($data);
-        $this->queue_items = $data;
-
-        if (!$session->setVariable(static::$view_class_name .'_current_page', $current_page)) {
-            static::raiseError(get_class($session) .'::setVariable() returned false!');
-            return false;
-        }
-
-        if (!$session->setVariable(static::$view_class_name .'_current_items_limit', $current_items_limit)) {
-            static::raiseError(get_class($session) .'::setVariable() returned false!');
-            return false;
-        }
-
-        return parent::showList();
     }
 
     public function getArchiver(&$data)
