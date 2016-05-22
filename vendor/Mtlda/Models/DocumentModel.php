@@ -1088,9 +1088,13 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (($version = $this->getVersion()) === false) {
-            static::raiseError(__CLASS__ .'::getVersion() returned false!');
-            return false;
+        if ($this->hasVersion()) {
+            if (($version = $this->getVersion()) === false) {
+                static::raiseError(__CLASS__ .'::getVersion() returned false!');
+                return false;
+            }
+        } else {
+            $version = 1;
         }
 
         foreach ($childs as $child) {
