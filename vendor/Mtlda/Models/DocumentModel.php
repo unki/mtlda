@@ -1094,6 +1094,10 @@ class DocumentModel extends DefaultModel
         }
 
         foreach ($childs as $child) {
+            if (!$child->hasVersion()) {
+                continue;
+            }
+
             if ($version >= $child->getVersion()) {
                 continue;
             }
