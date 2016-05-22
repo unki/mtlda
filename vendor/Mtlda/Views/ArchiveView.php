@@ -92,7 +92,12 @@ class ArchiveView extends DefaultView
             return false;
         }
 
-        if (!$pager->setPagingData($this->archive->getItems())) {
+        if (($items = $this->archive->getItems()) === false) {
+            static::raiseError(get_class($this->archive) .'::getItems() returned false!');
+            return false;
+        }
+
+        if (!$pager->setPagingData($items)) {
             static::raiseError(get_class($pager) .'::setPagingData() returned false!');
             return false;
         }
