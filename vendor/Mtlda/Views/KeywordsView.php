@@ -23,6 +23,7 @@ class KeywordsView extends DefaultView
 {
     protected static $view_default_mode = 'list';
     protected static $view_class_name = 'keywords';
+    protected $keywords;
 
     public function __construct()
     {
@@ -45,7 +46,12 @@ class KeywordsView extends DefaultView
         global $session;
 
         if (!isset($pageno) || empty($pageno) || !is_numeric($pageno)) {
-            if (($current_page = $session->getVariable(static::$view_class_name .'_current_page')) === false) {
+            if ($session->hasVariable(static::$view_class_name .'_current_page')) {
+                if (($current_page = $session->getVariable(static::$view_class_name .'_current_page')) === false) {
+                    static::raiseError(get_class($session) .'::getVariable() returned false!');
+                    return false;
+                }
+            } else {
                 $current_page = 1;
             }
         } else {
@@ -53,9 +59,14 @@ class KeywordsView extends DefaultView
         }
 
         if (!isset($items_limit) || is_null($items_limit) || !is_numeric($items_limit)) {
-            if (($current_items_limit = $session->getVariable(
-                static::$view_class_name .'_current_items_limit'
-            )) === false) {
+            if ($session->hasVariable(static::$view_class_name .'_current_items_limit')) {
+                if (($current_items_limit = $session->getVariable(
+                    static::$view_class_name .'_current_items_limit'
+                )) === false) {
+                    static::raiseError(get_class($session) .'::getVariable() returned false!');
+                    return false;
+                }
+            } else {
                 $current_items_limit = -1;
             }
         } else {
