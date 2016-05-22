@@ -130,55 +130,6 @@ class ArchiveView extends DefaultView
         return parent::showItem($id, $guid);
     }
 
-    public function archiveList($params, $content, &$smarty, &$repeat)
-    {
-        $index = $smarty->getTemplateVars('smarty.IB.item_list.index');
-
-        if (!isset($index) || empty($index)) {
-            $index = 0;
-        }
-
-        if (!isset($this->archive_avail_items) || empty($this->archive_avail_items)) {
-            $repeat = false;
-            return $content;
-        }
-
-        if ($index >= count($this->archive_avail_items)) {
-            $repeat = false;
-            return $content;
-        }
-
-        $item_idx = $this->archive_avail_items[$index];
-        $item =  $this->archive_items[$item_idx];
-
-        if ($item->hasDescendants()) {
-            if (($latest = $item->getLastestVersion()) === false) {
-                static::raiseError(get_class($item) .'::getLastestVersion() returned false!');
-                return false;
-            }
-            if (!($idx = $latest->getId())) {
-                static::raiseError(get_class($latest) .'::getId() returned false!');
-                return false;
-            }
-            if (!($guid = $latest->getGuid())) {
-                static::raiseError(get_class($latest) .'::getGuid() returned false!');
-                return false;
-            }
-            $smarty->assign("document_safe_link", "document-{$idx}-{$guid}");
-            unset($latest);
-        } else {
-            $smarty->assign("document_safe_link", "document-{$item->getId()}-{$item->getGuid()}");
-        }
-        $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", "{$item->getId()}-{$item->getGuid()}");
-
-        $index++;
-        $smarty->assign('smarty.IB.item_list.index', $index);
-        $repeat = true;
-
-        return $content;
-    }
-
     protected function getItemKeywords($item_idx)
     {
         global $db;
