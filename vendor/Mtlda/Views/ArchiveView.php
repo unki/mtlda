@@ -283,6 +283,51 @@ class ArchiveView extends DefaultView
 
         return $content;
     }
+
+    public function dataList($params, $content, &$smarty, &$repeat)
+    {
+        try {
+            $content = parent::dataList($params, $content, $smarty, $repeat);
+        } catch (\Exception $e) {
+            static::raiseError(__CLASS__ .'::dataList() returned false!', false, $e);
+            $repeat = false;
+            return false;
+        }
+
+        if (!$this->hasCurrentItem()) {
+            return $content;
+        }
+
+        if (($item = $this->getCurrentItem()) === false) {
+            static::raiseError(__CLASS__ .'::getCurrentItem() returned false!');
+            $repeat = false;
+            return false;
+        }
+
+        if ($item->hasDescendants()) {
+            if (($latest = $item->getLastestVersion()) === false) {
+                static::raiseError(get_class($item) .'::getLastestVersion() returned false!');
+                $repeat = false;
+                return false;
+            }
+            if (!($idx = $latest->getId())) {
+                static::raiseError(get_class($latest) .'::getId() returned false!');
+                $repeat = false;
+                return false;
+            }
+            if (!($guid = $latest->getGuid())) {
+                static::raiseError(get_class($latest) .'::getGuid() returned false!');
+                $repeat = false;
+                return false;
+            }
+            $smarty->assign("document_safe_link", "document-{$idx}-{$guid}");
+            unset($latest);
+        } else {
+            $smarty->assign("document_safe_link", "document-{$item->getId()}-{$item->getGuid()}");
+        }
+
+        return $content;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
