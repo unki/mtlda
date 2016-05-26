@@ -80,10 +80,10 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
         return null;
     }
 
-    public function getUrl($params, &$smarty)
+    public static function getUrl($params)
     {
-        if (($url = parent::getUrl($params, $smarty)) === false) {
-            static::raiseError(get_class($parent) .'::getUrl() returned false!');
+        if (($url = parent::getUrl($params)) === false) {
+            static::raiseError(__CLASS__ .'::getUrl() returned false!');
             return false;
         }
 
