@@ -122,7 +122,7 @@ class DocumentModel extends DefaultModel
             static::$model_table_name
         );
 
-        if (!$sth = $db->prepare($sql)) {
+        if (($sth = $db->prepare($sql)) === false) {
             static::raiseError("Failed to prepare query");
             return false;
         }
@@ -150,38 +150,52 @@ class DocumentModel extends DefaultModel
 
     public function verify()
     {
-        if (!isset($this->document_file_name)) {
-            static::raiseError("document_file_name is not set!");
+        if (!$this->hasFileName()) {
+            static::raiseError(__METHOD__ .'(), file_name field is not set!');
             return false;
         }
 
-        if (!isset($this->document_file_hash)) {
-            static::raiseError("document_file_hash is not set!");
+        if (!$this->hasFileHash()) {
+            static::raiseError(__METHOD__ .'(), file_hash field is not set!');
             return false;
         }
 
-        if (!$fqpn = $this->getFilePath()) {
-            static::raiseError("getFilePath() returned false!");
+        if (($fqpn = $this->getFilePath()) === false) {
+            static::raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
 
         if (!file_exists($fqpn)) {
-            static::raiseError("File {$fqpn} does not exist!");
+            static::raiseError(__METHOD__ ."(), file {$fqpn} does not exist!");
             return false;
         }
 
         if (!is_readable($fqpn)) {
-            static::raiseError("File {$fqpn} is not readable!");
+            static::raiseError(__METHOD__ ."(), file {$fqpn} is not readable!");
             return false;
         }
 
         if (($file_hash = sha1_file($fqpn)) === false) {
-            static::raiseError("Unable to calculate SHA1 hash of file {$fqpn}!");
+            static::raiseError(__METHOD__ ."(), unable to calculate SHA1 hash of file {$fqpn}!");
             return false;
         }
 
-        if ($this->document_file_hash != $file_hash) {
-            static::raiseError("Hash value of ${file} does not match!");
+        if (($document_hash = $this->getFileHash()) === false) {
+            static::raiseError(__CLASS__ .'::getFileHash() returned false!');
+            return false;
+        }
+
+        if ($document_hash != $file_hash) {
+            static::raiseError(__METHOD__ ."(), Hash value of ${file} does not match!");
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasFileHash()
+    {
+        if (!$this->hasFieldValue('file_hash')) {
             return false;
         }
 
@@ -190,20 +204,41 @@ class DocumentModel extends DefaultModel
 
     public function getFileHash()
     {
-        if (!isset($this->document_file_hash)) {
+        if (!$this->hasFileHash()) {
+            static::raiseError(__CLASS__ .'::hasFileHash() returned false!');
             return false;
         }
 
-        return $this->document_file_hash;
+        if (($value = $this->getFieldValue('file_hash')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
+    }
+
+    public function hasFileSize()
+    {
+        if (!$this->hasFieldValue('file_size')) {
+            return false;
+        }
+
+        return true;
     }
 
     public function getFileSize()
     {
-        if (!isset($this->document_file_size)) {
+        if (!$this->hasFileSize()) {
+            static::raiseError(__CLASS__ .'::hasFileSize() returned false!');
             return false;
         }
 
-        return $this->document_file_size;
+        if (($value = $this->getFieldValue('file_size')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function setFileSize($file_size)
@@ -213,17 +248,36 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_file_size = $file_size;
-        return false;
+        if (!$this->setFieldValue('file_size', $file_size)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasFileName()
+    {
+        if (!$this->hasFieldValue('file_name')) {
+            return false;
+        }
+
+        return true;
     }
 
     public function getFileName()
     {
-        if (!isset($this->document_file_name)) {
+        if (!$this->hasFileName()) {
+            static::raiseError(__CLASS__ .'::hasFileName() returned false!');
             return false;
         }
 
-        return $this->document_file_name;
+        if (($value = $this->getFieldValue('file_name')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function setFileName($file_name)
@@ -238,34 +292,48 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_file_name = basename($file_name);
+        if (!$this->setFieldValue('file_name', $file_name)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function getFilePath()
     {
-        if (!($guid = $this->getGuid())) {
+        if (!$this->hasGuid()) {
+            static::raiseError(__CLASS__ .'::hasGuid() returned false!');
+            return false;
+        }
+
+        if (!$this->hasFileName()) {
+            static::raiseError(__CLASS__ .'::hasFileName() returned false!');
+            return false;
+        }
+
+        if (($guid = $this->getGuid()) === false) {
             static::raiseError(__CLASS__ ."::getGuid() returned false!");
             return false;
         }
 
-        if (!($dir_name = $this->generateDirectoryName($guid))) {
+        if (($dir_name = $this->generateDirectoryName($guid)) === false) {
             static::raiseError(__CLASS__ ."::generateDirectoryName() returned false!");
             return false;
         }
 
-        if (!isset($dir_name) || empty($dir_name)) {
-            static::raiseError("Unable to get directory name!");
+        if (!isset($dir_name) || empty($dir_name) || !is_string($dir_name)) {
+            static::raiseError(__METHOD__ .'(), unable to get directory name!');
             return false;
         }
 
-        if (!($file_name = $this->getFileName())) {
+        if (($file_name = $this->getFileName()) === false) {
             static::raiseError(__CLASS__ ."::getFileName() returned false!");
             return false;
         }
 
-        if (!isset($file_name) || empty($file_name)) {
-            static::raiseError("Unable to get file name!");
+        if (!isset($file_name) || empty($file_name) || !is_string($file_name)) {
+            static::raiseError(__METHOD__ .'(), unable to get file name!');
             return false;
         }
 
@@ -363,12 +431,16 @@ class DocumentModel extends DefaultModel
     {
         global $audit;
 
+        if (!$this->hasFileName()) {
+            return true;
+        }
+
         try {
             $audit->log(
-                $this->document_file_name,
+                $this->getFileName(),
                 "deleted",
                 "archive",
-                $this->document_guid
+                $this->getGuid()
             );
         } catch (\Exception $e) {
             static::raiseError("AuditController::log() returned false!");
@@ -381,14 +453,12 @@ class DocumentModel extends DefaultModel
     protected function preSave()
     {
         if ($this->isDuplicate()) {
-            static::raiseError("Duplicated record detected!");
+            static::raiseError(__METHOD__ .'(), duplicate documents detected!');
             return false;
         }
 
-        if (!isset($this->document_file_name) ||
-            empty($this->document_file_name)
-        ) {
-            static::raiseError("\$document_file_name must not be empty!");
+        if (!$this->hasFileName()) {
+            static::raiseError(__CLASS__ .'::hasFileName() returned false!');
             return false;
         }
 
@@ -397,23 +467,28 @@ class DocumentModel extends DefaultModel
             return true;
         }
 
-        if (!isset($this->model_init_values['document_file_name']) ||
-            empty($this->model_init_values['document_file_name'])
+        if (!isset($this->model_init_values['file_name']) ||
+            empty($this->model_init_values['file_name'])
         ) {
             return true;
         }
 
-        /* filename hasn't changed? we are done */
-        if ($this->model_init_values['document_file_name'] == $this->document_file_name) {
-            return true;
-        }
-
-        if ($this->document_version == 1) {
-            static::raiseError("Change the filename of the root document is not allowed!");
+        if (($file_name = $this->getFileName()) === false) {
+            static::raiseError(__CLASS__ .'::getFileName() returned false!');
             return false;
         }
 
-        if (!$fqpn = $this->getFilePath()) {
+        /* filename hasn't changed? we are done */
+        if ($this->model_init_values['file_name'] === $file_name) {
+            return true;
+        }
+
+        if ($this->hasVersion() && $this->getVersion() === 1) {
+            static::raiseError(__METHOD__ .'(), changing the filename of the root document is not allowed!');
+            return false;
+        }
+
+        if (($fqpn = $this->getFilePath()) === false) {
             static::raiseError(__CLASS__ ."::getFilePath() returned false!");
             return false;
         }
@@ -425,8 +500,8 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $old_file = $path .'/'. basename($this->model_init_values['document_file_name']);
-        $new_file = $path .'/'. basename($this->document_file_name);
+        $old_file = $path .'/'. basename($this->model_init_values['file_name']);
+        $new_file = $path .'/'. basename($file_name);
 
         if (file_exists($new_file)) {
             static::raiseError("Unable to rename {$old_file} to {$new_file} - destination already exists!");
@@ -443,7 +518,7 @@ class DocumentModel extends DefaultModel
 
     public function refresh()
     {
-        if (!$fqpn = $this->getFilePath()) {
+        if (($fqpn = $this->getFilePath()) === false) {
             static::raiseError("getFilePath() returned false!");
             return false;
         }
@@ -480,9 +555,20 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_file_size = $size;
-        $this->document_file_hash = $hash;
-        $this->document_time = time();
+        if (!$this->setFieldValue('file_size', $size)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        if (!$this->setFieldValue('file_hash', $hash)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        if (!$this->setFieldValue('time', time())) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
 
         if (!$this->save()) {
             return false;
@@ -520,17 +606,31 @@ class DocumentModel extends DefaultModel
     {
         global $mtlda, $audit;
 
+        if (!$this->hasFileName() ||
+            !$this->hasFileSize() ||
+            !$this->hasFileHash() ||
+            !$this->hasGuid()
+        ) {
+            static::raiseError(__METHOD__ .'(), missing some document details!');
+            return false;
+        }
+
         $json_ary = array(
-            'file_name' => $this->document_file_name,
-            'file_size' => $this->document_file_size,
-            'file_hash' => $this->document_file_hash,
+            'file_name' => $this->getFileName(),
+            'file_size' => $this->getFileSize(),
+            'file_hash' => $this->getFileHash()
         );
 
-        if (isset($this->document_derivation_guid) &&
-            !empty($this->document_derivation_guid) &&
-            $mtlda->isValidGuidSyntax($this->document_derivation_guid)
-        ) {
-            $json_ary['derivation_guid'] = $this->document_derivation_guid;
+        if ($this->hasDerivationGuid()) {
+            if (($derivation_guid = $this->getDerivationGuid()) === false) {
+                static::raiseError(__CLASS__ .'::getDerivationGuid() returned false!');
+                return false;
+            }
+            if (!$mtlda->isValidGuidSyntax($derivation_guid)) {
+                static::raiseError(get_class($mtlda) .'::isValidGuidSyntax() returned false!');
+                return false;
+            }
+            $json_ary['derivation_guid'] = $derivation_guid;
         }
 
         $json_str = json_encode($json_ary);
@@ -545,7 +645,7 @@ class DocumentModel extends DefaultModel
                 $json_str,
                 "saving",
                 "archive",
-                $this->document_guid
+                $this->getGuid()
             );
         } catch (\Exception $e) {
             $queueitem->delete();
@@ -587,6 +687,16 @@ class DocumentModel extends DefaultModel
             return true;
         }
 
+        if (!$this->hasIdx()) {
+            static::raiseError(__CLASS__ .'::hasIdx() returned false!');
+            return false;
+        }
+
+        if (($document_idx = $this->getId()) === false) {
+            static::raiseError(__CLASS__ .'::getId() returned false!');
+            return false;
+        }
+
         foreach ($values as $value) {
             $value = trim($value);
             if (!is_numeric($value)) {
@@ -601,7 +711,7 @@ class DocumentModel extends DefaultModel
                 return false;
             }
 
-            if (!$keyword->setArchive($this->document_idx)) {
+            if (!$keyword->setArchive($document_idx)) {
                 static::raiseError("KeywordAssignmentModel::setArchive() returned false!");
                 return false;
             }
@@ -622,7 +732,7 @@ class DocumentModel extends DefaultModel
 
     public function hasDescription()
     {
-        if (!isset($this->document_description) || empty($this->document_description)) {
+        if (!$this->hasFieldValue('description')) {
             return false;
         }
 
@@ -636,7 +746,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        return $this->document_description;
+        if (($value = $this->getFieldValue('description')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function setDescription($description)
@@ -645,6 +760,16 @@ class DocumentModel extends DefaultModel
 
         if (!is_string($description)) {
             static::raiseError("A string must be provided as parameter to this method");
+            return false;
+        }
+
+        if (!$this->hasIdx()) {
+            static::raiseError(__CLASS__ .'::hasIdx() returned false!');
+            return false;
+        }
+
+        if (($document_idx = $this->getId()) === false) {
+            static::raiseError(__CLASS__ .'::getId() returned false!');
             return false;
         }
 
@@ -662,7 +787,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (!$db->execute($sth, array($description, $this->document_idx))) {
+        if (!$db->execute($sth, array($description, $document_idx))) {
             static::raiseError("Failed to execute query!");
             $db->freeStatement($sth);
             return false;
@@ -674,23 +799,31 @@ class DocumentModel extends DefaultModel
 
     protected function preClone()
     {
-        if (!isset($this->document_version) || empty($this->document_version)) {
-            $this->document_version = 1;
+        if (!$this->hasVersion()) {
+            if (!$this->setFieldValue('version', 1)) {
+                static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+                return false;
+            }
             return true;
         }
 
-        if (!$latest = $this->getLastestDocumentVersionNumber()) {
+        if (($latest = $this->getLastestDocumentVersionNumber()) === false) {
             static::raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned false');
             return false;
         }
 
-        if (empty($latest)) {
+        if (empty($latest) || !is_numeric($latest)) {
             static::raiseError(__CLASS__ .'::getLastestDocumentVersionNumber() returned an invalid number!');
             return false;
         }
 
         $latest+=1;
-        $this->document_version = $latest;
+
+        if (!$this->setFieldValue('version', $latest)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
@@ -703,17 +836,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (!$guid = $this->getGuid()) {
-            static::raiseError(__CLASS__ .'::getGuid() returned false!');
-            return false;
-        }
-
-        if (!$src_file = $srcobj->getFilePath()) {
+        if (($src_file = $srcobj->getFilePath()) === false) {
             static::raiseError(__METHOD__ .', unable to retrieve source objects full qualified path name!');
             return false;
         }
 
-        if (!$dst_file = $this->getFilePath()) {
+        if (($dst_file = $this->getFilePath()) === false) {
             static::raiseError(__CLASS__ .'::getFilePath() returned false!');
             return false;
         }
@@ -735,13 +863,23 @@ class DocumentModel extends DefaultModel
     {
         global $db;
 
-        if (!isset($this->document_idx) || empty($this->document_idx)) {
-            static::raiseError("Unable to lookup latest document version without known \$document_idx");
+        if (!$this->hasIdx()) {
+            static::raiseError(__CLASS__ .'::hasIdx() returned false!');
             return false;
         }
 
-        if (!isset($this->document_guid) || empty($this->document_guid)) {
-            static::raiseError("Unable to lookup latest document version without known \$document_guid");
+        if (!$this->hasGuid()) {
+            static::raiseError(__CLASS__ .'::hasGuid() returned false!');
+            return false;
+        }
+
+        if (($document_idx = $this->getId()) === false) {
+            static::raiseError(__CLASS__ .'::getId() returned false!');
+            return false;
+        }
+
+        if (($document_guid = $this->getGuid()) === false) {
+            static::raiseError(__CLASS__ .'::getGuid() returned false!');
             return false;
         }
 
@@ -771,10 +909,10 @@ class DocumentModel extends DefaultModel
         }
 
         if (!$db->execute($sth, array(
-                $this->document_idx,
-                $this->document_guid,
-                $this->document_idx,
-                $this->document_guid
+                $document_idx,
+                $document_guid,
+                $document_idx,
+                $document_guid
             ))
         ) {
             static::raiseError("Failed to execute query");
@@ -816,6 +954,16 @@ class DocumentModel extends DefaultModel
     {
         global $db;
 
+        if (!$this->hasIdx()) {
+            static::raiseError(__CLASS__ .'::hasIdx() returned false!');
+            return false;
+        }
+
+        if (($document_idx = $this->getId()) === false) {
+            static::raiseError(__CLASS__ .'::getId() returned false!');
+            return false;
+        }
+
         $sth = $db->prepare(
             "DELETE FROM
                 TABLEPREFIXassign_keywords_to_document
@@ -830,7 +978,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (!$db->execute($sth, array($this->document_idx))) {
+        if (!$db->execute($sth, array($document_idx))) {
             static::raiseError("Unable to execute query!");
             return false;
         }
@@ -977,12 +1125,10 @@ class DocumentModel extends DefaultModel
     {
         global $mtlda;
 
-        if (!isset($this->document_derivation) ||
-            empty($this->document_derivation) ||
-            !$mtlda->isValidId($this->document_derivation) ||
-            !isset($this->document_derivation_guid) ||
-            empty($this->document_derivation_guid) ||
-            !$mtlda->isValidGuidSyntax($this->document_derivation_guid)
+        if (!$this->hasDerivation() ||
+            !$this->hasDerivationGuid() ||
+            !$mtlda->isValidId($this->getDerivation()) ||
+            !$mtlda->isValidGuidSyntax($this->getDerivationGuid())
         ) {
             return false;
         }
@@ -996,10 +1142,25 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
+        if (!$this->hasDerivation() || !$this->hasDerivationGuid()) {
+            static::raiseError(__METHOD__ .'(), neither derivation or derivation_guid are set!');
+            return false;
+        }
+
+        if (($derivation = $this->getDerivation()) === false) {
+            static::raiseError(__CLASS__ .'::getDerivation() returned false!');
+            return false;
+        }
+
+        if (($derivation_guid = $this->getDerivationGudi()) === false) {
+            static::raiseError(__CLASS__ .'::getDerivationGuid() returned false!');
+            return false;
+        }
+
         try {
             $parent = new \Mtlda\Models\DocumentModel(array(
-                'idx' => $this->document_derivation,
-                'guid' => $this->document_derivation_guid
+                'idx' => $derivation,
+                'guid' => $derivation_guid
             ));
         } catch (\Exception $e) {
             static::raiseError(__METHOD__ .'(), failed to load DocumentModel!');
@@ -1011,7 +1172,7 @@ class DocumentModel extends DefaultModel
 
     public function hasVersion()
     {
-        if (!isset($this->document_version) || empty($this->document_version)) {
+        if (!$this->hasFieldValue('version')) {
             return false;
         }
 
@@ -1025,7 +1186,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        return $this->document_version;
+        if (($value = $this->getFieldValue('version')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function setVersion($number)
@@ -1035,7 +1201,11 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_version = $number;
+        if (!$this->setFieldValue('version', $number)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
@@ -1049,16 +1219,26 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_custom_date = $date;
+        if (!$this->setFieldValue('custom_date', $date)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function hasCustomDate()
     {
-        if (!isset($this->document_custom_date) ||
-            empty($this->document_custom_date) ||
-            $this->document_custom_date == '0000-00-00'
-        ) {
+        if (!$this->hasFieldValue('custom_date')) {
+            return false;
+        }
+
+        if (($custom_date = $this->getFieldValue('custom_date')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() retuned false!');
+            return false;
+        }
+
+        if ($custom_date === '0000-00-00') {
             return false;
         }
 
@@ -1072,7 +1252,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        return $this->document_custom_date;
+        if (($value = $this->getFieldValue('custom_date')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function getLastestVersion()
@@ -1127,16 +1312,26 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_expiry_date = $date;
+        if (!$this->setFieldValue('expiry_date', $date)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function hasExpiryDate()
     {
-        if (!isset($this->document_expiry_date) ||
-            empty($this->document_expiry_date) ||
-            $this->document_expiry_date == '0000-00-00'
-        ) {
+        if (!$this->hasFieldValue('expiry_date')) {
+            return false;
+        }
+
+        if (($expiry_date = $this->getFieldValue('expiry_date')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() retuned false!');
+            return false;
+        }
+
+        if ($expiry_date === '0000-00-00') {
             return false;
         }
 
@@ -1150,7 +1345,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        return $this->document_expiry_date;
+        if (($value = $this->getFieldValue('expiry_date')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function isNoDeleteEnabled()
@@ -1166,11 +1366,16 @@ class DocumentModel extends DefaultModel
 
     public function isDeleted()
     {
-        if (!isset($this->document_deleted) || empty($this->document_deleted)) {
+        if (!$this->hasFieldValue('deleted')) {
             return false;
         }
 
-        if ($this->document_deleted != 'Y') {
+        if (($deleted = $this->getFieldValue('deleted')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        if ($deleted !== 'Y') {
             return false;
         }
 
@@ -1186,10 +1391,15 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if ($value == true) {
-            $this->document_deleted = 'Y';
+        if ($value === true) {
+            $deleted = 'Y';
         } else {
-            $this->document_deleted = 'N';
+            $deleted = 'N';
+        }
+
+        if (!$this->setFieldValue('deleted', $deleted)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
         }
 
         return true;
@@ -1197,7 +1407,7 @@ class DocumentModel extends DefaultModel
 
     public function hasTitle()
     {
-        if (!isset($this->document_title) || empty($this->document_title)) {
+        if (!$this->hasFieldValue('title')) {
             return false;
         }
 
@@ -1211,7 +1421,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        return $this->document_title;
+        if (($value = $this->getFieldValue('title')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function setTitle($title)
@@ -1221,7 +1436,11 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_title = $title;
+        if (!$this->setFieldValue('title', $title)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
@@ -1286,13 +1505,29 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    public function getSigningIconPosition()
+    public function hasSigningIconPosition()
     {
-        if (!isset($this->document_signing_icon_position)) {
+        if (!$this->hasFieldValue('signing_icon_position')) {
             return false;
         }
 
-        return $this->document_signing_icon_position;
+        return true;
+    }
+
+
+    public function getSigningIconPosition()
+    {
+        if (!$this->hasSigningIconPosition()) {
+            static::raiseError(__CLASS__ .'::hasSigningIconPosition() returned false!');
+            return false;
+        }
+
+        if (($value = $this->getFieldValue('signing_icon_position')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function setSigningIconPosition($position)
@@ -1302,17 +1537,36 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_signing_icon_position = $position;
+        if (!$this->setFieldValue('signing_icon_position', $position)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasTime()
+    {
+        if (!$this->hasFieldValue('time')) {
+            return false;
+        }
+
         return true;
     }
 
     public function getTime()
     {
-        if (!isset($this->document_time)) {
+        if (!$this->hasTime()) {
+            static::raiseError(__CLASS__ .'::hasTime() returned false!');
             return false;
         }
 
-        return $this->document_time;
+        if (($value = $this->getFieldValue('time')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function setTime($timestamp)
@@ -1322,16 +1576,26 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_time = $timestamp;
+        if (!$this->setFieldValue('time', $timestamp)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function isSignedCopy()
     {
-        if (!isset($this->document_signed_copy) ||
-            empty($this->document_signed_copy) ||
-            $this->document_signed_copy != 'Y'
-        ) {
+        if (!$this->hasFieldValue('signed_copy')) {
+            return false;
+        }
+
+        if (($signed_copy = $this->getFieldValue('signed_copy')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        if ($signed_copy !== 'Y') {
             return false;
         }
 
@@ -1346,21 +1610,26 @@ class DocumentModel extends DefaultModel
         }
 
         if (!$state) {
-            $this->document_signed_copy = 'N';
-            return true;
+            $signed_copy = 'N';
+        } else {
+            $signed_copy = 'Y';
         }
 
-        $this->document_signed_copy = 'Y';
+        if (!$this->setFieldValue('signed_copy', $signed_copy)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function hasDerivationId()
     {
-        if (!isset($this->document_derivation)) {
+        if (!$this->hasFieldValue('derivation')) {
             return false;
         }
 
-        return $this->document_derivation;
+        return true;
     }
 
     public function getDerivationId()
@@ -1370,7 +1639,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        return $this->document_derivation;
+        if (($value = $this->getFieldValue('derivation')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function setDerivationId($idx)
@@ -1380,17 +1654,21 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_derivation = $idx;
+        if (!$this->setFieldValue('derivation', $idx)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
     public function hasDerivationGuid()
     {
-        if (!isset($this->document_derivation_guid)) {
+        if (!$this->hasFieldValue('derivation_guid')) {
             return false;
         }
 
-        return $this->document_derivation_guid;
+        return true;
     }
 
     public function getDerivationGuid()
@@ -1400,7 +1678,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        return $this->document_derivation_guid;
+        if (($value = $this->getFieldValue('derivation_guid')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
     }
 
     public function setDerivationGuid($guid)
@@ -1410,7 +1693,11 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        $this->document_derivation_guid = $guid;
+        if (!$this->setFieldValue('derivation_guid', $guid)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
     }
 
