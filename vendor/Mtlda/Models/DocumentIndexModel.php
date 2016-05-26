@@ -38,6 +38,30 @@ class DocumentIndexModel extends DefaultModel
         ),
     );
 
+    public function hasFileHash()
+    {
+        if (!$this->hasFieldValue('file_hash')) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getFileHash()
+    {
+        if (!$this->hasFileHash()) {
+            static::raiseError(__CLASS__ .'::hasFileHash() returned false!');
+            return false;
+        }
+
+        if (($hash = $this->getFieldValue('file_hash')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $hash;
+    }
+
     public function setFileHash($hash)
     {
         if (!isset($hash) || empty($hash)) {
@@ -45,8 +69,36 @@ class DocumentIndexModel extends DefaultModel
             return false;
         }
 
-        $this->di_file_hash = $hash;
+        if (!$this->setFieldValue('file_hash', $hash)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
         return true;
+    }
+
+    public function hasDocumentText()
+    {
+        if (!$this->hasFieldValue('text')) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getDocumentText()
+    {
+        if (!$this->hasDocumentText()) {
+            static::raiseError(__CLASS__ .'::hasDocumentText() returned false!');
+            return false;
+        }
+
+        if (($text = $this->getFieldValue('text')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $text;
     }
 
     public function setDocumentText($text)
@@ -56,26 +108,12 @@ class DocumentIndexModel extends DefaultModel
             return false;
         }
 
-        $this->di_text = $text;
+        if (!$this->setFieldValue('text', $text)) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
         return true;
-    }
-
-    public function getFileHash()
-    {
-        if (!isset($this->di_file_hash)) {
-            return false;
-        }
-
-        return $this->di_file_hash;
-    }
-
-    public function getDocumentText()
-    {
-        if (!isset($this->di_text)) {
-            return false;
-        }
-
-        return $this->di_text;
     }
 }
 
