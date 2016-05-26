@@ -383,11 +383,9 @@ class DocumentModel extends DefaultModel
     {
         global $db;
 
-        if ($this->hasDescendants()) {
-            if (!$this->deleteAllDescendants()) {
-                static::raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
-                return false;
-            }
+        if (!$this->deleteAllDescendants()) {
+            static::raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
+            return false;
         }
 
         if (!$this->removeAssignedKeywords()) {
@@ -403,20 +401,6 @@ class DocumentModel extends DefaultModel
         if (!$this->deleteAllDocumentProperties()) {
             static::raiseError(__CLASS__ .'::deleteAllDocumentProperties() returned false!');
             return false;
-        }
-
-        if (!$this->setDeleted(true)) {
-            static::raiseError(__CLASS__ .'::setDeleted() returned false!');
-            return false;
-        }
-
-        if (!$this->save()) {
-            static::raiseError(__CLASS__ .'::save() returned false!');
-            return false;
-        }
-
-        if ($this->isNoDeleteEnabled()) {
-            return true;
         }
 
         if (!$this->deleteFile()) {
@@ -987,13 +971,36 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
+    public function delete()
+    {
+        if (!$this->isNoDeleteEnabled()) {
+            return parent::delete();
+        }
+
+        if (!$this->deleteAllDescendants()) {
+            static::raiseError(__CLASS__ .'::deleteAllDescendants() returned false!');
+            return false;
+        }
+
+        if (!$this->setDeleted(true)) {
+            static::raiseError(__CLASS__ .'::setDeleted() returned false!');
+            return false;
+        }
+
+        if (!$this->save()) {
+            static::raiseError(__CLASS__ .'::save() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
     protected function deleteFile()
     {
-        // load StorageController
-        $storage = new \Mtlda\Controllers\StorageController;
-
-        if (!$storage) {
-            static::raiseError("unable to load StorageController!");
+        try {
+            $storage = new \Mtlda\Controllers\StorageController;
+        } catch (\Exception $e) {
+            static::raiseError(__METHOD__ .'(), failed to load StorageController!', false, $e);
             return false;
         }
 
@@ -1011,7 +1018,16 @@ class DocumentModel extends DefaultModel
             return true;
         }
 
-        foreach ($this->getDescendants() as $descendant) {
+        if (($descendants = $this->getDescendants()) === false) {
+            static::raiseError(__CLASS__ .'::getDescendants() returned false!');
+            return false;
+        }
+
+        foreach ($descendants as $descendant) {
+            if (!is_a($descendant, __CLASS__)) {
+                static::raiseError(__METHOD__ .'(), received descendant is not a '. __CLASS__ .'!');
+                return false;
+            }
             if (!$descendant->delete()) {
                 static::raiseError(get_class($descendant) .'::delete() returned false!');
                 return false;
