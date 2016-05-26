@@ -21,8 +21,9 @@ namespace Mtlda\Controllers;
 
 class PdfSigningController extends DefaultController
 {
-    private $pdf_cfg;
-    private $tsp_digest_algorithm;
+    protected $pdf_cfg;
+    protected $tsp_digest_algorithm;
+    protected $tsp_cfg;
 
     public function __construct()
     {
