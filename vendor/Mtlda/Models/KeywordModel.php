@@ -47,11 +47,21 @@ class KeywordModel extends DefaultModel
     {
         global $mtlda, $db;
 
+        if (!$this->hasIdx()) {
+            static::raiseError(__CLASS__ .'::hasIdx() returned false!');
+            return false;
+        }
+
+        if (($keyword_idx = $this->getId()) === false) {
+            static::raiseError(__CLASS__ .'::getId() returned false!');
+            return false;
+        }
+
         $result = $db->query(
             "DELETE FROM
                 TABLEPREFIXassign_keywords_to_document
             WHERE
-                akd_keyword_idx LIKE '{$this->keyword_idx}'"
+                akd_keyword_idx LIKE '{$keyword_idx}'"
         );
 
         if ($result === false) {
