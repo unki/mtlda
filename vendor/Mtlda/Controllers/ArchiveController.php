@@ -83,10 +83,10 @@ class ArchiveController extends DefaultController
         }
 
         $fields_to_skip = array(
-            'queue_idx',
-            'queue_state',
-            'queue_in_processing',
-            'queue_keywords'
+            'idx',
+            'state',
+            'in_processing',
+            'keywords'
         );
 
         // copy fields from QueueItemModel to DocumentModel
