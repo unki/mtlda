@@ -320,7 +320,7 @@ class ArchiveController extends DefaultController
 
         // append a suffix to new cloned file
         $signing_item->setFileName(str_replace(".pdf", "_signed.pdf", $signing_item->getFileName()));
-        $signing_item->setDerivationId($src_item->id);
+        $signing_item->setDerivationId($src_item->getId());
         $signing_item->setDerivationGuid($src_item->getGuid());
 
         if (!$signing_item->save()) {
@@ -349,15 +349,18 @@ class ArchiveController extends DefaultController
 
         if (!$signing_item->refresh()) {
             $signing_item->delete();
-            static::raiseError("refresh() returned false!");
+            static::raiseError(get_class($signing_item) .'::refresh() returned false!');
             return false;
         }
 
-        $signing_item->setSignedCopy(true);
+        if (!$signing_item->setSignedCopy(true)) {
+            static::raiseError(get_class($signing_item) .'::setSignedCopy() returned false!');
+            return false;
+        }
 
         if (!$signing_item->save()) {
             $signing_item->delete();
-            static::raiseError("save() returned false!");
+            static::raiseError(get_class($signing_item) .'::save() returned false!');
             return false;
         }
 
@@ -493,7 +496,7 @@ class ArchiveController extends DefaultController
         try {
             $page_count = $pdf->setSourceFile($fqfn);
         } catch (\Exception $e) {
-            static::raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            static::raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception!', false, $e);
             return false;
         }
 
@@ -565,14 +568,14 @@ class ArchiveController extends DefaultController
         try {
             $pdf->Output($fqfn, 'F');
         } catch (\Exception $e) {
-            static::raiseError(get_class($pdf) .'::Output() has thrown an exception! '. $e->getMessage());
+            static::raiseError(get_class($pdf) .'::Output() has thrown an exception!', false, $e);
             return false;
         }
 
         try {
             @$pdf->cleanUp();
         } catch (\Exception $e) {
-            static::raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+            static::raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! ', false, $e);
             return false;
         }
 
@@ -674,21 +677,21 @@ class ArchiveController extends DefaultController
         try {
             $pdf = new \FPDI();
         } catch (\Exception $e) {
-            static::raiseError("Failed to load FPDI!");
+            static::raiseError(__METHOD__ .'(), failed to load FPDI!', false, $e);
             return false;
         }
 
         try {
             $storage = new StorageController;
         } catch (\Exception $e) {
-            static::raiseError('Failed to load StorageController!');
+            static::raiseError(__METHOD__ .'(), failed to load StorageController!', false, $e);
             return false;
         }
 
         try {
             $page_count = $pdf->setSourceFile($fqfn);
         } catch (\Exception $e) {
-            static::raiseError(getClass($pdf) .'::setSourceFile() has thrown an exception! '. $e->getMessage());
+            static::raiseError(get_class($pdf) .'::setSourceFile() has thrown an exception!', false, $e);
             return false;
         }
 
@@ -752,7 +755,7 @@ class ArchiveController extends DefaultController
         } catch (\Exception $e) {
             unlink($auditlog);
             rmdir($tmpdir);
-            static::raiseError(get_class($pdf) .'::Annotation() has thrown an exception! '. $e->getMessage());
+            static::raiseError(get_class($pdf) .'::Annotation() has thrown an exception!', false, $e);
             return false;
         }
 
@@ -762,14 +765,14 @@ class ArchiveController extends DefaultController
         try {
             $pdf->Output($fqfn, 'F');
         } catch (\Exception $e) {
-            static::raiseError(get_class($pdf) .'::Output() has thrown an exception! '. $e->getMessage());
+            static::raiseError(get_class($pdf) .'::Output() has thrown an exception!', false, $e);
             return false;
         }
 
         try {
             @$pdf->cleanUp();
         } catch (\Exception $e) {
-            static::raiseError(get_class($pdf) .'::cleanUp() has thrown an exception! '. $e->getMessage());
+            static::raiseError(get_class($pdf) .'::cleanUp() has thrown an exception!', false, $e);
             return false;
         }
 
