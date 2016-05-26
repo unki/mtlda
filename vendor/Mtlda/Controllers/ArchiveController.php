@@ -97,25 +97,42 @@ class ArchiveController extends DefaultController
             }
 
             $document_field = str_replace("queue_", "document_", $queue_field);
-            if (!$document->setField($document_field, $queue_field_prop['value'])) {
-                static::raiseError(get_class($document) .'::setField() returned false!');
+
+            if (!$document->setFieldValue($document_field, $queue_field_prop['value'])) {
+                static::raiseError(get_class($document) .'::setFieldValue() returned false!');
                 return false;
             }
         }
 
         if (!$document->hasTitle()) {
-            $document->setTitle($document->getFileName());
+            if (!$document->hasFileName()) {
+                static::raiseError(__METHOD__ .'(), document has no title nor a filename!');
+                return false;
+            }
+            if (($name = $document->getFileName()) === false) {
+                static::raiseError(get_class($document) .'::getFileName() returned false!');
+                return false;
+            }
+            if (!$document->setTitle($document->getFileName())) {
+                static::raiseError(get_class($document) .'::setTitle() returned false!');
+                return false;
+            }
         }
-        $document->setVersion('1');
+
+        if (!$document->setVersion('1')) {
+            static::raiseError(get_class($document) .'::setVersion() returned false!');
+            return false;
+        }
+
         //$document->document_derivation = '';
         //$document->document_derivation_guid = '';
 
-        if (!$fqfn_src = $queue_item->getFilePath()) {
+        if (($fqfn_src = $queue_item->getFilePath()) === false) {
             static::raiseError(get_class($queue_item) .'::getFilePath() returned false!');
             return false;
         }
 
-        if (!($fqfn_dst = $document->getFilePath())) {
+        if (($fqfn_dst = $document->getFilePath()) === false) {
             static::raiseError(get_class($queue_item) .'::getFilePath() returned false!');
             return false;
         }
@@ -396,7 +413,7 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!($rows = $sth->fetchAll(\PDO::FETCH_COLUMN))) {
+        if (($rows = $sth->fetchAll(\PDO::FETCH_COLUMN)) === false) {
             return array();
         }
 
@@ -453,7 +470,7 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!($fqfn = $logo_doc->getFilePath())) {
+        if (($fqfn = $logo_doc->getFilePath()) === false) {
             static::raiseError("DocumentModel::getFilePath() returned false!");
             return false;
         }
@@ -649,7 +666,7 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!$fqfn = $document->getFilePath()) {
+        if (($fqfn = $document->getFilePath()) === false) {
             static::raiseError(get_class($document) .'::getFilePath() returned false!');
             return false;
         }
@@ -692,7 +709,7 @@ class ArchiveController extends DefaultController
             $pdf->useTemplate($templateId);
         }
 
-        if (!$audittxt = $audit->retrieveAuditLog($document->getGuid())) {
+        if (($audittxt = $audit->retrieveAuditLog($document->getGuid())) === false) {
             static::raiseError(get_class($audit) .'::retrieveAuditLog() returned false!');
             return false;
         }
@@ -702,7 +719,7 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!$tmpdir = $storage->createTempDir('auditlog_')) {
+        if (($tmpdir = $storage->createTempDir('auditlog_')) === false) {
             static::raiseError(get_class($storage) .'::createTempDir() returned false!');
             return false;
         }
