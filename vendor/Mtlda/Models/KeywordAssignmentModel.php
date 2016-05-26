@@ -41,70 +41,121 @@ class KeywordAssignmentModel extends DefaultModel
         ),
     );
 
-    public function setArchive($idx)
+    public function hasArchive()
     {
-        global $mtlda;
-
-        if (!isset($idx) || empty($idx) || !is_numeric($idx)) {
-            $mtlda->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
+        if (!$this->hasFieldValue('archive_idx')) {
             return false;
         }
 
-        $this->akd_archive_idx = $idx;
         return true;
     }
 
     public function getArchive()
     {
-        if (!isset($this->akd_archive_idx)) {
+        if (!$this->hasArchive()) {
+            static::raiseError(__CLASS__ .'::hasArchive() returned false!');
             return false;
         }
 
-        return $this->akd_archive_idx;
+        if (($archive_idx = $this->getFieldValue('archive_idx')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $archive_idx;
     }
 
-    public function setKeyword($idx)
+    public function setArchive($idx)
     {
-        global $mtlda;
-
         if (!isset($idx) || empty($idx) || !is_numeric($idx)) {
-            $mtlda->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $idx parameter is invalid!');
             return false;
         }
 
-        $this->akd_keyword_idx = $idx;
+        if (!$this->setFieldValue('archive_idx', $idx)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasKeyword()
+    {
+        if (!$this->hasFieldValue('keyword_idx')) {
+            return false;
+        }
+
         return true;
     }
 
     public function getKeyword()
     {
-        if (!isset($this->akd_keyword_idx)) {
+        if (!$this->hasKeyword()) {
+            static::raiseError(__CLASS__ .'::hasKeyword() returned false!');
             return false;
         }
 
-        return $this->akd_keyword_idx;
+        if (($keyword_idx = $this->getFieldValue('keyword_idx')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $keyword_idx;
     }
 
-    public function setQueue($idx)
+    public function setKeyword($idx)
     {
-        global $mtlda;
-
         if (!isset($idx) || empty($idx) || !is_numeric($idx)) {
-            $mtlda->raiseError(__METHOD__ .'(), $idx parameter is invalid!');
+            static::raiseError(__METHOD__ .'(), $idx parameter is invalid!');
             return false;
         }
 
-        $this->akd_queue_idx = $idx;
+        if (!$this->setFieldValue('keyword_idx', $idx)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasQueue()
+    {
+        if (!$this->hasFieldValue('queue_idx')) {
+            return false;
+        }
+
         return true;
     }
 
     public function getQueue()
     {
-        if (!isset($this->akd_queue_idx)) {
+        if (!$this->hasQueue()) {
+            static::raiseError(__CLASS__ .'::hasQueue() returned false!');
             return false;
         }
 
-        return $this->akd_queue_idx;
+        if (($queue_idx = $this->getFieldValue('queue_idx')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $queue_idx;
+    }
+
+    public function setQueue($idx)
+    {
+        if (!isset($idx) || empty($idx) || !is_numeric($idx)) {
+            static::raiseError(__METHOD__ .'(), $idx parameter is invalid!');
+            return false;
+        }
+
+        if (!$this->setFieldValue('queue_idx', $idx)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
     }
 }
 
