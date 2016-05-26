@@ -41,52 +41,106 @@ class DocumentPropertyModel extends DefaultModel
         ),
     );
 
-    public function setDocumentProperty($property)
+    public function hasDocumentProperty()
     {
-        global $mtlda;
-
-        if (!isset($property) || empty($property)) {
-            $mtlda->raiseError(__METHOD__ .'(), \$property needs to be set!');
+        if (!$this->hasFieldValue('property')) {
             return false;
         }
 
-        $this->dp_property = $property;
-        return true;
-    }
-
-    public function setDocumentValue($value)
-    {
-        global $mtlda;
-
-        if (!isset($value) || empty($value)) {
-            $mtlda->raiseError(__METHOD__ .'(), \$value needs to be set!');
-            return false;
-        }
-
-        $this->dp_value = $value;
         return true;
     }
 
     public function getDocumentProperty()
     {
-        global $mtlda;
-
-        if (!isset($this->dp_property)) {
+        if (!$this->hasDocumentProperty()) {
+            static::raiseError(__CLASS__ .'::hasDocumentProperty() returned false!');
             return false;
         }
 
-        return $this->dp_property;
+        if (($property = $this->getFieldValue('property')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $property;
+    }
+
+    public function setDocumentProperty($property)
+    {
+        if (!isset($property) || empty($property)) {
+            static::raiseError(__METHOD__ .'(), \$property needs to be set!');
+            return false;
+        }
+
+        if (!$this->setFieldValue('property', $property)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasDocumentValue()
+    {
+        if (!$this->hasFieldValue('value')) {
+            return false;
+        }
+
+        return true;
     }
 
     public function getDocumentValue()
     {
-        global $mtlda;
-
-        if (!isset($this->dp_value)) {
+        if (!$this->hasDocumentValue()) {
+            static::raiseError(__CLASS__ .'::hasDocumentValue() returned false!');
             return false;
         }
 
-        return $this->dp_value;
+        if (($value = $this->getFieldValue('value')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $value;
+    }
+
+    public function setDocumentValue($value)
+    {
+        if (!isset($value) || empty($value)) {
+            static::raiseError(__METHOD__ .'(), \$value needs to be set!');
+            return false;
+        }
+
+        if (!$this->setFieldValue('value', $value)) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    public function hasFileHash()
+    {
+        if (!$this->hasFieldValue('file_hash')) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getFileHash()
+    {
+        if (!$this->hasFileHash()) {
+            static::raiseError(__CLASS__ .'::hasFileHash() returned false!');
+            return false;
+        }
+
+        if (($hash = $this->getFieldValue('file_hash')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $hash;
     }
 
     public function setFileHash($hash)
@@ -96,17 +150,12 @@ class DocumentPropertyModel extends DefaultModel
             return false;
         }
 
-        $this->dp_file_hash = $hash;
-        return true;
-    }
-
-    public function getFileHash()
-    {
-        if (!isset($this->dp_file_hash)) {
+        if (!$this->setFieldValue('file_hash', $hash)) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
             return false;
         }
 
-        return $this->dp_file_hash;
+        return true;
     }
 }
 
