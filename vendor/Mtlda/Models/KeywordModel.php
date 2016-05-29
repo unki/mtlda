@@ -52,8 +52,8 @@ class KeywordModel extends DefaultModel
             return false;
         }
 
-        if (($keyword_idx = $this->getId()) === false) {
-            static::raiseError(__CLASS__ .'::getId() returned false!');
+        if (($keyword_idx = $this->getIdx()) === false) {
+            static::raiseError(__CLASS__ .'::getIdx() returned false!');
             return false;
         }
 
