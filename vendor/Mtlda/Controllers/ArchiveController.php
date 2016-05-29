@@ -320,7 +320,7 @@ class ArchiveController extends DefaultController
 
         // append a suffix to new cloned file
         $signing_item->setFileName(str_replace(".pdf", "_signed.pdf", $signing_item->getFileName()));
-        $signing_item->setDerivationId($src_item->getId());
+        $signing_item->setDerivationId($src_item->getIdx());
         $signing_item->setDerivationGuid($src_item->getGuid());
 
         if (!$signing_item->save()) {
@@ -458,8 +458,8 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if ($logo_doc->setDerivationId($src_document->getId()) === false) {
-            static::raiseError(get_class($src_document) .'::getId() returned false!');
+        if ($logo_doc->setDerivationId($src_document->getIdx()) === false) {
+            static::raiseError(get_class($src_document) .'::getIdx() returned false!');
             return false;
         }
 
