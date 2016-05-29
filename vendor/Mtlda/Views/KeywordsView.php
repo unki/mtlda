@@ -66,7 +66,7 @@ class KeywordsView extends DefaultView
         }
 
         $tmpl->assign('item', $item);
-        $tmpl->assign("item_safe_link", "keyword-". $item->getId() ."-". $item->getGuid());
+        $tmpl->assign("item_safe_link", "keyword-". $item->getIdx() ."-". $item->getGuid());
         return $tmpl->fetch("keywords_edit.tpl");
     }
 }
