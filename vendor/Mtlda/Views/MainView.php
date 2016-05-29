@@ -132,8 +132,8 @@ class MainView extends DefaultView
                 static::raiseError(get_class($item) .'::getLastestVersion() returned false!');
                 return false;
             }
-            if (!($idx = $latest->getId())) {
-                static::raiseError(get_class($latest) .'::getId() returned false!');
+            if (!($idx = $latest->getIdx())) {
+                static::raiseError(get_class($latest) .'::getIdx() returned false!');
                 return false;
             }
             if (!($guid = $latest->getGuid())) {
@@ -143,11 +143,11 @@ class MainView extends DefaultView
             $smarty->assign("document_safe_link", "document-{$idx}-{$guid}");
             unset($latest);
         } else {
-            $smarty->assign("document_safe_link", "document-{$item->getId()}-{$item->getGuid()}");
+            $smarty->assign("document_safe_link", "document-{$item->getIdx()}-{$item->getGuid()}");
         }
 
         $smarty->assign("item", $item);
-        $smarty->assign("item_safe_link", "{$item->getId()}-{$item->getGuid()}");
+        $smarty->assign("item_safe_link", "{$item->getIdx()}-{$item->getGuid()}");
 
         $index++;
         $smarty->assign("smarty.IB.{$params['type']}_list.index", $index);
