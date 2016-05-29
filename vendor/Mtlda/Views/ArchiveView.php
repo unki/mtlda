@@ -114,11 +114,11 @@ class ArchiveView extends DefaultView
         $tmpl->assign('item_versions', $descendants);
         $tmpl->assign('item', $this->item);
         $tmpl->assign('keywords', $this->keywords->getItems());
-        $tmpl->assign("item_safe_link", "document-". $this->item->getId() ."-". $this->item->getGuid());
+        $tmpl->assign("item_safe_link", "document-". $this->item->getIdx() ."-". $this->item->getGuid());
 
         try {
             $this->document_properties = new \Mtlda\Models\DocumentPropertiesModel(array(
-                'idx' => $this->item->getId(),
+                'idx' => $this->item->getIdx(),
                 'guid' => $this->item->getGuid()
             ));
         } catch (\Exception $e) {
@@ -211,7 +211,7 @@ class ArchiveView extends DefaultView
                 continue;
             }
             $tmpl->assign('item', $item);
-            $tmpl->assign('item_safe_link', 'document-'. $item->getId() .'-'. $item->getGuid());
+            $tmpl->assign('item_safe_link', 'document-'. $item->getIdx() .'-'. $item->getGuid());
 
             if ($item->hasDescendants()) {
                 $tmpl->assign('item_has_descendants', true);
@@ -310,8 +310,8 @@ class ArchiveView extends DefaultView
                 $repeat = false;
                 return false;
             }
-            if (!($idx = $latest->getId())) {
-                static::raiseError(get_class($latest) .'::getId() returned false!');
+            if (!($idx = $latest->getIdx())) {
+                static::raiseError(get_class($latest) .'::getIdx() returned false!');
                 $repeat = false;
                 return false;
             }
@@ -323,7 +323,7 @@ class ArchiveView extends DefaultView
             $smarty->assign("document_safe_link", "document-{$idx}-{$guid}");
             unset($latest);
         } else {
-            $smarty->assign("document_safe_link", "document-{$item->getId()}-{$item->getGuid()}");
+            $smarty->assign("document_safe_link", "document-{$item->getIdx()}-{$item->getGuid()}");
         }
 
         return $content;
