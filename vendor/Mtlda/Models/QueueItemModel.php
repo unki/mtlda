@@ -824,7 +824,7 @@ class QueueItemModel extends DefaultModel
                 return false;
             }
 
-            if (!$keyword->setQueue($this->getId())) {
+            if (!$keyword->setQueue($this->getIdx())) {
                 static::raiseError("KeywordAssignmentModel::setArchive() returned false!");
                 return false;
             }
@@ -865,7 +865,7 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        if (!$db->execute($sth, array($this->getId()))) {
+        if (!$db->execute($sth, array($this->getIdx()))) {
             static::raiseError(__METHOD__ .", failed to execute query!");
             return false;
         }
@@ -922,7 +922,7 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        if (!$db->execute($sth, array($this->getId()))) {
+        if (!$db->execute($sth, array($this->getIdx()))) {
             static::raiseError("Unable to execute query!");
             return false;
         }
@@ -1136,7 +1136,7 @@ class QueueItemModel extends DefaultModel
 
         try {
             $properties = new \Mtlda\Models\DocumentPropertiesModel(array(
-                'idx' => $this->getId(),
+                'idx' => $this->getIdx(),
                 'guid' => $this->getGuid()
             ));
         } catch (\Exception $e) {
