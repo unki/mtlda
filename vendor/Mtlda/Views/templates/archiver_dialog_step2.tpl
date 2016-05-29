@@ -14,7 +14,7 @@
   <form id="queue_custom_date_form" class="ui form" data-target="queue_custom_date" style="{if !$item->hasCustomDate()}display: none;{/if}">
    <div class="fields">
     <div class="field ui input">
-     <input type="text" id="queue_custom_date" name="queue_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="queueitem" data-key="queue_custom_date" data-id="{$item->getId()}" />
+     <input type="text" id="queue_custom_date" name="queue_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="queueitem" data-key="queue_custom_date" data-id="{$item->getIdx()}" />
     </div>
     <div class="field">
      <button class="circular ui icon button save" type="submit" data-content="Save custom date"><i class="save icon"></i></button>
@@ -41,7 +41,7 @@
   <form id="queue_expiry_date_form" class="ui form" data-target="queue_expiry_date" style="{if !$item->hasExpiryDate()}display: none;{/if}">
    <div class="fields">
     <div class="field ui input">
-     <input type="text" id="queue_expiry_date" name="queue_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="queueitem" data-key="queue_expiry_date" data-id="{$item->getId()}" />
+     <input type="text" id="queue_expiry_date" name="queue_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="queueitem" data-key="queue_expiry_date" data-id="{$item->getIdx()}" />
     </div>
     <div class="field">
      <button class="circular ui icon button save" type="submit" data-content="Save expiry date"><i class="save icon"></i></button>
@@ -57,13 +57,13 @@
    <div class="field">
     <label>Keywords:</label>
     <div class="ui fluid search dropdown multiple selection" id="keyword_dropdown">
-     <input type="hidden" name="assigned_keywords" value="{','|implode:$item->getKeywords()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-action="update" data-key="queue_keywords" />
+     <input type="hidden" name="assigned_keywords" value="{','|implode:$item->getKeywords()}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-action="update" data-key="queue_keywords" />
      <i class="dropdown icon"></i>
      <input class="search" />
      <div class="default text">No keywords assigned.</div>
      <div class="menu">
 {foreach $keywords as $keyword}
-      <a class="item" data-value="{$keyword->getId()}" data-text="{$keyword->getName()}">{$keyword->getName()}</a>
+      <a class="item" data-value="{$keyword->getIdx()}" data-text="{$keyword->getName()}">{$keyword->getName()}</a>
 {/foreach}
      </div>
     </div>
@@ -94,7 +94,7 @@
   </form>
   <br />
 {if !$item->hasIndices()}
-  <a class="scan document ui icon button" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-content="Scan {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}"><i class="find icon"></i></a>
+  <a class="scan document ui icon button" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-content="Scan {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}"><i class="find icon"></i></a>
 {/if}
   <a class="ui icon button" href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" data-content="Preview {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i></a>
  </div>
