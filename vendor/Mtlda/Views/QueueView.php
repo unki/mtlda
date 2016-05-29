@@ -187,7 +187,7 @@ class QueueView extends DefaultView
         }
 
         $tmpl->assign('keywords', $this->keywords->getItems());
-        $tmpl->assign("item_safe_link", $item->getId() ."-". $item->getGuid());
+        $tmpl->assign("item_safe_link", $item->getIdx() ."-". $item->getGuid());
 
         switch ($step) {
             case 1:
@@ -284,7 +284,7 @@ class QueueView extends DefaultView
                     return false;
                 }
                 $tmpl->assign('page_count', $pages);
-                $tmpl->assign("image_safe_link", $item->getId() ."-". $item->getGuid());
+                $tmpl->assign("image_safe_link", $item->getIdx() ."-". $item->getGuid());
                 $template = "splitter_dialog_step2.tpl";
                 break;
             case 3:
@@ -788,8 +788,8 @@ class QueueView extends DefaultView
         $sources = array();
 
         foreach ($this->archive->getItems() as $document) {
-            if (($idx = $document->getId()) === false) {
-                static::raiseError(get_class($document) .'::getId() returned false!');
+            if (($idx = $document->getIdx()) === false) {
+                static::raiseError(get_class($document) .'::getIdx() returned false!');
                 return false;
             }
             $items[$idx] = $document;
