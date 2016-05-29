@@ -85,8 +85,8 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
-        if (!($idx = $document->getId())) {
-            static::raiseError(get_class($document) .'::getId() returned false!');
+        if (!($idx = $document->getIdx())) {
+            static::raiseError(get_class($document) .'::getIdx() returned false!');
             return false;
         }
 
