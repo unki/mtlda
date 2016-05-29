@@ -26,7 +26,7 @@
 <form class="ui form" onsubmit="return false;">
  <div class="fields">
   <div class="field small ui input">
-   <input type="text" name="title" value="{if $item->hasTitle()}{$item->getTitle()}{/if}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->getId()}" />
+   <input type="text" name="title" value="{if $item->hasTitle()}{$item->getTitle()}{/if}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->getIdx()}" />
   </div>
   <div class="field">
    <button class="circular ui big icon button inline editable save" type="submit"><i class="save icon"></i></button>
@@ -52,9 +52,9 @@
        <div class="content">
         <div class="header">
          <a href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>
-         <a class="scan document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i></a>
+         <a class="scan document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i></a>
         </div>
-        <div class="description">Original document (imported {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-action-title="Sign {if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
+        <div class="description">Original document (imported {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-action-title="Sign {if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
        </div>
       </div>
 {list_versions}
@@ -68,10 +68,10 @@
       <input type="checkbox" name="use_document_custom_date" {if $item->hasCustomDate()}checked{/if} />
       <label>Assign custom date to document.</label>
      </div><br /><br />
-     <form id="document_custom_date_form" class="ui form" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-target="document_custom_date" onsubmit="return false;" style="{if !$item->hasCustomDate()}display: none;{/if}">
+     <form id="document_custom_date_form" class="ui form" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-target="document_custom_date" onsubmit="return false;" style="{if !$item->hasCustomDate()}display: none;{/if}">
       <div class="fields">
        <div class="field ui input">
-        <input type="text" name="document_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->getId()}" />
+        <input type="text" name="document_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->getIdx()}" />
        </div>
        <div class="field">
         <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
@@ -91,10 +91,10 @@
       <input type="checkbox" name="use_document_expiry_date" {if $item->hasExpiryDate()}checked{/if} />
       <label>Assign expiry date to document.</label>
      </div><br /><br />
-     <form id="document_expiry_date_form" class="ui form" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-target="document_expiry_date" onsubmit="return false;" style="{if !$item->hasExpiryDate()}display: none;{/if}">
+     <form id="document_expiry_date_form" class="ui form" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-target="document_expiry_date" onsubmit="return false;" style="{if !$item->hasExpiryDate()}display: none;{/if}">
       <div class="fields">
        <div class="field ui input">
-        <input type="text" name="document_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$item->getId()}" />
+        <input type="text" name="document_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$item->getIdx()}" />
        </div>
        <div class="field">
         <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
@@ -119,13 +119,13 @@
       <div class="field">
        <label>Keywords:</label>
        <div class="ui fluid search dropdown multiple selection" id="keyword_dropdown">
-        <input type="hidden" name="assigned_keywords" value="{','|implode:$item->getKeywords()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_keywords">
+        <input type="hidden" name="assigned_keywords" value="{','|implode:$item->getKeywords()}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_keywords">
         <i class="dropdown icon"></i>
         <input class="search">
         <div class="default text">No keywords assigned.</div>
         <div class="menu">
 {foreach $keywords as $keyword}
-         <div class="item" data-value="{$keyword->getId()}" data-text="{$keyword->getName()}">{$keyword->getName()}</div>
+         <div class="item" data-value="{$keyword->getIdx()}" data-text="{$keyword->getName()}">{$keyword->getName()}</div>
 {/foreach}
         </div>
        </div>
@@ -141,7 +141,7 @@
      <form id="document_description" class="ui form description" data-target="document_description">
       <div class="field">
        <label>Description:</label>
-       <textarea name="document_description" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{if $item->hasDescription()}{$item->getDescription()}{/if}</textarea>
+       <textarea name="document_description" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{if $item->hasDescription()}{$item->getDescription()}{/if}</textarea>
       </div>
       <button class="circular small ui icon save button" type="submit">
        <i class="save icon"></i>
