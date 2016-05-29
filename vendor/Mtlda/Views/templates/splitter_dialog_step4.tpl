@@ -65,7 +65,7 @@ $('.ui.button.exit, .ui.button.split').click(function () {
    }
 
    msg_body = new Object;
-   msg_body.id = '{$item->getId()}';
+   msg_body.id = '{$item->getIdx()}';
    msg_body.guid = '{$item->getGuid()}';
    msg_body.model = 'queueitem';
    msg_body.documents = JSON.stringify(documents);
