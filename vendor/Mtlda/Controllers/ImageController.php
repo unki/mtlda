@@ -175,8 +175,8 @@ class ImageController extends DefaultController
             return false;
         }
 
-        if ($this->isCachedImageAvailable($item->getId(), $item->getGuid(), "queueitem_preview_{$size}", $page)) {
-            return $this->loadCachedImage($item->getId(), $item->getGuid(), "queueitem_preview_{$size}", $page);
+        if ($this->isCachedImageAvailable($item->getIdx(), $item->getGuid(), "queueitem_preview_{$size}", $page)) {
+            return $this->loadCachedImage($item->getIdx(), $item->getGuid(), "queueitem_preview_{$size}", $page);
         }
 
         try {
@@ -217,7 +217,7 @@ class ImageController extends DefaultController
         }
 
         if ($config->isImageCachingEnabled()) {
-            if (!$this->saveImageToCache($item->getId(), $item->getGuid(), "queueitem_preview_{$size}", $page, $im)) {
+            if (!$this->saveImageToCache($item->getIdx(), $item->getGuid(), "queueitem_preview_{$size}", $page, $im)) {
                 static::raiseError(__CLASS__ .'::saveImageToCache() returned false!');
                 return false;
             }
