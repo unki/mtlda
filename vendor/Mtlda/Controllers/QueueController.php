@@ -119,8 +119,8 @@ class QueueController extends DefaultController
                 static::raiseError(get_class($queue) .'::getItem() has not returned a QueueItemModel!');
                 return false;
             }
-            if (($idx = $queueitem->getId()) === false) {
-                static::raiseError(get_class($queueitem) .'::getId() returned false!');
+            if (($idx = $queueitem->getIdx()) === false) {
+                static::raiseError(get_class($queueitem) .'::getIdx() returned false!');
                 return false;
             }
             if (($guid = $queueitem->getGuid()) === false) {
