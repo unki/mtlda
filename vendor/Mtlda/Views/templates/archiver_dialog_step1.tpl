@@ -2,7 +2,7 @@
  <div class="two fields">
   <div class="field">
    <label>Document Title:</label>
-   <input type="text" name="queue_title" value="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()|regex_replace:'/\.([a-zA-Z]+)$/':''|replace:'_':' '}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-action="update" data-model="queueitem" data-key="queue_title">
+   <input type="text" name="queue_title" value="{if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()|regex_replace:'/\.([a-zA-Z]+)$/':''|replace:'_':' '}{/if}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-action="update" data-model="queueitem" data-key="queue_title">
   </div>
   <div class="field">
    <label>&nbsp;</label>
@@ -17,7 +17,7 @@
  <div class="two fields">
   <div class="required field">
    <label>Filename:</label>
-   <input type="text" name="queue_file_name" value="{$item->getFileName()}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-action="update" data-model="queueitem" data-key="queue_file_name">
+   <input type="text" name="queue_file_name" value="{$item->getFileName()}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-action="update" data-model="queueitem" data-key="queue_file_name">
   </div>
   <div class="field">
    <label>&nbsp;</label>
