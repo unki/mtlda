@@ -1,7 +1,7 @@
 <form class="ui form" data-target="queue_description">
  <div class="field">
   <label>Document Description</label>
-  <textarea name="queue_description" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-action="update" data-model="queueitem" data-key="queue_description">{if $item->hasDescription()}{$item->getDescription()}{/if}</textarea>
+  <textarea name="queue_description" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-action="update" data-model="queueitem" data-key="queue_description">{if $item->hasDescription()}{$item->getDescription()}{/if}</textarea>
  </div>
  <div class="inline fields">
   <div class="field">
