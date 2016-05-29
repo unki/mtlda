@@ -18,7 +18,7 @@
  </div>
 </div>
 <button class="ui button exit" data-content="Exit archiving and close this window">Exit</button>
-<button class="ui button archive" data-content="Invoke archiving process" data-action-title="Archiving {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-id="{$item->getId()}" data-guid="{$item->getGuid()}" data-model="queueitem">Finish</button>
+<button class="ui button archive" data-content="Invoke archiving process" data-action-title="Archiving {if $item->hasTitle()}{$item->getTitle()}{else}{$item->getFileName()}{/if}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="queueitem">Finish</button>
 <script type="text/javascript"><!--
 
 'use strict';
