@@ -109,8 +109,8 @@ class SearchView extends DefaultView
             $smarty->assign('icon', 'star');
         }
 
-        if (($idx = $item->getId()) === false) {
-            static::raiseError(get_class($item) .'::getId() returned false!');
+        if (($idx = $item->getIdx()) === false) {
+            static::raiseError(get_class($item) .'::getIdx() returned false!');
             return false;
         }
 
