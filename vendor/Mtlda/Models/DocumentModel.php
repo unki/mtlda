@@ -676,8 +676,8 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (($document_idx = $this->getId()) === false) {
-            static::raiseError(__CLASS__ .'::getId() returned false!');
+        if (($document_idx = $this->getIdx()) === false) {
+            static::raiseError(__CLASS__ .'::getIdx() returned false!');
             return false;
         }
 
@@ -752,8 +752,8 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (($document_idx = $this->getId()) === false) {
-            static::raiseError(__CLASS__ .'::getId() returned false!');
+        if (($document_idx = $this->getIdx()) === false) {
+            static::raiseError(__CLASS__ .'::getIdx() returned false!');
             return false;
         }
 
@@ -857,8 +857,8 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (($document_idx = $this->getId()) === false) {
-            static::raiseError(__CLASS__ .'::getId() returned false!');
+        if (($document_idx = $this->getIdx()) === false) {
+            static::raiseError(__CLASS__ .'::getIdx() returned false!');
             return false;
         }
 
@@ -943,8 +943,8 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (($document_idx = $this->getId()) === false) {
-            static::raiseError(__CLASS__ .'::getId() returned false!');
+        if (($document_idx = $this->getIdx()) === false) {
+            static::raiseError(__CLASS__ .'::getIdx() returned false!');
             return false;
         }
 
@@ -1048,7 +1048,7 @@ class DocumentModel extends DefaultModel
 
         try {
             $properties = new \Mtlda\Models\DocumentPropertiesModel(array(
-                'idx' => $this->getId(),
+                'idx' => $this->getIdx(),
                 'guid' => $this->getGuid()
             ));
         } catch (\Exception $e) {
@@ -1482,7 +1482,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (!$db->execute($sth, array($this->getId()))) {
+        if (!$db->execute($sth, array($this->getIdx()))) {
             static::raiseError(__METHOD__ .", failed to execute query!");
             return false;
         }
