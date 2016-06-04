@@ -31,6 +31,7 @@ class QueueView extends DefaultView
     protected $keywordSuggestions;
     protected $keywordSuggestionsSimilar;
     protected $archiveItem;
+    protected $archive;
 
     public function __construct()
     {
