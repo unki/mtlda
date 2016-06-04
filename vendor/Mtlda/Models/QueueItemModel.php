@@ -1109,7 +1109,7 @@ class QueueItemModel extends DefaultModel
 
         $this->indices = $indices;
 
-        if ($this->indices->hasItems()) {
+        if (!$this->indices->hasItems()) {
             return false;
         }
 
@@ -1144,6 +1144,12 @@ class QueueItemModel extends DefaultModel
         }
 
         $this->properties = $properties;
+
+
+        if (!$this->properties->hasItems()) {
+            return false;
+        }
+
         return true;
     }
 
