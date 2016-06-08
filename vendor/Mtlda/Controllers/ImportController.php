@@ -237,7 +237,7 @@ class ImportController extends DefaultController
                 }
             }
 
-            if (!unlink($lockfile)) {
+            if (file_exists($lockfile) && !unlink($lockfile)) {
                 static::raiseError(__METHOD__ ."(), unlink({$lockfile}) failed!");
                 return false;
             }
