@@ -1116,7 +1116,7 @@ class QueueItemModel extends DefaultModel
         return true;
     }
 
-    public function getIndices()
+    public function getIndices($load = false)
     {
         if (!$this->hasIndices()) {
             static::raiseError(__CLASS__ .'::hasIndices() returned false!');
@@ -1128,7 +1128,40 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        return $indices;
+        if (!isset($load) || !$load || $load !== true) {
+            return $indices;
+        }
+
+        $indices_models = array();
+
+        foreach ($indices as $index) {
+            if (!isset($index) || empty($index) || !is_array($index)) {
+                static::raiseError(__METHOD__ .'(), encountered an invalid index!');
+                return false;
+            }
+
+            if (!array_key_exists('model', $index) ||
+                !array_key_exists('idx', $index) ||
+                !array_key_exists('guid', $index)
+            ) {
+                static::raiseError(__METHOD__ .'(), index misses mandatory parameters!');
+                return false;
+            }
+
+            try {
+                $index_model = new $index['model'](array(
+                    FIELD_IDX => $index['idx'],
+                    FIELD_GUID => $index['guid'],
+                ));
+            } catch (\Exception $e) {
+                static::raiseErrror(__METHOD__ ."(), failed to load ${index['model']}!");
+                return false;
+            }
+
+            array_push($indices_models, $index_model);
+        }
+
+        return $indices_models;
     }
 
     public function hasProperties()
