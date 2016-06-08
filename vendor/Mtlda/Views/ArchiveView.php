@@ -225,7 +225,7 @@ class ArchiveView extends DefaultView
                 $tmpl->assign('item_is_last_descendant', false);
             }
 
-            if (!$src = $tmpl->fetch('archive_show_item.tpl')) {
+            if (($src = $tmpl->fetch('archive_show_item.tpl')) === false) {
                 static::raiseError(__CLASS__ .'::fetch() returned false!');
                 return false;
             }
