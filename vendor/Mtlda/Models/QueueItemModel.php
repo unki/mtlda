@@ -615,7 +615,7 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        if ($this->getFieldValue() === '0000-00-00') {
+        if ($this->getFieldValue('custom_date') === '0000-00-00') {
             return false;
         }
 
@@ -661,7 +661,7 @@ class QueueItemModel extends DefaultModel
             return false;
         }
 
-        if ($this->getFieldValue() === '0000-00-00') {
+        if ($this->getFieldValue('expiry_date') === '0000-00-00') {
             return false;
         }
 
