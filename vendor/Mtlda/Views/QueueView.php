@@ -434,7 +434,7 @@ class QueueView extends DefaultView
         array_push($sources, $filename);
 
         if ($this->archiveItem->hasIndices()) {
-            if (($indices = $this->archiveItem->getIndices()) === false) {
+            if (($indices = $this->archiveItem->getIndices(true)) === false) {
                 static::raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
                 return false;
             }
@@ -658,7 +658,7 @@ class QueueView extends DefaultView
         array_push($sources, $filename);
 
         if ($this->archiveItem->hasIndices()) {
-            if (($indices = $this->archiveItem->getIndices()) === false) {
+            if (($indices = $this->archiveItem->getIndices(true)) === false) {
                 static::raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
                 return false;
             }
