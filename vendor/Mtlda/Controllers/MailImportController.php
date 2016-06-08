@@ -21,11 +21,11 @@ namespace Mtlda\Controllers;
 
 class MailImportController extends DefaultController
 {
-    private $mail_cfg;
-    private $connect_string;
+    protected $mail_cfg;
+    protected $connect_string;
 
-    private $imap_session;
-    private $is_conected = false;
+    protected $imap_session;
+    protected $is_connected = false;
 
     public function __construct()
     {
@@ -174,7 +174,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function connect()
+    protected function connect()
     {
         if (strtolower($this->mail_cfg['mbox_type']) == 'imap') {
             $this->connect_string = "{{$this->mail_cfg['mbox_server']}:143}INBOX";
@@ -210,7 +210,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function disconnect()
+    protected function disconnect()
     {
         global $config;
         $flags = 0;
@@ -243,7 +243,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function checkForMails()
+    protected function checkForMails()
     {
         if (!$this->isConnected()) {
             static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
@@ -268,7 +268,7 @@ class MailImportController extends DefaultController
         return $status->unseen;
     }
 
-    private function retrieveListOfMails($msg_cnt)
+    protected function retrieveListOfMails($msg_cnt)
     {
         if (!$this->isConnected()) {
             static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
@@ -292,7 +292,7 @@ class MailImportController extends DefaultController
         return $list;
     }
 
-    private function retrieveMail($msgno)
+    protected function retrieveMail($msgno)
     {
         if (!$this->isConnected()) {
             static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
@@ -321,7 +321,7 @@ class MailImportController extends DefaultController
         return $mail;
     }
 
-    private function parseMail(&$msg)
+    protected function parseMail(&$msg)
     {
         global $config;
 
@@ -382,7 +382,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function parseMimePart(&$part, $id, &$attachments, &$descriptions)
+    protected function parseMimePart(&$part, $id, &$attachments, &$descriptions)
     {
         global $config;
 
@@ -466,7 +466,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function parseMimePartParameters(&$partparam, &$attachments, $encoding, $id)
+    protected function parseMimePartParameters(&$partparam, &$attachments, $encoding, $id)
     {
         if (!is_array($partparam)) {
             static::raiseError(__METHOD__ .'(), first parameter has to be an array!');
@@ -582,7 +582,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function fetchMimePartBody($msgno, $attachment)
+    protected function fetchMimePartBody($msgno, $attachment)
     {
         if (!$this->isConnected()) {
             static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
@@ -628,7 +628,7 @@ class MailImportController extends DefaultController
         return false;
     }
 
-    private function fetchMimeTextBody($msgno, $description)
+    protected function fetchMimeTextBody($msgno, $description)
     {
         if (!$this->isConnected()) {
             static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
@@ -690,7 +690,7 @@ class MailImportController extends DefaultController
         return $body;
     }
 
-    private function isConnected()
+    protected function isConnected()
     {
         if (!isset($this->is_connected) || empty($this->is_connected)) {
             return false;
@@ -703,17 +703,17 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function setConnected()
+    protected function setConnected()
     {
         $this->is_connected = true;
     }
 
-    private function setDisconnected()
+    protected function setDisconnected()
     {
         $this->is_connected = false;
     }
 
-    private function deleteMail($msgno)
+    protected function deleteMail($msgno)
     {
         global $config;
 
@@ -735,7 +735,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function flagMailSeen($msgno)
+    protected function flagMailSeen($msgno)
     {
         if (!$this->isConnected()) {
             static::raiseError(__METHOD__ .'(), need to be connected to the mail server to proceed!');
@@ -750,7 +750,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function imapDecodeString($value)
+    protected function imapDecodeString($value)
     {
         if (!isset($value) ||
             empty($value) ||
@@ -775,7 +775,7 @@ class MailImportController extends DefaultController
         return $value_decoded[0];
     }
 
-    private function arrayAppend(&$dst_parameters, &$src_parameters)
+    protected function arrayAppend(&$dst_parameters, &$src_parameters)
     {
         if (!isset($dst_parameters) ||
             !is_array($dst_parameters)
@@ -802,7 +802,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function parseMimeText(&$part, $id, &$descriptions)
+    protected function parseMimeText(&$part, $id, &$descriptions)
     {
         if (!is_object($part)) {
             static::raiseError(__METHOD__ .'(), first parameter should be an object!');
@@ -845,7 +845,7 @@ class MailImportController extends DefaultController
         return true;
     }
 
-    private function parseMimeTextParameters(&$partparam, &$descriptions, $encoding, $id)
+    protected function parseMimeTextParameters(&$partparam, &$descriptions, $encoding, $id)
     {
         if (!is_array($partparam)) {
             static::raiseError(__METHOD__ .'(), first parameter has to be an array!');
