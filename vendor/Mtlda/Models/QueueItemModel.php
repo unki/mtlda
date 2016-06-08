@@ -1118,11 +1118,17 @@ class QueueItemModel extends DefaultModel
 
     public function getIndices()
     {
-        if (!isset($this->indices)) {
+        if (!$this->hasIndices()) {
+            static::raiseError(__CLASS__ .'::hasIndices() returned false!');
             return false;
         }
 
-        return $this->indices->getIndices();
+        if (($indices = $this->indices->getIndices()) === false) {
+            static::raiseError(get_class($this->indices) .'::getIndices() returned false!');
+            return false;
+        }
+
+        return $indices;
     }
 
     public function hasProperties()
