@@ -60,12 +60,7 @@ class DocumentController extends DefaultController
             return false;
         }
 
-        if (!$mtlda->isValidId($query->params[1])) {
-            static::raiseError("Object id is invalid!");
-            return false;
-        }
-
-        if (!($id = $mtlda->parseId($query->params[1]))) {
+        if (($id = $mtlda->parseId($query->params[1])) === false) {
             static::raiseError("Object id can not be parsed!");
             return false;
         }
