@@ -85,7 +85,6 @@ class MainController extends \Thallium\Controllers\MainController
                 return false;
             }
             return true;
-
         }
 
         return parent::callHandlers();
@@ -93,7 +92,10 @@ class MainController extends \Thallium\Controllers\MainController
 
     protected function imageHandler()
     {
-        $this->loadController("Image", "image");
+        if (!$this->loadController("Image", "image")) {
+            static::raiseError(__METHOD__ .'(), failed to load ImageController!');
+            return false;
+        }
         global $image;
 
         if (!$image->perform()) {
@@ -107,7 +109,11 @@ class MainController extends \Thallium\Controllers\MainController
 
     protected function documentHandler()
     {
-        $this->loadController("Document", "document");
+        if (!$this->loadController("Document", "document")) {
+            static::raiseError(__METHOD__ .'(), failed to load DocumentController!');
+            return false;
+        }
+
         global $document;
 
         if (!$document->perform()) {
