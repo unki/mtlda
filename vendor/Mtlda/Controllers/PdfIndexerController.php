@@ -21,9 +21,10 @@ namespace Mtlda\Controllers;
 
 class PdfIndexerController extends DefaultController
 {
-    private $parser;
-    private $pdf;
-    private $indexing_cfg;
+    protected $parser;
+    protected $pdf;
+    protected $ocr;
+    protected $indexing_cfg;
 
     public function __construct()
     {
@@ -51,24 +52,24 @@ class PdfIndexerController extends DefaultController
         return true;
     }
 
-    private function loadPdfParser()
+    protected function loadPdfParser()
     {
         try {
             $this->parser = new \Smalot\PdfParser\Parser();
         } catch (\Exception $e) {
-            static::raiseError(__METHOD__ .'(), failed to load PdfParser!');
+            static::raiseError(__METHOD__ .'(), failed to load PdfParser!', false, $e);
             return false;
         }
 
         return true;
     }
 
-    private function loadOcrParser()
+    protected function loadOcrParser()
     {
         try {
             $this->ocr = new \Mtlda\Controllers\OcrController;
         } catch (\Exception $e) {
-            static::raiseError(__METHOD__ .'(), failed to load OcrController!');
+            static::raiseError(__METHOD__ .'(), failed to load OcrController!', false, $e);
             return false;
         }
 
@@ -219,7 +220,7 @@ class PdfIndexerController extends DefaultController
         return true;
     }
 
-    private function parsePdf($fqpn)
+    protected function parsePdf($fqpn)
     {
         if (!isset($fqpn) || empty($fqpn) || !is_string($fqpn)) {
             static::raiseError(__METHOD__ .'(), \$fqpn parameter is invalid!');
@@ -229,14 +230,14 @@ class PdfIndexerController extends DefaultController
         try {
             $this->pdf = $this->parser->parseFile($fqpn);
         } catch (\Exception $e) {
-            static::raiseError(get_class($this->parser) .'::parseFile() returned false! '. $e->getMessage());
+            static::raiseError(get_class($this->parser) .'::parseFile() returned false!', false, $e);
             return false;
         }
 
         return true;
     }
 
-    private function extractPdfText()
+    protected function extractPdfText()
     {
         if (!isset($this->pdf) || empty($this->pdf) || !is_object($this->pdf)) {
             static::raiseError(__METHOD__ .'(), document has not been parsed yet!');
@@ -248,14 +249,14 @@ class PdfIndexerController extends DefaultController
         try {
             $text = $this->pdf->getText();
         } catch (\Exception $e) {
-            static::raiseError(get_class($this->pdf) .'::getText() returned false!');
+            static::raiseError(get_class($this->pdf) .'::getText() returned false!', false, $e);
             return false;
         }
 
         try {
             $details  = $this->pdf->getDetails();
         } catch (\Exception $e) {
-            static::raiseError(get_class($this->pdf) .'::getDetails() returned false!');
+            static::raiseError(get_class($this->pdf) .'::getDetails() returned false!', false, $e);
             return false;
         }
 
@@ -265,7 +266,7 @@ class PdfIndexerController extends DefaultController
         return $info;
     }
 
-    private function isPlainTextIndexingEnabled()
+    protected function isPlainTextIndexingEnabled()
     {
         global $config;
 
@@ -284,7 +285,7 @@ class PdfIndexerController extends DefaultController
         return false;
     }
 
-    private function isOcrIndexingEnabled()
+    protected function isOcrIndexingEnabled()
     {
         global $config;
 
@@ -303,12 +304,12 @@ class PdfIndexerController extends DefaultController
         return false;
     }
 
-    private function runOcr()
+    protected function runOcr()
     {
         try {
             $pages  = $this->pdf->getPages();
         } catch (\Exception $e) {
-            static::raiseError(get_class($this->pdf) .'::getPages() returned false!');
+            static::raiseError(get_class($this->pdf) .'::getPages() returned false!', false, $e);
             return false;
         }
 
@@ -340,7 +341,7 @@ class PdfIndexerController extends DefaultController
                 $objects = $page->getXObjects();
             } catch (\Exception $e) {
                 $this->unlinkDirectory($tempDir);
-                static::raiseError(get_class($page) .'::getXObjects() returned false!');
+                static::raiseError(get_class($page) .'::getXObjects() returned false!', false, $e);
                 return false;
             }
 
@@ -353,7 +354,7 @@ class PdfIndexerController extends DefaultController
                     $content = $object->getContent();
                 } catch (\Exception $e) {
                     $this->unlinkDirectory($tempDir);
-                    static::raiseError(get_class($object) .'::getContent() returned false!');
+                    static::raiseError(get_class($object) .'::getContent() returned false!', false, $e);
                     return false;
                 }
 
@@ -388,7 +389,7 @@ class PdfIndexerController extends DefaultController
         return $text;
     }
 
-    private function saveDocumentProperty($document, $property, $value)
+    protected function saveDocumentProperty($document, $property, $value)
     {
         if (!isset($document) ||
             empty($document) ||
@@ -422,7 +423,7 @@ class PdfIndexerController extends DefaultController
         try {
             $pmodel = new \Mtlda\Models\DocumentPropertyModel;
         } catch (\Exception $e) {
-            static::raiseError(__METHOD__ .'(), failed to load DocumentPropertyModel!');
+            static::raiseError(__METHOD__ .'(), failed to load DocumentPropertyModel!', false, $e);
             return false;
         }
 
@@ -449,7 +450,7 @@ class PdfIndexerController extends DefaultController
         return true;
     }
 
-    private function saveDocumentIndex($document, $text)
+    protected function saveDocumentIndex($document, $text)
     {
         if (!isset($document) || empty($document) ||
             (!is_a($document, 'Mtlda\Models\DocumentModel') &&
@@ -474,7 +475,7 @@ class PdfIndexerController extends DefaultController
         try {
             $index = new \Mtlda\Models\DocumentIndexModel;
         } catch (\Exception $e) {
-            static::raiseError(__METHOD__ .'(), failed to load DocumentIndexModel!');
+            static::raiseError(__METHOD__ .'(), failed to load DocumentIndexModel!', false, $e);
             return false;
         }
 
@@ -496,12 +497,17 @@ class PdfIndexerController extends DefaultController
         return true;
     }
 
-    private function unlinkDirectory($dir)
+    protected function unlinkDirectory($dir)
     {
+        if (!isset($dir) || empty($dir) || !is_string($dir)) {
+            static::raiseError(__METHOD__ .'(), $dir parameter is invalid!');
+            return false;
+        }
+
         global $mtlda;
 
         if (($files = scandir($dir)) === false) {
-            static::raiseError("scandir on {$dir} returned false!");
+            static::raiseError(__METHOD__ ."(), scandir({$dir}) returned false!");
             return false;
         }
 
@@ -510,7 +516,7 @@ class PdfIndexerController extends DefaultController
 
         foreach ($files as $file) {
             if (($fqfn = realpath($dir .'/'. $file)) === false) {
-                static::raiseError("realpath() on ". $dir .'/'. $file ." returned false!");
+                static::raiseError(__METHOD__ ."(), realpath(${dir}/${file}) returned false!");
                 return false;
             }
 
