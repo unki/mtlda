@@ -25,7 +25,7 @@ class PagingController extends DefaultController
     protected $pagingParameters = array();
     protected $currentPage;
     protected $currentItemsLimit;
-    protected $itemsPerPageLimits = array(
+    protected static $itemsPerPageLimits = array(
         10, 25, 50, 100, 0
     );
 
@@ -309,6 +309,11 @@ class PagingController extends DefaultController
 
         $start = ($page-1)*$items_per_page;
 
+        /* so that DefaultModel::getItems() actually returns all items at once */
+        if ($items_per_page === 0) {
+            $items_per_page = null;
+        }
+
         if (($data = $this->getPagingData($start, $items_per_page)) === false) {
             static::raiseError(__CLASS__ .':getPagingData() returned false!');
             return false;
@@ -475,7 +480,7 @@ class PagingController extends DefaultController
     final public function getCurrentItemsLimit()
     {
         if (!isset($this->currentItemsLimit)) {
-            return $this->itemsPerPageLimits[0];
+            return static::$itemsPerPageLimits[0];
         }
 
         return $this->currentItemsLimit;
@@ -483,7 +488,7 @@ class PagingController extends DefaultController
 
     final public function getItemsLimits()
     {
-        return $this->itemsPerPageLimits;
+        return static::$itemsPerPageLimits;
     }
 
     final public function setItemsLimit($limit)
