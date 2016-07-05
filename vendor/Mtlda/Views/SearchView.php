@@ -203,7 +203,7 @@ class SearchView extends DefaultView
             }
 
             if (!$document->hasParent()) {
-                static::raiseError(__METHOD__ .'(), document version not 0 but has no parents!');
+                static::raiseError(__METHOD__ .'(), document is not a original copy but no parent can be found!');
                 return false;
             }
 
@@ -212,7 +212,12 @@ class SearchView extends DefaultView
                 return false;
             }
 
-            if (in_array($parent->getGuid(), array_keys($stack))) {
+            if (($p_guid = $parent->getGuid()) === false) {
+                static::raiseError(get_class($parent) .'::getGuid() returned false!');
+                return false;
+            }
+
+            if (in_array($p_guid, array_keys($stack))) {
                 continue;
             }
 
