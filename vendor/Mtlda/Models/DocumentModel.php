@@ -1141,11 +1141,7 @@ class DocumentModel extends DefaultModel
     {
         global $mtlda;
 
-        if (!$this->hasDerivation() ||
-            !$this->hasDerivationGuid() ||
-            !$mtlda->isValidId($this->getDerivation()) ||
-            !$mtlda->isValidGuidSyntax($this->getDerivationGuid())
-        ) {
+        if (!$this->hasDerivationId() || !$this->hasDerivationGuid()) {
             return false;
         }
 
@@ -1158,28 +1154,28 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (!$this->hasDerivation() || !$this->hasDerivationGuid()) {
+        if (!$this->hasDerivationId() || !$this->hasDerivationGuid()) {
             static::raiseError(__METHOD__ .'(), neither derivation or derivation_guid are set!');
             return false;
         }
 
-        if (($derivation = $this->getDerivation()) === false) {
+        if (($derivation_id = $this->getDerivationId()) === false) {
             static::raiseError(__CLASS__ .'::getDerivation() returned false!');
             return false;
         }
 
-        if (($derivation_guid = $this->getDerivationGudi()) === false) {
+        if (($derivation_guid = $this->getDerivationGuid()) === false) {
             static::raiseError(__CLASS__ .'::getDerivationGuid() returned false!');
             return false;
         }
 
         try {
             $parent = new \Mtlda\Models\DocumentModel(array(
-                'idx' => $derivation,
+                'idx' => $derivation_id,
                 'guid' => $derivation_guid
             ));
         } catch (\Exception $e) {
-            static::raiseError(__METHOD__ .'(), failed to load DocumentModel!');
+            static::raiseError(__METHOD__ .'(), failed to load DocumentModel!', false, $e);
             return false;
         }
 
