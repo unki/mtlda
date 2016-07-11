@@ -263,22 +263,24 @@ function rpc_object_update(element, successMethod)
 
 function rpc_object_sign(element)
 {
+    var id, guid, title;
+
     if (!(element instanceof jQuery) ) {
         throw "element is not a jQuery object!";
         return false;
     }
 
-    if (!(id = element.attr('data-id'))) {
+    if (typeof (id = element.attr('data-id')) === 'undefined') {
         alert('no attribute "data-id" found!');
         return false;
     }
 
-    if (!(guid = element.attr('data-guid'))) {
+    if (typeof (guid = element.attr('data-guid')) === 'undefined') {
         alert('no attribute "data-guid" found!');
         return false;
     }
 
-    if (!(title = element.attr('data-action-title'))) {
+    if (typeof (title = element.attr('data-action-title')) === 'undefined') {
         alert('no attribute "data-action-title" found!');
         return false;
     }
@@ -293,9 +295,9 @@ function rpc_object_sign(element)
         onShow : rpc_fetch_jobstatus()
     });
 
-    progressbar = sign_wnd.find('.description .ui.indicating.progress');
+    var progressbar = sign_wnd.find('.description .ui.indicating.progress');
 
-    if (!progressbar) {
+    if (typeof progressbar === 'undefined') {
         throw 'Can not find the progress bar in the modal window!';
         return false;
     }
@@ -329,15 +331,19 @@ function rpc_object_sign(element)
             return false;
         }
 
+        newData = new Object;
+
         if (reply.value && (value = reply.value.match(/([0-9]+)%$/))) {
             newData.percent = value[1];
         }
+
         if (reply.body) {
             newData.text = {
                 active : reply.body,
                 success: reply.body
             };
         }
+
         if (!progressbar.hasClass('active')) {
             progressbar.addClass('active');
         }
