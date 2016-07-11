@@ -327,6 +327,13 @@ class JobsController extends \Thallium\Controllers\JobsController
         }
 
         try {
+            $signer = new \Mtlda\Controllers\PdfSigningController;
+        } catch (\Exception $e) {
+            static::raiseError(__METHOD__ .'(), failed to load PdfSigningController!', false, $e);
+            return false;
+        }
+
+        try {
             $document = new \Mtlda\Models\DocumentModel(array(
                 'idx' => $sign_request->id,
                 'guid' => $sign_request->guid
@@ -336,8 +343,8 @@ class JobsController extends \Thallium\Controllers\JobsController
             return false;
         }
 
-        if (!$this->signDocument($document)) {
-            static::raiseError(__CLASS__ .'::signDocument() returned false!');
+        if (!$signer->signDocument($document)) {
+            static::raiseError(get_class($signer) .'::signDocument() returned false!');
             return false;
         }
 
