@@ -19,10 +19,24 @@
 
 namespace Thallium\Models ;
 
+/**
+ * Represents a single message-bus message.
+ *
+ * @package Thallium\Models\MessageModel
+ * @subpackage Models
+ * @license AGPL3
+ * @copyright 2015-2016 Andreas Unterkircher <unki@netshadow.net>
+ * @author Andreas Unterkircher <unki@netshadow.net>
+ */
 class MessageModel extends DefaultModel
 {
+    /** @var string $model_table_name */
     protected static $model_table_name = 'message_bus';
+
+    /** @var string $model_column_prefix */
     protected static $model_column_prefix = 'msg';
+
+    /** @var array $model_fields */
     protected static $model_fields = array(
         'idx' => array(
             FIELD_TYPE => FIELD_INT,
@@ -54,15 +68,22 @@ class MessageModel extends DefaultModel
         ),
     );
 
+    protected static $message_scopes = array(
+        'inbound',
+        'outbound'
+    );
+
+    /**
+     * sets the messages command field.
+     *
+     * @param string $command
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function setCommand($command)
     {
-        if (empty($command)) {
-            static::raiseError(__METHOD__ .'(), an empty command is not allowed!');
-            return false;
-        }
-
-        if (!is_string($command)) {
-            static::raiseError(__METHOD__ .'(), parameter has to be a string!');
+        if (!isset($command) || empty($command) || !is_string($command)) {
+            static::raiseError(__METHOD__ .'(), $command parameter is invalid!');
             return false;
         }
 
@@ -74,15 +95,17 @@ class MessageModel extends DefaultModel
         return true;
     }
 
+    /**
+     * sets the messages session_id field.
+     *
+     * @param string $sessionid
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function setSessionId($sessionid)
     {
-        if (empty($sessionid)) {
-            static::raiseError(__METHOD__ .'(), an empty session id is not allowed!');
-            return false;
-        }
-
-        if (!is_string($sessionid)) {
-            static::raiseError(__METHOD__ .'(), parameter has to be a string!');
+        if (!isset($sessionid) || empty($sessionid) || !is_string($sessionid)) {
+            static::raiseError(__METHOD__ .'(), $sessionid parameter is invalid!');
             return false;
         }
 
@@ -94,10 +117,33 @@ class MessageModel extends DefaultModel
         return true;
     }
 
-    public function getSessionId()
+    /**
+     * returns true if the session_id field is set.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    public function hasSessionId()
     {
         if (!$this->hasFieldValue('session_id')) {
-            static::raiseError(__CLASS__ .'::hasFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * returns the value of the session_id field.
+     *
+     * @param none
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    public function getSessionId()
+    {
+        if (!$this->hasSessionId()) {
+            static::raiseError(__CLASS__ .'::hasSessionId() returned false!');
             return false;
         }
 
@@ -109,6 +155,13 @@ class MessageModel extends DefaultModel
         return $session_id;
     }
 
+    /**
+     * returns true if there is a value in the session_id field.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function hasCommand()
     {
         if (!$this->hasFieldValue('command')) {
@@ -118,6 +171,13 @@ class MessageModel extends DefaultModel
         return true;
     }
 
+    /**
+     * returns the value of the command field.
+     *
+     * @param none
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function getCommand()
     {
         if (!$this->hasCommand()) {
@@ -133,10 +193,20 @@ class MessageModel extends DefaultModel
         return $command;
     }
 
+    /**
+     * sets the messages body field.
+     *
+     * @param string $body
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function setBody($body)
     {
-        if (!isset($body) || empty($body)) {
-            static::raiseError(__METHOD__ .'(), $body parameter needs to be set!');
+        if (!isset($body) ||
+            empty($body) ||
+            (!is_string($body) && !is_array($body) && !is_object($body))
+        ) {
+            static::raiseError(__METHOD__ .'(), $body parameter is invalid!');
             return false;
         }
 
@@ -196,6 +266,13 @@ class MessageModel extends DefaultModel
         return true;
     }
 
+    /**
+     * returns true if there is a value in the body field.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function hasBody()
     {
         if (!$this->hasFieldValue('body')) {
@@ -205,6 +282,13 @@ class MessageModel extends DefaultModel
         return true;
     }
 
+    /**
+     * returns the decoded and unserialized value of the body field.
+     *
+     * @param none
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function getBody()
     {
         if (!$this->hasFieldValue('body')) {
@@ -230,6 +314,14 @@ class MessageModel extends DefaultModel
         return $body;
     }
 
+    /**
+     * returns the value of the body field, but undecoded, as it is stored
+     * in database.
+     *
+     * @param none
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function getBodyRaw()
     {
         if (!$this->hasFieldValue('body')) {
@@ -245,15 +337,22 @@ class MessageModel extends DefaultModel
         return $body_raw;
     }
 
+    /**
+     * sets the messages scope field.
+     *
+     * @param string $scope
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function setScope($scope)
     {
-        if (!is_string($scope)) {
-            static::raiseError(__METHOD__ .'(), parameter has to be a string!');
+        if (!isset($scope) || empty($scope) || !is_string($scope)) {
+            static::raiseError(__METHOD__ .'(), $scope parameter is invalid!');
             return false;
         }
 
-        if (!in_array($scope, array('inbound', 'outbound'))) {
-            static::raiseError(__METHOD__ .'(), allowed values for scope are "inbound" and "outbound" only!');
+        if (!in_array($scope, static::$message_scopes)) {
+            static::raiseError(__METHOD__ .'(), invalid scope provided!');
             return false;
         }
 
@@ -265,10 +364,33 @@ class MessageModel extends DefaultModel
         return true;
     }
 
-    public function getScope()
+    /**
+     * returns true if the scope field is set.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    public function hasScope()
     {
         if (!$this->hasFieldValue('scope')) {
-            static::raiseError(__CLASS__ .'::hasFieldValue() returned false!');
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * returns the value of the scope field.
+     *
+     * @param none
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    public function getScope()
+    {
+        if (!$this->hasScope()) {
+            static::raiseError(__CLASS__ .'::hasScope() returned false!');
             return false;
         }
 
@@ -277,48 +399,85 @@ class MessageModel extends DefaultModel
             return false;
         }
 
+        if (!in_array($scope, static::$message_scopes)) {
+            static::raiseError(__METHOD__ .'(), invalid scope returned!');
+            return false;
+        }
+
         return $scope;
     }
 
+    /**
+     * returns true if the message is designated to a client.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function isClientMessage()
     {
-        if (!($scope = $this->getScope())) {
+        if (!$this->hasScope()) {
+            return false;
+        }
+
+        if (($scope = $this->getScope()) === false) {
             static::raiseError(__CLASS__ .'::getScope() returned false!');
             return false;
         }
 
-        if ($scope != 'inbound') {
+        if ($scope !== 'inbound') {
             return false;
         }
 
         return true;
     }
 
+    /**
+     * returns true if the message is designated to the framework.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function isServerMessage()
     {
-        if (!($scope = $this->getScope())) {
+        if (!$this->hasScope()) {
+            return false;
+        }
+
+        if (($scope = $this->getScope()) === false) {
             static::raiseError(__CLASS__ .'::getScope() returned false!');
             return false;
         }
 
-        if ($scope != 'outbound') {
+        if ($scope !== 'outbound') {
             return false;
         }
 
         return true;
     }
 
+    /**
+     * sets the messages in_processing field.
+     *
+     * @param bool $value
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function setProcessingFlag($value = true)
     {
-        if (!$value) {
-            if (!$this->setFieldValue('in_processing', 'N')) {
-                static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
-                return false;
-            }
-            return true;
+        if (!isset($value) || !is_bool($value)) {
+            static::raiseError(__METHOD__ .'(), $value parameter is invalid!');
+            return false;
         }
 
-        if (!$this->setFieldValue('in_processing', 'Y')) {
+        $flag = 'N';
+
+        if ($value === true) {
+            $flag = 'Y';
+        }
+
+        if (!$this->setFieldValue('in_processing', $flag)) {
             static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
             return false;
         }
@@ -326,38 +485,76 @@ class MessageModel extends DefaultModel
         return true;
     }
 
-    public function getProcessingFlag()
+    /**
+     * returns true if the in_processing field has a value set.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    public function hasProcessingFlag()
     {
         if (!$this->hasFieldValue('in_processing')) {
-            return 'N';
-        }
-
-        if (($in_processing = $this->getFieldValue('in_processing')) === false) {
-            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
-            return false;
-        }
-
-        return $in_processing;
-    }
-
-    public function isProcessing()
-    {
-        if (!isset($this->getProcessingFlag)) {
-            return false;
-        }
-
-        if (($in_processing = $this->getFieldValue('in_processing')) === false) {
-            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
-            return false;
-        }
-
-        if ($in_processing != 'Y') {
             return false;
         }
 
         return true;
     }
 
+    /**
+     * returns the value of the in_processing field.
+     *
+     * @param none
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    public function getProcessingFlag()
+    {
+        if (!$this->hasProcessingFlag()) {
+            static::raiseError(__CLASS__ .'::hasProcessingFlag() returned false!');
+            return false;
+        }
+
+        if (($flag = $this->getFieldValue('in_processing')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        return $flag;
+    }
+
+    /**
+     * returns true if the in_processing field is set to true
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    public function isProcessing()
+    {
+        if (!$this->hasProcessingFlag()) {
+            return false;
+        }
+
+        if (($flag = $this->getFieldValue('in_processing')) === false) {
+            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
+            return false;
+        }
+
+        if (!static::isEnabled($flag)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * sets the messages value field.
+     *
+     * @param string $value
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function setValue($value)
     {
         if (!isset($value) || empty($value) || !is_string($value)) {
@@ -373,9 +570,17 @@ class MessageModel extends DefaultModel
         return true;
     }
 
+    /**
+     * returns the value of the value field.
+     *
+     * @param none
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function getValue()
     {
         if (!$this->hasValue()) {
+            static::raiseError(__CLASS__ .'::hasValue() returned false!');
             return false;
         }
 
@@ -387,6 +592,13 @@ class MessageModel extends DefaultModel
         return $value;
     }
 
+    /**
+     * returns true if there is a value in the value field.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     public function hasValue()
     {
         if (!$this->hasFieldValue('value')) {
@@ -396,13 +608,22 @@ class MessageModel extends DefaultModel
         return true;
     }
 
+    /**
+     * during saving, clear the in_processing field
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     protected function preSave()
     {
-        if (!$this->hasFieldValue('in_processing')) {
-            if (!$this->setFieldValue('in_processing', 'N')) {
-                static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
-                return false;
-            }
+        if ($this->hasProcessingFlag()) {
+            return true;
+        }
+
+        if (!$this->setFieldValue('in_processing', 'N')) {
+            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
+            return false;
         }
 
         return true;

@@ -19,28 +19,51 @@
 
 namespace Thallium\Controllers;
 
+/**
+ * ConfigController handles loading configuration files.
+ *
+ * @package Thallium\Controllers\ConfigController
+ * @subpackage Controllers
+ * @license AGPL3
+ * @copyright 2015-2016 Andreas Unterkircher <unki@netshadow.net>
+ * @author Andreas Unterkircher <unki@netshadow.net>
+ */
 class ConfigController extends DefaultController
 {
-    protected $config_file_local = "config.ini";
-    protected $config_file_dist = "config.ini.dist";
+    /** @var string $config_file_local */
+    protected static $config_file_local = "config.ini";
+
+    /** @var string $config_file_dist */
+    protected static $config_file_dist = "config.ini.dist";
+
+    /** @var array $config result of the merge of $config_file_local and $config_file_dist */
     protected $config;
 
+    /**
+     * class constructor
+     *
+     * @param none
+     * @return void
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     public function __construct()
     {
-        if (!file_exists(self::CONFIG_DIRECTORY)) {
-            static::raiseError(
-                __METHOD__ ."(), configuration directory ". self::CONFIG_DIRECTORY ." does not exist!",
-                true
-            );
-            return false;
+        if (!file_exists(static::CONFIG_DIRECTORY)) {
+            static::raiseError(sprintf(
+                '%s(), configuration directory "%s" does not exist!',
+                __METHOD__,
+                static::CONFIG_DIRECTORY
+            ), true);
+            return;
         }
 
-        if (!is_executable(self::CONFIG_DIRECTORY)) {
-            static::raiseError(
-                __METHOD__ ."(), unable to enter config directory ". self::CONFIG_DIRECTORY ."!",
-                true
-            );
-            return false;
+        if (!is_executable(static::CONFIG_DIRECTORY)) {
+            static::raiseError(sprintf(
+                '%s(), unable to enter config directory "%s"!',
+                __METHOD__,
+                static::CONFIG_DIRECTORY
+            ), true);
+            return;
         }
 
         if (!function_exists("parse_ini_file")) {
@@ -48,15 +71,19 @@ class ConfigController extends DefaultController
                 __METHOD__ .'(), PHP does not provide required parse_ini_file() function!',
                 true
             );
-            return false;
+            return;
         }
 
         $config_pure = array();
 
         foreach (array('dist', 'local') as $config) {
-            if (!($config_pure[$config] = $this->readConfig($config))) {
-                static::raiseError(__METHOD__ ."(), readConfig({$config}) returned false!", true);
-                return false;
+            if (($config_pure[$config] = $this->readConfig($config)) === false) {
+                static::raiseError(sprintf(
+                    '%s(), readConfig("%s") returned false!',
+                    __METHOD__,
+                    $config
+                ), true);
+                return;
             }
         }
 
@@ -65,7 +92,7 @@ class ConfigController extends DefaultController
             !is_array($config_pure['dist'])
         ) {
             static::raiseError(__METHOD__ .'(), no valid config.ini.dist available!', true);
-            return false;
+            return;
         }
 
         if (!isset($config_pure['local']) ||
@@ -75,19 +102,36 @@ class ConfigController extends DefaultController
         }
 
         if (!($this->config = array_replace_recursive($config_pure['dist'], $config_pure['local']))) {
-            static::raiseError(
-                __METHOD__ ."(), failed to merge {$this->config_file_local} with {$this->config_file_dist}."
-            );
-            return false;
+            static::raiseError(sprintf(
+                '%s(), failed to merge "%s" with "%s"!',
+                __METHOD__,
+                static::$config_file_local,
+                static::$config_file_dist
+            ), true);
+            return;
         }
 
-        return true;
+        return;
     }
 
+    /**
+     * this method loads the requested configuration file and awaits
+     * a path to an ini-style-formated file to have been provided
+     * for this.
+     *
+     * @param string $config_target
+     * @return array|bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     protected function readConfig($config_target)
     {
-        $config_file = "config_file_{$config_target}";
-        $config_fqpn = self::CONFIG_DIRECTORY ."/". $this->$config_file;
+        $config_file = sprintf('config_file_%s', $config_target);
+
+        $config_fqpn = sprintf(
+            '%s/%s',
+            static::CONFIG_DIRECTORY,
+            static::$$config_file
+        );
 
         // missing config.ini is ok
         if ($config_target == 'local' && !file_exists($config_fqpn)) {
@@ -95,36 +139,43 @@ class ConfigController extends DefaultController
         }
 
         if (!file_exists($config_fqpn)) {
-            static::raiseError(__METHOD__ ."(), configuration file {$config_fqpn} does not exist!", true);
+            static::raiseError(sprintf(
+                '%s(), configuration file "%s" does not exist!',
+                __METHOD__,
+                $config_fqpn
+            ));
             return false;
         }
 
         if (!is_readable($config_fqpn)) {
-            static::raiseError(
-                __METHOD__ ."(), unable to read configuration file {$config_fqpn}!",
-                true
-            );
+            static::raiseError(sprintf(
+                '%s(), unable to read configuration file "%s"!',
+                __METHOD__,
+                $config_fqpn
+            ));
             return false;
         }
 
         if (($config_ary = parse_ini_file($config_fqpn, true)) === false) {
-            static::raiseError(
-                __METHOD__ ."(), parse_ini_file() function failed on {$config_fqpn} - please check syntax!",
-                true
-            );
+            static::raiseError(sprintf(
+                '%s(), parse_ini_file() failed on "%s"! Please check the files syntax!',
+                __METHOD__,
+                $config_fqpn
+            ));
             return false;
         }
 
         if (empty($config_ary) || !is_array($config_ary)) {
-            static::raiseError(
-                __METHOD__ ."(), invalid configuration retrieved from {$config_fqpn} - please check syntax!",
-                true
-            );
+            static::raiseError(sprintf(
+                '%s(), invalid configuration retrieved from "%s"! Please check the files syntax!',
+                __METHOD__,
+                $config_fqpn
+            ));
             return false;
         }
 
         if (!isset($config_ary['app']) || empty($config_ary['app']) || !array($config_ary['app'])) {
-            static::raiseError(__METHOD__.'(), mandatory config section [app] is not configured!', true);
+            static::raiseError(__METHOD__.'(), mandatory config section [app] is not configured!');
             return false;
         }
 
@@ -139,6 +190,14 @@ class ConfigController extends DefaultController
         return $config_ary;
     }
 
+    /**
+     * returns the [database] section of the loaded configuration
+     * as array
+     *
+     * @param none
+     * @return array|bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     public function getDatabaseConfiguration()
     {
         if (!isset($this->config['database']) ||
@@ -151,17 +210,38 @@ class ConfigController extends DefaultController
         return $this->config['database'];
     }
 
+    /**
+     * returns the 'type' parameter from within the [database] section
+     * of the loaded configuration as string.
+     *
+     * @param none
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     public function getDatabaseType()
     {
-        if ($dbconfig = $this->getDatabaseConfiguration()) {
-            if (isset($dbconfig['type']) && !empty($dbconfig['type']) && is_string($dbconfig['type'])) {
-                return $dbconfig['type'];
-            }
+        if (($dbconfig = $this->getDatabaseConfiguration()) === false) {
+            return false;
         }
 
-        return false;
+        if (!isset($dbconfig['type']) ||
+            empty($dbconfig['type']) ||
+            !is_string($dbconfig['type'])
+        ) {
+            return false;
+        }
+
+        return $dbconfig['type'];
     }
 
+    /**
+     * returns the 'base_web_path' parameter from within the [app] section
+     * of the loaded configuration as string.
+     *
+     * @param none
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     public function getWebPath()
     {
         if (!isset($this->config['app']['base_web_path']) ||
@@ -174,18 +254,34 @@ class ConfigController extends DefaultController
         return $this->config['app']['base_web_path'];
     }
 
+    /**
+     * returns the 'page_title' parameter from within the [app] section
+     * of the loaded configuration as string.
+     *
+     * @param none
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     public function getPageTitle()
     {
-        if (isset($this->config['app']['page_title']) &&
-            !empty($this->config['app']['page_title']) &&
-            is_string($this->config['app']['page_title'])
+        if (!isset($this->config['app']['page_title']) ||
+            empty($this->config['app']['page_title']) ||
+            !is_string($this->config['app']['page_title'])
         ) {
-            return $this->config['app']['page_title'];
+            return false;
         }
 
-        return false;
+        return $this->config['app']['page_title'];
     }
 
+    /**
+     * returns true if the provided $value represents the logical
+     * state 'enabled'.
+     *
+     * @param string $value
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     protected function isEnabled($value)
     {
         if (!in_array($value, array('yes','y','true','on','1'))) {
@@ -195,6 +291,14 @@ class ConfigController extends DefaultController
         return true;
     }
 
+    /**
+     * returns true if the provided $value represents the logical
+     * state 'disabled'.
+     *
+     * @param string $value
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     protected function isDisabled($value)
     {
         if (!in_array($value, array('no','n','false','off','0'))) {
@@ -204,6 +308,14 @@ class ConfigController extends DefaultController
         return true;
     }
 
+    /**
+     * returns true if parameter 'maintenance_mode' from within the [app] section
+     * of the loaded configuration is set to 'enabled'.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     public function inMaintenanceMode()
     {
         if (!isset($this->config['app']['maintenance_mode']) ||
@@ -216,14 +328,14 @@ class ConfigController extends DefaultController
             return false;
         }
 
-        if ($this->isEnabled($this->config['app']['maintenance_mode'])) {
-            return true;
+        if (!$this->isEnabled($this->config['app']['maintenance_mode'])) {
+            static::raiseError(
+                __METHOD__ .'(), configuration option "maintenance_mode" in [app] section is invalid!'
+            );
+            return false;
         }
 
-        static::raiseError(
-            __METHOD__ .'(), configuration option "maintenance_mode" in [app] section is invalid!',
-            true
-        );
+        return true;
     }
 }
 

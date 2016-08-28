@@ -19,104 +19,195 @@
 
 namespace Thallium\Controllers;
 
+/**
+ * RpcController handles remote-procedure-call requests made by
+ * clients. This should only be used seldomly and MessageBus
+ * is a better joice.
+ *
+ * @package Thallium\Controllers\RpcController
+ * @subpackage Controllers
+ * @license AGPL3
+ * @copyright 2015-2016 Andreas Unterkircher <unki@netshadow.net>
+ * @author Andreas Unterkircher <unki@netshadow.net>
+ */
 class RpcController extends DefaultController
 {
-    public function perform()
+    /**
+     * class constructur
+     *
+     * @param none
+     * @return void
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    public function __construct()
     {
-        global $router, $query;
+        global $router;
 
-        if (!isset($query->action)) {
-            static::raiseError("No action specified!");
+        if (!isset($router) ||
+            empty($router) ||
+            !is_object($router) ||
+            !is_a($router, 'Thallium\Controllers\HttpRouterController')
+        ) {
+            static::raiseError(__METHOD__ .'(), HttpRouterController not loaded!', true);
+            return;
         }
 
-        if (!$router->isValidRpcAction($query->action)) {
-            static::raiseError("Invalid RPC action: ". htmlentities($query->action, ENT_QUOTES));
+        if (!$router->hasQueryParams()) {
+            static::raiseError(get_class($router) .'::hasQueryParams() returned false!', true);
+            return;
+        }
+
+        return;
+    }
+
+    /**
+     * this method is actually kicked from the MainController, if
+     * that one seeѕ an inbound RPC request.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    public function perform()
+    {
+        global $router;
+
+        if (!$router->hasQueryParam('action')) {
+            static::raiseError(get_class($router) .'::hasQueryParam() returned false!');
             return false;
         }
 
-        switch ($query->action) {
-            case 'delete':
-                $this->rpcDelete();
-                break;
-            case 'add':
-            case 'update':
-                $this->rpcUpdate();
-                break;
-            case 'find-prev-next':
-                $this->rpcFindPrevNextObject();
-                break;
-            /*case 'toggle':
-                $this->rpc_toggle_object_status();
-                break;
-            case 'clone':
-                $this->rpc_clone_object();
-                break;
-            case 'alter-position':
-                $this->rpc_alter_position();
-                break; */
-            case 'get-content':
-                $this->rpcGetContent();
-                break;
-            case 'submit-messages':
-                $this->rpcSubmitToMessageBus();
-                break;
-            case 'retrieve-messages':
-                $this->rpcRetrieveFromMessageBus();
-                break;
-            case 'process-messages':
-                $this->rpcProcessMessages();
-                break;
-            case 'idle':
-                // just do nothing, for debugging
-                print "ok";
-                break;
-            default:
-                if (!method_exists($this, 'performApplicationSpecifc')) {
-                    static::raiseError("Unknown RPC action\n");
-                    return false;
-                }
-                if (!$this->performApplicationSpecifc()) {
-                    static::raiseError(__CLASS__ .'::performApplicationSpecifc() returned false!');
-                    return false;
-                }
-                break;
+        if (($action = $router->getQueryParam('action')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!');
+            return false;
         }
 
+        if (!$router->isValidRpcAction($action)) {
+            static::raiseError(get_class($router) .'::isValidRpcAction() returned false!');
+            return false;
+        }
+
+        if ($action == 'delete') {
+            $rpc_method = 'rpcDelete';
+        } elseif ($action == 'add' || $action == 'update') {
+            $rpc_method = 'rpcUpdate';
+        } elseif ($action == 'find-prev-next') {
+            $rpc_method = 'rpcFindPrevNextObject';
+        } elseif ($action == 'get-content') {
+            $rpc_method = 'rpcGetViewContent';
+        } elseif ($action == 'get-view') {
+            $rpc_method = 'rpcGetView';
+        } elseif ($action == 'submit-messages') {
+            $rpc_method = 'rpcSubmitToMessageBus';
+        } elseif ($action == 'retrieve-messages') {
+            $rpc_method = 'rpcRetrieveFromMessageBus';
+        } elseif ($action == 'process-messages') {
+            $rpc_method = 'rpcProcessMessages';
+        } elseif ($action == 'idle') {
+            $rpc_method = 'rpcIdle';
+        } elseif (method_exists($this, 'performApplicationSpecifc')) {
+            $rpc_method = 'performApplicationSpecifc';
+        }
+
+        if (!isset($rpc_method) || empty($rpc_method) || !is_string($rpc_method)) {
+            static::raiseError(__METHOD__ .'(), no matching RPC action found!');
+            return false;
+        }
+
+        if (!method_exists($this, $rpc_method)) {
+            static::raiseError(sprintf(
+                '%s(), RPC method "%s" does not exist!',
+                __METHOD__,
+                $rpc_method
+            ));
+            return false;
+        }
+
+        if (!is_callable(array($this, $rpc_method))) {
+            static::raiseError(sprintf(
+                '%s(), RPC method "%s" is not callable!',
+                __METHOD__,
+                $rpc_method
+            ));
+            return false;
+        }
+
+        if (($retval = $this->$rpc_method()) === false) {
+            static::raiseError(sprintf(
+                '%s::%s() has returned false!',
+                __CLASS__,
+                $rpc_method
+            ));
+            return false;
+        }
+
+        return $retval;
+    }
+
+    /**
+     * idle method, actually does nothing.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    protected function rpcIdle()
+    {
+        /* nothing to be done here */
+        print "ok";
         return true;
     }
 
+    /**
+     * deletes an object
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     protected function rpcDelete()
     {
-        global $thallium;
+        global $thallium, $router;
 
         $input_fields = array('id', 'guid', 'model');
 
         foreach ($input_fields as $field) {
-            if (!isset($_POST[$field])) {
-                static::raiseError(__METHOD__ ."(), '{$field}' isn't set in POST request!");
-                return false;
-            }
-            if (empty($_POST[$field])) {
-                static::raiseError(__METHOD__ ."(), '{$field}' is empty!");
-                return false;
-            }
-            if (!is_string($_POST[$field]) && !is_numeric($_POST[$field])) {
-                static::raiseError(__METHOD__ ."(), '{$field}' is not from a valid type!");
+            if (!$router->hasQueryParam($field)) {
+                static::raiseError(get_class($router) .'::hasQueryParam() returned false!');
                 return false;
             }
         }
 
-        $id = $_POST['id'];
-        $guid = $_POST['guid'];
-        $model = $_POST['model'];
-
-        if (!$thallium->isValidId($id) && $id != 'flush') {
-            static::raiseError(__METHOD__ .'(), \$id is invalid!');
+        if (($id = $router->getQueryParam('id')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!');
             return false;
         }
 
-        if (!$thallium->isValidGuidSyntax($guid) && $guid != 'flush') {
-            static::raiseError(__METHOD__ .'(), \$guid is invalid!');
+        if (($guid = $router->getQueryParam('guid')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!');
+            return false;
+        }
+
+        if (($model = $router->getQueryParam('model')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!');
+            return false;
+        }
+
+        if (empty($id) || (!is_numeric($id) && !is_string($id)) ||
+            empty($guid) || !is_string($guid) ||
+            empty($model) || !is_string($model)
+        ) {
+            static::raiseError(__METHOD__ .'(), request contains invalid parameters!');
+            return false;
+        }
+
+        if (!$thallium->isValidId($id) && $id !== 'flush') {
+            static::raiseError(__METHOD__ .'(), $id is invalid!');
+            return false;
+        }
+
+        if (!$thallium->isValidGuidSyntax($guid) && $guid !== 'flush') {
+            static::raiseError(__METHOD__ .'(), $guid is invalid!');
             return false;
         }
 
@@ -126,7 +217,7 @@ class RpcController extends DefaultController
         }
 
         /* special delete operation 'flush' */
-        if ($id == 'flush' && $guid == 'flush') {
+        if ($id === 'flush' && $guid === 'flush') {
             if (($obj = $thallium->loadModel($model_name)) === false) {
                 static::raiseError(get_class($thallium) .'::loadModel() returned false!');
                 return false;
@@ -136,14 +227,17 @@ class RpcController extends DefaultController
                 static::raiseError(__METHOD__ ."(), model {$model_name} does not provide a flush() method!");
                 return false;
             }
+
             if (!$obj->permitsRpcActions('flush')) {
                 static::raiseError(__METHOD__ ."(), model {$model_name} does not support flush-opertions!");
                 return false;
             }
+
             if (!$obj->flush()) {
                 static::raiseError(get_class($obj) .'::flush() returned false!');
                 return false;
             }
+
             print "ok";
             return true;
         }
@@ -172,42 +266,69 @@ class RpcController extends DefaultController
         return true;
     }
 
-    protected function rpcGetContent()
+    /**
+     * retrieves content from a specific view.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    protected function rpcGetView()
     {
-        global $views;
+        global $views, $router;
 
         $valid_content = array(
-                'preview',
+            'internaltestview',
+            'preview',
         );
 
-        if (!isset($_POST['content'])) {
-            static::raiseError('No content requested!');
+        if (!$router->hasQueryParam('view') ||
+            ($requested_view = $router->getQueryParam('view')) === false ||
+            empty($requested_view) || !is_string($requested_view)
+        ) {
+            static::raiseError(__METHOD__ .'(), no view requested!');
             return false;
         }
 
-        if (!in_array($_POST['content'], $valid_content)) {
-            static::raiseError('unknown content requested: '. htmlentities($_POST['content'], ENT_QUOTES));
+        if (!in_array($requested_view, $valid_view)) {
+            static::raiseError(__METHOD__ .'(), no valid view requested!');
             return false;
         }
 
-        switch ($_POST['content']) {
+        switch ($requested_view) {
             case 'preview':
-                $content = $views->load('PreviewView', false);
+                if (($view = $views->load('PreviewView', false)) === false) {
+                    static::raiseError(get_class($views) .'::load() returned false!');
+                    return false;
+                }
+                break;
+            case 'internaltestview':
+                if (($view = $views->load('internaltestview', false)) === false) {
+                    static::raiseError(get_class($views) .'::load() returned false!');
+                    return false;
+                }
                 break;
         }
 
-        if (isset($content) && !empty($content)) {
-            print $content;
-            return true;
+        if (!isset($view) || empty($view) || !is_string($view)) {
+            static::raiseError(__METHOD__ .'(), no content returned from View!');
+            return false;
         }
 
-        static::raiseError("No content found!");
-        return false;
+        print $view;
+        return true;
     }
 
+    /**
+     * returns the previous or next object
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     protected function rpcFindPrevNextObject()
     {
-        global $thallium, $views;
+        global $thallium, $router;
 
         $valid_models = array(
             'queueitem',
@@ -218,123 +339,176 @@ class RpcController extends DefaultController
             'prev',
         );
 
-        if (!isset($_POST['model'])) {
-            static::raiseError('No model requested!');
+        if (!$router->hasQueryParam('model') ||
+            ($model = $router->getQueryParam('model')) === false ||
+            empty($model) || !is_string($model)
+        ) {
+            static::raiseError(__METHOD__ .'(), no model requested!');
             return false;
         }
 
-        if (!in_array($_POST['model'], $valid_models)) {
-            static::raiseError('unknown model requested: '. htmlentities($_POST['model'], ENT_QUOTES));
+        if (!in_array($model, $valid_models)) {
+            static::raiseError(__METHOD__ .'(), unknown model requested!');
             return false;
         }
 
-        if (!isset($_POST['id'])) {
-            static::raiseError('id is not set!');
+        if (!$router->hasQueryParam('id') ||
+            ($id = $router->getQueryParam('id')) === false ||
+            empty($id) || !is_string($id)
+        ) {
+            static::raiseError(__METHOD__ .'(), no id requested!');
             return false;
         }
-
-        $id = $_POST['id'];
 
         if (!$thallium->isValidId($id)) {
-            static::raiseError('\$id is invalid');
+            static::raiseError(__METHOD__ .'(), invalid id provided!');
             return false;
         }
 
-        if (!isset($_POST['direction'])) {
-            static::raiseError('direction is not set!');
+        if (!$router->hasQueryParam('direction') ||
+            ($direction = $router->getQueryParam('direction')) === false ||
+            empty($direction) || !is_string($direction)
+        ) {
+            static::raiseError(__METHOD__ .'(), no direction requested!');
             return false;
         }
 
-        if (!in_array($_POST['direction'], $valid_directions)) {
-            static::raiseError('invalid direction requested: '. htmlentities($_POST['direction'], ENT_QUOTES));
+        if (!in_array($direction, $valid_directions)) {
+            static::raiseError(__METHOD__ .'(), invalid direction requested!');
             return false;
         }
 
         if (($id = $thallium->parseId($id)) === false) {
-            static::raiseError('Unable to parse \$id');
+            static::raiseError(get_class($thallium) .'::parseId() returned false!');
             return false;
         }
 
         switch ($id->model) {
             case 'queueitem':
-                $model = new \Thallium\Models\QueueItemModel(array(
-                    'idx' => $id->id,
-                    'guid' => $id->guid
-                ));
+                $model_name = '\Thallium\Models\QueueItemModel';
                 break;
         }
 
-        if (!isset($model) || empty($model)) {
-            static::raiseError("Model not found: ". htmlentities($id->modek, ENT_QUOTES));
+        if (!isset($model_name) || empty($model_name) || !is_string($model_name)) {
+            static::raiseError(__METHOD__ .'(), no model found!');
             return false;
         }
 
-        switch ($_POST['direction']) {
-            case 'prev':
-                $prev = $model->prev();
-                if ($prev) {
-                    print "queueitem-". $prev;
-                }
-                break;
-            case 'next':
-                $next = $model->next();
-                if ($next) {
-                    print "queueitem-". $next;
-                }
-                break;
+        try {
+            $model = new $model_name(array(
+                'idx' => $id->id,
+                'guid' => $id->guid
+            ));
+        } catch (\Exception $e) {
+            static::raiseError(__METHOD__ .'(), failed to load model!', false, $e);
+            return false;
         }
 
+        if (($model_nick = $model->getModelNickName()) === false) {
+            static::raiseError(get_class($model) .'::getModelNickName() returned false!');
+            return false;
+        }
+
+        if (($neighbor = $model->$direction()) === false) {
+            static::raiseError(sprintf(
+                '%s:%s() returned false!',
+                get_class($model),
+                $direction
+            ));
+            return false;
+        }
+
+        print sprintf("%s-%s", $model_nick, $neighbor);
         return true;
     }
 
+    /**
+     * adds or update an object
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     protected function rpcUpdate()
     {
-        global $thallium;
+        global $thallium, $router;
 
         $input_fields = array(
             'key',
             'id',
+            'guid',
             'value',
             'model'
         );
 
         foreach ($input_fields as $field) {
-            if (!isset($_POST[$field])) {
-                static::raiseError(__METHOD__ ."(), '{$field}' isn't set in POST request!");
-                return false;
-            }
-            if (empty($_POST[$field]) && $field != 'value') {
-                static::raiseError(__METHOD__ ."(), '{$field}' is empty!");
-                return false;
-            }
-            if (!is_string($_POST[$field]) && !is_numeric($_POST[$field])) {
-                static::raiseError(__METHOD__ ."(), '{$field}' is not from a valid type!");
+            if (!$router->hasQueryParam($field)) {
+                static::raiseError(sprintf(
+                    get_class($router) .'::hasQueryParam() returned false for field %s!',
+                    $field
+                ));
                 return false;
             }
         }
 
-        $key = strtolower($_POST['key']);
-        $id = $_POST['id'];
-        $value = $_POST['value'];
-        $model = $_POST['model'];
+        if (($key = $router->getQueryParam('key')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!');
+            return false;
+        }
 
-        if (!(preg_match("/^([a-z]+)_([a-z_]+)$/", $key, $parts))) {
+        if (($id = $router->getQueryParam('id')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!');
+            return false;
+        }
+
+        if (($guid = $router->getQueryParam('guid')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!');
+            return false;
+        }
+
+        if (($value = $router->getQueryParam('value')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!');
+            return false;
+        }
+
+        if (($model = $router->getQueryParam('model')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!');
+            return false;
+        }
+
+        if (!isset($id) || empty($id) || (!is_numeric($id) && !is_string($id)) ||
+            !isset($guid) || empty($guid) || ($guid !== 'new' && !$thallium->isValidGuidSyntax($guid)) ||
+            !isset($key) || empty($key) || !is_string($key) ||
+            !isset($model) || empty($model) || !is_string($model) ||
+            !isset($value) || (!is_string($value) && !is_numeric)
+        ) {
+            static::raiseError(__METHOD__ .'(), request contains invalid parameters!');
+            return false;
+        }
+
+        $key = strtolower($key);
+
+        if (!preg_match("/^([a-z]+)_([a-z_]+)$/", $key)) {
             static::raiseError(__METHOD__ ."() , key looks invalid!");
             return false;
         }
 
-        if ($id != 'new' && !is_numeric($id)) {
+        if ($id !== 'new' && !is_numeric($id)) {
             static::raiseError(__METHOD__ ."(), id is invalid!");
             return false;
         }
 
         if (!$thallium->isValidModel($model)) {
-            static::raiseError(__METHOD__ ."(), scope contains an invalid model ({$model})!");
+            static::raiseError(get_class($thallium) .'::isValidModel() returned false!');
             return false;
         }
 
-        if ($id == 'new') {
+        if ($id === 'new') {
             $id = null;
+        }
+
+        if ($guid === 'new') {
+            $guid = null;
         }
 
         if (($model_name = $thallium->getModelByNick($model)) === false) {
@@ -342,8 +516,46 @@ class RpcController extends DefaultController
             return false;
         }
 
-        if (!($obj = $thallium->loadModel($model_name, $id))) {
-            static::raiseError(__METHOD__ ."(), failed to load {$model}!");
+        if (is_null($id) && is_null($guid)) {
+            if (($full_name = $thallium->getFullModelName($model_name)) === false) {
+                static::raiseError(get_class($thallium) .'::getFullModelName() returned false!');
+                return false;
+            }
+
+            try {
+                $obj = new $full_name;
+            } catch (\Exception $e) {
+                static::raiseError(
+                    sprintf('%s(), failed to instance %s!', __METHOD__, $model_name),
+                    false,
+                    $e
+                );
+                return false;
+            }
+        } elseif (!is_null($id) && !is_null($guid)) {
+            if (($obj = $thallium->loadModel($model_name, $id, $guid)) === false) {
+                static::raiseError(get_class($thallium) .'::loadModel() returned false!');
+                return false;
+            }
+        }
+
+        if (!isset($obj) || empty($obj)) {
+            static::raiseError(__METHOD__ .'(), no valid model loaded!');
+            return false;
+        }
+
+        if (!$obj->hasModelFields()) {
+            static::raiseError(get_class($obj) .'::hasModelFields() returned false!');
+            return false;
+        }
+
+        if (($field_name = $obj->getFieldNameFromColumn($key)) === false) {
+            static::raiseError(get_class($obj) .'::getFieldNameFromColumn() returned false!');
+            return false;
+        }
+
+        if (!$obj->hasField($field_name)) {
+            static::raiseError(get_class($obj) .'::hasField() returned false!');
             return false;
         }
 
@@ -371,19 +583,38 @@ class RpcController extends DefaultController
         return true;
     }
 
+    /**
+     * submit one or messages into the message bus.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     protected function rpcSubmitToMessageBus()
     {
-        global $mbus;
+        global $mbus, $router;
 
-        if (!isset($_POST['messages']) ||
-            empty($_POST['messages']) ||
-            !is_string($_POST['messages'])
-        ) {
-            static::raiseError(__METHOD__ .'(), no message submited!');
+        if (!$router->hasQueryParams()) {
+            static::raiseError(get_class($router) .'::hasQueryParams() returned false!');
             return false;
         }
 
-        if (!$mbus->submit($_POST['messages'])) {
+        if (!$router->hasQueryParam('messages')) {
+            static::raiseError(get_class($router) .'::hasQueryParam() returned false!');
+            return false;
+        }
+
+        if (($messages = $router->getQueryParam('messages')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!');
+            return false;
+        }
+
+        if (!isset($messages) || empty($messages) || !is_string($messages)) {
+            static::raiseError(__METHOD__ .'(), no message provided!');
+            return false;
+        }
+
+        if (!$mbus->submit($messages)) {
             static::raiseError(get_class($mbus) .'::submit() returned false!');
             return false;
         }
@@ -392,6 +623,13 @@ class RpcController extends DefaultController
         return true;
     }
 
+    /**
+     * retrieve messages from message bus.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     protected function rpcRetrieveFromMessageBus()
     {
         global $mbus;
@@ -410,6 +648,14 @@ class RpcController extends DefaultController
         return true;
     }
 
+    /**
+     * a client can trigger the server to process messages waiting in the
+     * message bus.
+     *
+     * @param none
+     * @return object
+     * @throws \Thallium\Controllers\ExceptionController
+     */
     protected function rpcProcessMessages()
     {
         global $thallium;
@@ -419,6 +665,96 @@ class RpcController extends DefaultController
             return false;
         }
 
+        return true;
+    }
+
+    /**
+     * retrieves content snippets from a specific view.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController
+     */
+    protected function rpcGetViewContent()
+    {
+        global $thallium, $router;
+
+        if (!$router->hasQueryParams() ||
+            !$router->hasQueryParam('view') ||
+            !$router->hasQueryParam('data') ||
+            (($view = $router->getQueryParam('view')) === false) ||
+            (($data = $router->getQueryParam('data')) === false) ||
+            empty($view) || !is_string($view) ||
+            empty($data) || !is_array($data)
+        ) {
+            static::raiseError(__METHOD__ .'(), invalid content-request data!');
+            return false;
+        }
+
+        if (!isset($data['content']) || empty($data['content']) || !is_string($data['content'])) {
+            static::raiseError(__METHOD__ .'(), $data["content"] is invalid!');
+            return false;
+        }
+
+        if (!preg_match('/^[a-z]+$/', strtolower($view))) {
+            static::raiseError(__METHOD__ .'(), $_POST["view"] contains invalid data!');
+            return false;
+        }
+
+        if (!preg_match('/^[a-z]+$/', strtolower($data['content']))) {
+            static::raiseError(__METHOD__ .'(), $data["content"] contains invalid data!');
+            return false;
+        }
+
+        if (!$thallium->loadController("Templates", "tmpl")) {
+            static::raiseError(__METHOD__ .'(), failed to load TemplatesController!');
+            return false;
+        }
+
+        if (($prefix = $thallium->getNamespacePrefix()) === false) {
+            static::raiseError(get_class($thallium) .'::getNamespacePrefix() returned false!');
+            return false;
+        }
+
+        if (!isset($prefix) || empty($prefix) || !is_string($prefix)) {
+            static::raiseError(get_class($thallium) .'::getNamespacePrefix() returned no valid data!');
+            return false;
+        }
+
+        $view_name = ucwords(strtolower($view));
+        $view_name = sprintf(
+            '\\%s\\Views\\%sView',
+            $prefix,
+            $view
+        );
+
+        try {
+            $view = new $view_name;
+        } catch (\Exception $e) {
+            static::raiseError(__METHOD__ ."(), failed to load view ${view_name}!", false, $e);
+            return false;
+        }
+
+        if (!$view->hasContent($data['content'])) {
+            static::raiseError(get_class($view) .'::hasContent() returned false!');
+            return false;
+        }
+
+        if (($content = $view->getContent($data['content'], $data)) === false) {
+            static::raiseError(get_class($view) .'::getContent() returned false!');
+            return false;
+        }
+
+        if (!isset($content) || empty($content)) {
+            static::raiseError(get_class($view) .'::getContent() returned invalid content!');
+            return false;
+        }
+
+        if ($thallium->inTestMode()) {
+            return $content;
+        }
+
+        print $content;
         return true;
     }
 }

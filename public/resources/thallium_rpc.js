@@ -2,7 +2,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -37,7 +37,7 @@ function rpc_object_delete(elements, successMethod)
     elements.forEach(function (element) {
         var id, guid, model, title;
         if (!(element instanceof jQuery) ) {
-            throw new Error("element is not a jQuery object!");
+            throw new Error('element is not a jQuery object!');
             return false;
         }
 
@@ -155,12 +155,17 @@ function rpc_object_delete(elements, successMethod)
 
         store.removeSubStore(substore.getUUID());
 
-        if (typeof successMethod !== 'undefined') {
-            return successMethod();
+        if (typeof successMethod === 'undefined') {
+            location.reload();
+            return true;
         }
 
-        location.reload();
-        return true;
+        if (typeof successMethod !== 'function') {
+            throw new Error('successMethod is not a function!');
+            return false;
+        }
+
+        return successMethod();
 
     }.bind(this), substore);
 
@@ -172,55 +177,85 @@ function rpc_object_delete(elements, successMethod)
     return true;
 }
 
-function rpc_object_update(element, successMethod)
+function rpc_object_update(element, successMethod, customData)
 {
-    var target, input, action, model, key, id, value, url;
+    var target, input, action, model, key, id, guid, value, url, data;
 
     if (!(element instanceof jQuery) ) {
-        throw new Error("element is not a jQuery object!");
+        throw new Error('element is not a jQuery object!');
         return false;
     }
 
     target = element.attr('data-target');
 
-    if (typeof target === 'undefined' || target == '') {
+    if (typeof target === 'undefined' || target === '') {
         throw new Error('no attribute "data-target" found!');
         return false;
     }
 
-    if (!(input = element.find('input[name="'+target+'"], textarea[name="'+target+'"]'))) {
-        throw new Error("Failed to get input element!");
-        return false;
+    if (!target.match(/^#/)) {
+        if (!(input = element.find('input[name="'+target+'"], textarea[name="'+target+'"]'))) {
+            throw new Error('Failed to get input element!');
+            return false;
+        }
+    } else {
+        if (!(input = $(target)) === undefined) {
+            throw new Error('Failed to get target element!');
+            return false;
+        }
     }
 
     if (!(action = input.attr('data-action'))) {
-        throw new Error("Unable to locate 'data-action' attribute!");
+        throw new Error('Unable to locate "data-action" attribute!');
         return false;
     }
 
     if (!(model = input.attr('data-model'))) {
-        throw new Error("Unable to locate 'data-model' attribute!");
+        throw new Error('Unable to locate "data-model" attribute!');
         return false;
     }
 
     if (!(key = input.attr('data-key'))) {
-        throw new Error("Unable to locate 'data-key' attribute!");
+        throw new Error('Unable to locate "data-key" attribute!');
         return false;
     }
 
     if (!(id = input.attr('data-id'))) {
-        throw new Error("Unable to locate 'data-id' attribute!");
+        throw new Error('Unable to locate "data-id" attribute!');
         return false;
     }
 
-    if (typeof (value = input.val()) === 'undefined') {
+    if (!(guid = input.attr('data-guid'))) {
+        throw new Error('Unable to locate "data-guid" attribute!');
         return false;
+    }
+
+    if (input.attr('type') === 'checkbox') {
+        if (input.prop('checked')) {
+            if ((value = input.attr('data-checked')) === undefined) {
+                value = 'Y';
+            }
+        } else {
+            if ((value = input.attr('data-unchecked')) === undefined) {
+                value = 'N';
+            }
+        }
+    } else {
+        if (input.val()) {
+            value = input.val();
+        } else if (input.attr('data-value')) {
+            value = input.attr('data-value');
+        } else {
+            throw new Error('Failed to read value from element!');
+            return false;
+        }
     }
 
     action = safe_string(action);
     model = safe_string(model);
     key = safe_string(key);
     id = safe_string(id);
+    guid = safe_string(guid);
     value = safe_string(value);
 
     if (typeof window.location.pathname !== 'undefined' &&
@@ -232,20 +267,38 @@ function rpc_object_update(element, successMethod)
         url = 'rpc.html';
     }
 
+    data = ({
+        type   : 'rpc',
+        action : action,
+        model  : model,
+        id     : id,
+        guid   : guid,
+        key    : key,
+        value  : value
+    });
+
+    if (typeof customData !== 'undefined') {
+        if (typeof customData !== 'object') {
+            throw new Error('customData is of an unsupported type!');
+            return false;
+        }
+
+        for (var key in customData) {
+            if (typeof data[key] !== 'undefined') {
+                throw new Error('customData tries to override existing data properties!');
+                return false;
+            }
+            data[key] = customData[key]
+        }
+    }
+
     $.ajax({
         type: 'POST',
         url: url,
         retries: 0,
-        data: ({
-            type   : 'rpc',
-            action : action,
-            model  : model,
-            id     : id,
-            key    : key,
-            value  : value
-        }),
+        data: data,
         error: function (XMLHttpRequest, textStatus, errorThrown) {
-            if (textStatus == 'timeout') {
+            if (textStatus === 'timeout') {
                 this.retries++;
                 if (this.retries <= 3) {
                     $.ajax(this);
@@ -259,11 +312,15 @@ function rpc_object_update(element, successMethod)
                 throw new Error('Server returned: ' + data + ', length ' + data.length);
                 return;
             }
-            if (action == 'add') {
+            if (action === 'add') {
                 location.reload();
                 return;
             }
             if (typeof successMethod === 'undefined') {
+                return;
+            }
+            if (typeof successMethod !== 'function') {
+                throw new Error('successMethod is not a function!');
                 return;
             }
             successMethod(element, data);
@@ -285,7 +342,7 @@ function rpc_fetch_jobstatus()
 function rpc_object_delete2(element)
 {
     if (!(element instanceof jQuery) ) {
-        throw new Error("element is not a jQuery object!");
+        throw new Error('element is not a jQuery object!');
         return false;
     }
 
@@ -302,8 +359,7 @@ function rpc_object_delete2(element)
     id = safe_string(id);
     guid = safe_string(guid);
 
-    if (
-        typeof window.location.pathname !== 'undefined' &&
+    if (typeof window.location.pathname !== 'undefined' &&
         window.location.pathname != '' &&
         !window.location.pathname.match(/\/$/)
     ) {

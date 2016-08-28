@@ -21,8 +21,26 @@ namespace Thallium\Controllers;
 
 use \PDO;
 
+/**
+ * RequirementsController is used to check if all the software
+ * requirements as well as required directories to be available
+ * with the right permissions.
+ *
+ * @package Thallium\Controllers\ConfigController
+ * @subpackage Controllers
+ * @license AGPL3
+ * @copyright 2015-2016 Andreas Unterkircher <unki@netshadow.net>
+ * @author Andreas Unterkircher <unki@netshadow.net>
+ */
 class RequirementsController extends DefaultController
 {
+    /**
+     * class constructor
+     *
+     * @param none
+     * @return void
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     public function __construct()
     {
         if (!constant('APP_BASE')) {
@@ -33,6 +51,14 @@ class RequirementsController extends DefaultController
         return;
     }
 
+    /**
+     * This method gets called from the outside and triggers the controller
+     * to perform all checks.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     public function check()
     {
         $missing = false;
@@ -60,14 +86,25 @@ class RequirementsController extends DefaultController
         return true;
     }
 
+    /**
+     * perform checks for required PHP internal functions and extensions.
+     * to perform all checks.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     protected function checkPhp()
     {
-        global $config;
-
         $missing = false;
 
-        if (!(function_exists("microtime"))) {
-            static::raiseError("microtime() function does not exist!");
+        if (!function_exists("microtime")) {
+            static::raiseError(__METHOD__ .'(), microtime() function does not exist!');
+            $missing = true;
+        }
+
+        if (!function_exists("filter_input_array")) {
+            static::raiseError(__METHOD__ .'(), filter_input_array() function does not exist!');
             $missing = true;
         }
 
@@ -78,14 +115,24 @@ class RequirementsController extends DefaultController
         return true;
     }
 
+    /**
+     * perform checks if the configured database type ([database] section)
+     * is supported by PHP.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     protected function checkDatabaseSupport()
     {
         global $config;
 
         $missing = false;
 
-        if (!($dbtype = $config->getDatabaseType())) {
-            static::raiseError("Error - incomplete configuration found, can not check requirements!");
+        if (($dbtype = $config->getDatabaseType()) === false) {
+            static::raiseError(
+                __METHOD__ .'(), incomplete configuration found, can not check requirements!'
+            );
             return false;
         }
 
@@ -105,7 +152,7 @@ class RequirementsController extends DefaultController
                 break;
         }
 
-        if (!$db_class_name) {
+        if (!$db_class_name || !$db_pdo_name) {
             $this->write("Error - unsupported database configuration, can not check requirements!", LOG_ERR);
             $missing = true;
         }
@@ -116,7 +163,13 @@ class RequirementsController extends DefaultController
         }
 
         // check for PDO database support support
-        if ((array_search($db_pdo_name, PDO::getAvailableDrivers())) === false) {
+        if (($drivers = \PDO::getAvailableDrivers()) === false) {
+            $this->write('Failed to fetch supported drivers from PDO!', LOG_ERR);
+            $missing = true;
+        }
+
+        if (isset($drivers) && !empty($drivers) && is_array($drivers) &&
+            (array_search($db_pdo_name, $drivers)) === false) {
             $this->write("PDO {$db_pdo_name} support not available", LOG_ERR);
             $missing = true;
         }
@@ -128,10 +181,15 @@ class RequirementsController extends DefaultController
         return true;
     }
 
+    /**
+     * perform checks if external libraries are available.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     protected function checkExternalLibraries()
     {
-        global $config;
-
         $missing = false;
 
         ini_set('track_errors', 1);
@@ -152,6 +210,13 @@ class RequirementsController extends DefaultController
         return true;
     }
 
+    /**
+     * perform checks directory permission checks.
+     *
+     * @param none
+     * @return bool
+     * @throws \Thallium\Controllers\ExceptionController if an error occurs.
+     */
     protected function checkDirectoryPermissions()
     {
         global $thallium;

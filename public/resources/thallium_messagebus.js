@@ -2,7 +2,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -26,7 +26,7 @@ var ThalliumMessageBus = function (id) {
     this.pollerId;
     this.rpcEnabled = true;
 
-    if (!(this.pollerId = setInterval("mbus.poll()", 1000))) {
+    if (!(this.pollerId = setInterval('mbus.poll()', 1000))) {
         throw new Error('Failed to start ThalliumMessageBus.poll()!');
         return false;
     }
@@ -35,7 +35,7 @@ var ThalliumMessageBus = function (id) {
         this.notifySubscribers();
     }.bind(this));
 
-    $(window).unload(function () {
+    $(window).on('unload', function () {
         this.ajaxRequests.forEach(function (req) {
             if (typeof req.abort !== 'function') {
                 return true;
@@ -45,6 +45,7 @@ var ThalliumMessageBus = function (id) {
         });
         return true;
     }.bind(this));
+
     return true;
 };
 
@@ -56,6 +57,29 @@ ThalliumMessageBus.prototype.add = function (message) {
 
     if (typeof(message) != 'object') {
         throw new Error('parameter is not an object!');
+        return false;
+    }
+
+    if (!message.hasCommand()) {
+        throw new Error('Message has no command!');
+        return false;
+    }
+
+    if (!message.hasMessage()) {
+        throw new Error('Message has no message body!');
+        return false;
+    }
+
+    var command;
+    var body;
+
+    if ((command = message.getCommand()) !== false && command.length > 64) {
+        throw new Error('Message command is too long!');
+        return false;
+    }
+
+    if ((body = message.getMessage()) !== false && body.length > 16384) {
+        throw new Error('Message body is too long!');
         return false;
     }
 
@@ -101,7 +125,7 @@ ThalliumMessageBus.prototype.send = function (messages) {
     var messages, md;
 
     if (typeof (messages = this.fetchMessages()) === 'undefined') {
-        throw new Error("fetchMessages() failed!");
+        throw new Error('fetchMessages() failed!');
         return false;
     }
 
@@ -170,8 +194,8 @@ ThalliumMessageBus.prototype.send = function (messages) {
         },
         error: function (jqXHR, textStatus, errorThrown) {
             var error_text = 'An error occured during AJAX operation.';
-            if (textStatus == 'timeout' || (
-                textStatus == 'error' &&
+            if (textStatus === 'timeout' || (
+                textStatus === 'error' &&
                 (typeof errorThrown === 'undefined' || !errorThrown)
             )) {
                 if (typeof jqXHR.retries === 'undefined') {
@@ -193,7 +217,7 @@ ThalliumMessageBus.prototype.send = function (messages) {
             throw new Error(error_text);
         },
         success: function (data) {
-            if (data != "ok") {
+            if (data !== 'ok') {
                 throw new Error('Failed to submit messages! ' + data);
                 return false;
             }
@@ -228,8 +252,8 @@ ThalliumMessageBus.prototype.poll = function () {
         },
         error: function (jqXHR, textStatus, errorThrown) {
             var error_text = 'An error occured during AJAX operation.';
-            if (textStatus == 'timeout' || (
-                textStatus == 'error' &&
+            if (textStatus === 'timeout' || (
+                textStatus === 'error' &&
                 (typeof errorThrown === 'undefined' || !errorThrown)
             )) {
                 if (typeof jqXHR.retries === 'undefined') {
@@ -274,8 +298,7 @@ ThalliumMessageBus.prototype.parseResponse = function (data) {
         return false;
     }
 
-    if (
-        typeof json.hash === 'undefined' ||
+    if (typeof json.hash === 'undefined' ||
         typeof json.size === 'undefined' ||
         typeof json.json === 'undefined' ||
         typeof json.count === 'undefined'
@@ -305,7 +328,7 @@ ThalliumMessageBus.prototype.parseResponse = function (data) {
     }
 
     // no messages included? then we are done.
-    if (json.count == 0) {
+    if (json.count === 0) {
         return true;
     }
 
@@ -326,7 +349,7 @@ ThalliumMessageBus.prototype.parseResponse = function (data) {
         this.recvMessages.push(messages[message]);
     }
 
-    $(document).trigger("Thallium:notifySubscribers");
+    $(document).trigger('Thallium:notifySubscribers');
     return true;
 };
 

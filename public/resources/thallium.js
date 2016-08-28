@@ -2,7 +2,7 @@
  * This file is part of Thallium.
  *
  * Thallium, a PHP-based framework for web applications.
- * Copyright (C) <2015> <Andreas Unterkircher>
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -24,65 +24,73 @@ $(document).ready(function () {
     try {
         mbus = new ThalliumMessageBus;
     } catch (e) {
-        throw 'Failed to load ThalliumMessageBus! '+ e;
+        throw new Error('Failed to load ThalliumMessageBus! '+ e);
         return false;
     }
 
     try {
         store = new ThalliumStore;
     } catch (e) {
-        throw 'Failed to load ThalliumStore! ' + e;
+        throw new Error('Failed to load ThalliumStore! ' + e);
         return false;
     }
 
-    /* RPC handlers */
-    $("form.ui.form.add").on('submit', function () {
-        rpc_object_update($(this), function (element, data) {
-            if (data != "ok") {
+    $('form.ui.form.add').on('submit', function () {
+        return rpc_object_update($(this), function (element, data) {
+            if (data !== 'ok') {
                 return true;
             }
             var savebutton = element.find('button.save');
+            if (!savebutton) {
+                throw new Error('Failed to locate the save-button!');
+                return false;
+            }
             savebutton.transition('tada').removeClass('red shape');
             return true;
         });
-        return false;
     });
+
     $('.inline.editable.edit.link').click(function () {
         var inlineobj = new ThalliumInlineEditable($(this));
+
+        if (!(inlineobj instanceof ThalliumInlineEditable)) {
+            throw new Error('Failed to load ThalliumInlineEditable!');
+            return false;
+        }
+
         inlineobj.toggle();
+        return true;
     });
-    /* RPC handlers */
-    $("table tr td a.delete").click(function () {
-        delete_object($(this));
-    })
-    $('.inline.editable.edit.link').click(function () {
-        inlineobj = new ThalliumInlineEditable($(this));
-        inlineobj.toggle();
+
+    $('a.delete.item').click(function () {
+        delete_object($(this))
     });
 });
 
 function show_modal(type, settings, id, do_function, modalclass)
 {
     if (typeof type === 'undefined' || !type) {
-        throw 'show_modal(), mandatory type parameter is missing!';
+        throw new Error('show_modal(), mandatory type parameter is missing!');
         return false;
     }
 
-    if (type == 'progress') {
+    if (type === 'progress') {
         var wnd = $('#progress_template').clone();
-    } else if (type == 'confirm') {
+    } else if (type === 'confirm') {
         var wnd = $('#confirm_template').clone();
     } else {
-        throw 'show_modal(), unsupported type!';
+        throw new Error('show_modal(), unsupported type!');
         return false;
     }
 
     if (typeof wnd === 'undefined' || !wnd) {
-        throw 'show_modal(), unable to clone progress_template!';
+        throw new Error('show_modal(), unable to clone progress_template!');
         return false;
     }
 
-    wnd.removeAttr('id');
+    if (wnd.attr('id')) {
+        wnd.removeAttr('id');
+    }
 
     if (typeof id !== 'undefined' && id) {
         wnd.attr('id', id);
@@ -182,6 +190,7 @@ function show_modal(type, settings, id, do_function, modalclass)
         observeChanges : settings.observeChanges,
         allowMultiple : settings.allowMultiple,
     })
+
     modal.modal('show').on('click.modal', do_function);
 
     return modal;
@@ -194,51 +203,51 @@ function safe_string(input)
 
 function delete_object(element)
 {
-    var id = element.attr("data-id");
+    var id = element.attr('data-id');
 
-    if (typeof id === 'undefined' || id == "") {
+    if (typeof id === 'undefined' || id === '') {
         throw new Error('no attribute "data-id" found!');
         return;
     }
 
     id = safe_string(id);
 
-    if (id == 'selected') {
+    if (id === 'selected') {
         id = new Array;
         $('.checkbox.item.select[id!="select_all"]').each(function () {
             if (!($(this).checkbox('is checked'))) {
                 return true;
             }
             var item = $(this).attr('id')
-            if (typeof item === 'undefined' || !item || item == '') {
+            if (typeof item === 'undefined' || !item || item === '') {
                 return false;
             }
             item = item.match(/^select_(\d+)$/);
-            if (typeof item === 'undefined' || !item || !item[1] || item[1] == '') {
+            if (typeof item === 'undefined' || !item || !item[1] || item[1] === '') {
                 return false;
             }
             var item_id = item[1];
             id.push(item_id);
         });
-        if (id.length == 0) {
+        if (id.length === 0) {
             return true;
         }
     }
 
-    var title = element.attr("data-modal-title");
+    var title = element.attr('data-modal-title');
 
-    if (typeof title === 'undefined' || title === "") {
-        throw 'No attribute "data-modal-title" found!';
+    if (typeof title === 'undefined' || title === '') {
+        throw new Error('No attribute "data-modal-title" found!');
         return false;
     }
 
-    var text = element.attr("data-modal-text");
+    var text = element.attr('data-modal-text');
 
-    if (typeof text === 'undefined' || text === "") {
-        if (id instanceof String && !id.match(/-all$/)) {
-            text = "Do you really want to delete this item?";
+    if (typeof text === 'undefined' || text === '') {
+        if (id instanceof String && id.match(/-all$/)) {
+            text = 'Do you really want to delete all items?';
         } else {
-            text = "Do you really want to delete all items?";
+            text = 'Do you really want to delete this item?';
         }
     }
 
@@ -264,7 +273,7 @@ function delete_object(element)
                 if (typeof elements === 'undefined') {
                     return true;
                 }
-                if (typeof id !== 'undefined' && id == 'all') {
+                if (typeof id !== 'undefined' && id === 'all') {
                     $('table#datatable tbody tr').each(function () {
                         $(this).hide(400, function () {
                             $(value).remove();
