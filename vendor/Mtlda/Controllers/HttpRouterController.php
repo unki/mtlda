@@ -38,6 +38,24 @@ class HttpRouterController extends \Thallium\Controllers\HttpRouterController
 
         parent::__construct();
     }
+
+    public function isImageCall()
+    {
+        if (isset($this->query->call_type) && $this->query->call_type == "preview") {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isDocumentCall()
+    {
+        if (isset($this->query->call_type) && $this->query->call_type == "document") {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
