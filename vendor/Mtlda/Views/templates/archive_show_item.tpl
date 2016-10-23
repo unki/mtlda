@@ -30,7 +30,7 @@
     <form class="ui form" onsubmit="return false;">
      <div class="fields">
       <div class="field small ui input">
-       <input type="text" name="filename_{$item->getIdx()}" value="{$item->getFileName()}" data-action="update" data-model="document" data-key="document_file_name" data-id="{$item->getIdx()}" />
+       <input type="text" name="filename_{$item->getIdx()}" value="{$item->getFileName()}" data-action="update" data-model="document" data-key="document_file_name" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
       </div>
       <div class="field">
        <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
