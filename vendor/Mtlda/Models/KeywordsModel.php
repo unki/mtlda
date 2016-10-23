@@ -25,6 +25,10 @@ class KeywordsModel extends DefaultModel
     protected static $model_column_prefix = 'keyword';
     protected static $model_has_items = true;
     protected static $model_items_model = 'KeywordModel';
+    protected static $model_is_searchable = true;
+    protected static $model_searchable_fields = array(
+        'name',
+    );
 
     protected function __init()
     {
