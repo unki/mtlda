@@ -23,7 +23,7 @@ abstract class DefaultModel extends \Thallium\Models\DefaultModel
 {
     public function hasName()
     {
-        if (!static::hasFields()) {
+        if (!static::hasModelFields()) {
             static::raiseError(__METHOD__ .'(), model has no fields defined!');
             return false;
         }
