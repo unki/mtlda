@@ -25,6 +25,12 @@ class QueueModel extends DefaultModel
     protected static $model_column_prefix = 'queue';
     protected static $model_has_items = true;
     protected static $model_items_model = 'QueueItemModel';
+    protected static $model_is_searchable = true;
+    protected static $model_searchable_fields = array(
+        'title',
+        'description',
+        'file_name',
+    );
 
     protected function __init()
     {
