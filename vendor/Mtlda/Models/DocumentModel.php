@@ -73,6 +73,7 @@ class DocumentModel extends DefaultModel
             FIELD_TYPE => FIELD_YESNO,
         ),
     );
+
     protected $descendants = array();
     protected $keywords;
     protected $indices;
