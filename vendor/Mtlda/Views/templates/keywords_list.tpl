@@ -25,7 +25,7 @@
    <form class="ui form add" onsubmit="return false;" data-target="keyword_add">
     <div class="fields">
      <div class="field">
-      <input type="text" name="keyword_add" placeholder="Add keywords" data-action="add" data-model="keyword" data-key="keyword_name" data-id="new" tabindex="0" />
+      <input type="text" name="keyword_add" placeholder="Add keywords" data-action="add" data-model="keyword" data-key="keyword_name" data-id="new" data-guid="new" tabindex="0" />
      </div>
      <div class="field">
       <button class="circular ui button add" type="submit"><i class="save icon"></i>Add</button>
@@ -71,7 +71,7 @@
     <form class="ui form" onsubmit="return false;">
      <div class="fields">
       <div class="field small ui input">
-       <input type="text" name="keyword_{$item->getIdx()}" value="{$item->getName()}" data-action="update" data-model="keyword" data-key="keyword_name" data-id="{$item->getIdx()}" />
+       <input type="text" name="keyword_{$item->getIdx()}" value="{$item->getName()}" data-action="update" data-model="keyword" data-key="keyword_name" data-id="{$item->getIdx()}" data-guid="{$item->getGuid}" />
       </div>
       <div class="field">
        <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
