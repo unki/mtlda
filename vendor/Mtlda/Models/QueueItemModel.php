@@ -64,9 +64,10 @@ class QueueItemModel extends DefaultModel
             FIELD_TYPE => FIELD_YESNO,
         ),
     );
-    private $keywords;
-    private $indices;
-    private $properties;
+
+    protected $keywords;
+    protected $indices;
+    protected $properties;
 
     protected function __init()
     {
@@ -904,7 +905,7 @@ class QueueItemModel extends DefaultModel
         return true;
     }
 
-    private function removeAssignedKeywords()
+    protected function removeAssignedKeywords()
     {
         global $db;
 
