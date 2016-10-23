@@ -26,7 +26,7 @@
 <form class="ui form" onsubmit="return false;">
  <div class="fields">
   <div class="field small ui input">
-   <input type="text" name="title" value="{if $item->hasTitle()}{$item->getTitle()}{/if}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->getIdx()}" />
+   <input type="text" name="title" value="{if $item->hasTitle()}{$item->getTitle()}{/if}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
   </div>
   <div class="field">
    <button class="circular ui big icon button inline editable save" type="submit"><i class="save icon"></i></button>
@@ -71,7 +71,7 @@
      <form id="document_custom_date_form" class="ui form" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-target="document_custom_date" onsubmit="return false;" style="{if !$item->hasCustomDate()}display: none;{/if}">
       <div class="fields">
        <div class="field ui input">
-        <input type="text" name="document_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->getIdx()}" />
+        <input type="text" name="document_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
        </div>
        <div class="field">
         <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
@@ -94,7 +94,7 @@
      <form id="document_expiry_date_form" class="ui form" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-target="document_expiry_date" onsubmit="return false;" style="{if !$item->hasExpiryDate()}display: none;{/if}">
       <div class="fields">
        <div class="field ui input">
-        <input type="text" name="document_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$item->getIdx()}" />
+        <input type="text" name="document_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
        </div>
        <div class="field">
         <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
