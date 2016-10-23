@@ -25,6 +25,12 @@ class ArchiveModel extends DefaultModel
     protected static $model_column_prefix = 'document';
     protected static $model_has_items = true;
     protected static $model_items_model = 'DocumentModel';
+    protected static $model_is_searchable = true;
+    protected static $model_searchable_fields = array(
+        'title',
+        'description',
+        'file_name',
+    );
 
     protected function load($bla = null)
     {
