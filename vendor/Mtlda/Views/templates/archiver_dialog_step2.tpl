@@ -14,7 +14,7 @@
   <form id="queue_custom_date_form" class="ui form" data-target="queue_custom_date" style="{if !$item->hasCustomDate()}display: none;{/if}">
    <div class="fields">
     <div class="field ui input">
-     <input type="text" id="queue_custom_date" name="queue_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="queueitem" data-key="queue_custom_date" data-id="{$item->getIdx()}" />
+     <input type="text" id="queue_custom_date" name="queue_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="queueitem" data-key="queue_custom_date" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
     </div>
     <div class="field">
      <button class="circular ui icon button save" type="submit" data-content="Save custom date"><i class="save icon"></i></button>
@@ -41,7 +41,7 @@
   <form id="queue_expiry_date_form" class="ui form" data-target="queue_expiry_date" style="{if !$item->hasExpiryDate()}display: none;{/if}">
    <div class="fields">
     <div class="field ui input">
-     <input type="text" id="queue_expiry_date" name="queue_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="queueitem" data-key="queue_expiry_date" data-id="{$item->getIdx()}" />
+     <input type="text" id="queue_expiry_date" name="queue_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="queueitem" data-key="queue_expiry_date" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
     </div>
     <div class="field">
      <button class="circular ui icon button save" type="submit" data-content="Save expiry date"><i class="save icon"></i></button>
