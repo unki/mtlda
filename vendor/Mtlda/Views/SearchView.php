@@ -22,43 +22,66 @@ namespace Mtlda\Views ;
 class SearchView extends DefaultView
 {
     protected static $view_class_name = 'search';
-    protected $matches;
-    protected $avail_matches;
+
+    protected $match_results;
+    protected $match_types;
 
     public function __construct()
     {
-        global $query, $tmpl;
+        global $router, $tmpl;
 
         try {
             $search = new \Mtlda\Controllers\SearchController;
         } catch (\Exception $e) {
-            static::raiseError(__METHOD__ .'(), failed to load SearchController!', true);
+            static::raiseError(__METHOD__ .'(), failed to load SearchController!', true, $e);
             return;
         }
 
         $tmpl->registerPlugin("block", "result_list", array(&$this, "listSearchResults"), false);
 
-        if (!isset($query->params['search']) || empty($query->params['search'])) {
+        if (!$router->hasQueryParams()) {
             return;
         }
 
-        $searchquery = $query->params['search'];
+        if (!$router->hasQueryParam('search')) {
+            return;
+        }
 
-        if (!$search->search($searchquery)) {
+        if (($search_param = $router->getQueryParam('search')) === false) {
+            static::raiseError(get_class($router) .'::getQueryParam() returned false!', true);
+            return;
+        }
+
+        if (!$search->search($search_param, true)) {
             static::raiseError(get_class($search) .'::search() returned false!', true);
             return;
         }
 
-        if (($this->matches = $search->getResults()) === false) {
+        if (!$search->hasResults()) {
+            return;
+        }
+
+        if (($results = $search->getResults()) === false) {
             static::raiseError(get_class($search) .'::getResults() returned false!', true);
             return;
         }
 
-        if (!$this->orderMatches()) {
+        foreach ($results as $type => $obj) {
+            if ($type !== '\Mtlda\Models\QueueModel' &&
+                $type !== '\Mtlda\Models\ArchiveModel' &&
+                $type !== '\Mtlda\Models\KeywordsModel'
+            ) {
+                unset($results[$type]);
+                continue;
+            }
+        }
+
+        if (!$this->orderMatches($results)) {
             static::raiseError(__CLASS__ .'::orderMatches() returned false!', true);
             return;
         }
 
+        $this->match_results = $results;
         return;
     }
 
@@ -66,8 +89,8 @@ class SearchView extends DefaultView
     {
         global $tmpl;
 
-        if (!isset($this->matches) ||
-            empty($this->matches)
+        if (!isset($this->match_results) ||
+            empty($this->match_results)
         ) {
             $tmpl->assign('no_result', true);
             return $tmpl->fetch('search.tpl');
@@ -78,34 +101,31 @@ class SearchView extends DefaultView
 
     public function listSearchResults($params, $content, &$smarty, &$repeat)
     {
-        $index = $smarty->getTemplateVars("smarty.IB.search_list.index");
-
-        if (!isset($index) || empty($index)) {
-            $index = 0;
-        }
-
-        if ($index >= count($this->avail_matches)) {
+        if (empty($this->match_results)) {
             $repeat = false;
             return $content;
         }
 
-        $item_idx = $this->avail_matches[$index];
-        $item =  $this->matches[$item_idx];
+        $item = array_shift($this->match_results);
 
         $smarty->assign("item", $item);
 
-        if (!preg_match('/^(archive|keyword|queue)/', $item_idx, $parts)) {
-            static::raiseError(__METHOD__ .'(), unknown item found!');
+        if (!preg_match('/(Document|QueueItem|Keyword)Model$/', get_class($item), $parts)) {
+            static::raiseError(__METHOD__ .'(), unknown item found!'. get_class($item));
             return false;
         }
 
-        $smarty->assign('type', $parts[1]);
+        $type =  strtolower($parts[1]);
+        $smarty->assign('type', $type);
 
-        if ($parts[1] == 'archive') {
+        if ($type == 'document') {
+            $smarty->assign('callview', 'archive');
             $smarty->assign('icon', 'archive');
-        } elseif ($parts[1] == 'queue') {
+        } elseif ($type == 'queueitem') {
+            $smarty->assign('callview', 'queue');
             $smarty->assign('icon', 'wait');
         } else {
+            $smarty->assign('callview', 'keywords');
             $smarty->assign('icon', 'star');
         }
 
@@ -121,35 +141,62 @@ class SearchView extends DefaultView
 
         $smarty->assign('item_safe_url', $idx .'-'. $guid);
 
-        $index++;
-        $smarty->assign("smarty.IB.search_list.index", $index);
         $repeat = true;
-
         return $content;
     }
 
-    protected function orderMatches()
+    protected function orderMatches(&$results)
     {
-        if (!isset($this->matches) ||
-            empty($this->matches)
-        ) {
+        if (!isset($results) || empty($results)) {
             return true;
         }
 
-        $unsorted = $this->matches;
+        $unsorted = $results;
         $documents = array();
         $queue = array();
         $keywords = array();
 
         foreach ($unsorted as $match) {
-            if (is_a($match, 'Mtlda\\Models\\DocumentModel')) {
-                array_push($documents, $match);
-            } elseif (is_a($match, 'Mtlda\\Models\\QueueItemModel')) {
-                array_push($queue, $match);
-            } elseif (is_a($match, 'Mtlda\\Models\\KeywordModel')) {
-                array_push($keywords, $match);
+            if (!is_a($match, 'Mtlda\\Models\\ArchiveModel') &&
+                !is_a($match, 'Mtlda\\Models\\QueueModel') &&
+                !is_a($match, 'Mtlda\\Models\\KeywordsModel')
+            ) {
+                continue;
+            } elseif (is_a($match, 'Mtlda\\Models\\ArchiveModel')) {
+                if (!$match->hasItems()) {
+                    continue;
+                }
+                if (($items = $match->getItems()) === false) {
+                    static::raiseError(get_class($match) .'::getItems() returned false!');
+                    return false;
+                }
+                foreach ($items as $item) {
+                    $documents[] = $item;
+                }
+            } elseif (is_a($match, 'Mtlda\\Models\\QueueModel')) {
+                if (!$match->hasItems()) {
+                    continue;
+                }
+                if (($items = $match->getItems()) === false) {
+                    static::raiseError(get_class($match) .'::getItems() returned false!');
+                    return false;
+                }
+                foreach ($items as $item) {
+                    $queue[] = $item;
+                }
+            } elseif (is_a($match, 'Mtlda\\Models\\KeywordsModel')) {
+                if (!$match->hasItems()) {
+                    continue;
+                }
+                if (($items = $match->getItems()) === false) {
+                    static::raiseError(get_class($match) .'::getItems() returned false!');
+                    return false;
+                }
+                foreach ($items as $item) {
+                    $keywords[] = $item;
+                }
             } else {
-                static::raiseError(__METHOD__ .'(), unknown Model found!');
+                static::raiseError(__METHOD__ .'(), unknown Model found!'. get_class($match));
                 return false;
             }
         }
@@ -187,8 +234,7 @@ class SearchView extends DefaultView
             $sorted["keyword${idx}"] = $keyword;
         }
 
-        $this->matches = $sorted;
-        $this->avail_matches = $matches;
+        $results = $sorted;
         return true;
     }
 
