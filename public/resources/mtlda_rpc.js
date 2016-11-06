@@ -487,4 +487,42 @@ function rpc_mail_import(element)
     return true;
 }
 
+function rpc_get_content(view, request_data)
+{
+    var data = {
+        type    : 'rpc',
+        action  : 'get-view',
+        view    : view
+    };
+
+    if (typeof request_data !== 'undefined') {
+        data.data = request_data;
+    }
+
+    return $.ajax({
+        type  : "POST",
+        url   : "rpc.html",
+        cache : false,
+        data  : data,
+        retries: 0,
+        error: function (XMLHttpRequest, textStatus, errorThrown) {
+            if (textStatus == 'timeout') {
+                this.retries++;
+                if (this.retries <= 3) {
+                    $.ajax(this);
+                    return;
+                }
+            }
+            alert('Failed to contact server! ' + textStatus);
+        },
+        success: function (data) {
+            if (!data) {
+                window.alert("no data received from server!");
+                return false;
+            }
+            return true;
+        }
+    });
+}
+
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
