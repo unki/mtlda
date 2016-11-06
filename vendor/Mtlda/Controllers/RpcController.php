@@ -21,6 +21,13 @@ namespace Mtlda\Controllers;
 
 class RpcController extends \Thallium\Controllers\RpcController
 {
+    protected static $valid_content = array(
+        'internaltestview',
+        'queue',
+        'split',
+        'preview',
+    );
+
     public function performApplicationSpecifc()
     {
         global $mtlda, $router, $query;
