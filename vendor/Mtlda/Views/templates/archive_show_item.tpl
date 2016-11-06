@@ -25,7 +25,7 @@
   <div class="header">
    <a name="filename_{$item->getIdx()}" class="inline editable content" data-current-value="{$item->getFileName()}" data-orig-value="{$item->getFileName()}" href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>&nbsp;&nbsp;
    <a name="filename_{$item->getIdx()}" class="inline editable edit link" data-inline-name="filename_{$item->getIdx()}"><i class="tiny edit icon"></i></a>
-   <a class="delete item" title="Delete {$item->getFileName()|escape}" data-model="document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}"><i class="remove circle icon"></i></a>
+   <a class="delete item" title="Delete {$item->getFileName()|escape}"  data-action-title="Deleting {$item->getFileName()|escape}" data-modal-title="Delete {$item->getFileName()|escape}" data-modal-text="Please confirm to delete {$item->getFileName()|escape}"  data-model="document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}"><i class="remove circle icon"></i></a>
    <div name="filename_{$item->getIdx()}" class="inline editable formsrc" style="display: none;">
     <form class="ui form" onsubmit="return false;">
      <div class="fields">
