@@ -158,7 +158,7 @@ class HttpRouterController extends DefaultController
         /**
          * in test mode, fake some HTTP request parameters.
          */
-        if ($thallium->inTestMode()) {
+        if (\Thallium\Controllers\MainController::inTestMode()) {
             $filtered_server['REQUEST_URI'] = sprintf(
                 '/thallium/documents/show/%d-%s?testparam=foobar',
                 1,
@@ -321,7 +321,7 @@ class HttpRouterController extends DefaultController
         /**
          * in test mode, fake some POST data for RPC testing.
          */
-        if ($thallium->inTestMode()) {
+        if (\Thallium\Controllers\MainController::inTestMode()) {
             $filtered_post = array(
                 'action' => 'get-content',
                 'view' => 'InternalTest',
@@ -859,14 +859,6 @@ class HttpRouterController extends DefaultController
             return false;
         }
 
-        if (!isset($value) ||
-            (!is_int($value) && !is_numeric($value) && empty($value)) ||
-            (!is_int($value) && !is_string($value) && !is_array($value))
-        ) {
-            static::raiseError(__METHOD__ .'(), $value parameter is invalid!');
-            return false;
-        }
-
         $this->query->params[$name] = $value;
         return true;
     }
@@ -1227,13 +1219,20 @@ class HttpRouterController extends DefaultController
      */
     protected function getRequestHeaders()
     {
-        if (!function_exists("getallheaders")) {
-            static::raiseError(__CLASS__ .', PHP does not provide getallheaders() function!');
+        if (!function_exists("apache_request_headers")) {
+            /**
+             * in test mode, we silently drop back.
+             */
+            if (\Thallium\Controllers\MainController::inTestMode()) {
+                return true;
+            }
+
+            static::raiseError(__CLASS__ .', PHP does not provide apache_request_headers() function!');
             return false;
         }
 
-        if (($this->httpRequestHeaders = getallheaders()) === false) {
-            static::raiseError(__CLASS__ .', getallheaders() returned false!');
+        if (($this->httpRequestHeaders = apache_request_headers()) === false) {
+            static::raiseError(__CLASS__ .', apache_request_headers() returned false!');
             return false;
         }
 
@@ -1249,6 +1248,11 @@ class HttpRouterController extends DefaultController
      */
     public function getHttpHeaders($header = null)
     {
+        // in test mode we are going to fake a JSON content-type.
+        if (\Thallium\Controllers\MainController::inTestMode() and $header === 'Content-Type') {
+            return 'application/json';
+        }
+
         if (!is_null($header) && !is_string($header)) {
             static::raiseError(__METHOD__ .'(), $header parameter is invalid!');
             return false;
