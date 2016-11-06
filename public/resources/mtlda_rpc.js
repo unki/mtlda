@@ -495,7 +495,7 @@ function rpc_get_content(view, request_data)
         view    : view
     };
 
-    if (typeof request_data !== 'undefined' && !request_data) {
+    if (typeof request_data !== 'undefined' && request_data) {
         data.data = request_data;
     }
 
