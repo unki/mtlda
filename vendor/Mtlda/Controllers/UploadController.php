@@ -127,7 +127,12 @@ class UploadController extends DefaultController
             return false;
         }
 
-        if (isset($file['type']) && $file['type'] != "application/pdf") {
+        if (isset($file['type']) &&
+            !empty($file['type']) &&
+            strtolower($file['type']) !== 'application/pdf' &&
+            strtolower($file['type']) !== 'application/octet-stream' &&
+            strtolower($file['type']) !== 'application/x-octet-stream'
+        ) {
             static::raiseError("file type {$file['type']} is not supported!");
             return false;
         }
