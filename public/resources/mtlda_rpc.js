@@ -424,6 +424,7 @@ function rpc_mail_import(element)
 
     var msg = new ThalliumMessage;
     msg.setCommand('mailimport-request');
+    msg.setMessage('run');
 
     if (!mbus.add(msg)) {
         throw 'ThalliumMessageBus.add() returned false!';
