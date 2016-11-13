@@ -492,7 +492,7 @@ function rpc_get_content(view, request_data)
 {
     var data = {
         type    : 'rpc',
-        action  : 'get-view',
+        action  : 'get-content',
         view    : view
     };
 
