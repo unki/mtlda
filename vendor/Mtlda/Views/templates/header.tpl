@@ -29,9 +29,9 @@
   <link rel="stylesheet" type="text/css" href="{$app_web_path}/resources/semantic-ui/semantic.min.css" />
   <script type="text/javascript" src="{$app_web_path}/resources/semantic-ui/semantic.min.js"></script>
   <!-- forge crypto -->
-  <script type="text/javascript" src="{$app_web_path}/resources/forge/js/forge.js"></script>
-  <script type="text/javascript" src="{$app_web_path}/resources/forge/js/util.js"></script>
-  <script type="text/javascript" src="{$app_web_path}/resources/forge/js/sha1.js"></script>
+  <script type="text/javascript" src="{$app_web_path}/resources/forge-0.6.45/js/forge.js"></script>
+  <script type="text/javascript" src="{$app_web_path}/resources/forge-0.6.45/js/util.js"></script>
+  <script type="text/javascript" src="{$app_web_path}/resources/forge-0.6.45/js/sha1.js"></script>
   <!-- pdf.js -->
   <script type="text/javascript" src="{$app_web_path}/resources/pdfjs/build/pdf.js"></script>
   <!-- jquery-tablesort -->
