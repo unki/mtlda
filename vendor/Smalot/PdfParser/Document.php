@@ -119,13 +119,15 @@ class Document
         // Extract document info
         if ($this->trailer->has('Info')) {
             /** @var Object $info */
-            $info     = $this->trailer->get('Info');
-            $details  = $info->getHeader()->getDetails();
+            $info = $this->trailer->get('Info');
+            if ($info !== null) {
+                $details = $info->getHeader()->getDetails();
+            }
         }
 
         // Retrieve the page count
         try {
-            $pages            = $this->getPages();
+            $pages = $this->getPages();
             $details['Pages'] = count($pages);
         } catch (\Exception $e) {
             $details['Pages'] = 0;
@@ -215,10 +217,13 @@ class Document
 
             /** @var Pages $object */
             $object = $this->objects[$id]->get('Pages');
-            $pages  = $object->getPages(true);
+            if (method_exists($object, 'getPages')) {
+                $pages = $object->getPages(true);
+                return $pages;
+            }
+        }
 
-            return $pages;
-        } elseif (isset($this->dictionary['Pages'])) {
+        if (isset($this->dictionary['Pages'])) {
             // Search for pages to list kids.
             $pages = array();
 
@@ -229,14 +234,16 @@ class Document
             }
 
             return $pages;
-        } elseif (isset($this->dictionary['Page'])) {
+        }
+
+        if (isset($this->dictionary['Page'])) {
             // Search for 'page' (unordered pages).
             $pages = $this->getObjectsByType('Page');
 
             return array_values($pages);
-        } else {
-            throw new \Exception('Missing catalog.');
         }
+
+        throw new \Exception('Missing catalog.');
     }
 
     /**
