@@ -33,7 +33,7 @@
   <script type="text/javascript" src="{$app_web_path}/resources/forge-0.6.45/js/util.js"></script>
   <script type="text/javascript" src="{$app_web_path}/resources/forge-0.6.45/js/sha1.js"></script>
   <!-- pdf.js -->
-  <script type="text/javascript" src="{$app_web_path}/resources/pdfjs/build/pdf.js"></script>
+  <script type="text/javascript" src="{$app_web_path}/resources/pdfjs-1.5.188/build/pdf.js"></script>
   <!-- jquery-tablesort -->
   <script type="text/javascript" src="{$app_web_path}/resources/jquery-tablesort/jquery.tablesort.min.js"></script>
   <!-- MTLDA JavaScript -->
