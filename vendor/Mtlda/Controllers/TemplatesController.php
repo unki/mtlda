@@ -1,10 +1,10 @@
 <?php
 
 /**
- * This file is part of Mtlda.
+ * This file is part of MTLDA.
  *
- * Mtlda, a web-based document archive.
- * Copyright (C) <2015>  <Andreas Unterkircher>
+ * MTLDA, a web-based document archive.
+ * Copyright (C) <2015-2016> <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
