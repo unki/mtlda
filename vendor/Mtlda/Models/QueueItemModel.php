@@ -74,7 +74,7 @@ class QueueItemModel extends DefaultModel
         global $mtlda, $db;
 
         $this->permitRpcUpdates(true);
-        $this->addVirtualField("keywords");
+        $this->addVirtualField('keywords');
         $this->addRpcEnabledField('file_name');
         $this->addRpcEnabledField('custom_date');
         $this->addRpcEnabledField('expiry_date');
