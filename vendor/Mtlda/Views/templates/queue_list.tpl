@@ -112,7 +112,7 @@
   <td class="filterable">{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
   <td style="overflow: visible">
    <div class="ui icon buttons">
-    <a class="action link ui icon button" href="{$app_web_path}/resources/pdfjs/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" data-content="Preview {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i></a>
+    <a class="action link ui icon button" href="{$app_web_path}/resources/pdfjs-1.6.210/web/viewer.html?file={get_url page=queue mode=show id=$item_safe_link}" data-content="Preview {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide" id="queueitem-{$item_safe_link}" target="_blank"><i class="search icon"></i></a>
     <div class="ui top left pointing dropdown button action link">
      <i class="archive icon"></i><i class="dropdown icon"></i>
      <div class="menu">
