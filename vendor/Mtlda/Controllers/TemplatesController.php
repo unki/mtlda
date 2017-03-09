@@ -79,29 +79,6 @@ class TemplatesController extends \Thallium\Controllers\TemplatesController
 
         return null;
     }
-
-    public static function getUrl($params)
-    {
-        if (($url = parent::getUrl($params)) === false) {
-            static::raiseError(__CLASS__ .'::getUrl() returned false!');
-            return false;
-        }
-
-        if (!array_key_exists('number', $params) &&
-            !array_key_exists('items_per_page', $params)) {
-            return $url;
-        }
-
-        if (array_key_exists('number', $params)) {
-            $url.= "list-{$params['number']}.html";
-        }
-
-        if (array_key_exists('items_per_page', $params)) {
-            $url.= "?items-per-page=". $params['items_per_page'];
-        }
-
-        return $url;
-    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
