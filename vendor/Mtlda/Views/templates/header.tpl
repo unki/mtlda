@@ -31,7 +31,7 @@
   <!-- forge crypto -->
   <script type="text/javascript" src="{$app_web_path}/resources/forge-dist-0.7.0/dist/forge.min.js"></script>
   <!-- pdf.js -->
-  <script type="text/javascript" src="{$app_web_path}/resources/pdfjs-1.5.188/build/pdf.js"></script>
+  <script type="text/javascript" src="{$app_web_path}/resources/pdfjs-1.6.210/build/pdf.js"></script>
   <!-- jquery-tablesort -->
   <script type="text/javascript" src="{$app_web_path}/resources/jquery-tablesort/jquery.tablesort.min.js"></script>
   <!-- MTLDA JavaScript -->
