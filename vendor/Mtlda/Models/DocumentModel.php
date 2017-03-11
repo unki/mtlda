@@ -812,7 +812,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    protected function postClone(&$srcobj)
+    protected function afterClone(&$srcobj)
     {
         try {
             $storage = new \Mtlda\Controllers\StorageController;
