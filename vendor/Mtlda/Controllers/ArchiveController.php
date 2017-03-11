@@ -72,7 +72,7 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (($fields = $queue_item->getFields()) === false) {
+        if (($fields = $queue_item->getModelFields()) === false) {
             static::raiseError(get_class($queue_item) .'::getModelFields() returned false!');
             return false;
         }
