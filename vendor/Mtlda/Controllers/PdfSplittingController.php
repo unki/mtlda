@@ -74,9 +74,9 @@ class PdfSplittingController extends \Thallium\Controllers\JobsController
     protected function cloneItem(&$srcitem, $pages)
     {
         try {
-            $this->tempItem->createClone($srcitem);
+            $this->tempItem = $srcitem->createClone();
         } catch (\Exception $e) {
-            static::raiseError(get_class($this->tempItem) .'::createClone() returned false!');
+            static::raiseError(get_class($srcitem) .'::createClone() returned false!');
             return false;
         }
 
