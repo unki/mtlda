@@ -294,8 +294,10 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!($signing_item->createClone($src_item))) {
-            static::raiseError(__METHOD__ ." unable to clone DocumentModel!");
+        try {
+            $signing_item = $src_item->createClone();
+        } catch (\Exception $e) {
+            static::raiseError(get_class($src_item) .'::createClone() returned false!');
             return false;
         }
 
@@ -453,8 +455,10 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!$logo_doc->createClone($src_document)) {
-            static::raiseError(get_class($logo_doc) .'::createClone() returned false!');
+        try {
+            $logo_doc = $src_document->createClone();
+        } catch (\Exception $e) {
+            static::raiseError(get_class($src_document) .'::createClone() returned false!');
             return false;
         }
 
