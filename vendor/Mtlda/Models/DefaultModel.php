@@ -67,6 +67,32 @@ abstract class DefaultModel extends \Thallium\Models\DefaultModel
 
         return $name;
     }
+
+    public function createClone()
+    {
+        if (method_exists($this, 'preClone') && is_callable(array($this, 'preClone'))) {
+            if (!$this->preClone()) {
+                static::raiseError(__CLASS__ .'::preClone() method returned false!', true);
+                return;
+            }
+        }
+
+        try {
+            $tempItem = clone $this;
+        } catch (\Exception $e) {
+            static::raiseError(__METHOD__ .'(), clone of '. get_class($this) .' failed!');
+            return false;
+        }
+
+        if (method_exists($this, 'afterClone') && is_callable(array($this, 'AfterClone'))) {
+            if (!$this->afterClone($this, $tempItem)) {
+                static::raiseError(__CLASS__ .'::afterClone() method returned false!', true);
+                return;
+            }
+        }
+
+        return $tempItem;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
