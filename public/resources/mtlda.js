@@ -119,7 +119,7 @@ function init_dropzone()
                     this.removeFile(file);
                     return;
                 }
-                window.alert(successMessage);
+                window.alert('Server reported: ' + errorMessage);
                 this.removeFile(file);
             });
         }
