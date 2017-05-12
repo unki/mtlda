@@ -25,18 +25,18 @@ class QueueController extends DefaultController
     {
         global $mtlda, $mbus;
 
-        if (empty($id) || !is_numeric($id)) {
-            static::raiseError("id is invalid!");
+        if (!isset($id) || empty($id) || !is_numeric($id)) {
+            static::raiseError(__METHOD__ .'(), id is invalid!');
             return false;
         }
 
         if (empty($guid) || !$mtlda->isValidGuidSyntax($guid)) {
-            static::raiseError("guid is invalid!");
+            static::raiseError(__METHOD__ .'(), guid is invalid!');
             return false;
         }
 
         if (!($obj = $mtlda->loadModel("queueitem", $id, $guid))) {
-            static::raiseError("Unable to load model for {$id}, {$guid}");
+            static::raiseError(__METHOD__ ."(), unable to load QueueItemModel for {$id}, {$guid}");
             return false;
         }
 
@@ -44,35 +44,42 @@ class QueueController extends DefaultController
             return true;
         }
 
+        if (!$obj->hasFileHash()) {
+            static::raiseError(__METHOD__ .'(), no hash-value for file!');
+            return false;
+        }
+
         if (($file_hash = $obj->getFileHash()) === false) {
             static::raiseError(get_class($obj) .'::getFileHash() returned false!');
             return false;
         }
 
-        if (empty($file_hash)) {
-            static::raiseError("Found no file hash for QueueItemModel {$id}, {$guid}!");
+        if (empty($file_hash) || !is_string($file_hash)) {
+            static::raiseError(__METHOD__ ."(), no valid hash-value for QueueItemModel {$id}, {$guid}!");
             return false;
         }
 
         try {
             $archive = new \Mtlda\Controllers\ArchiveController;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load ArchiveController!");
+            static::raiseError(__METHOD__ .'(), failed to load ArchiveController!');
             return false;
         }
 
-        if (!$archive) {
-            static::raiseError("Unable to load ArchiveController!");
+        if (!$archive || !is_a($archiv, 'Mtlda\Controllers\ArchiveController')) {
+            static::raiseError(__METHOD__ .'(), unable to load ArchiveController!');
             return false;
         }
 
         if (($dupl_item = $archive->checkForDuplicateFileByHash($file_hash)) === false) {
-            static::raiseError("ArchiveController::checkForDuplicateFileByHash returned false!");
+            static::raiseError(get_class($archive) .'::checkForDuplicateFileByHash() returned false!');
             return false;
         }
 
         if (!empty($dupl_item)) {
-            static::raiseError("There is already an item with the same file hash in the archive!");
+            static::raiseError(
+                __METHOD__ .'(), there is already an item with the same file hash present in the archive!'
+            );
             return false;
         }
 
@@ -82,7 +89,7 @@ class QueueController extends DefaultController
         }
 
         if (!$archive->archive($obj)) {
-            static::raiseError("ArchiveController::archive() exited with an error!");
+            static::raiseError(get_class($archive) .'::archive() exited with an error!');
             return false;
         }
 
@@ -96,7 +103,7 @@ class QueueController extends DefaultController
         try {
             $queue = new \Mtlda\Models\QueueModel;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load QueueModel");
+            static::raiseError(__METHOD__ .'(), failed to load QueueModel!');
             return false;
         }
 
@@ -111,22 +118,27 @@ class QueueController extends DefaultController
                 static::raiseError(get_class($queue) .'::hasItem() returned false!');
                 return false;
             }
+
             if (($queueitem = $queue->getItem($key)) === false) {
                 static::raiseError(get_clasS($queue) .'::getItem() returned false!');
                 return false;
             }
+
             if (!is_a($queueitem, 'Mtlda\Models\QueueItemModel!')) {
                 static::raiseError(get_class($queue) .'::getItem() has not returned a QueueItemModel!');
                 return false;
             }
+
             if (($idx = $queueitem->getIdx()) === false) {
                 static::raiseError(get_class($queueitem) .'::getIdx() returned false!');
                 return false;
             }
+
             if (($guid = $queueitem->getGuid()) === false) {
                 static::raiseError(get_class($queueitem) .'::getGuid() returned false!');
                 return false;
             }
+
             if ($queueitem->isProcessing()) {
                 continue;
             }
@@ -145,12 +157,13 @@ class QueueController extends DefaultController
             }
 
             $state = $mbus->suppressOutboundMessaging(true);
+
             if (!$this->archive($idx, $guid)) {
                 $mtlda->raiseArchive(__CLASS__ ."::archive() returned false for QueueItem {$idx}, {$guid}!");
                 return false;
             }
-            $mbus->suppressOutboundMessaging($state);
 
+            $mbus->suppressOutboundMessaging($state);
             $counter++;
         }
 
