@@ -258,7 +258,7 @@ class JobsController extends \Thallium\Controllers\JobsController
             $scan_request->id,
             $scan_request->guid
         )) === false) {
-            static::raiseError(__METHOD__ .", unable to load DocumentModel!");
+            static::raiseError(__METHOD__ .'(), unable to load DocumentModel!');
             return false;
         }
 
@@ -339,7 +339,7 @@ class JobsController extends \Thallium\Controllers\JobsController
                 'guid' => $sign_request->guid
             ));
         } catch (\Exception $e) {
-            static::raiseError(__METHOD__ .", unable to load DocumentModel!");
+            static::raiseError(__METHOD__ .'(), unable to load DocumentModel!');
             return false;
         }
 
