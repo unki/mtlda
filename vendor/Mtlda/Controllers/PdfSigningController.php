@@ -27,19 +27,19 @@ class PdfSigningController extends DefaultController
 
     public function __construct()
     {
-        global $mtlda, $config;
+        global $config;
 
         if (!$config->isPdfSigningEnabled()) {
-            static::raiseError("PdfSigningController, pdf_signing not enabled in config.ini!");
-            return false;
+            static::raiseError(__METHOD__ .'(), pdf_signing not enabled in config.ini!', true);
+            return;
         }
 
-        if (!($this->pdf_cfg = $config->getPdfSigningConfiguration())) {
-            static::raiseError("PdfSigningController, pdf_signing enabled but no valid [pdf_signing] section found!");
-            return false;
+        if (($this->pdf_cfg = $config->getPdfSigningConfiguration()) === false) {
+            static::raiseError(__METHOD__ .'(), pdf_signing enabled but no valid [pdf_signing] section found!', true);
+            return;
         }
 
-        if (!($this->tsp_cfg = $config->getTimestampConfiguration())) {
+        if (($this->tsp_cfg = $config->getTimestampConfiguration()) === false) {
             $this->tsp_cfg = array(
                 'tsp_algorithm' => 'SHA256'
             );
@@ -51,21 +51,21 @@ class PdfSigningController extends DefaultController
 
         // check if tsp algorithm is supported by the local OpenSSL installation
         if (!preg_match('/^SHA(1|256)$/', $this->tsp_cfg['tsp_algorithm'])) {
-            static::raiseError("TSP algorithm {$this->tsp_cfg['tsp_algorithm']} is not supported!");
-            return false;
+            static::raiseError(__METHOD__ ."(), TSP algorithm {$this->tsp_cfg['tsp_algorithm']} is not supported!", true);
+            return;
         }
 
         $supported_alg = openssl_get_md_methods(true);
 
         if (empty($supported_alg) || !is_array($supported_alg)) {
-            static::raiseError("Unable to retrive supported digest algorithms via openssl_get_md_methods()!");
-            return false;
+            static::raiseError(__METHOD__ .'(), unable to retrive supported digest algorithms via openssl_get_md_methods()!', true);
+            return;
         }
 
         $this->tsp_digest_algorithm = strtolower($this->tsp_cfg['tsp_algorithm']) .'WithRSAEncryption';
         if (!in_array($this->tsp_digest_algorithm, $supported_alg)) {
-            static::raiseError("OpenSSL installation does not support {$this->tsp_digest_algorithm} digest algorithm!");
-            return false;
+            static::raiseError(__METHOD__ ."(), OpenSSL installation does not support {$this->tsp_digest_algorithm} digest algorithm!", true);
+            return;
         }
 
         $fields = array(
@@ -79,24 +79,26 @@ class PdfSigningController extends DefaultController
 
         foreach ($fields as $field) {
             if (!isset($this->pdf_cfg[$field]) || empty($this->pdf_cfg[$field])) {
-                static::raiseError("PdfSigningController, {$field} not found in section [pdf_signing]!");
-                return false;
+                static::raiseError(__METHOD__ ."(), {$field} not found in section [pdf_signing]!", true);
+                return;
             }
         }
+
+        return;
     }
 
     public function signDocument(&$src_document)
     {
-        global $mtlda, $audit;
+        global $audit;
 
         if (!is_a($src_document, 'Mtlda\Models\DocumentModel')) {
-            static::raiseError(__METHOD__ .' only supports DocumentModels!');
+            static::raiseError(__METHOD__ .'(), supporting only DocumentModels!');
             return false;
         }
 
         $this->sendMessage('sign-reply', 'Retrieving document copy from archive.', '40%');
 
-        if (!$fqpn = $src_document->getFilePath()) {
+        if (($fqpn = $src_document->getFilePath()) === false) {
             static::raiseError(get_class($src_document) .'::getFilePath() returned false!');
             return false;
         }
@@ -125,21 +127,21 @@ class PdfSigningController extends DefaultController
             );
         } catch (\Exception $e) {
             $signing_item->delete();
-            static::raiseError("AuditController::log() raised an exception!");
+            static::raiseError(get_class($audit) .'::log() raised an exception!');
             return false;
         }
 
         if (($public_key = file_get_contents($this->pdf_cfg['certificate'])) === false) {
-            static::raiseError("reading {$this->pdf_cfg['certificate']} failed!");
+            static::raiseError(__METHOD__ ."(), reading {$this->pdf_cfg['certificate']} failed!");
             return false;
         }
 
         if (!$public_key = preg_replace('/(\s*)-----(\s*)(BEGIN|END) CERTIFICATE(\s*)-----(\s*)/', '', $public_key)) {
-            static::raiseError("failed to strip RSA headers!");
+            static::raiseError(__METHOD__ .'(), failed to strip RSA headers!');
             return false;
         }
         if (!$public_key = str_replace("\n", '', $public_key)) {
-            static::raiseError("failed to strip whitespaces from public key!");
+            static::raiseError(__METHOD__ .'(), failed to strip whitespaces from public key!');
             return false;
         }
 
@@ -160,23 +162,23 @@ class PdfSigningController extends DefaultController
                 )
             );
         } catch (\DSSException $d) {
-            static::raiseError($d);
+            static::raiseError(__METHOD__ .'(), received an DSSException!', false, $d);
             return false;
         } catch (\SOAPFault $f) {
-            static::raiseError($f->faultcode .' - '. $f->faultstring);
+            static::raiseError(__METHOD__ .'(), received an SOAPFault: '. $f->faultcode .' - '. $f->faultstring);
             return false;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load SoapClient!");
+            static::raiseError(__METHOD__ .'(), failed to load SoapClient!');
             return false;
         }
 
         if (!is_callable(array($dss, "getDataToSign"))) {
-            static::raiseError("Remote side does not provide getDataToSign() method!");
+            static::raiseError(__METHOD__ .'(), remote side does not provide getDataToSign() method!');
             return false;
         }
 
         if (!is_callable(array($dss, "signDocument"))) {
-            static::raiseError("Remote side does not provide signDocument() method!");
+            static::raiseError(__METHOD__ .'(), remote side does not provide signDocument() method!');
             return false;
         }
 
@@ -228,10 +230,11 @@ class PdfSigningController extends DefaultController
             'ContactInfo' => $this->pdf_cfg['contact'],
         ); */
 
-        if (!($document->bytes = file_get_contents($fqpn))) {
-            static::raiseError("Failed to read {$fqpn}.");
+        if (($document->bytes = file_get_contents($fqpn)) === false) {
+            static::raiseError(__METHOD__ .'(), failed to read {$fqpn}!');
             return false;
         }
+
         $document->name = basename($fqpn);
         $document->mimeType = new \stdClass();
         $document->mimeType->mimeTypeString = 'application/pdf';
@@ -249,12 +252,10 @@ class PdfSigningController extends DefaultController
                 'wsParameters' => $parameters
             ));
         } catch (\SoapFault $f) {
-            static::raiseError(
-                $f->faultcode .' - '. $f->faultstring .'<br />'. htmlspecialchars($dss->__getLastRequest())
-            );
+            static::raiseError(__METHOD__ .'(), received a SoapFault: '. $f->faultcode .' - '. $f->faultstring .'<br />'. htmlspecialchars($dss->__getLastRequest()));
             return false;
         } catch (\Exception $e) {
-            static::raiseError("SOA getDataToSign() method returned unexpected!");
+            static::raiseError(__METHOD__ .'(), SOAP getDataToSign() method returned unexpected!');
             return false;
         }
 
@@ -263,7 +264,7 @@ class PdfSigningController extends DefaultController
             !isset($result->response) ||
             empty($result->response)
         ) {
-            static::raiseError("Invalid response on SOAP request 'getDataToSign'!");
+            static::raiseError(__METHOD__ .'(), invalid response on SOAP request "getDataToSign"!');
             return false;
         }
 
@@ -271,14 +272,14 @@ class PdfSigningController extends DefaultController
             $this->pdf_cfg['password'] = false;
         }
 
-        if (!$key = openssl_pkey_get_private($this->pdf_cfg['private_key'], $this->pdf_cfg['password'])) {
-            static::raiseError("Failed to read private key!");
+        if (($key = openssl_pkey_get_private($this->pdf_cfg['private_key'], $this->pdf_cfg['password'])) === false) {
+            static::raiseError(__METHOD__ .'(), openssl_pkey_get_private() returned false!');
             return false;
         }
 
         if (!openssl_sign($result->response, $signature, $key, $this->tsp_digest_algorithm)) {
             openssl_free_key($key);
-            static::raiseError("openssl_sign() returned false!");
+            static::raiseError(__METHOD__ .'(), openssl_sign() returned false!');
             return false;
         }
 
@@ -286,7 +287,7 @@ class PdfSigningController extends DefaultController
         openssl_free_key($key);
 
         if (!isset($signature) || empty($signature)) {
-            static::raiseError("openssl_sign() returned invalid signature!");
+            static::raiseError(__METHOD__ .'(), openssl_sign() returned invalid signature!');
             return false;
         }
 
@@ -299,17 +300,15 @@ class PdfSigningController extends DefaultController
                 'signatureValue' => $signature
             ));
         } catch (\SoapFault $f) {
-            static::raiseError(
-                $f->faultcode .' - '. $f->faultstring .'<br />'. htmlspecialchars($dss->__getLastRequest())
-            );
+            static::raiseError(__METHOD__ .'(), received a SoapFault: '. $f->faultcode .' - '. $f->faultstring .'<br />'. htmlspecialchars($dss->__getLastRequest()));
             return false;
         } catch (\Exception $e) {
-            static::raiseError("SOA signDocument() method returned unexpected!");
+            static::raiseError(__METHOD__ .'(), SOAP signDocument() method returned unexpected!');
             return false;
         }
 
         if (!isset($result) || empty($result) || !isset($result->response) || empty($result->response)) {
-            static::raiseError("Invalid response on SOAP request 'signDocument'!");
+            static::raiseError(__METHOD__ .'(), invalid response on SOAP request "signDocument"!');
             return false;
         }
 
@@ -317,14 +316,14 @@ class PdfSigningController extends DefaultController
             empty($result->response->bytes) ||
             strlen($result->response->bytes) == 0
         ) {
-            static::raiseError("No document received up on SOAP request 'signDocument'!");
+            static::raiseError(__METHOD__ .'(), no document received up on SOAP request "signDocument"!');
             return false;
         }
 
         $this->sendMessage('sign-reply', 'Transfering the signed document into archive.', '80%');
 
         if (file_put_contents($fqpn, $result->response->bytes) === false) {
-            static::raiseError("Failed to write signed document into {$fqpn}!");
+            static::raiseError(__METHOD__ ."(), failed to write signed document into {$fqpn}!");
             return false;
         }
 
