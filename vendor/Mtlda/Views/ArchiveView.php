@@ -36,7 +36,7 @@ class ArchiveView extends DefaultView
         try {
             $archive = new \Mtlda\Models\ArchiveModel;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load ArchiveModel!", true);
+            static::raiseError(__METHOD__ .'(), failed to load ArchiveModel!', true);
             return;
         }
 
@@ -62,7 +62,7 @@ class ArchiveView extends DefaultView
         global $config, $tmpl;
 
         if ($this->item_name != "Document") {
-            static::raiseError(__METHOD__ .' can only work with documents!');
+            static::raiseError(__METHOD__ .'(), can only work with documents!');
             return false;
         }
 
@@ -114,7 +114,7 @@ class ArchiveView extends DefaultView
         $tmpl->assign('item_versions', $descendants);
         $tmpl->assign('item', $this->item);
         $tmpl->assign('keywords', $this->keywords->getItems());
-        $tmpl->assign("item_safe_link", "document-". $this->item->getIdx() ."-". $this->item->getGuid());
+        $tmpl->assign("item_safe_link", $this->item->getIdx() ."-". $this->item->getGuid());
 
         try {
             $this->document_properties = new \Mtlda\Models\DocumentPropertiesModel(array(
@@ -176,8 +176,9 @@ class ArchiveView extends DefaultView
     {
         global $query;
 
+        /* return void if no descendants are available */
         if (!$this->item->hasDescendants()) {
-            return true;
+            return null;
         }
 
         $content = "";
@@ -211,7 +212,7 @@ class ArchiveView extends DefaultView
                 continue;
             }
             $tmpl->assign('item', $item);
-            $tmpl->assign('item_safe_link', 'document-'. $item->getIdx() .'-'. $item->getGuid());
+            $tmpl->assign("item_safe_link", $item->getIdx() ."-". $item->getGuid());
 
             if ($item->hasDescendants()) {
                 $tmpl->assign('item_has_descendants', true);
