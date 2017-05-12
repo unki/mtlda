@@ -41,7 +41,6 @@ class InstallerController extends \Thallium\Controllers\InstallerController
                 `document_custom_date` date NULL DEFAULT NULL,
                 `document_expiry_date` date NULL DEFAULT NULL,
                 `document_version` varchar(255) DEFAULT NULL,
-                `document_derivation` int(11) DEFAULT NULL,
                 `document_derivation_guid` varchar(255) DEFAULT NULL,
                 `document_signed_copy` varchar(1) DEFAULT NULL,
                 `document_deleted` varchar(1) DEFAULT NULL,
@@ -1040,6 +1039,26 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         }
 
         $db->setDatabaseSchemaVersion(33);
+        return true;
+    }
+
+    protected function upgradeApplicationDatabaseSchemaV34()
+    {
+        global $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXarchive
+            DROP COLUMN
+                document_derivation"
+        );
+
+        if ($result === false) {
+            static::raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(34);
         return true;
     }
 }
