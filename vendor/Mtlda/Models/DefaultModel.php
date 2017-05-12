@@ -68,8 +68,13 @@ abstract class DefaultModel extends \Thallium\Models\DefaultModel
         return $name;
     }
 
-    public function createClone()
+    public function createClone($fields_override = array())
     {
+        if (isset($fields_override) && !is_array($fields_override)) {
+            static::raiseError(__METHOD__ .'(), $fields_override has to be an array!', true);
+            return false;
+        }
+
         if (method_exists($this, 'preClone') && is_callable(array($this, 'preClone'))) {
             if (!$this->preClone()) {
                 static::raiseError(__CLASS__ .'::preClone() method returned false!', true);
@@ -80,11 +85,28 @@ abstract class DefaultModel extends \Thallium\Models\DefaultModel
         try {
             $tempItem = clone $this;
         } catch (\Exception $e) {
-            static::raiseError(__METHOD__ .'(), clone of '. get_class($this) .' failed!');
+            static::raiseError(__METHOD__ .'(), clone of '. get_class($this) .' failed!', true);
             return false;
         }
 
-        if (method_exists($this, 'afterClone') && is_callable(array($this, 'AfterClone'))) {
+        foreach ($fields_override as $field => $value) {
+            if (!isset($field) || empty($field) || !is_string($field)) {
+                static::raiseError(__METHOD__ .'(), $fields_override contains an invalid field!', true);
+                return false;
+            }
+
+            if (!$tempItem->hasField($field)) {
+                static::raiseError(__METHOD__ .'(), $fields_override refers an unknown field!', true);
+                return false;
+            }
+
+            if (!$tempItem->setFieldValue($field, $value)) {
+                static::raiseError(get_class($tempItem) .'::setFieldValue() returned false!', true);
+                return false;
+            }
+        }
+
+        if (method_exists($this, 'afterClone') && is_callable(array($this, 'afterClone'))) {
             if (!$this->afterClone($this, $tempItem)) {
                 static::raiseError(__CLASS__ .'::afterClone() method returned false!', true);
                 return;
