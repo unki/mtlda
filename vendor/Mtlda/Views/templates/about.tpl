@@ -17,10 +17,10 @@
 <h1 class="ui header"><i class="info icon"></i>About</h1>
 <div class="ui segment">
 <h4 class="ui header">MTLDA - My Tiny Little Document Archive</h4>
-&copy; MTLDA, 2015-{'Y'|date}, 2015 Andreas Unterkircher &lt;unki@netshadow.net&gt;
+&copy; MTLDA, 2015-{'Y'|date}, Andreas Unterkircher &lt;unki@netshadow.net&gt;
 <br />
-<a href="http://www.mtlda.org/" target="_blank">http://www.mtlda.org</a>.
-Or visit this project at <a href="https://github.com/unki/mtlda" target="_blank"><i class="github icon"></i>github</a>.
+<a href="http://www.mtlda.org/" target="_blank">mtlda.org</a>,
+or check out this project at <a href="https://github.com/unki/mtlda" target="_blank"><i class="github icon"></i>GitHub</a>.
 <br /><br />
 MTLDA Version: {$mtlda_version}
 <br />
