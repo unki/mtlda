@@ -1061,6 +1061,28 @@ class InstallerController extends \Thallium\Controllers\InstallerController
         $db->setDatabaseSchemaVersion(34);
         return true;
     }
+
+    protected function upgradeApplicationDatabaseSchemaV35()
+    {
+        global $db;
+
+        $result = $db->query(
+            "ALTER TABLE
+                TABLEPREFIXassign_keywords_to_document
+            DROP KEY
+                `document_keywords`,
+            ADD KEY
+                `document_keywords` (`akd_archive_idx`,`akd_keyword_idx`)"
+        );
+
+        if ($result === false) {
+            static::raiseError(__METHOD__ ." failed!");
+            return false;
+        }
+
+        $db->setDatabaseSchemaVersion(35);
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
