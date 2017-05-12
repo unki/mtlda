@@ -26,12 +26,12 @@ class UploadController extends DefaultController
         global $session, $config;
 
         if (!$config->isHttpUploadEnabled()) {
-            static::raiseError(__CLASS__ .', HTTP upload is not enabled in configuration!', true);
+            static::raiseError(__METHOD__ .'(), HTTP upload is not enabled in configuration!', true);
             return false;
         }
 
         if (!$session) {
-            static::raiseError(__CLASS__ .', requires SessionController to be initialized first!', true);
+            static::raiseError(__METHOD__ .'(), requires SessionController to be initialized first!', true);
             return false;
         }
 
@@ -43,7 +43,7 @@ class UploadController extends DefaultController
         global $mtlda, $jobs;
 
         if (!isset($_FILES) || empty($_FILES) || !is_array($_FILES)) {
-            static::raiseError("\$_FILES is empty");
+            static::raiseError(__METHOD__ .'(), $_FILES is empty');
             return false;
         }
 
@@ -51,14 +51,14 @@ class UploadController extends DefaultController
             empty($_FILES['mtlda_upload'] ||
             !is_array($_FILES['mtlda_upload']))
         ) {
-            static::raiseError("\$_FILES['mtlda_upload'] is empty");
+            static::raiseError(__METHOD__ .'(), $_FILES["mtlda_upload"] is empty');
             return false;
         }
 
         $upload = $_FILES['mtlda_upload'];
 
         if (empty($upload['name']) || !is_array($upload['name'])) {
-            static::raiseError("noramally 'name' should be an array!");
+            static::raiseError(__METHOD__ .'(), normally "name" should be an array!');
             return false;
         }
 
@@ -70,7 +70,7 @@ class UploadController extends DefaultController
                 $upload['error'][$file_id],
                 $upload['size'][$file_id]
             )) {
-                static::raiseError("\$upload[{$file_id}] is incomplete!");
+                static::raiseError(__METHOD__ ."(), \$upload[{$file_id}] is incomplete!");
                 return false;
             }
 
@@ -83,7 +83,7 @@ class UploadController extends DefaultController
             );
 
             if (!$this->handleUploadedFile($file)) {
-                static::raiseError("UploadController::handleUploadedFile() returned false!");
+                static::raiseError(__CLASS__ .'::handleUploadedFile() returned false!');
                 return false;
             }
         }
@@ -100,7 +100,7 @@ class UploadController extends DefaultController
     public function handleUploadedFile($file)
     {
         if (empty($file) || !is_array($file)) {
-            static::raiseError("\$file is invalid!");
+            static::raiseError(__METHOD__ .'(), $file is invalid!');
             return false;
         }
 
@@ -108,22 +108,22 @@ class UploadController extends DefaultController
             if (($error_message = $this->getUploadErrorMessage($file['error'])) === false) {
                 $error_message = 'An unspecific error occured!';
             }
-            static::raiseError("\$file has been marked erroneous ({$error_message})!");
+            static::raiseError(__METHOD__ ."(), \$file has been marked erroneous ({$error_message})!");
             return false;
         }
 
         if (!isset($file['name']) || empty($file['name'])) {
-            static::raiseError("no file name has been provided!");
+            static::raiseError(__METHOD__ .'(), no file name has been provided!');
             return false;
         }
 
         if (!isset($file['size']) || empty($file['size'])) {
-            static::raiseError("no valid faile size ({$file['size']}) has been provided!");
+            static::raiseError(__METHOD__ ."(), no valid faile size ({$file['size']}) has been provided!");
             return false;
         }
 
         if (!preg_match("/\.pdf$/i", $file['name'])) {
-            static::raiseError("only files with a suffix .pdf are supported!");
+            static::raiseError(__METHOD__ .'(), only files with a suffix .pdf are supported!');
             return false;
         }
 
@@ -133,49 +133,49 @@ class UploadController extends DefaultController
             strtolower($file['type']) !== 'application/octet-stream' &&
             strtolower($file['type']) !== 'application/x-octet-stream'
         ) {
-            static::raiseError("file type {$file['type']} is not supported!");
+            static::raiseError(__METHOD__ ."(), file type {$file['type']} is not supported!");
             return false;
         }
 
         if (!file_exists($file['tmp_name'])) {
-            static::raiseError("uploaded file should be available at {$file['tmp_name']} but can not be found!");
+            static::raiseError(__METHOD__ ."(), uploaded file should be available at {$file['tmp_name']} but can not be found!");
             return false;
         }
 
         clearstatcache(true, $file['tmp_name']);
 
         if (($filesize = filesize($file['tmp_name'])) === false || empty($filesize)) {
-            static::raiseError("failed to detected file size of {$file['tmp_name']}");
+            static::raiseError(__METHOD__ ."(), failed to detected file size of {$file['tmp_name']}");
             return false;
         }
 
         if (($filesize != $file['size'])) {
             static::raiseError(
-                "provided upload size ({$file['size']}) is not equal the actual file size ({$filesize})!"
+                __METHOD__ ."(), provided upload size ({$file['size']}) is not equal the actual file size ({$filesize})!"
             );
             return false;
         }
 
-        $dest = $this::INCOMING_DIRECTORY .'/'. $file['name'];
-        $dest_queue = $this::WORKING_DIRECTORY .'/'. $file['name'];
+        $dest = static::INCOMING_DIRECTORY .'/'. $file['name'];
+        $dest_queue = static::WORKING_DIRECTORY .'/'. $file['name'];
 
         if (file_exists($dest)) {
-            static::raiseError("A file with the name {$file['name']} is already present in the incoming directory!");
+            static::raiseError(__METHOD__ ."(), a file with the name {$file['name']} is already present in the incoming directory!");
             return false;
         }
 
         if (file_exists($dest_queue)) {
-            static::raiseError("An item with the name {$file['name']} is already queued!");
+            static::raiseError(__METHOD__ ."(), an item with the name {$file['name']} is already queued!");
             return false;
         }
 
         if (!is_uploaded_file($file['tmp_name'])) {
-            static::raiseError("Strangly is_uploaded_file() reports that {$file['tmp_name']} is not an uploaded file!");
+            static::raiseError(__METHOD__ ."(), is_uploaded_file() reports that {$file['tmp_name']} is not an uploaded file!");
             return false;
         }
 
         if (!move_uploaded_file($file['tmp_name'], $dest)) {
-            static::raiseError("Moving {$file['tmp_name']} to ". $this::INCOMING_DIRECTORY ." failed!");
+            static::raiseError(__METHOD__ ."(), moving {$file['tmp_name']} to ". static::INCOMING_DIRECTORY ." failed!");
             return false;
         }
 
