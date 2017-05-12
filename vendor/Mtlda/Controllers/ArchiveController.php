@@ -25,9 +25,14 @@ class ArchiveController extends DefaultController
     {
         global $config, $audit, $mbus;
 
+        if (!is_a($queue_item, 'Mtlda\Models\QueueItemModel')) {
+            static::raiseError(__METHOD__ .'(), only QueueItemModels are supported!');
+            return false;
+        }
+
         // verify QueueItemModel is ok()
         if (!$queue_item->verify()) {
-            static::raiseError("QueueItemModel::verify() returned false!");
+            static::raiseError(get_class($queue_item) .'::verify() returned false!');
             return false;
         }
 
@@ -49,14 +54,14 @@ class ArchiveController extends DefaultController
         try {
             $document = new \Mtlda\Models\DocumentModel;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load DocumentModel!");
+            static::raiseError(__METHOD__ .'(), failed to load DocumentModel!');
             return false;
         }
 
         try {
             $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load StorageController!");
+            static::raiseError(__METHOD__ .'(), failed to load StorageController!');
             return false;
         }
 
@@ -68,7 +73,7 @@ class ArchiveController extends DefaultController
                 $queue_item->getGuid()
             );
         } catch (\Exception $e) {
-            static::raiseError("AuditController::log() returned false!");
+            static::raiseError(get_class($audit) .'::log() returned false!');
             return false;
         }
 
@@ -109,10 +114,12 @@ class ArchiveController extends DefaultController
                 static::raiseError(__METHOD__ .'(), document has no title nor a filename!');
                 return false;
             }
+
             if (($name = $document->getFileName()) === false) {
                 static::raiseError(get_class($document) .'::getFileName() returned false!');
                 return false;
             }
+
             if (!$document->setTitle($document->getFileName())) {
                 static::raiseError(get_class($document) .'::setTitle() returned false!');
                 return false;
@@ -137,14 +144,14 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!$mbus->sendMessageToClient('archive-reply', 'Moving document to archive store.', '30%')) {
+        if (!$mbus->sendMessageToClient('archive-reply', 'Copy document to archive store.', '30%')) {
             static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
         // create the target directory structure
         if (!$storage->createDirectoryStructure(dirname($fqfn_dst))) {
-            static::raiseError("StorageController::createDirectoryStructure() returned false!");
+            static::raiseError(get_class($storage) .'::createDirectoryStructure() returned false!');
             return false;
         }
 
@@ -156,12 +163,12 @@ class ArchiveController extends DefaultController
                 $queue_item->getGuid()
             );
         } catch (\Exception $e) {
-            static::raiseError("AuditController::log() returned false!");
+            static::raiseError(get_class($audit) .'::log() returned false!');
             return false;
         }
 
         if (!$storage->copyFile($fqfn_src, $fqfn_dst)) {
-            static::raiseError("StorageController::copyFile() returned false!");
+            static::raiseError(get_class($storage) .'::copyFile() returned false!');
             return false;
         }
 
@@ -172,10 +179,12 @@ class ArchiveController extends DefaultController
 
         // safe DocumentModel to database, remove the file from archive again
         if (!$document->save()) {
-            static::raiseError("DocumentModel::save() returned false!");
+            static::raiseError(get_class($document) .'::save() returned false!');
+
             if (!$storage->deleteItemFile($document)) {
-                static::raiseError("StorageController::deleteItemFile() returned false!");
+                static::raiseError(get_class($storage) .'::deleteItemFile() returned false!');
             }
+
             return false;
         }
 
@@ -183,11 +192,13 @@ class ArchiveController extends DefaultController
         if ($queue_item->hasKeywords()) {
             if (($keywords = $queue_item->getKeywords()) === false) {
                 static::raiseError(get_class($queue_item) .'::getKeywords() returned false!');
+                $document->delete();
                 return false;
             }
             if (isset($keywords) && is_array($keywords)) {
                 if (!$document->setKeywords($keywords)) {
                     static::raiseError(get_class($document) .'::setKeywords() returned false!');
+                    $document->delete();
                     return false;
                 }
             }
@@ -195,14 +206,16 @@ class ArchiveController extends DefaultController
 
         // delete QueueItemModel from database, if that fails revert
         if (!$queue_item->delete()) {
-            static::raiseError("DocumentModel::delete() returned false!");
+            static::raiseError(get_class($queue_item) .'::delete() returned false!');
+
             if (!$document->delete()) {
-                static::raiseError("QueueItemModel::delete() returned false!");
+                static::raiseError(get_class($document) .'::delete() returned false!');
             }
+
             return false;
         }
 
-        if (!$mbus->sendMessageToClient('archive-reply', 'Embeding seal icon into document.', '50%')) {
+        if (!$mbus->sendMessageToClient('archive-reply', 'Embedding seal-icon into document.', '50%')) {
             static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
@@ -250,12 +263,13 @@ class ArchiveController extends DefaultController
         }
 
         $state = $mbus->suppressOutboundMessaging(true);
+
         if (!$this->sign($document)) {
             static::raiseError(__CLASS__ ."::sign() returned false!");
             return false;
         }
-        $mbus->suppressOutboundMessaging($state);
 
+        $mbus->suppressOutboundMessaging($state);
         return true;
     }
 
@@ -264,28 +278,28 @@ class ArchiveController extends DefaultController
         global $config, $audit, $mbus;
 
         if (!$config->isPdfSigningEnabled()) {
-            static::raiseError("ConfigController::isPdfSigningEnabled() returns false!");
+            static::raiseError(get_class($config) .'::isPdfSigningEnabled() returns false!');
             return false;
         }
 
         try {
             $signer = new \Mtlda\Controllers\PdfSigningController;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load PdfSigningController");
+            static::raiseError(__METHOD__ .'(), failed to load PdfSigningController');
             return false;
         }
 
         try {
             $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load StorageController!");
+            static::raiseError(__METHOD__ .'(), failed to load StorageController!');
             return false;
         }
 
         try {
             $signing_item = new \Mtlda\Models\DocumentModel;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load DocumentModel!");
+            static::raiseError(__METHOD__ .'(), failed to load DocumentModel!');
             return false;
         }
 
@@ -310,11 +324,11 @@ class ArchiveController extends DefaultController
             );
         } catch (\Exception $e) {
             $signing_item->delete();
-            static::raiseError("AuditController::log() raised an exception!");
+            static::raiseError(get_class($audit) .'::log() raised an exception!');
             return false;
         }
 
-        // we need to save once so the database id is written back to the document_idx field.
+        // we need to save once to database, so the id is written back to the document_idx field.
         if (!$signing_item->save()) {
             static::raiseError(get_class($signing_item) .'::save() returned false!');
             return false;
@@ -322,7 +336,6 @@ class ArchiveController extends DefaultController
 
         // append a suffix to new cloned file
         $signing_item->setFileName(str_replace(".pdf", "_signed.pdf", $signing_item->getFileName()));
-        $signing_item->setDerivationId($src_item->getIdx());
         $signing_item->setDerivationGuid($src_item->getGuid());
 
         if (!$signing_item->save()) {
@@ -340,29 +353,7 @@ class ArchiveController extends DefaultController
 
         if (!$signer->signDocument($signing_item)) {
             $signing_item->delete();
-            static::raiseError("PdfSigningController::ѕignDocument() returned false!");
-            return false;
-        }
-
-        if (!$mbus->sendMessageToClient('sign-reply', 'Refreshing document information', '90%')) {
-            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
-            return false;
-        }
-
-        if (!$signing_item->refresh()) {
-            $signing_item->delete();
-            static::raiseError(get_class($signing_item) .'::refresh() returned false!');
-            return false;
-        }
-
-        if (!$signing_item->setSignedCopy(true)) {
-            static::raiseError(get_class($signing_item) .'::setSignedCopy() returned false!');
-            return false;
-        }
-
-        if (!$signing_item->save()) {
-            $signing_item->delete();
-            static::raiseError(get_class($signing_item) .'::save() returned false!');
+            static::raiseError(get_class($signer) .'::ѕignDocument() returned false!');
             return false;
         }
 
@@ -375,7 +366,12 @@ class ArchiveController extends DefaultController
             );
         } catch (\Exception $e) {
             $signing_item->delete();
-            static::raiseError("AuditController::log() raised an exception!");
+            static::raiseError(get_class($audit) .'::log() raised an exception!');
+            return false;
+        }
+
+        if (!$mbus->sendMessageToClient('sign-reply', 'Done', '100%')) {
+            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
             return false;
         }
 
@@ -459,11 +455,6 @@ class ArchiveController extends DefaultController
             $logo_doc = $src_document->createClone();
         } catch (\Exception $e) {
             static::raiseError(get_class($src_document) .'::createClone() returned false!');
-            return false;
-        }
-
-        if ($logo_doc->setDerivationId($src_document->getIdx()) === false) {
-            static::raiseError(get_class($src_document) .'::getIdx() returned false!');
             return false;
         }
 
