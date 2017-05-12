@@ -807,7 +807,7 @@ class DocumentModel extends DefaultModel
         return true;
     }
 
-    protected function afterClone(&$srcobj)
+    protected function afterClone(&$src, &$clone)
     {
         try {
             $storage = new \Mtlda\Controllers\StorageController;
@@ -816,13 +816,18 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (($src_file = $srcobj->getFilePath()) === false) {
+        if (($src_file = $src->getFilePath()) === false) {
             static::raiseError(__METHOD__ .'(), unable to retrieve source objects full qualified path name!');
             return false;
         }
 
-        if (($dst_file = $this->getFilePath()) === false) {
+        if (($dst_file = $clone->getFilePath()) === false) {
             static::raiseError(__CLASS__ .'::getFilePath() returned false!');
+            return false;
+        }
+
+        if ($src_file === $dst_file) {
+            static::raiseError(__METHOD__ .'(), source- and destination-file are the same!');
             return false;
         }
 
