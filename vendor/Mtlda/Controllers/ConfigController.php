@@ -215,6 +215,29 @@ class ConfigController extends \Thallium\Controllers\ConfigController
         return false;
     }
 
+    public function isPdfSignatureVerificationEnabled()
+    {
+        if (!isset($this->config['app']['pdf_verify_signature']) ||
+            empty($this->config['app']['pdf_verify_signature'])
+        ) {
+            return false;
+        }
+
+        if ($this->isDisabled($this->config['app']['pdf_verify_signature'])) {
+            return false;
+        }
+
+        if ($this->isEnabled($this->config['app']['pdf_verify_signature'])) {
+            return true;
+        }
+
+        static::raiseError(
+            __METHOD__ .'(), "pdf_verify_signature" configuration option in [app] section is invalid!',
+            true
+        );
+        return false;
+    }
+
     public function isPdfIndexingEnabled()
     {
         if (!isset($this->config['app']['pdf_indexing']) ||
@@ -508,8 +531,8 @@ class ConfigController extends \Thallium\Controllers\ConfigController
             __METHOD__ .'(), "permit_reset_data" configuration option in [app] section is invalid!',
             true
         );
-        return false;
 
+        return false;
     }
 
     public function getDefaultOcrLanguage()
