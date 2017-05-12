@@ -26,7 +26,7 @@ class ViewsController extends \Thallium\Controllers\ViewsController
         '/^main$/' => 'MainView',
         '/^queue$/' => 'QueueView',
         '/^archive$/' => 'ArchiveView',
-        '/^document$/' => 'ArchiveView',
+        '/^document$/' => 'DocumentView',
         '/^upload$/' => 'UploadView',
         '/^keywords$/' => 'KeywordsView',
         '/^about$/' => 'AboutView',
