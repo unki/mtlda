@@ -84,21 +84,21 @@ class JobsController extends \Thallium\Controllers\JobsController
         if ($archive_request->id != 'all' &&
             !$mtlda->isValidId($archive_request->id)
         ) {
-            static::raiseError(__METHOD__ .'(), \$id is invalid!');
+            static::raiseError(__METHOD__ .'(), $id is invalid!');
             return false;
         }
 
         if ($archive_request->guid != 'all' &&
             !$mtlda->isValidGuidSyntax($archive_request->guid)
         ) {
-            static::raiseError(__METHOD__ .'() \$guid is invalid!');
+            static::raiseError(__METHOD__ .'() $guid is invalid!');
             return false;
         }
 
         try {
             $queue = new \Mtlda\Controllers\QueueController;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load QueueController!");
+            static::raiseError(__METHOD__ .'(), failed to load QueueController!');
             return false;
         }
 
@@ -112,10 +112,12 @@ class JobsController extends \Thallium\Controllers\JobsController
                 static::raiseError(get_class($queue) .'::archiveAll() returned false!');
                 return false;
             }
+
             if (!$mbus->sendMessageToClient('archive-reply', 'Done', '100%')) {
                 static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
                 return false;
             }
+
             return true;
         }
 
