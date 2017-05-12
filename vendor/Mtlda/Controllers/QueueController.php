@@ -66,7 +66,9 @@ class QueueController extends DefaultController
             return false;
         }
 
-        if (!$archive || !is_a($archiv, 'Mtlda\Controllers\ArchiveController')) {
+        if (!isset($archive) || empty($archive) || !is_object($archive) ||
+            !is_a($archive, 'Mtlda\Controllers\ArchiveController')
+        ) {
             static::raiseError(__METHOD__ .'(), unable to load ArchiveController!');
             return false;
         }
@@ -124,7 +126,7 @@ class QueueController extends DefaultController
                 return false;
             }
 
-            if (!is_a($queueitem, 'Mtlda\Models\QueueItemModel!')) {
+            if (!is_a($queueitem, 'Mtlda\Models\QueueItemModel')) {
                 static::raiseError(get_class($queue) .'::getItem() has not returned a QueueItemModel!');
                 return false;
             }
