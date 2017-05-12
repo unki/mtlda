@@ -14,6 +14,9 @@
 ; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ; GNU Affero General Public License for more details.
 ;
+; Remarks:
+;   0 ... disabled
+;   1 ... enabled
 ;
 
 [app]
@@ -31,37 +34,41 @@ page_title = "My Tiny Little Document Archive"
 
 ;
 ; Maintenance Mode
-;   0 = disabled, 1 = enabled
 ;
 maintenance_mode = 0
 
 ;
-; Image caching, 0 = disabled, 1 = enabled
+; Image caching
 ;
 image_cache = 1
 
 ;
-; Create preview image during import, 0 = disabled, 1 = enabled
+; Create preview image during import
 ;
 create_preview_on_import = 0
 
 ;
-; PDF Signing, 0 = disabled, 1 = enabled
+; PDF Signing
 ;
 pdf_signing = 0
 
 ;
-; Embed MTLDA icon to PDF, 0 = disabled, 1 = enabled
+; PDF Signature Verification
+;
+pdf_verify_signature = 0
+
+;
+; Embed MTLDA icon to PDF
 ;
 embed_icon_to_pdf = 1
 
 ;
-; HTTP uploads, 0 = disabled, 1 = enabled
+; HTTP uploads
 ;
 http_upload = 1
 
 ;
-; Mail imports, 0 = disabled, 1 = enabled
+; Mail imports
 ;
 mail_import = 0
 
@@ -72,7 +79,7 @@ mail_import = 0
 user_triggers_import = 1
 
 ;
-; PDF Indexing, 0 = disabled, 1 = enabled
+; PDF Indexing
 ;
 pdf_indexing = 1
 
