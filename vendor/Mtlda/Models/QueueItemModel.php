@@ -812,7 +812,13 @@ class QueueItemModel extends DefaultModel
         }
 
         foreach ($values as $value) {
+            if (!isset($value)) {
+                static::raiseError(__METHOD__ .'(), invalid value found!');
+                return false;
+            }
+
             $value = trim($value);
+
             if (!is_numeric($value)) {
                 static::raiseError(__METHOD__ .'(), value found that is not a number!');
                 return false;
@@ -821,22 +827,22 @@ class QueueItemModel extends DefaultModel
             try {
                 $keyword = new \Mtlda\Models\KeywordAssignmentModel;
             } catch (\Exception $e) {
-                static::raiseError("Failed to load KeywordAssignmentModel!");
+                static::raiseError(__METHOD__ .'(), failed to load KeywordAssignmentModel!');
                 return false;
             }
 
             if (!$keyword->setQueue($this->getIdx())) {
-                static::raiseError("KeywordAssignmentModel::setArchive() returned false!");
+                static::raiseError(get_class($keyword) .'::setArchive() returned false!');
                 return false;
             }
 
             if (!$keyword->setKeyword($value)) {
-                static::raiseError("KeywordAssignmentModel::setKeyword() returned false!");
+                static::raiseError(get_class($keyword) .'::setKeyword() returned false!');
                 return false;
             }
 
             if (!$keyword->save()) {
-                static::raiseError("KeywordAssignmentModel::save() returned false!");
+                static::raiseError(get_class($keyword) .'::save() returned false!');
                 return false;
             }
         }
