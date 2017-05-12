@@ -60,9 +60,6 @@ class DocumentModel extends DefaultModel
         'version' => array(
             FIELD_TYPE => FIELD_INT,
         ),
-        'derivation' => array(
-            FIELD_TYPE => FIELD_INT,
-        ),
         'derivation_guid' => array(
             FIELD_TYPE => FIELD_GUID,
         ),
@@ -107,7 +104,6 @@ class DocumentModel extends DefaultModel
     {
         global $db;
 
-        $idx_field = static::column('idx');
         $guid_field = static::column('guid');
 
         $sql = sprintf(
@@ -117,8 +113,6 @@ class DocumentModel extends DefaultModel
             FROM
                 TABLEPREFIX%s
             WHERE
-                document_derivation LIKE ?
-            AND
                 document_derivation_guid LIKE ?",
             static::$model_table_name
         );
@@ -128,7 +122,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (!$db->execute($sth, array($this->$idx_field, $this->$guid_field))) {
+        if (!$db->execute($sth, array($this->$guid_field))) {
             static::raiseError("Failed to execute query");
             return false;
         }
@@ -611,10 +605,12 @@ class DocumentModel extends DefaultModel
                 static::raiseError(__CLASS__ .'::getDerivationGuid() returned false!');
                 return false;
             }
+
             if (!$mtlda->isValidGuidSyntax($derivation_guid)) {
                 static::raiseError(get_class($mtlda) .'::isValidGuidSyntax() returned false!');
                 return false;
             }
+
             $json_ary['derivation_guid'] = $derivation_guid;
         }
 
@@ -633,8 +629,7 @@ class DocumentModel extends DefaultModel
                 $this->getGuid()
             );
         } catch (\Exception $e) {
-            $queueitem->delete();
-            static::raiseError("AuditController:log() returned false!");
+            static::raiseError(get_class($audit) .':log() returned false!');
             return false;
         }
 
@@ -817,12 +812,12 @@ class DocumentModel extends DefaultModel
         try {
             $storage = new \Mtlda\Controllers\StorageController;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load StorageController!");
+            static::raiseError(__METHOD__ .'(), failed to load StorageController!');
             return false;
         }
 
         if (($src_file = $srcobj->getFilePath()) === false) {
-            static::raiseError(__METHOD__ .', unable to retrieve source objects full qualified path name!');
+            static::raiseError(__METHOD__ .'(), unable to retrieve source objects full qualified path name!');
             return false;
         }
 
@@ -832,12 +827,12 @@ class DocumentModel extends DefaultModel
         }
 
         if (!$storage->createDirectoryStructure(dirname($dst_file))) {
-            static::raiseError("StorageController::createDirectoryStructure() returned false!");
+            static::raiseError(get_class($storage) .'::createDirectoryStructure() returned false!');
             return false;
         }
 
         if (!$storage->copyFile($src_file, $dst_file)) {
-            static::raiseError("StorageController::copyFile() returned false!");
+            static::raiseError(get_class($storage) .'::copyFile() returned false!');
             return false;
         }
 
@@ -881,26 +876,23 @@ class DocumentModel extends DefaultModel
                 )
                 OR
                 (
-                    document_derivation LIKE ?
-                        AND
                     document_derivation_guid LIKE ?
                 )",
             self::$model_table_name
         ));
 
         if (!$sth) {
-            static::raiseError("Failed to prepare query");
+            static::raiseError(__METHOD__ .'(), failed to prepare SQL query!');
             return false;
         }
 
         if (!$db->execute($sth, array(
                 $document_idx,
                 $document_guid,
-                $document_idx,
                 $document_guid
             ))
         ) {
-            static::raiseError("Failed to execute query");
+            static::raiseError(__METHOD__ .'(), failed to execute query!');
             return false;
         }
 
@@ -1160,11 +1152,6 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (($derivation_id = $this->getDerivationId()) === false) {
-            static::raiseError(__CLASS__ .'::getDerivation() returned false!');
-            return false;
-        }
-
         if (($derivation_guid = $this->getDerivationGuid()) === false) {
             static::raiseError(__CLASS__ .'::getDerivationGuid() returned false!');
             return false;
@@ -1172,7 +1159,6 @@ class DocumentModel extends DefaultModel
 
         try {
             $parent = new \Mtlda\Models\DocumentModel(array(
-                'idx' => $derivation_id,
                 'guid' => $derivation_guid
             ));
         } catch (\Exception $e) {
@@ -1629,45 +1615,6 @@ class DocumentModel extends DefaultModel
         }
 
         if (!$this->setFieldValue('signed_copy', $signed_copy)) {
-            static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
-            return false;
-        }
-
-        return true;
-    }
-
-    public function hasDerivationId()
-    {
-        if (!$this->hasFieldValue('derivation')) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function getDerivationId()
-    {
-        if (!$this->hasDerivationId()) {
-            static::raiseError(__CLASS__ .'::hasDerivationId() returned false!');
-            return false;
-        }
-
-        if (($value = $this->getFieldValue('derivation')) === false) {
-            static::raiseError(__CLASS__ .'::getFieldValue() returned false!');
-            return false;
-        }
-
-        return $value;
-    }
-
-    public function setDerivationId($idx)
-    {
-        if (!isset($idx) || empty($idx) || !is_numeric($idx)) {
-            static::raiseError(__METHOD__ .'(), $idx parameter is invalid!');
-            return false;
-        }
-
-        if (!$this->setFieldValue('derivation', $idx)) {
             static::raiseError(__CLASS__ .'::setFieldValue() returned false!');
             return false;
         }
