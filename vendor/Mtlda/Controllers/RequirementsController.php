@@ -21,6 +21,19 @@ namespace Mtlda\Controllers;
 
 class RequirementsController extends \Thallium\Controllers\RequirementsController
 {
+    public function check()
+    {
+        if (!parent::check()) {
+            return false;
+        }
+
+        if (!$this->checkApplications()) {
+            return false;
+        }
+
+        return true;
+    }
+
     public function checkPhp()
     {
         global $mtlda, $config;
@@ -227,6 +240,23 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
                 $missing = true;
                 continue;
             }
+        }
+
+        if ($missing) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function checkApplications()
+    {
+        global $mtlda, $config;
+        $missing = false;
+
+        if ($config->isPdfSignatureVerificationEnabled() && !file_exists('/usr/bin/pdfsig')) {
+            $mtlda->write("Error - /usr/bin/pdfsig is missing!", LOG_ERR);
+            $missing = true;
         }
 
         if ($missing) {
