@@ -2,7 +2,7 @@
  * This file is part of MTLDA.
  *
  * MTLDA, a web-based document archive.
- * Copyright (C) <2015>  <Andreas Unterkircher>
+ * Copyright (C) <2015-2017>  <Andreas Unterkircher>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
