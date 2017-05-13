@@ -21,6 +21,16 @@
  </div>
  {/if}
  <i class="{if $item->isSignedCopy()}protect{else}file text{/if} icon" data-title="{if $item->isSignedCopy()}This is a signed copy of the original document.{else}This is a copy of the original document.{/if}"></i>
+ {if isset($pdf_signature_verification_is_enabled) && $pdf_signature_verification_is_enabled}
+  {if !$item->verifySignature()}
+   <i class="icons">
+    <i class="large red dont icon"></i>
+    <i class="small lock icon"></i>
+   </i>
+  {else}
+   <i class="lock icon"></i>
+  {/if}
+ {/if}
  <div class="content">
   <div class="header">
    <a name="filename_{$item->getIdx()}" class="inline editable content" data-current-value="{$item->getFileName()}" data-orig-value="{$item->getFileName()}" href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>&nbsp;&nbsp;
