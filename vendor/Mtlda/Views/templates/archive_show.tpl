@@ -14,7 +14,6 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU Affero General Public License for more details.
 *}
-
 <h1 class="ui block header">
  <i class="file text icon"></i>
  <div class="content">
@@ -38,145 +37,123 @@
 </form>
 </div>
 
-<div class="ui two column grid">
-
- <!-- left column -->
- <div class="column">
-  <div class="ui grid">
-   <div class="row">
-    <div class="two wide column">Versions:</div>
-    <div class="fourteen wide column">
-     <div class="ui very relaxed divided selection list">
-      <div class="item">
-       <i class="file text icon"></i>
-       <div class="content">
-        <div class="header">
-         <a href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>
-         <a class="scan document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i></a>
-        </div>
-        <div class="description">Original document (imported {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-action-title="Sign {if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
-       </div>
-      </div>
+<div class="ui container segment">
+ <div class="ui header">Versions:</div>
+ <div class="ui very relaxed divided selection list">
+  <div class="item">
+   <i class="file text icon"></i>
+   <div class="content">
+    <div class="header">
+     <a href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>
+     <a class="scan document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i></a>
+    </div>
+    <div class="description">Original document (imported {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-action-title="Sign {if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
+    </div>
+   </div>
 {list_versions}
-     </div>
-    </div>
-   </div>
-   <div class="row">
-    <div class="two wide column">&nbsp;</div>
-    <div class="fourteen wide column">
-     <div class="ui toggle checkbox" name="document_custom_date_checkbox">
-      <input type="checkbox" name="use_document_custom_date" {if $item->hasCustomDate()}checked{/if} />
-      <label>Assign custom date to document.</label>
-     </div><br /><br />
-     <form id="document_custom_date_form" class="ui form" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-target="document_custom_date" onsubmit="return false;" style="{if !$item->hasCustomDate()}display: none;{/if}">
-      <div class="fields">
-       <div class="field ui input">
-        <input type="text" name="document_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
-       </div>
-       <div class="field">
-        <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
-       </div>
-       <div class="field">
-        <button class="circular ui icon button cancel"><i class="cancel icon"></i></button>
-       </div>
-      </div>
-      <div id="document_custom_date_picker"></div>
-     </form>
-    </div>
-   </div>
-   <div class="row">
-    <div class="two wide column">&nbsp;</div>
-    <div class="fourteen wide column">
-     <div class="ui toggle checkbox" name="document_expiry_date_checkbox">
-      <input type="checkbox" name="use_document_expiry_date" {if $item->hasExpiryDate()}checked{/if} />
-      <label>Assign expiry date to document.</label>
-     </div><br /><br />
-     <form id="document_expiry_date_form" class="ui form" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-target="document_expiry_date" onsubmit="return false;" style="{if !$item->hasExpiryDate()}display: none;{/if}">
-      <div class="fields">
-       <div class="field ui input">
-        <input type="text" name="document_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
-       </div>
-       <div class="field">
-        <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
-       </div>
-       <div class="field">
-        <button class="circular ui icon button cancel"><i class="cancel icon"></i></button>
-       </div>
-      </div>
-      <div id="document_expiry_date_picker"></div>
-     </form>
-    </div>
-   </div>
-  </div>
- </div>
-
- <!-- right column -->
- <div class="column">
-  <div class="ui grid">
-   <div class="row">
-    <div class="twelve wide column">
-     <form id="document_keyword" class="ui form keywords" data-target="assigned_keywords">
-      <div class="field">
-       <label>Keywords:</label>
-       <div class="ui fluid search dropdown multiple selection" id="keyword_dropdown">
-        <input type="hidden" name="assigned_keywords" value="{','|implode:$item->getKeywords()}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_keywords">
-        <i class="dropdown icon"></i>
-        <input class="search">
-        <div class="default text">No keywords assigned.</div>
-        <div class="menu">
-{foreach $keywords as $keyword}
-         <div class="item" data-value="{$keyword->getIdx()}" data-text="{$keyword->getName()}">{$keyword->getName()}</div>
-{/foreach}
-        </div>
-       </div>
-      </div>
-      <button class="circular small ui icon save button" type="submit">
-       <i class="save icon"></i>
-      </button>
-     </form>
-    </div>
-   </div>
-   <div class="row">
-    <div class="twelve wide column">
-     <form id="document_description" class="ui form description" data-target="document_description">
-      <div class="field">
-       <label>Description:</label>
-       <textarea name="document_description" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{if $item->hasDescription()}{$item->getDescription()}{/if}</textarea>
-      </div>
-      <button class="circular small ui icon save button" type="submit">
-       <i class="save icon"></i>
-      </button>
-     </form>
-    </div>
-   </div>
-{if isset($pdf_indexing_is_enabled) && $pdf_indexing_is_enabled}
-   <div class="row">
-    <div class="twelve wide column">
-     <div class="ui container segment">
-      <div class="ui header">Document Properties:</div>
-      <div class="ui grid">
-       <div class="row">
-        <div class="five wide column">Filename:</div>
-        <div class="eleven wide column">{$item->getFileName()}</div>
-       </div>
-       <div class="row">
-        <div class="five wide column">Size:</div>
-        <div class="eleven wide column">{get_humanreadable_filesize size=$item->getFileSize()}</div>
-       </div>
-{document_properties}
-       <div class="row">
-        <div class="five wide column">{$property->getDocumentProperty()}:</div>
-        <div class="eleven wide column">{$property->getDocumentValue()}</div>
-       </div>
-{/document_properties}
-      </div>
-     </div>
-    </div>
-   </div>
-{/if}
   </div>
  </div>
 </div>
+
+<div class="ui container segment">
+ <div class="ui header">Key data:</div>
+ <div class="ui toggle checkbox" name="document_custom_date_checkbox">
+  <input type="checkbox" name="use_document_custom_date" {if $item->hasCustomDate()}checked{/if} />
+  <label>Assign custom date to document.</label>
+ </div>
+ <br /><br />
+ <form id="document_custom_date_form" class="ui form" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-target="document_custom_date" onsubmit="return false;" style="{if !$item->hasCustomDate()}display: none;{/if}">
+  <div class="fields">
+   <div class="field ui input">
+    <input type="text" name="document_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
+   </div>
+   <div class="field">
+    <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
+   </div>
+   <div class="field">
+    <button class="circular ui icon button cancel"><i class="cancel icon"></i></button>
+   </div>
+  </div>
+  <div id="document_custom_date_picker"></div>
+ </form>
+
+ <div class="ui toggle checkbox" name="document_expiry_date_checkbox">
+  <input type="checkbox" name="use_document_expiry_date" {if $item->hasExpiryDate()}checked{/if} />
+  <label>Assign expiry date to document.</label>
+ </div>
+ <br /><br />
+ <form id="document_expiry_date_form" class="ui form" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-target="document_expiry_date" onsubmit="return false;" style="{if !$item->hasExpiryDate()}display: none;{/if}">
+  <div class="fields">
+   <div class="field ui input">
+    <input type="text" name="document_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
+   </div>
+   <div class="field">
+    <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
+   </div>
+   <div class="field">
+    <button class="circular ui icon button cancel"><i class="cancel icon"></i></button>
+   </div>
+  </div>
+  <div id="document_expiry_date_picker"></div>
+ </form>
+</div>
+
+<div class="ui container segment">
+ <form id="document_keyword" class="ui form keywords" data-target="assigned_keywords">
+  <div class="field">
+   <label>Keywords:</label>
+   <div class="ui fluid search dropdown multiple selection" id="keyword_dropdown">
+    <input type="hidden" name="assigned_keywords" value="{','|implode:$item->getKeywords()}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_keywords">
+    <i class="dropdown icon"></i>
+    <input class="search">
+    <div class="default text">No keywords assigned.</div>
+    <div class="menu">
+{foreach $keywords as $keyword}
+     <div class="item" data-value="{$keyword->getIdx()}" data-text="{$keyword->getName()}">{$keyword->getName()}</div>
+{/foreach}
+    </div>
+   </div>
+  </div>
+  <button class="circular small ui icon save button" type="submit">
+   <i class="save icon"></i>
+  </button>
+ </form>
+</div>
+
+<div class="ui container segment">
+ <form id="document_description" class="ui form description" data-target="document_description">
+  <div class="field">
+   <label>Description:</label>
+   <textarea name="document_description" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{if $item->hasDescription()}{$item->getDescription()}{/if}</textarea>
+  </div>
+  <button class="circular small ui icon save button" type="submit">
+   <i class="save icon"></i>
+  </button>
+ </form>
+</div>
+
+{if isset($pdf_indexing_is_enabled) && $pdf_indexing_is_enabled}
+<div class="ui container segment">
+ <div class="ui header">Document Properties:</div>
+ <div class="ui grid">
+  <div class="row">
+   <div class="five wide column">Filename:</div>
+   <div class="eleven wide column">{$item->getFileName()}</div>
+  </div>
+  <div class="row">
+   <div class="five wide column">Size:</div>
+   <div class="eleven wide column">{get_humanreadable_filesize size=$item->getFileSize()}</div>
+  </div>
+{document_properties}
+  <div class="row">
+   <div class="five wide column">{$property->getDocumentProperty()}:</div>
+   <div class="eleven wide column">{$property->getDocumentValue()}</div>
+  </div>
+{/document_properties}
+ </div>
+</div>
+{/if}
+
 <script type="text/javascript"><!--
 
 'use strict';
