@@ -89,13 +89,17 @@ class ArchiveView extends DefaultView
             }
         }
 
-        if (!($base_path = $config->getWebPath())) {
-            static::raiseError("Web path is missing!");
+        if (($base_path = $config->getWebPath()) === false) {
+            static::raiseError(__METHOD__ .'(), web path is missing!');
             return false;
         }
 
         if ($config->isPdfIndexingEnabled()) {
             $tmpl->assign('pdf_indexing_is_enabled', true);
+        }
+
+        if ($config->isPdfSignatureVerificationEnabled()) {
+            $tmpl->assign('pdf_signature_verification_is_enabled', true);
         }
 
         if ($base_path == '/') {
@@ -198,7 +202,7 @@ class ArchiveView extends DefaultView
         $content = "";
 
         if (!isset($descendants)) {
-            if (!$descendants = $this->item->getDescendants()) {
+            if (($descendants = $this->item->getDescendants()) == false) {
                 static::raiseError(get_class($this->item) .'::getDescendants() returned false!');
                 return false;
             }
