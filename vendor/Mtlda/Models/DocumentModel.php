@@ -1707,6 +1707,39 @@ class DocumentModel extends DefaultModel
 
         return $base;
     }
+
+    public function verifySignature()
+    {
+        global $config;
+
+        if (!$config->isPdfSignatureVerificationEnabled()) {
+            static::raiseError(__METHOD__ .'(), pdf-signature-verification is not enabled!', true);
+            return false;
+        }
+
+        if (($path = $this->getFilePath()) === false) {
+            static::raiseError(__CLASS__ .'::getFilePath() returned false!', true);
+            return false;
+        }
+
+        try {
+            $pdfsig = new \Mtlda\Controllers\PdfSignatureController;
+        } catch (\Exception $e) {
+            static::raiseError(__METHOD__ .'(), failed to load PdfSignatureController', true, $e);
+            return false;
+        }
+
+        if (($result = $pdfsig->verify($path)) === false) {
+            static::raiseError(get_class($pdfsig) .'::verify() returned false!', true);
+            return false;
+        }
+
+        if (is_null($result)) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
