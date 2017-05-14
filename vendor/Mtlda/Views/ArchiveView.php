@@ -27,6 +27,10 @@ class ArchiveView extends DefaultView
     protected $items;
     protected $document_properties;
 
+    protected $dateSuggestions;
+    protected $keywordSuggestions;
+    protected $keywordSuggestionsSimilar;
+
     /*
      * showList()
      *
@@ -141,7 +145,7 @@ class ArchiveView extends DefaultView
 
         $tmpl->assign('latest_document_version', $origin->getLastestDocumentVersionNumber());
         $tmpl->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
-        $tmpl->assign('item', $origin);
+        $tmpl->assign('origin', $origin);
         $tmpl->assign("item_safe_link", $origin->getIdx() ."-". $origin->getGuid());
         $tmpl->assign('keywords', $keywords->getItems());
 
@@ -155,8 +159,49 @@ class ArchiveView extends DefaultView
             return false;
         }
 
+        try {
+            $sugctrl = new \Mtlda\Controllers\SuggestionsController;
+        } catch (\Exception $e) {
+            static::raiseError(__METHOD__ .'(), failed to load SuggestionsController!', false, $e);
+            return false;
+        }
+
+        if (($dateSuggestions = $sugctrl->getDateSuggestions($origin, true)) === false) {
+            static::raiseError(get_class($sugctrl) .'::getDateSuggestions() returned false!');
+            return false;
+        }
+
+        if (!empty($dateSuggestions)) {
+            $tmpl->assign('has_date_suggestions', true);
+            $this->dateSuggestions = $dateSuggestions;
+        }
+
+        if (($keywordSuggestions = $sugctrl->getKeywordSuggestions($origin, true)) === false) {
+            static::raiseError(get_class($sugctrl) .'::getKeywordSuggestions() returned false!');
+            return false;
+        }
+
+        if (array_key_exists('match', $keywordSuggestions) && !empty($keywordSuggestions['match'])) {
+            $tmpl->assign('has_keyword_suggestions', true);
+            $this->keywordSuggestions = $keywordSuggestions['match'];
+        }
+
+        if (array_key_exists('similar', $keywordSuggestions) && !empty($keywordSuggestions['similar'])) {
+            $tmpl->assign('has_keyword_suggestions_similar', true);
+            $this->keywordSuggestionsSimilar = $keywordSuggestions['similar'];
+        }
+
         $tmpl->registerPlugin("block", "document_properties", array(&$this, "listDocumentProperties"), false);
         $tmpl->registerPlugin("block", "list_versions", array(&$this, "listVersions"), false);
+
+        $tmpl->registerPlugin("block", "date_suggestions", array(&$this, "dateSuggestionsList"), false);
+        $tmpl->registerPlugin("block", "keyword_suggestions", array(&$this, "keywordSuggestionsList"), false);
+        $tmpl->registerPlugin(
+            "block",
+            "keyword_suggestions_similar",
+            array(&$this, "keywordSuggestionsSimilar"),
+            false
+        );
 
         return parent::showItem($id, $guid);
     }
@@ -411,6 +456,92 @@ class ArchiveView extends DefaultView
         } else {
             $smarty->assign("document_safe_link", "document-{$item->getIdx()}-{$item->getGuid()}");
         }
+
+        return $content;
+    }
+
+    public function dateSuggestionsList($params, $content, &$smarty, &$repeat)
+    {
+        $index = $smarty->getTemplateVars("smarty.IB.date_suggestions_list.index");
+
+        if (!isset($index) || empty($index)) {
+            $index = 0;
+        }
+
+        if (!isset($this->dateSuggestions) ||
+            empty($this->dateSuggestions) ||
+            !is_array($this->dateSuggestions) ||
+            $index >= count($this->dateSuggestions)
+        ) {
+            $repeat = false;
+            return $content;
+        }
+
+        $smarty->assign("suggest", $this->dateSuggestions[$index]);
+
+        $index++;
+        $smarty->assign("smarty.IB.date_suggestions_list.index", $index);
+        $repeat = true;
+
+        return $content;
+    }
+
+    public function keywordSuggestionsList($params, $content, &$smarty, &$repeat)
+    {
+        $index = $smarty->getTemplateVars("smarty.IB.keyword_suggestions_list.index");
+
+        if (!isset($index) || empty($index)) {
+            $index = 0;
+        }
+
+        if (!isset($this->keywordSuggestions) ||
+            empty($this->keywordSuggestions) ||
+            !is_array($this->keywordSuggestions) ||
+            $index >= count($this->keywordsSuggestions)
+        ) {
+            $repeat = false;
+            return $content;
+        }
+
+        $key = array_keys($this->keywordSuggestions)[$index];
+        $value = $this->keywordSuggestions[$key];
+
+        $smarty->assign("keyword", $key);
+        $smarty->assign("occurrences", $value);
+
+        $index++;
+        $smarty->assign("smarty.IB.keyword_suggestions_list.index", $index);
+        $repeat = true;
+
+        return $content;
+    }
+
+    public function keywordSuggestionsSimilar($params, $content, &$smarty, &$repeat)
+    {
+        $index = $smarty->getTemplateVars("smarty.IB.keyword_suggestions_similar_list.index");
+
+        if (!isset($index) || empty($index)) {
+            $index = 0;
+        }
+
+        if (!isset($this->keywordSuggestionsSimilar) ||
+            empty($this->keywordSuggestionsSimilar) ||
+            !is_array($this->keywordSuggestionsSimilar) ||
+            $index >= count($this->keywordSuggestionsSimilar)
+        ) {
+            $repeat = false;
+            return $content;
+        }
+
+        $key = array_keys($this->keywordSuggestionsSimilar)[$index];
+        $value = $this->keywordSuggestionsSimilar[$key];
+
+        $smarty->assign("keyword", $key);
+        $smarty->assign("occurrences", $value);
+
+        $index++;
+        $smarty->assign("smarty.IB.keyword_suggestions_similar_list.index", $index);
+        $repeat = true;
 
         return $content;
     }
