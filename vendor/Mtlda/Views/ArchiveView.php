@@ -22,14 +22,22 @@ namespace Mtlda\Views;
 class ArchiveView extends DefaultView
 {
     protected static $view_class_name = 'archive';
-    public $item_name = 'Document';
-    protected $item;
-    protected $keywords;
-    protected $document_properties;
-    protected $archive_avail_items = array();
-    protected $archive_items = array();
+    protected static $item_name = 'Document';
 
-    public function __construct()
+    protected $items;
+    protected $document_properties;
+
+    /*
+     * showList()
+     *
+     * initializes an ArchiveModel and use it as view-data.
+     *
+     * @return bool
+     * @params int $pageno
+     * @params int $items_limit
+     * @throws Mtlda\Controllers\ExceptionController
+     */
+    public function showList($pageno = null, $items_limit = null)
     {
         global $tmpl;
 
@@ -45,48 +53,66 @@ class ArchiveView extends DefaultView
             return;
         }
 
-        $tmpl->registerPlugin("function", "list_versions", array(&$this, "listVersions"), false);
-        parent::__construct();
-
-        return;
+        return parent::showList($pageno, $items_limit);
     }
 
+    /**
+     * showEdit()
+     *
+     * we provide no editing function for an Item.
+     *
+     * @param int $id
+     * @param string $guid
+     * @return string|bool
+     * @throws \Thallium\Controllers\ExceptionController
+     **/
     public function showEdit($id, $guid)
     {
         /* this model provides no edit function */
         return true;
     }
 
+    /**
+     * showItem()
+     *
+     * display an archived item.
+     *
+     * @params int $id
+     * @params string $guid
+     * @return bool
+     * @throws Mtlda\Controllers\ExceptionController
+     */
     public function showItem($id, $guid)
     {
         global $config, $tmpl;
 
-        if ($this->item_name != "Document") {
-            static::raiseError(__METHOD__ .'(), can only work with documents!');
+        if (!isset($id) || empty($id) || !is_numeric($id) ||
+            !isset($guid) || empty($guid) || !is_string($guid)
+        ) {
+            static::raiseError(__METHOD__ .'(), invalid parameters!');
             return false;
         }
 
         try {
-            $this->item = new \Mtlda\Models\DocumentModel(array(
+            $origin = new \Mtlda\Models\DocumentModel(array(
                 'idx' => $id,
                 'guid' => $guid
             ));
         } catch (\Exception $e) {
-            static::raiseError("Failed to load DocumentModel!");
+            static::raiseError(__METHOD__ .'(), failed to load DocumentModel!');
             return false;
         }
 
-        if (!isset($this->item) || empty($this->item)) {
+        if (!isset($origin) ||
+            empty($origin) ||
+            !is_a($origin, 'Mtlda\Models\DocumentModel')
+        ) {
             return false;
         }
 
-        $descendants = array();
-
-        if ($this->item->hasDescendants()) {
-            if (!$descendants = $this->item->getDescendants()) {
-                static::raiseError(get_class($this->item) .'::getDescendants() returned false!');
-                return false;
-            }
+        if (($this->items = $this->buildItemsList($origin)) === false) {
+            static::raiseError(__CLASS__ .'::buildItemsList() returned false!');
+            return false;
         }
 
         if (($base_path = $config->getWebPath()) === false) {
@@ -102,28 +128,27 @@ class ArchiveView extends DefaultView
             $tmpl->assign('pdf_signature_verification_is_enabled', true);
         }
 
-        if ($base_path == '/') {
+        if ($base_path === '/') {
             $base_path = '';
         }
 
         try {
-            $this->keywords = new \Mtlda\Models\KeywordsModel;
+            $keywords = new \Mtlda\Models\KeywordsModel;
         } catch (\Exception $e) {
-            static::raiseError("Failed to load KeywordsModel!");
+            static::raiseError(__METHOD__ .'(), failed to load KeywordsModel!');
             return false;
         }
 
-        $tmpl->assign('latest_document_version', $this->item->getLastestDocumentVersionNumber());
+        $tmpl->assign('latest_document_version', $origin->getLastestDocumentVersionNumber());
         $tmpl->assign('keywords_rpc_url', $base_path .'/keywords/rpc.html');
-        $tmpl->assign('item_versions', $descendants);
-        $tmpl->assign('item', $this->item);
-        $tmpl->assign('keywords', $this->keywords->getItems());
-        $tmpl->assign("item_safe_link", $this->item->getIdx() ."-". $this->item->getGuid());
+        $tmpl->assign('item', $origin);
+        $tmpl->assign("item_safe_link", $origin->getIdx() ."-". $origin->getGuid());
+        $tmpl->assign('keywords', $keywords->getItems());
 
         try {
             $this->document_properties = new \Mtlda\Models\DocumentPropertiesModel(array(
-                'idx' => $this->item->getIdx(),
-                'guid' => $this->item->getGuid()
+                'idx' => $origin->getIdx(),
+                'guid' => $origin->getGuid()
             ));
         } catch (\Exception $e) {
             static::raiseError(__METHOD__ .'(), failed to load DocumentPropertiesModel!');
@@ -131,9 +156,20 @@ class ArchiveView extends DefaultView
         }
 
         $tmpl->registerPlugin("block", "document_properties", array(&$this, "listDocumentProperties"), false);
+        $tmpl->registerPlugin("block", "list_versions", array(&$this, "listVersions"), false);
+
         return parent::showItem($id, $guid);
     }
 
+    /**
+     * getItemKeywords()
+     *
+     * retrieve a list of keywords assigned to an archived item.
+     *
+     * @params int $item_idx
+     * @return bool|array
+     * @throws Mtlda\Controllers\ExceptionController
+     */
     protected function getItemKeywords($item_idx)
     {
         global $db;
@@ -148,24 +184,24 @@ class ArchiveView extends DefaultView
         );
 
         if (!$sth) {
-            static::raiseError(__METHOD__ .", failed to prepare query!");
+            static::raiseError(__METHOD__ .'(), failed to prepare query!');
             return false;
         }
 
         if (!$db->execute($sth, array($item_idx))) {
-            static::raiseError(__METHOD__ .", failed to execute query!");
+            static::raiseError(__METHOD__ .'(), failed to execute query!');
             return false;
         }
 
         $rows = $sth->fetchAll(\PDO::FETCH_COLUMN);
 
         if ($rows === false) {
-            static::raiseError(__METHOD__ .", failed to fetch result!");
+            static::raiseError(__METHOD__ .'(), failed to fetch result!');
             return false;
         }
 
         if (!is_array($rows)) {
-            static::raiseError(__METHOD__ .", PDO::fetchAll has not returned an array!");
+            static::raiseError(__METHOD__ .'(), PDO::fetchAll() has not returned an array!');
             return false;
         }
 
@@ -176,36 +212,90 @@ class ArchiveView extends DefaultView
         return $rows;
     }
 
-    public function listVersions($params, &$smarty)
+    /**
+     * listVersions()
+     *
+     * provides support for the {list_archive} tag used in smarty templates.
+     * it returns a reversed list of items associated to an archived item.
+     *
+     * @params array $params
+     * @params string $content
+     * @params Smarty $smarty
+     * @params bool $repeat
+     * @return bool|string
+     * @throws Mtlda\Controllers\ExceptionController
+     */
+    public function listVersions($params, $content, &$smarty, &$repeat)
     {
-        global $query;
+        global $tmpl;
 
-        /* return void if no descendants are available */
-        if (!$this->item->hasDescendants()) {
-            return null;
+        $index = $smarty->getTemplateVars("smarty.IB.versions_list.index");
+
+        if (!isset($index) || empty($index)) {
+            end($this->items);
+            $index = 0;
         }
 
-        $content = "";
+        if (!isset($this->items) || empty($this->items)) {
+            $repeat = false;
+            return $content;
+        }
 
-        if (($content = $this->buildVersionsList()) === false) {
-            static::raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
+        $len = count($this->items);
+
+        if ($index >= $len) {
+            $repeat = false;
+            return $content;
+        }
+
+        $item = current($this->items);
+
+        if (!is_a($item, 'Mtlda\Models\DocumentModel')) {
+            static::raiseError(__METHOD__ .'(), items list contains an invalid model!');
             return false;
         }
+
+        $smarty->assign('item', $item);
+        $smarty->assign("item_safe_link", $item->getIdx() ."-". $item->getGuid());
+        //$tmpl->assign('item_has_descendants', $item->hasDescendants() ? true : false);
+        //$tmpl->assign('item_is_last_descendant', ($index === ($len-1)) ? true : false);
+
+        $index++;
+        $smarty->assign("smarty.IB.versions_list.index", $index);
+
+        prev($this->items);
+        $repeat = true;
 
         return $content;
     }
 
-    protected function buildVersionsList($descendants = null, $level = 0)
+    /**
+     * buildItemsList()
+     *
+     * build an array of items associated with an archived item.
+     * this will include at least the original item as well as any derivates of it.
+     *
+     * @params Mtlda\Models\DocumentModel $origin
+     * @params int $level
+     * @return bool|array
+     * @throws Mtlda\Controllers\ExceptionController
+     */
+    protected function buildItemsList(&$origin, $level = 0)
     {
-        global $tmpl;
+        $items = array($origin);
 
-        $content = "";
+        if (!$origin->hasDescendants()) {
+            return $items;
+        }
 
-        if (!isset($descendants)) {
-            if (($descendants = $this->item->getDescendants()) == false) {
-                static::raiseError(get_class($this->item) .'::getDescendants() returned false!');
-                return false;
-            }
+        if (($descendants = $origin->getDescendants()) == false) {
+            static::raiseError(get_class($origin) .'::getDescendants() returned false!');
+            return false;
+        }
+
+        if (!isset($descendants) || !is_array($descendants)) {
+            static::raiseError(get_class($origin) .'::getDescendants() returned invalid data!');
+            return false;
         }
 
         $len = count($descendants);
@@ -215,50 +305,41 @@ class ArchiveView extends DefaultView
             if ($item->isDeleted()) {
                 continue;
             }
-            $tmpl->assign('item', $item);
-            $tmpl->assign("item_safe_link", $item->getIdx() ."-". $item->getGuid());
-
-            if ($item->hasDescendants()) {
-                $tmpl->assign('item_has_descendants', true);
-            } else {
-                $tmpl->assign('item_has_descendants', false);
-            }
-
-            if ($level > 0 && $counter == ($len-1)) {
-                $tmpl->assign('item_is_last_descendant', true);
-            } else {
-                $tmpl->assign('item_is_last_descendant', false);
-            }
-
-            if (($src = $tmpl->fetch('archive_show_item.tpl')) === false) {
-                static::raiseError(__CLASS__ .'::fetch() returned false!');
-                return false;
-            }
-
-            $content.= $src;
 
             if (!$item->hasDescendants()) {
                 $counter+=1;
+                $items[] = $item;
                 continue;
             }
 
-            if (!$item_descendants = $item->getDescendants()) {
-                static::raiseError(get_class($item) .'::getDescendants() returned false!');
+            if (($item_descendants = $this->buildItemsList($item, $level+1)) === false) {
+                static::raiseError(__CLASS__ .'::buildItemsList() returned false!');
                 return false;
             }
 
-            if (($item_content = $this->buildVersionsList($item_descendants, $level+1)) === false) {
-                static::raiseError(get_class($this->item) .'::buildVersionsList() returned false!');
+            if (!isset($item_descendants) || !is_array($item_descendants)) {
+                static::raiseError(__CLASS__ .'::buildItemsList() returned invalid data!');
                 return false;
             }
 
-            $content.= $item_content;
-            $counter+=1;
+            $items+= $item_descendants;
+            $counter+= 1;
         }
 
-        return $content;
+        return $items;
     }
 
+    /**
+     * listDocumentProperties()
+     *
+     * return an array of properties known for an archived item.
+     *
+     * @params array $params
+     * @params string $content
+     * @params Smarty $smarty
+     * @params bool $repeat
+     * @throws Mtlda\Controllers\ExceptionController
+     */
     public function listDocumentProperties($params, $content, &$smarty, &$repeat)
     {
         $index = $smarty->getTemplateVars("smarty.IB.properties_list.index");
