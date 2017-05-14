@@ -25,28 +25,6 @@ class DocumentIndicesModel extends DefaultModel
     protected static $model_column_prefix = 'di';
     protected static $model_has_items = true;
     protected static $model_items_model = 'DocumentIndexModel';
-
-    public function hasIndices()
-    {
-        if (!isset($this->model_items) ||
-            empty($this->model_items) ||
-            count($this->model_items) < 1
-        ) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function getIndices()
-    {
-        if (!$this->hasIndices()) {
-            static::raiseError(__METHOD__ .'(), no indices available!');
-            return false;
-        }
-
-        return $this->model_items;
-    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
