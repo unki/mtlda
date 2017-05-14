@@ -15,7 +15,7 @@
  * GNU Affero General Public License for more details.
 *}
 <div id="progress_template" class="ui modal">
- <i class="close icon"></i>
+ <i class="close icon bubble"></i>
  <div class="header">header</div>
  <div class="image content">
   <div class="image">
