@@ -25,32 +25,6 @@ class DocumentPropertiesModel extends DefaultModel
     protected static $model_column_prefix = 'dp';
     protected static $model_has_items = true;
     protected static $model_items_model = 'DocumentPropertyModel';
-
-    protected function __init()
-    {
-        $this->addVirtualField('idx');
-        $this->addVirtualField('guid');
-        return true;
-    }
-
-    public function hasProperties()
-    {
-        if (!$this->hasItems()) {
-            return false;
-        }
-
-        return true;
-    }
-
-    public function getProperties()
-    {
-        if (!$this->hasProperties()) {
-            static::raiseError(__METHOD__ .'::hasProperties() returned false!');
-            return false;
-        }
-
-        return $this->getItems();
-    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
