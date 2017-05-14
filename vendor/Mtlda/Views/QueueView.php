@@ -23,16 +23,25 @@ class QueueView extends DefaultView
 {
     protected static $view_class_name = 'queue';
     protected static $view_item_name = 'QueueItem';
-    protected $queue_avail_items;
-    protected $queue_items;
+
+    //protected $queue_avail_items;
+    //protected $queue_items;
+    protected $archiveItem;
     protected $keywords;
+
     protected $import;
+    protected $sugctrl;
+
     protected $dateSuggestions;
     protected $keywordSuggestions;
     protected $keywordSuggestionsSimilar;
-    protected $archiveItem;
-    protected $archive;
 
+    /**
+     * constructor
+     *
+     * @params none
+     * @return void
+     */
     public function __construct()
     {
         try {
@@ -74,9 +83,23 @@ class QueueView extends DefaultView
             return false;
         }
 
+        try {
+            $this->sugctrl = new \Mtlda\Controllers\SuggestionsController;
+        } catch (\Exception $e) {
+            static::raiseError(__METHOD__ .'(), failed to load SuggestionsController!', false, $e);
+            return false;
+        }
+
         parent::__construct();
     }
 
+    /**
+     * show item
+     *
+     * @params int $id
+     * @params string $guid
+     * @return bool
+     */
     public function showItem($id, $guid)
     {
         global $mtlda;
@@ -139,9 +162,18 @@ class QueueView extends DefaultView
         header('Expires: Sat, 26 Jul 1997 05:00:00 GMT');
         header('Content-Length: '. strlen($file['content']));
         print $file['content'];
+
         return true;
     }
 
+    /**
+     * getArchiver()
+     *
+     * get the archiver dialog steps.
+     *
+     * @params array $data
+     * @return bool|string
+     */
     public function getArchiver(&$data)
     {
         global $mtlda, $tmpl;
@@ -180,13 +212,6 @@ class QueueView extends DefaultView
             return false;
         }
 
-        try {
-            $this->archive = new \Mtlda\Models\ArchiveModel;
-        } catch (\Exception $e) {
-            static::raiseError(__METHOD__ .'(), failed to load ArchiveModel!', false, $e);
-            return false;
-        }
-
         $tmpl->assign('keywords', $this->keywords->getItems());
         $tmpl->assign("item_safe_link", $item->getIdx() ."-". $item->getGuid());
 
@@ -195,14 +220,34 @@ class QueueView extends DefaultView
                 $template = "archiver_dialog_step1.tpl";
                 break;
             case 2:
-                if (!isset($this->dateSuggestions)) {
-                    $this->buildDateSuggestions();
+                if (!isset($this->dateSuggestions) && !is_array($this->dateSuggestions)) {
+                    if (!$this->buildDateSuggestions($item)) {
+                        static::raiseError(__CLASS__ .'::buildDateSuggestions() returned false!');
+                        return false;
+                    }
+
+                    if (!empty($this->dateSuggestions)) {
+                        $tmpl->assign('has_date_suggestions', true);
+                    }
                 }
-                if (!isset($this->keywordSuggestions)) {
-                    $this->buildKeywordSuggestions();
+
+                if (!isset($this->keywordSuggestions) && !is_array($this->keywordSuggestions)) {
+                    if (!$this->buildKeywordSuggestions($item)) {
+                        static::raiseError(__CLASS__ .'::buildKeywordSuggestions() returned false!');
+                        return false;
+                    }
+
+                    if (!empty($this->keywordSuggestions)) {
+                        $tmpl->assign('has_keyword_suggestions', true);
+                    }
+
+                    if (!empty($this->keywordSuggestionsSimilar)) {
+                        $tmpl->assign('has_keyword_suggestions_similar', true);
+                    }
                 }
-                $tmpl->registerPlugin("block", "date_suggestions", array(&$this, "dateSuggestions"), false);
-                $tmpl->registerPlugin("block", "keyword_suggestions", array(&$this, "keywordSuggestions"), false);
+
+                $tmpl->registerPlugin("block", "date_suggestions", array(&$this, "dateSuggestionsList"), false);
+                $tmpl->registerPlugin("block", "keyword_suggestions", array(&$this, "keywordSuggestionsList"), false);
                 $tmpl->registerPlugin(
                     "block",
                     "keyword_suggestions_similar",
@@ -245,6 +290,14 @@ class QueueView extends DefaultView
         return $content;
     }
 
+    /**
+     * getSplitter()
+     *
+     * get the splitter dialog steps.
+     *
+     * @params array $data
+     * @return bool|string
+     */
     public function getSplitter(&$data)
     {
         global $mtlda, $tmpl;
@@ -382,19 +435,19 @@ class QueueView extends DefaultView
         return $page_count;
     }
 
-    public function dateSuggestions($params, $content, &$smarty, &$repeat)
+    public function dateSuggestionsList($params, $content, &$smarty, &$repeat)
     {
-        if (!isset($this->dateSuggestions)) {
-            $this->buildDateSuggestions();
-        }
-
         $index = $smarty->getTemplateVars("smarty.IB.date_suggestions_list.index");
 
         if (!isset($index) || empty($index)) {
             $index = 0;
         }
 
-        if ($index >= count($this->dateSuggestions)) {
+        if (!isset($this->dateSuggestions) ||
+            empty($this->dateSuggestions) ||
+            !is_array($this->dateSuggestions) ||
+            $index >= count($this->dateSuggestions)
+        ) {
             $repeat = false;
             return $content;
         }
@@ -408,523 +461,19 @@ class QueueView extends DefaultView
         return $content;
     }
 
-    protected function buildDateSuggestions()
+    public function keywordSuggestionsList($params, $content, &$smarty, &$repeat)
     {
-        global $tmpl;
-
-        if (!isset($this->archiveItem) || empty($this->archiveItem)) {
-            static::raiseError(__METHOD__ .'(), have no item to operate on!');
-            return false;
-        }
-
-        $sources = array();
-
-        if ($this->archiveItem->hasTitle()) {
-            if (($title = $this->archiveItem->getTitle()) === false) {
-                static::raiseError(get_class($this->archiveItem) .'::getTitle() returned false!');
-                return false;
-            }
-            array_push($sources, $title);
-        }
-
-        if (($filename = $this->archiveItem->getFileName()) === false) {
-            static::raiseError(get_class($this->archiveItem) .'::getFileName() returned false');
-            return false;
-        }
-        array_push($sources, $filename);
-
-        if ($this->archiveItem->hasIndices()) {
-            if (($indices = $this->archiveItem->getIndices(true)) === false) {
-                static::raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
-                return false;
-            }
-            if (!isset($indices) || empty($indices) || !is_array($indices)) {
-                static::raiseError(get_class($this->archiveItem) .'::getIndices() returned invalid data!');
-                return false;
-            }
-            foreach ($indices as $index) {
-                if (($text = $index->getDocumentText()) === false) {
-                    static::raiseError(get_class($index) .'::getDocumentText() returned false!');
-                    return false;
-                }
-                array_push($sources, $text);
-            }
-        }
-
-        if (is_a($this->archiveItem, 'Mtlda\Models\DocumentModel') &&
-            $this->archiveItem->hasProperties()
-        ) {
-            if (($properties = $this->archiveItem->getProperties()) === false) {
-                static::raiseError(get_class($this->archiveItem) .'::getProperties() returned false!');
-                return false;
-            }
-            if (!isset($properties) || empty($properties) || !is_array($properties)) {
-                static::raiseError(get_class($this->archiveItem) .'::getProperties() returned invalid data!');
-                return false;
-            }
-            foreach ($properties as $property) {
-                if (($value = $property->getDocumentValue()) === false) {
-                    static::raiseError(get_class($property) .'::getDocumentValue() returned false!');
-                    return false;
-                }
-                array_push($sources, $value);
-            }
-        }
-
-        if (($sources = array_unique($sources)) === false) {
-            static::raiseError(__METHOD__ .'(), failed to filter sources!');
-            return false;
-        }
-
-        $regexp_map = array(
-            '/(?<year>\d\d)/' => 'YY',
-            '/(?<year>\d\d\d\d)/' => 'YYYY',
-            '/(?<year>\d\d)-(?<month>\d\d)/' => 'YYMM',
-            '/(?<year>\d\d)\.(?<month>\d\d)/' => 'YYMM',
-            '/(?<month>\d\d)-(?<year>\d\d)/' => 'MMYY',
-            '/(?<month>\d\d)\.(?<year>\d\d)/' => 'MMYY',
-            '/(?<year>\d\d\d\d)-(?<month>\d\d)/' => 'YYYYMM',
-            '/(?<year>\d\d\d\d).(?<month>\d\d)/' => 'YYYYMM',
-            '/(?<month>\d\d)-(?<year>\d\d\d\d)/' => 'MMYYYY',
-            '/(?<month>\d\d).(?<year>\d\d\d\d)/' => 'MMYYYY',
-            '/(?<year>\d\d\d\d)(?<month>\d\d)(?<day>\d\d)/' => 'YYYYMMDD',
-            '/(?<year>\d\d\d\d)\.(?<month>\d\d)\.(?<day>\d\d)/' => 'YYYYMMDD',
-            '/(?<day>\d\d)(?<month>\d\d)(?<year>\d\d\d\d)/' => 'DDMMYYYY',
-            '/(?<day>\d\d)\.(?<month>\d\d)\.(?<year>\d\d\d\d)/' => 'DDMMYYYY',
-        );
-
-        $suggestions = array();
-
-        foreach ($sources as $source) {
-            foreach ($regexp_map as $pattern => $map) {
-                $year = null;
-                $month = null;
-                $date = null;
-                if (($result = preg_match_all($pattern, $source, $matches, PREG_SET_ORDER)) === 0) {
-                    continue;
-                }
-
-                if ($result === false) {
-                    static::raiseError(__METHOD__ .'(), an error in preg_match_all() occured! '. preg_last_error());
-                    return false;
-                }
-
-                if (!isset($matches) || empty($matches) || !is_array($matches)) {
-                    continue;
-                }
-
-                foreach ($matches as $match) {
-                    if ($map == 'YYMM' && $this->requireArrayKeys($match, array('year', 'month'))) {
-                        $year = sprintf("20%02d", $match['year']);
-                        $month = $match['month'];
-                    } elseif ($map == 'MMYY' && $this->requireArrayKeys($match, array('year', 'month'))) {
-                        $month = $match['month'];
-                        $year = sprintf("20%02d", $match['year']);
-                    } elseif ($map == 'MMYYYY' && $this->requireArrayKeys($match, array('month', 'year'))) {
-                        $month = $match['month'];
-                        $year = $match['year'];
-                    } elseif ($map == 'YYYYMM' && $this->requireArrayKeys($match, array('year', 'month'))) {
-                        $year = $match['year'];
-                        $month = $match['month'];
-                    } elseif ($map == 'YYYYMMDD' && $this->requireArrayKeys($match, array('year', 'month'))) {
-                        $year = $match['year'];
-                        $month = $match['month'];
-                        $day = $match['day'];
-                    } elseif ($map == 'DDMMYYYY' && $this->requireArrayKeys($match, array('day', 'month', 'year'))) {
-                        $day = $match['day'];
-                        $month = $match['month'];
-                        $year = $match['year'];
-                    } elseif ($map == 'YY' && $this->requireArrayKeys($match, array('year'))) {
-                        $year = sprintf("20%02d", $match['year']);
-                    } elseif ($map == 'YYYY' && $this->requireArrayKeys($match, array('year'))) {
-                        $year = $match['year'];
-                    }
-
-                    if (isset($day) && isset($month) && isset($year)) {
-                        array_push($suggestions, sprintf("%04d-%02d-%02d", $year, $month, $day));
-                    }
-                    if (isset($month) && isset($year)) {
-                        $first = sprintf("%04d-%02d-01", $year, $month);
-                        array_push($suggestions, $first);
-                        $last = date("t", strtotime($first));
-                        $last = sprintf("%04d-%02d-%02d", $year, $month, $last);
-                        array_push($suggestions, $last);
-                    }
-                    if (isset($year)) {
-                        $first = sprintf("%04d-01-01", $year);
-                        array_push($suggestions, $first);
-                        $last = sprintf("%04d-12-31", $year);
-                        array_push($suggestions, $last);
-                    }
-                }
-            }
-        }
-
-        //
-        // remove unusual dates.
-        //
-        $this->dateSuggestions = array_filter($suggestions, function ($date) {
-            if (($parsed = date_parse($date)) === false) {
-                return false;
-            }
-            if (isset($parsed['errors']) &&
-                is_array($parsed['errors']) &&
-                !empty($parsed['errors'])
-            ) {
-                return false;
-            }
-            if ($parsed['year'] < 1900 || $parsed['year'] > date('Y')) {
-                return false;
-            }
-            if ($parsed['month'] < 1 || $parsed['month'] > 12) {
-                return false;
-            }
-            if ($parsed['day'] < 1 || $parsed['day'] > 31 ||
-                $parsed['day'] > date('t', strtotime("{$parsed['year']}-{$parsed['month']}-01"))
-            ) {
-                return false;
-            }
-            return true;
-        });
-
-        if (($this->dateSuggestions = array_unique($this->dateSuggestions)) === false) {
-            static::raiseError(__METHOD__ .'(), array_unique() returned false!');
-            return false;
-        }
-
-        if (!sort($this->dateSuggestions)) {
-            static::raiseError(__METHOD__ .'(), sort() returned false!');
-            return false;
-        }
-
-        if (isset($this->dateSuggestions) && !empty($this->dateSuggestions)) {
-            $tmpl->assign('has_date_suggestions', true);
-        }
-
-        return true;
-    }
-
-    protected function buildKeywordSuggestions()
-    {
-        global $tmpl;
-
-        $archive_item_keywords = array();
-
-        if (!isset($this->archiveItem) || empty($this->archiveItem)) {
-            static::raiseError(__METHOD__ .'(), have no item to operate on!');
-            return false;
-        }
-
-        if (!$this->keywords->hasItems()) {
-            return true;
-        }
-
-        if ($this->archiveItem->hasKeywords()) {
-            if (($assigned_keywords = $this->archiveItem->getKeywords()) === false) {
-                static::raiseError(get_class($this->archiveItem) .'::getKeywords() returned false!');
-                return false;
-            }
-            foreach ($assigned_keywords as $idx) {
-                try {
-                    $keyword = new \Mtlda\Models\KeywordModel(array(
-                        'idx' => $idx
-                    ));
-                } catch (\Exception $e) {
-                    static::raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
-                    return false;
-                }
-                if (($name = $keyword->getName()) === false) {
-                    static::raiseError(get_class($keyword) .'::getName() returned false!');
-                    return false;
-                }
-                array_push($archive_item_keywords, $name);
-            }
-        }
-
-        $sources = array();
-
-        if ($this->archiveItem->hasTitle()) {
-            if (($title = $this->archiveItem->getTitle()) === false) {
-                static::raiseError(get_class($this->archiveItem) .'::getTitle() returned false!');
-                return false;
-            }
-            array_push($sources, $title);
-        }
-
-        if (($filename = $this->archiveItem->getFileNameBase()) === false) {
-            static::raiseError(get_class($this->archiveItem) .'::getFileName() returned false');
-            return false;
-        }
-        array_push($sources, $filename);
-
-        if ($this->archiveItem->hasIndices()) {
-            if (($indices = $this->archiveItem->getIndices(true)) === false) {
-                static::raiseError(get_class($this->archiveItem) .'::getIndices() returned false!');
-                return false;
-            }
-            if (!isset($indices) || empty($indices) || !is_array($indices)) {
-                static::raiseError(get_class($this->archiveItem) .'::getIndices() returned invalid data!');
-                return false;
-            }
-            foreach ($indices as $index) {
-                if (($text = $index->getDocumentText()) === false) {
-                    static::raiseError(get_class($index) .'::getDocumentText() returned false!');
-                    return false;
-                }
-                array_push($sources, $text);
-            }
-        }
-
-        if (is_a($this->archiveItem, 'Mtlda\Models\DocumentModel') &&
-            $this->archiveItem->hasProperties()
-        ) {
-            if (($properties = $this->archiveItem->getProperties()) === false) {
-                static::raiseError(get_class($this->archiveItem) .'::getProperties() returned false!');
-                return false;
-            }
-            if (!isset($properties) || empty($properties) || !is_array($properties)) {
-                static::raiseError(get_class($this->archiveItem) .'::getProperties() returned invalid data!');
-                return false;
-            }
-            foreach ($properties as $property) {
-                if (($value = $property->getDocumentValue()) === false) {
-                    static::raiseError(get_class($property) .'::getDocumentValue() returned false!');
-                    return false;
-                }
-                array_push($sources, $value);
-            }
-        }
-
-        if (($sources = array_unique($sources)) === false) {
-            static::raiseError(__METHOD__ .'(), failed to filter sources!');
-            return false;
-        }
-
-        $existing_keywords = array();
-
-        foreach ($this->keywords->getItems() as $keyword) {
-            if (($name = $keyword->getName()) === false) {
-                static::raiseError(get_class($keyword) .'::getName() returned false!');
-                return false;
-            }
-            array_push($existing_keywords, $name);
-        }
-
-        $suggestions = array();
-        $words = array();
-
-        foreach ($sources as $source) {
-            $source = str_replace('_', ' ', $source);
-            $source = preg_replace('/[^[:alnum:][:space:]]/u', '', $source);
-            if (count(($found_words = str_word_count($source, 1))) < 1) {
-                continue;
-            }
-            array_walk($found_words, function (&$word, $key) {
-                $word = trim($word);
-                return true;
-            });
-            $found_words = array_filter($found_words, function ($word) {
-                if (strlen($word) < 1) {
-                    return false;
-                }
-                return true;
-            });
-            if (count($found_words) < 1) {
-                continue;
-            }
-            foreach ($found_words as $word) {
-                array_push($words, $word);
-            }
-        }
-
-        foreach ($words as $key => $word) {
-            if (isset($existing_keywords) &&
-                !empty($existing_keywords) &&
-                ($matching_keyword = preg_grep("/{$word}/", $existing_keywords)) &&
-                isset($matching_keyword) &&
-                !empty($matching_keyword) &&
-                is_array($matching_keyword) &&
-                count($matching_keyword) > 0 &&
-                ($matching_keyword = array_shift($matching_keyword))
-            ) {
-                $words[$key] = $matching_keyword;
-                continue;
-            }
-            unset($words[$key]);
-        }
-
-        if (($words = array_count_values($words)) === false) {
-            static::raiseError(__METHOD__ .'(), array_count_values() returned false!');
-            return false;
-        }
-
-        if (!arsort($words, SORT_NUMERIC)) {
-            static::raiseError(__METHOD__ .'(), arsort() returned false!');
-            return false;
-        }
-
-        if (($words = array_slice($words, 0, 10)) === false) {
-            static::raiseError(__METHOD__ .'(), array_slice() returned false!');
-            return false;
-        }
-
-        foreach ($words as $word => $occur) {
-            if (in_array($word, $archive_item_keywords)) {
-                continue;
-            }
-            $this->keywordSuggestions[$word] = $occur;
-        }
-
-        if (isset($this->keywordSuggestions) && !empty($this->keywordSuggestions)) {
-            $tmpl->assign('has_keyword_suggestions', true);
-        }
-
-        if (!$this->archive->hasItems()) {
-            return true;
-        }
-
-        $items = array();
-        $filenames = array();
-        $titles = array();
-        $sources = array();
-
-        foreach ($this->archive->getItems() as $document) {
-            if (($idx = $document->getIdx()) === false) {
-                static::raiseError(get_class($document) .'::getIdx() returned false!');
-                return false;
-            }
-            $items[$idx] = $document;
-            if (($filename = $document->getFileName()) === false) {
-                static::raiseError(get_class($document) .'::getFileName() returned false!');
-                return false;
-            }
-            if ($document->hasTitle() && ($title = $document->getTitle()) === false) {
-                static::raiseError(get_class($document) .'::getTitle() returned false!');
-                return false;
-            }
-            $filenames[$idx] = $filename;
-            $titles[$idx] = $title;
-        }
-
-        if ($this->archiveItem->hasTitle()) {
-            $archive_item_title = $this->archiveItem->getTitle();
-        }
-        $archive_item_filename = $this->archiveItem->getFileName();
-
-        foreach ($filenames as $idx => $filename) {
-            if (($diff = levenshtein($archive_item_filename, $filename)) === -1) {
-                continue;
-            }
-            if ($diff > 10) {
-                continue;
-            }
-            $document = $items[$idx];
-            if (!$document->hasKeywords()) {
-                continue;
-            }
-            if (($keywords = $document->getKeywords()) === false) {
-                static::raiseError(get_class($document) .'::getKeywords() returned false!');
-                return false;
-            }
-            if (!isset($keywords) || empty($keywords)) {
-                continue;
-            }
-            foreach ($keywords as $idx) {
-                try {
-                    $keyword = new \Mtlda\Models\KeywordModel(array(
-                        'idx' => $idx
-                    ));
-                } catch (\Exception $e) {
-                    static::raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
-                    return false;
-                }
-                if (($name = $keyword->getName()) === false) {
-                    $this->raiseErrror(get_class($keyword) .'::getName() returned false!');
-                    return false;
-                }
-                array_push($sources, $name);
-            }
-        }
-
-        if (isset($archive_item_title)) {
-            foreach ($titles as $idx => $title) {
-                if (($diff = levenshtein($archive_item_title, $title)) === -1) {
-                    continue;
-                }
-                if ($diff > 10) {
-                    continue;
-                }
-                $document = $items[$idx];
-                if (!$document->hasKeywords()) {
-                    continue;
-                }
-                if (($keywords = $document->getKeywords()) === false) {
-                    static::raiseError(get_class($document) .'::getKeywords() returned false!');
-                    return false;
-                }
-                if (!isset($keywords) || empty($keywords)) {
-                    continue;
-                }
-                foreach ($keywords as $idx) {
-                    try {
-                        $keyword = new \Mtlda\Models\KeywordModel(array(
-                            'idx' => $idx
-                        ));
-                    } catch (\Exception $e) {
-                        static::raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
-                        return false;
-                    }
-                    if (($name = $keyword->getName()) === false) {
-                        $this->raiseErrror(get_class($keyword) .'::getName() returned false!');
-                        return false;
-                    }
-                    array_push($sources, $name);
-                }
-            }
-        }
-
-        if (($words = array_count_values($sources)) === false) {
-            static::raiseError(__METHOD__ .'(), array_count_values() returned false!');
-            return false;
-        }
-
-        if (!arsort($words, SORT_NUMERIC)) {
-            static::raiseError(__METHOD__ .'(), arsort() returned false!');
-            return false;
-        }
-
-        if (($words = array_slice($words, 0, 10)) === false) {
-            static::raiseError(__METHOD__ .'(), array_slice() returned false!');
-            return false;
-        }
-
-        foreach ($words as $word => $occur) {
-            if (in_array($word, $archive_item_keywords)) {
-                continue;
-            }
-            $this->keywordSuggestionsSimilar[$word] = $occur;
-        }
-
-        if (isset($this->keywordSuggestionsSimilar) && !empty($this->keywordSuggestionsSimilar)) {
-            $tmpl->assign('has_keyword_suggestions_similar', true);
-        }
-
-        return true;
-    }
-
-    public function keywordSuggestions($params, $content, &$smarty, &$repeat)
-    {
-        if (!isset($this->keywordSuggestions)) {
-            $this->buildKeywordSuggestions();
-        }
-
         $index = $smarty->getTemplateVars("smarty.IB.keyword_suggestions_list.index");
 
         if (!isset($index) || empty($index)) {
             $index = 0;
         }
 
-        if ($index >= count(array_keys($this->keywordSuggestions))) {
+        if (!isset($this->keywordSuggestions) ||
+            empty($this->keywordSuggestions) ||
+            !is_array($this->keywordSuggestions) ||
+            $index >= count($this->keywordsSuggestions)
+        ) {
             $repeat = false;
             return $content;
         }
@@ -944,17 +493,17 @@ class QueueView extends DefaultView
 
     public function keywordSuggestionsSimilar($params, $content, &$smarty, &$repeat)
     {
-        if (!isset($this->keywordSuggestionsSimilar)) {
-            $this->buildKeywordSuggestions();
-        }
-
         $index = $smarty->getTemplateVars("smarty.IB.keyword_suggestions_similar_list.index");
 
         if (!isset($index) || empty($index)) {
             $index = 0;
         }
 
-        if ($index >= count(array_keys($this->keywordSuggestionsSimilar))) {
+        if (!isset($this->keywordSuggestionsSimilar) ||
+            empty($this->keywordSuggestionsSimilar) ||
+            !is_array($this->keywordSuggestionsSimilar) ||
+            $index >= count($this->keywordSuggestionsSimilar)
+        ) {
             $repeat = false;
             return $content;
         }
@@ -972,35 +521,37 @@ class QueueView extends DefaultView
         return $content;
     }
 
-    public function requireArrayKeys($haystack, $needles)
+    protected function buildDateSuggestions($item)
     {
-        if (!isset($haystack) || empty($haystack) || (!is_string($haystack) && !is_array($haystack))) {
-            static::raiseError(__METHOD__ .'(), $haystack parameter is invalid!');
+        if (($this->dateSuggestions = $this->sugctrl->getDateSuggestions($item)) === false) {
+            static::raiseError(get_class($this->sugctrl) .'::getDateSuggestions() returned false!');
             return false;
         }
 
-        if (!isset($needles) || empty($needles) || (!is_string($needles) && !is_array($needles))) {
-            static::raiseError(__METHOD__ .'(), $needles parameter is invalid!');
+        return true;
+    }
+
+    protected function buildKeywordSuggestions($item)
+    {
+        if (($keywords = $this->sugctrl->getKeywordSuggestions($item)) === false) {
+            static::raiseError(get_class($this->sugctrl) .'::getKeywordSuggestions() returned false!');
             return false;
         }
 
-        if (is_string($haystack)) {
-            $haystack = array($haystack => null);
+        if (!isset($keywords) || empty($keywords)) {
+            return true;
         }
 
-        if (is_string($needles)) {
-            $needles = array($needles);
+        if (array_key_exists('match', $keywords)) {
+            $this->keywordSuggestions = $keywords['match'];
         }
 
-        $result = true;
-
-        foreach ($needles as $needle) {
-            if (!array_key_exists($needle, $haystack)) {
-                $result = false;
-            }
+        if (!array_key_exists('similar', $keywords)) {
+            return true;
         }
 
-        return $result;
+        $this->keywordSuggestionsSimilar = $keywords['similar'];
+        return true;
     }
 }
 
