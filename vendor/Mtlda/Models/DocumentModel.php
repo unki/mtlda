@@ -1041,7 +1041,7 @@ class DocumentModel extends DefaultModel
             !empty($this->properties) &&
             is_a($this->properties, 'Mtlda\Models\DocumentPropertiesModel')
         ) {
-            return true;
+            return $this->properties->hasItems();
         }
 
         try {
@@ -1054,6 +1054,11 @@ class DocumentModel extends DefaultModel
         }
 
         $this->properties = $properties;
+
+        if (!$this->properties->hasItems()) {
+            return false;
+        }
+
         return true;
     }
 
@@ -1063,7 +1068,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        return $this->properties->getProperties();
+        if (($properties = $this->properties->getItems()) === false) {
+            static::raiseError(get_class($this-properties) .'::getItems() returned false!');
+            return false;
+        }
+
+        return $properties;
     }
 
     protected function deleteAllDocumentProperties()
@@ -1084,9 +1094,12 @@ class DocumentModel extends DefaultModel
     {
         if (isset($this->indices) &&
             !empty($this->indices) &&
-            is_a($this->indices, 'Mtlda\Models\DocumentIndicesModel') &&
-            !$this->indices->hasIndices()
+            is_a($this->indices, 'Mtlda\Models\DocumentIndicesModel')
         ) {
+            return $this->indices->hasItems();
+        }
+
+        if (!$this->hasFileHash()) {
             return true;
         }
 
@@ -1105,7 +1118,7 @@ class DocumentModel extends DefaultModel
 
         $this->indices = $indices;
 
-        if (!$this->indices->hasIndices()) {
+        if (!$this->indices->hasItems()) {
             return false;
         }
 
@@ -1118,7 +1131,12 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        return $this->indices->getIndices();
+        if (($indices = $this->indices->getItems()) === false) {
+            static::raiseError(get_class($this->indices) .'::getItems() returned false!');
+            return false;
+        }
+
+        return $indices;
     }
 
     protected function deleteAllDocumentIndices()
