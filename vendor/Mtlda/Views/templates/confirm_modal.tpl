@@ -15,7 +15,7 @@
  * GNU Affero General Public License for more details.
 *}
 <div id="confirm_template" class="ui basic modal">
- <i class="close icon"></i>
+ <i class="close icon bubble"></i>
  <div class="header">header</div>
  <div class="image content">
   <div class="image">
