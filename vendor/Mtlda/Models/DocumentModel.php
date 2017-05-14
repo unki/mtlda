@@ -1139,7 +1139,7 @@ class DocumentModel extends DefaultModel
     {
         global $mtlda;
 
-        if (!$this->hasDerivationId() || !$this->hasDerivationGuid()) {
+        if (!$this->hasDerivationGuid()) {
             return false;
         }
 
@@ -1152,7 +1152,7 @@ class DocumentModel extends DefaultModel
             return false;
         }
 
-        if (!$this->hasDerivationId() || !$this->hasDerivationGuid()) {
+        if (!$this->hasDerivationGuid()) {
             static::raiseError(__METHOD__ .'(), neither derivation or derivation_guid are set!');
             return false;
         }
