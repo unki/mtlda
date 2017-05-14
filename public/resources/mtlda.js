@@ -997,7 +997,7 @@ function init_modal_steps()
         }
     });
 
-    $('a.step, i.close.icon').popup({
+    $('i.bubble, a.bubble').popup({
         exclusive: true,
         lastResort: true,
     });
