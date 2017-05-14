@@ -17,7 +17,7 @@
 <h1 class="ui block header">
  <i class="file text icon"></i>
  <div class="content">
-  <div name="title" class="inline editable content" data-current-value="{if $item->hasTitle()}{$item->getTitle()}{/if}" data-orig-value="{if $item->hasTitle()}{$item->getTitle()}{/if}">{if $item->hasTitle()}{$item->getTitle()}{/if}</div>
+  <div name="title" class="inline editable content" data-current-value="{if $origin->hasTitle()}{$origin->getTitle()}{/if}" data-orig-value="{if $origin->hasTitle()}{$origin->getTitle()}{/if}">{if $origin->hasTitle()}{$origin->getTitle()}{/if}</div>
   <a name="title" class="inline editable edit link" data-inline-name="title"><i class="tiny edit icon"></i></a>
  </div>
 </h1>
@@ -25,7 +25,7 @@
 <form class="ui form" onsubmit="return false;">
  <div class="fields">
   <div class="field small ui input">
-   <input type="text" name="title" value="{if $item->hasTitle()}{$item->getTitle()}{/if}" data-action="update" data-model="document" data-key="document_title" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
+   <input type="text" name="title" value="{if $origin->hasTitle()}{$origin->getTitle()}{/if}" data-action="update" data-model="document" data-key="document_title" data-id="{$origin->getIdx()}" data-guid="{$origin->getGuid()}" />
   </div>
   <div class="field">
    <button class="circular ui big icon button inline editable save" type="submit"><i class="save icon"></i></button>
@@ -40,32 +40,80 @@
 <div class="ui container segment">
  <div class="ui header">Versions:</div>
  <div class="ui very relaxed divided selection list">
+{list_versions}
   <div class="item">
+   <div class="right floated content">
+   {if $item->hasVersion()}
+    {if $item->getVersion() == $latest_document_version}
+    <i class="ui big red tag icon bubble" data-title="This is the latest version of the current document."></i>
+    {/if}
+    {if $item->getVersion() == 1}
+     <i class="big blue file text icon bubble" data-title="This is the original document."></i>
+    {else}
+     <i class="big {if $item->isSignedCopy()}protect{else}copy{/if} icon bubble" data-title="{if $item->isSignedCopy()}This is a signed copy of the original document.{else}This is a copy of the original document.{/if}"></i>
+    {/if}
+   {/if}
+   {if isset($pdf_signature_verification_is_enabled) && $pdf_signature_verification_is_enabled && $item->isSignedCopy()}
+    <i class="big red {if !$item->verifySignature()}red unlock{else}green lock{/if} icon bubble" data-title="PDF-signature validation {if $item->verifySignature()}suceed{else}failed{/if}!"></i>
+   {/if}
+   </div>
    <i class="file text icon"></i>
    <div class="content">
     <div class="header">
-     <a href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>
+     {if $item->hasVersion() && $item->getVersion() == 1}
+     <!-- original document -->
+     <a name="filename_{$item->getIdx()}" class="inline editable content" data-current-value="{$item->getFileName()}" data-orig-value="{$item->getFileName()}" href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>&nbsp;&nbsp;
      <a class="scan document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action-title="{if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="find icon"></i></a>
+     {else}
+     <!-- derivates -->
+     <a name="filename_{$item->getIdx()}" class="inline editable content" data-current-value="{$item->getFileName()}" data-orig-value="{$item->getFileName()}" href="{get_url page=document mode=show id=$item_safe_link file=$item->getFileName()}">{$item->getFileName()}</a>&nbsp;&nbsp;
+     <a name="filename_{$item->getIdx()}" class="inline editable edit link" data-inline-name="filename_{$item->getIdx()}"><i class="tiny edit icon"></i></a>
+     <a class="delete item" title="Delete {$item->getFileName()|escape}"  data-action-title="Deleting {$item->getFileName()|escape}" data-modal-title="Delete {$item->getFileName()|escape}" data-modal-text="Please confirm to delete {$item->getFileName()|escape}"  data-model="document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}"><i class="remove circle icon"></i></a>
+     <div name="filename_{$item->getIdx()}" class="inline editable formsrc" style="display: none;">
+      <form class="ui form" onsubmit="return false;">
+       <div class="fields">
+        <div class="field small ui input">
+         <input type="text" name="filename_{$item->getIdx()}" value="{$item->getFileName()}" data-action="update" data-model="document" data-key="document_file_name" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
+        </div>
+        <div class="field">
+         <button class="circular ui icon button inline editable save" type="submit"><i class="save icon"></i></button>
+        </div>
+        <div class="field">
+         <button class="circular ui icon button inline editable cancel"><i class="cancel icon"></i></button>
+        </div>
+       </div>
+      </form>
+     </div>
+     {/if}
     </div>
-    <div class="description">Original document (imported {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})<br /><br /><a class="sign document" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-action-title="Sign {if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="protect icon"></i>Click to digitally sign document</a>.</div>
+
+    <div class="description">
+     {if $item->hasVersion() && $item->getVersion() == 1}
+     Original document (imported {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})<br /><br />
+     {else}
+     Version {$item->getVersion()} (created {$item->getTime()|date_format:"%Y.%m.%d %H:%M"})
+     {/if}
+     {if ! $item->isSignedCopy()}
+     <a class="sign document bubble" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-action-title="Sign {if $item->hasTitle()}{$item->getTitle()}{/if}"><i class="big protect icon"></i>Create a digitally-signed document copy</a>.
+     {/if}
     </div>
    </div>
-{list_versions}
   </div>
+{/list_versions}
  </div>
 </div>
 
 <div class="ui container segment">
  <div class="ui header">Key data:</div>
  <div class="ui toggle checkbox" name="document_custom_date_checkbox">
-  <input type="checkbox" name="use_document_custom_date" {if $item->hasCustomDate()}checked{/if} />
+  <input type="checkbox" name="use_document_custom_date" {if $origin->hasCustomDate()}checked{/if} />
   <label>Assign custom date to document.</label>
  </div>
  <br /><br />
- <form id="document_custom_date_form" class="ui form" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-target="document_custom_date" onsubmit="return false;" style="{if !$item->hasCustomDate()}display: none;{/if}">
+ <form id="document_custom_date_form" class="ui form" data-target="document_custom_date" onsubmit="return false;" style="{if !$origin->hasCustomDate()}display: none;{/if}">
   <div class="fields">
    <div class="field ui input">
-    <input type="text" name="document_custom_date" value="{if $item->hasCustomDate()}{$item->getCustomDate()}{/if}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
+    <input type="text" id="document_custom_date" name="document_custom_date" value="{if $origin->hasCustomDate()}{$origin->getCustomDate()}{/if}" data-action="update" data-model="document" data-key="document_custom_date" data-id="{$origin->getIdx()}" data-guid="{$origin->getGuid()}" />
    </div>
    <div class="field">
     <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
@@ -75,17 +123,25 @@
    </div>
   </div>
   <div id="document_custom_date_picker"></div>
+{if isset($has_date_suggestions) && $has_date_suggestions}
+  <div class="ui horizontal list">
+   <div class="disabled item">Suggestions:</div>
+{date_suggestions}
+    <a class="item" onclick="$('#document_custom_date').val('{$suggest}')">{$suggest}</a>
+{/date_suggestions}
+  </div>
+{/if}
  </form>
 
  <div class="ui toggle checkbox" name="document_expiry_date_checkbox">
-  <input type="checkbox" name="use_document_expiry_date" {if $item->hasExpiryDate()}checked{/if} />
+  <input type="checkbox" name="use_document_expiry_date" {if $origin->hasExpiryDate()}checked{/if} />
   <label>Assign expiry date to document.</label>
  </div>
  <br /><br />
- <form id="document_expiry_date_form" class="ui form" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-target="document_expiry_date" onsubmit="return false;" style="{if !$item->hasExpiryDate()}display: none;{/if}">
+ <form id="document_expiry_date_form" class="ui form" data-id="{$origin->getIdx()}" data-guid="{$origin->getGuid()}" data-target="document_expiry_date" onsubmit="return false;" style="{if !$origin->hasExpiryDate()}display: none;{/if}">
   <div class="fields">
    <div class="field ui input">
-    <input type="text" name="document_expiry_date" value="{if $item->hasExpiryDate()}{$item->getExpiryDate()}{/if}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" />
+    <input type="text" name="document_expiry_date" value="{if $origin->hasExpiryDate()}{$origin->getExpiryDate()}{/if}" data-action="update" data-model="document" data-key="document_expiry_date" data-id="{$origin->getIdx()}" data-guid="{$origin->getGuid()}" />
    </div>
    <div class="field">
     <button class="circular ui icon button save" type="submit"><i class="save icon"></i></button>
@@ -103,7 +159,7 @@
   <div class="field">
    <label>Keywords:</label>
    <div class="ui fluid search dropdown multiple selection" id="keyword_dropdown">
-    <input type="hidden" name="assigned_keywords" value="{','|implode:$item->getKeywords()}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_keywords">
+    <input type="hidden" name="assigned_keywords" value="{','|implode:$origin->getKeywords()}" data-id="{$origin->getIdx()}" data-guid="{$origin->getGuid()}" data-model="document" data-action="update" data-key="document_keywords">
     <i class="dropdown icon"></i>
     <input class="search">
     <div class="default text">No keywords assigned.</div>
@@ -114,9 +170,26 @@
     </div>
    </div>
   </div>
-  <button class="circular small ui icon save button" type="submit">
-   <i class="save icon"></i>
-  </button>
+  <div class="inline field">
+   <button class="circular small ui icon save button" type="submit">
+    <i class="save icon"></i>
+   </button>
+{if (isset($has_keyword_suggestions) && $has_keyword_suggestions) || (isset($has_keyword_suggestions_similar) && $has_keyword_suggestions_similar)}
+   <div class="ui horizontal list">
+    <div class="disabled item">Suggestions:</div>
+{if isset($has_keyword_suggestions) && $has_keyword_suggestions}
+{keyword_suggestions}
+     <a class="item" onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).remove();">{$keyword}{if isset($occurrences) && !empty($occurrences)} ({$occurrences}){/if}</a>
+{/keyword_suggestions}
+{/if}
+{if isset($has_keyword_suggestions_similar) && $has_keyword_suggestions_similar}
+{keyword_suggestions_similar}
+     <a class="item" onclick="$('#keyword_dropdown').dropdown('set selected', ['{$keyword}']); $(this).remove();">{$keyword}{if isset($occurrences) && !empty($occurrences)} ({$occurrences}){/if}</a>
+{/keyword_suggestions_similar}
+{/if}
+   </div>
+{/if}
+  </div>
  </form>
 </div>
 
@@ -124,7 +197,7 @@
  <form id="document_description" class="ui form description" data-target="document_description">
   <div class="field">
    <label>Description:</label>
-   <textarea name="document_description" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="document" data-action="update" data-key="document_description">{if $item->hasDescription()}{$item->getDescription()}{/if}</textarea>
+   <textarea name="document_description" data-id="{$origin->getIdx()}" data-guid="{$origin->getGuid()}" data-model="document" data-action="update" data-key="document_description">{if $origin->hasDescription()}{$origin->getDescription()}{/if}</textarea>
   </div>
   <button class="circular small ui icon save button" type="submit">
    <i class="save icon"></i>
@@ -138,11 +211,11 @@
  <div class="ui grid">
   <div class="row">
    <div class="five wide column">Filename:</div>
-   <div class="eleven wide column">{$item->getFileName()}</div>
+   <div class="eleven wide column">{$origin->getFileName()}</div>
   </div>
   <div class="row">
    <div class="five wide column">Size:</div>
-   <div class="eleven wide column">{get_humanreadable_filesize size=$item->getFileSize()}</div>
+   <div class="eleven wide column">{get_humanreadable_filesize size=$origin->getFileSize()}</div>
   </div>
 {document_properties}
   <div class="row">
