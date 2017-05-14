@@ -56,9 +56,10 @@ class SuggestionsController extends DefaultController
      * return an array of dates that might be suiteable for the provided item.
      *
      * @param Mtlda\Models\QueueItemModel|Mtlda\Models\DocumentModel $item
+     * @param bool $suppress
      * @return bool|array
      */
-    public function getDateSuggestions($item)
+    public function getDateSuggestions($item, $suppress = false)
     {
         if (!isset($item) ||
             empty($item) ||
@@ -228,25 +229,48 @@ class SuggestionsController extends DefaultController
             if (($parsed = date_parse($date)) === false) {
                 return false;
             }
+
             if (isset($parsed['errors']) &&
                 is_array($parsed['errors']) &&
                 !empty($parsed['errors'])
             ) {
                 return false;
             }
+
             if ($parsed['year'] < 1900 || $parsed['year'] > date('Y')) {
                 return false;
             }
+
             if ($parsed['month'] < 1 || $parsed['month'] > 12) {
                 return false;
             }
+
             if ($parsed['day'] < 1 || $parsed['day'] > 31 ||
                 $parsed['day'] > date('t', strtotime("{$parsed['year']}-{$parsed['month']}-01"))
             ) {
                 return false;
             }
+
             return true;
         });
+
+        if (isset($suppress) && $suppress === true && $item->hasCustomDate()) {
+            if (($current_custom_date = $item->getCustomDate()) === false) {
+                static::raiseError(get_class($item) .'::getCustomDate() returned false!');
+                return false;
+            }
+
+            $dateSuggestions = array_filter($dateSuggestions, function ($date) use ($current_custom_date, $suppress) {
+                if (isset($suppress) &&
+                    $suppress === true &&
+                    isset($current_custom_date) &&
+                    $current_custom_date === $date
+                ) {
+                    return false;
+                }
+                return true;
+            });
+        }
 
         if (($dateSuggestions = array_unique($dateSuggestions)) === false) {
             static::raiseError(__METHOD__ .'(), array_unique() returned false!');
@@ -267,9 +291,10 @@ class SuggestionsController extends DefaultController
      * return an array of keyword that might be suiteable for the provided item.
      *
      * @param Mtlda\Models\QueueItemModel|Mtlda\Models\DocumentModel $item
+     * @param bool $suppress
      * @return bool|array
      */
-    public function getKeywordSuggestions($item)
+    public function getKeywordSuggestions($item, $suppress = false)
     {
         $archive_item_keywords = array();
 
@@ -302,6 +327,10 @@ class SuggestionsController extends DefaultController
                     return false;
                 }
 
+                if (!$keyword->hasName()) {
+                    continue;
+                }
+
                 if (($name = $keyword->getName()) === false) {
                     static::raiseError(get_class($keyword) .'::getName() returned false!');
                     return false;
@@ -314,21 +343,21 @@ class SuggestionsController extends DefaultController
         $sources = array();
 
         if ($item->hasTitle()) {
-            if (($title = $item->getTitle()) === false) {
+            if (($archive_item_title = $item->getTitle()) === false) {
                 static::raiseError(get_class($item) .'::getTitle() returned false!');
                 return false;
             }
 
-            array_push($sources, $title);
+            array_push($sources, $archive_item_title);
         }
 
         if ($item->hasFileName()) {
-            if (($filename = $item->getFileNameBase()) === false) {
+            if (($archive_item_filename = $item->getFileNameBase()) === false) {
                 static::raiseError(get_class($item) .'::getFileName() returned false');
                 return false;
             }
 
-            array_push($sources, $filename);
+            array_push($sources, $archive_item_filename);
         }
 
         if ($item->hasIndices()) {
@@ -381,6 +410,10 @@ class SuggestionsController extends DefaultController
         $existing_keywords = array();
 
         foreach ($this->keywords->getItems() as $keyword) {
+            if (!$keyword->hasName()) {
+                continue;
+            }
+
             if (($name = $keyword->getName()) === false) {
                 static::raiseError(get_class($keyword) .'::getName() returned false!');
                 return false;
@@ -430,7 +463,7 @@ class SuggestionsController extends DefaultController
                 !empty($matching_keyword) &&
                 is_array($matching_keyword) &&
                 count($matching_keyword) > 0 &&
-                ($matching_keyword = array_shift($matching_keyword))
+                ($matching_keyword = array_shift($matching_keyword)) !== null
             ) {
                 $words[$key] = $matching_keyword;
                 continue;
@@ -464,6 +497,15 @@ class SuggestionsController extends DefaultController
             $keywordSuggestions[$word] = $occur;
         }
 
+        if (isset($suppress) && $suppress === true && isset($archive_item_keywords) && !empty($archive_item_keywords)) {
+            $keywordSuggestions = array_filter($keywordSuggestions, function ($k) use ($archive_item_keywords) {
+                if (in_array($k, $archive_item_keywords)) {
+                    return false;
+                }
+                return true;
+            }, ARRAY_FILTER_USE_KEY);
+        }
+
         if (!$this->archive->hasItems()) {
             return array('match' => $keywordSuggestions);
         }
@@ -478,56 +520,65 @@ class SuggestionsController extends DefaultController
                 static::raiseError(get_class($document) .'::getIdx() returned false!');
                 return false;
             }
+
             $items[$idx] = $document;
+
             if (($filename = $document->getFileName()) === false) {
                 static::raiseError(get_class($document) .'::getFileName() returned false!');
                 return false;
             }
+
             if ($document->hasTitle() && ($title = $document->getTitle()) === false) {
                 static::raiseError(get_class($document) .'::getTitle() returned false!');
                 return false;
             }
+
             $filenames[$idx] = $filename;
             $titles[$idx] = $title;
         }
 
-        if ($item->hasTitle()) {
-            $archive_item_title = $item->getTitle();
-        }
-        $archive_item_filename = $item->getFileName();
+        if (isset($archive_item_filename)) {
+            foreach ($filenames as $idx => $filename) {
+                if (($diff = levenshtein($archive_item_filename, $filename)) === -1) {
+                    continue;
+                }
 
-        foreach ($filenames as $idx => $filename) {
-            if (($diff = levenshtein($archive_item_filename, $filename)) === -1) {
-                continue;
-            }
-            if ($diff > 10) {
-                continue;
-            }
-            $document = $items[$idx];
-            if (!$document->hasKeywords()) {
-                continue;
-            }
-            if (($keywords = $document->getKeywords()) === false) {
-                static::raiseError(get_class($document) .'::getKeywords() returned false!');
-                return false;
-            }
-            if (!isset($keywords) || empty($keywords)) {
-                continue;
-            }
-            foreach ($keywords as $idx) {
-                try {
-                    $keyword = new \Mtlda\Models\KeywordModel(array(
-                        'idx' => $idx
-                    ));
-                } catch (\Exception $e) {
-                    static::raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
+                if ($diff > 10) {
+                    continue;
+                }
+
+                $document = $items[$idx];
+
+                if (!$document->hasKeywords()) {
+                    continue;
+                }
+
+                if (($keywords = $document->getKeywords()) === false) {
+                    static::raiseError(get_class($document) .'::getKeywords() returned false!');
                     return false;
                 }
-                if (($name = $keyword->getName()) === false) {
-                    static::raiseErrror(get_class($keyword) .'::getName() returned false!');
-                    return false;
+
+                if (!isset($keywords) || empty($keywords)) {
+                    continue;
                 }
-                array_push($sources, $name);
+
+                foreach ($keywords as $idx) {
+                    try {
+                        $keyword = new \Mtlda\Models\KeywordModel(array(
+                            'idx' => $idx
+                        ));
+                    } catch (\Exception $e) {
+                        static::raiseError(__METHOD__ .'(), failed to load KeywordModel!', false, $e);
+                        return false;
+                    }
+
+                    if (($name = $keyword->getName()) === false) {
+                        static::raiseErrror(get_class($keyword) .'::getName() returned false!');
+                        return false;
+                    }
+
+                    array_push($sources, $name);
+                }
             }
         }
 
@@ -536,20 +587,26 @@ class SuggestionsController extends DefaultController
                 if (($diff = levenshtein($archive_item_title, $title)) === -1) {
                     continue;
                 }
+
                 if ($diff > 10) {
                     continue;
                 }
+
                 $document = $items[$idx];
+
                 if (!$document->hasKeywords()) {
                     continue;
                 }
+
                 if (($keywords = $document->getKeywords()) === false) {
                     static::raiseError(get_class($document) .'::getKeywords() returned false!');
                     return false;
                 }
+
                 if (!isset($keywords) || empty($keywords)) {
                     continue;
                 }
+
                 foreach ($keywords as $idx) {
                     try {
                         $keyword = new \Mtlda\Models\KeywordModel(array(
@@ -572,6 +629,7 @@ class SuggestionsController extends DefaultController
             static::raiseError(__METHOD__ .'(), array_count_values() returned false!');
             return false;
         }
+
         if (!arsort($words, SORT_NUMERIC)) {
             static::raiseError(__METHOD__ .'(), arsort() returned false!');
             return false;
@@ -589,6 +647,19 @@ class SuggestionsController extends DefaultController
                 continue;
             }
             $keywordSuggestionsSimilar[$word] = $occur;
+        }
+
+        if (isset($suppress) && $suppress === true && isset($archive_item_keywords) && !empty($archive_item_keywords)) {
+            $keywordSuggestionsSimilar = array_filter(
+                $keywordSuggestionsSimilar,
+                function ($k) use ($archive_item_keywords) {
+                    if (in_array($k, $archive_item_keywords)) {
+                        return false;
+                    }
+                    return true;
+                },
+                ARRAY_FILTER_USE_KEY
+            );
         }
 
         return array(
