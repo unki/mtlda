@@ -22,8 +22,12 @@ namespace Mtlda\Views;
 class MainView extends DefaultView
 {
     protected static $view_class_name = 'main';
-    private $queue;
-    private $archive;
+
+    protected $queue;
+    protected $archive;
+
+    protected $queued;
+    protected $archived;
 
     public function __construct()
     {
@@ -52,7 +56,7 @@ class MainView extends DefaultView
                 )
             );
         } catch (\Exception $e) {
-            static::raiseError("Failed to load QueueModel!", true);
+            static::raiseError(__METHOD__ .'(), failed to load QueueModel!', false, $e);
             return false;
         }
 
@@ -64,12 +68,28 @@ class MainView extends DefaultView
                 )
             );
         } catch (\Exception $e) {
-            static::raiseError("Failed to load ArchiveModel!", true);
+            static::raiseError(__METHOD__ .'(), failed to load ArchiveModel!', false, $e);
             return false;
         }
 
-        if ($this->queue->hasItems()) {
-            $tmpl->assign('pending_queue_items', true);
+        if ($this->archive->hasItems()) {
+            if (($this->archived = $this->archive->getItemsKeys()) === false) {
+                static::raiseError(get_class($this->archive) .'::getItems() returned false!');
+                return false;
+            }
+
+            $tmpl->assign('has_archived_items', true);
+        }
+
+        if (!$this->queue->hasItems()) {
+            return true;
+        }
+
+        $tmpl->assign('has_pending_queue_items', true);
+
+        if (($this->queued = $this->queue->getItemsKeys()) === false) {
+            static::raiseError(get_class($this->queue) .'::getItems() returned false!');
+            return false;
         }
 
         return true;
@@ -78,26 +98,27 @@ class MainView extends DefaultView
     public function showTop10List($params, $content, &$smarty, &$repeat)
     {
         if (!isset($params['type'])) {
-            static::raiseError("top10 block misses 'type' parameter!");
+            static::raiseError(__METHOD__ .'(), top10 block misses "type" parameter!', true);
+            return;
+        }
+
+        if ($params['type'] === 'archive') {
+            $item_idx = current($this->archived);
+            $items =& $this->archive;
+            $cnt = count($this->archived);
+            next($this->archived);
+        } elseif ($params['type'] === 'queue') {
+            $item_idx = current($this->queued);
+            $items =& $this->queue;
+            $cnt = count($this->queued);
+            next($this->queued);
+        } else {
+            static::raiseError(__METHOD__ ."(), type '{$params['type']}' is not supported!", true);
             return false;
         }
 
-        if ($params['type'] == 'archive') {
-            if (!$this->archive->hasItems()) {
-                $repeat = false;
-                return $content;
-            }
-            $avail_items = $this->archive->getItemsKeys();
-            $items = $this->archive;
-        } elseif ($params['type'] == 'queue') {
-            if ($this->queue->hasItems()) {
-                $repeat = false;
-                return $content;
-            }
-            $avail_items = $this->queue->getItemsKeys();
-            $items = $this->queue;
-        } else {
-            static::raiseError("Type '{$params['type']}' is not supported!");
+        if (($item = $items->getItem($item_idx)) === false) {
+            static::raiseError(get_class($items) .'::getItem() returned false!');
             return false;
         }
 
@@ -107,24 +128,9 @@ class MainView extends DefaultView
             $index = 0;
         }
 
-        if ($index >= count($avail_items) || $index > 9) {
+        if ($index >= $cnt || $index > 9) {
             $repeat = false;
             return $content;
-        }
-
-        $item_idx = $avail_items[$index];
-
-        if (!isset($item_idx) ||
-            empty($item_idx) ||
-            !$items->hasItem($item_idx)
-        ) {
-            $repeat = false;
-            return $content;
-        }
-
-        if (!$item =  $items->getItem($item_idx)) {
-            static::raiseError(get_class($items) .'::getItem() returned false!');
-            return false;
         }
 
         if (method_exists($item, "hasDescendants") && $item->hasDescendants()) {
@@ -132,11 +138,11 @@ class MainView extends DefaultView
                 static::raiseError(get_class($item) .'::getLastestVersion() returned false!');
                 return false;
             }
-            if (!($idx = $latest->getIdx())) {
+            if (($idx = $latest->getIdx()) === false) {
                 static::raiseError(get_class($latest) .'::getIdx() returned false!');
                 return false;
             }
-            if (!($guid = $latest->getGuid())) {
+            if (($guid = $latest->getGuid()) === false) {
                 static::raiseError(get_class($latest) .'::getGuid() returned false!');
                 return false;
             }
