@@ -21,6 +21,7 @@
  <div class="column">
   <i class="archive icon"></i>Recently archived documents
   <div class="ui very relaxed divided selection list">
+{if isset($has_archived_items) && $has_archived_items}
 {top10 type=archive}
    <div class="item">
     <i class="file text icon"></i>
@@ -33,6 +34,7 @@
     </div>
    </div>
 {/top10}
+{/if}
   </div>
  </div>
 
@@ -40,7 +42,7 @@
  <div class="column">
   <i class="wait icon"></i>Recently enqueued documents
   <div class="ui very relaxed divided selection list">
-{if isset($pending_queue_items)}
+{if isset($has_pending_queue_items) && $has_pending_queue_items}
 {top10 type=queue}
    <div class="item">
     <i class="file text icon"></i>
