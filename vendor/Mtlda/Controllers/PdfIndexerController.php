@@ -35,14 +35,14 @@ class PdfIndexerController extends DefaultController
             return false;
         }
 
-        if ($this->isPlainTextIndexingEnabled() &&
+        if ($config->isPlainTextIndexingEnabled() &&
             !$this->loadPdfParser()
         ) {
             static::raiseError(__CLASS__ .'::loadPdfParser() returned false!', true);
             return false;
         }
 
-        if ($this->isOcrIndexingEnabled() &&
+        if ($config->isOcrIndexingEnabled() &&
             !$this->loadOcrParser()
         ) {
             static::raiseError(__CLASS__ .'::loadOcrParser() returned false!', true);
@@ -78,6 +78,8 @@ class PdfIndexerController extends DefaultController
 
     public function scan(&$document)
     {
+        global $config;
+
         if (!isset($document) || empty($document) ||
             (!is_a($document, 'Mtlda\Models\DocumentModel') &&
             !is_a($document, 'Mtlda\Models\QueueItemModel'))
@@ -154,8 +156,8 @@ class PdfIndexerController extends DefaultController
 
         $this->sendMessage('scan-reply', 'Parsing document.', '30%');
 
-        if (($this->isPlainTextIndexingEnabled() ||
-            $this->isOcrIndexingEnabled()) &&
+        if (($config->isPlainTextIndexingEnabled() ||
+            $config->isOcrIndexingEnabled()) &&
             ($info = $this->parsePdf($fqpn)) === false
         ) {
             static::raiseError(__CLASS__ .'::parsePdf() returned false!');
@@ -164,7 +166,7 @@ class PdfIndexerController extends DefaultController
 
         $this->sendMessage('scan-reply', 'Extracting text parts.', '50%');
 
-        if ($this->isPlainTextIndexingEnabled() &&
+        if ($config->isPlainTextIndexingEnabled() &&
             ($info = $this->extractPdfText()) === false
         ) {
             static::raiseError(__CLASS__ .'::extractPdfText() returned false!');
@@ -199,7 +201,7 @@ class PdfIndexerController extends DefaultController
 
         $this->sendMessage('scan-reply', 'Starting OCR recogination.', '50%');
 
-        if ($this->isOcrIndexingEnabled() &&
+        if ($config->isOcrIndexingEnabled() &&
             ($text_ary = $this->runOcr()) === false
         ) {
             static::raiseError(__CLASS__ .'::runOcr() returned false!');
@@ -264,44 +266,6 @@ class PdfIndexerController extends DefaultController
         $info['text'] = $text;
         $info['details'] = $details;
         return $info;
-    }
-
-    protected function isPlainTextIndexingEnabled()
-    {
-        global $config;
-
-        if (!isset($this->indexing_cfg) || empty($this->indexing_cfg)) {
-            static::raiseError(__METHOD__ .'(), invalid configuration found!');
-            return false;
-        }
-
-        if (isset($this->indexing_cfg['extract_text_from_document']) &&
-            !empty($this->indexing_cfg['extract_text_from_document']) &&
-            $config->isEnabled($this->indexing_cfg['extract_text_from_document'])
-        ) {
-            return true;
-        }
-
-        return false;
-    }
-
-    protected function isOcrIndexingEnabled()
-    {
-        global $config;
-
-        if (!isset($this->indexing_cfg) || empty($this->indexing_cfg)) {
-            static::raiseError(__METHOD__ .'(), invalid configuration found!');
-            return false;
-        }
-
-        if (isset($this->indexing_cfg['use_ocr_for_embedded_images']) &&
-            !empty($this->indexing_cfg['use_ocr_for_embedded_images']) &&
-            $config->isEnabled($this->indexing_cfg['use_ocr_for_embedded_images'])
-        ) {
-            return true;
-        }
-
-        return false;
     }
 
     protected function runOcr()
