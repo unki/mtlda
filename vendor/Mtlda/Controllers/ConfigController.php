@@ -545,6 +545,48 @@ class ConfigController extends \Thallium\Controllers\ConfigController
 
         return $this->config['pdfindexing']['default_ocr_language'];
     }
+
+    public function isPlainTextIndexingEnabled()
+    {
+        if (($indexing_cfg = $this->getPdfIndexingConfiguration()) === false) {
+            return false;
+        }
+
+        if (!isset($indexing_cfg) || empty($indexing_cfg)) {
+            static::raiseError(__METHOD__ .'(), invalid configuration found!');
+            return false;
+        }
+
+        if (isset($indexing_cfg['extract_text_from_document']) &&
+            !empty($indexing_cfg['extract_text_from_document']) &&
+            $this->isEnabled($indexing_cfg['extract_text_from_document'])
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isOcrIndexingEnabled()
+    {
+        if (($indexing_cfg = $this->getPdfIndexingConfiguration()) === false) {
+            return false;
+        }
+
+        if (!isset($indexing_cfg) || empty($indexing_cfg)) {
+            static::raiseError(__METHOD__ .'(), invalid configuration found!');
+            return false;
+        }
+
+        if (isset($indexing_cfg['use_ocr_for_embedded_images']) &&
+            !empty($indexing_cfg['use_ocr_for_embedded_images']) &&
+            $this->isEnabled($indexing_cfg['use_ocr_for_embedded_images'])
+        ) {
+            return true;
+        }
+
+        return false;
+    }
 }
 
 // vim: set filetype=php expandtab softtabstop=4 tabstop=4 shiftwidth=4:
