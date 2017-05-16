@@ -41,6 +41,7 @@ $(document).ready(function () {
     init_dropdowns();
     init_action_links();
     init_modal_steps();
+    init_clipboard();
 });
 
 function init_upload_progressbar(dropzone)
@@ -1003,4 +1004,30 @@ function init_modal_steps()
     });
 }
 
+function init_clipboard()
+{
+    if (!Clipboard.isSupported()) {
+        return true;
+    }
+
+    var clipboard = new Clipboard('.clipboard');
+
+    $('.clipboard').popup({
+        inline: true,
+        on: 'manual',
+        onShow: function (e) {
+            setTimeout(function () {
+                $(this).popup('hide');
+            }.bind(e), 500);
+        }.bind(this)
+    });
+
+    clipboard.on('success', function (e) {
+        if (!e.trigger.id) {
+            return;
+        }
+
+        $('#' + e.trigger.id).popup('show');
+    });
+}
 // vim: set filetype=javascript expandtab softtabstop=4 tabstop=4 shiftwidth=4:
