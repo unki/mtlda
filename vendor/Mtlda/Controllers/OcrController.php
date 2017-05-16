@@ -65,15 +65,15 @@ class OcrController extends \Thallium\Controllers\DefaultController
             return false;
         }
 
-        $this->tesseract->setLanguage($language);
+        $this->tesseract->lang($language);
 
         try {
-            $text = $this->tesseract->recognize();
+            $text = $this->tesseract->run();
         } catch (\Exception $e) {
             if (strpos($e->getMessage(), "does not exist! Probably Tesseract was unsuccessful")) {
                 return "";
             }
-            static::raiseError(get_class($ocr) .'::recognize() raised an unknown exception!', false, $e);
+            static::raiseError(get_class($ocr) .'::run() raised an unknown exception!', false, $e);
             return false;
         }
         return $text;
