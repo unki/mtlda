@@ -85,6 +85,9 @@
       </form>
      </div>
      {/if}
+     {if $item->hasFileName()}
+     <a id="clipboard_{$item->getIdx()}" class="item clipboard" title="Get {$item->getFileName()|escape} filesystem path." data-clipboard-text="{$item->getFilePath()}" data-content="Copied to clipboard!"><i class="copy icon"></i></a>
+     {/if}
     </div>
 
     <div class="description">
