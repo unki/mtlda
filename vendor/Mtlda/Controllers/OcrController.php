@@ -21,14 +21,6 @@ namespace Mtlda\Controllers;
 
 class OcrController extends \Thallium\Controllers\DefaultController
 {
-    protected $tesseract;
-
-    public function __construct()
-    {
-        require_once APP_BASE .'/vendor/TesseractOCR/TesseractOCR.php';
-        return true;
-    }
-
     public function scanFile($fqfn)
     {
         global $config;
@@ -49,9 +41,9 @@ class OcrController extends \Thallium\Controllers\DefaultController
         }
 
         try {
-            $this->tesseract = new \TesseractOCR($fqfn);
+            $tesseract = new \Mtlda\Controllers\TesseractController($fqfn);
         } catch (\Exception $e) {
-            static::raiseError(__CLASS__ .', failed to load TesseractOCR!', true, $e);
+            static::raiseError(__CLASS__ .', failed to load TesseractController!', true, $e);
             return false;
         }
 
@@ -65,10 +57,10 @@ class OcrController extends \Thallium\Controllers\DefaultController
             return false;
         }
 
-        $this->tesseract->lang($language);
+        $tesseract->lang($language);
 
         try {
-            $text = $this->tesseract->run();
+            $text = $tesseract->run();
         } catch (\Exception $e) {
             if (strpos($e->getMessage(), "does not exist! Probably Tesseract was unsuccessful")) {
                 return "";
@@ -76,6 +68,7 @@ class OcrController extends \Thallium\Controllers\DefaultController
             static::raiseError(get_class($ocr) .'::run() raised an unknown exception!', false, $e);
             return false;
         }
+
         return $text;
     }
 
