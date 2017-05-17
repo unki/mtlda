@@ -40,5 +40,4 @@ Your MTLDA installation bundles further open source software and libraries:<br /
 <div class="item">Forge,&nbsp;<a href="https://github.com/digitalbazaar/forge" target="_blank">https://github.com/digitalbazaar/forge</a></div>
 <div class="item">PdfParser,&nbsp;<a href="http://www.pdfparser.org" target="_blank">http://www.pdfparser.org</a></div>
 <div class="item">Thallium,&nbsp;<a href="http://oss.netshadow.net" target="_blank">http://oss.netshadow.net</a></div>
-<div class="item">tesseract-ocr-for-php,&nbsp;<a href="https://github.com/thiagoalessio/tesseract-ocr-for-php" target="_blank">https://github.com/thiagoalessio/tesseract-ocr-for-php</a></div>
 </div>
