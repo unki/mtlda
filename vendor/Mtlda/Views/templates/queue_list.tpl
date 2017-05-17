@@ -37,16 +37,14 @@
 <table class="ui fixed striped single line selectable sortable celled table" id="datatable">
  <thead>
   <tr>
-   <th class="no-sort one wide">
+   <th class="no-sort one wide center aligned">
     <div class="ui fitted checkbox item select" id="select_all">
      <input type="checkbox">
      <label></label>
     </div>
    </th>
-   <th class="one wide" data-content="Click to sort list">Idx</th>
-   <th class="six wide" data-content="Click to sort list">Filename</th>
+   <th class="eight wide" data-content="Click to sort list">Filename</th>
    <th data-content="Click to sort list">Size</th>
-   <th class="one wide" data-content="Click to sort list">State</th>
    <th data-content="Click to sort list">Time</th>
    <th class="no-sort four wide">
     <div class="two column ui grid">
@@ -61,14 +59,17 @@
  <tbody>
 {queue_list}
  <tr class="queue item" id="queue_item_{$item->getIdx()}">
-  <td>
+  <td class="center aligned">
    <div class="ui fitted checkbox item select" id="select_{$item->getIdx()}">
     <input type="checkbox">
     <label></label>
    </div>
   </td>
-  <td><a href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getIdx()}</a></td>
-  <td class="six wide">
+  <td class="nine wide">
+{if $item->hasTitle()}
+   <h5 class="ui header">
+{/if}
+   <div class="content">
 {if $item->hasTitle()}
    <a name="title_{$item->getIdx()}" class="filterable inline editable content" data-current-value="{$item->getTitle()}" data-orig-value="{$item->getTitle()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getTitle()}</a>
    <a name="title_{$item->getIdx()}" class="inline editable edit link" data-inline-name="title_{$item->getIdx()}"><i class="tiny edit icon"></i></a>
@@ -85,7 +86,9 @@
       </div>
      </div>
     </form>
-   </div>&nbsp;(
+   </div>
+   <br />
+   <div class="sub header">
 {/if}
    <a name="filename_{$item->getIdx()}" class="filterable inline editable content" data-current-value="{$item->getFileName()}" data-orig-value="{$item->getFileName()}" href="{get_url page=queue mode=show id=$item_safe_link}" target="_blank">{$item->getFileName()}</a>
    <a name="filename_{$item->getIdx()}" class="inline editable edit link" data-inline-name="filename_{$item->getIdx()}"><i class="tiny edit icon"></i></a>
@@ -104,11 +107,14 @@
     </form>
    </div>
 {if $item->hasTitle()}
-)
+</div>
+{/if}
+    </div>
+{if $item->hasTitle()}
+   </h5>
 {/if}
   </td>
   <td class="filterable" data-sort-value="{$item->getFileSize()}">{$item->getFileSize()|filesize}</td>
-  <td class="filterable archive state" id="archive-state-{$item->getIdx()}">{$item->getState()}</td>
   <td class="filterable">{$item->getTime()|date_format:"%Y.%m.%d %H:%M"}</td>
   <td style="overflow: visible">
    <div class="ui icon buttons">
@@ -127,7 +133,7 @@
       <a class="scan item edit action link" data-action-title="Scan {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-title="Scan {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Scan {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-variation="wide"><i class="find icon"></i>Scan</a>
      </div>
     </div>
-    <a id="delete_link_{$item->getIdx()}" class="delete item ui icon button action link" data-action-title="Deleting {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-title="Delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm to delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Deletes {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}"><i class="remove circle icon"></i></a>
+    <a id="delete_link_{$item->getIdx()}" class="delete item ui icon button action link" data-action-title="Deleting {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-title="Delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-modal-text="Please confirm to delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}" data-id="{$item->getIdx()}" data-guid="{$item->getGuid()}" data-model="queueitem" data-content="Delete {if $item->hasTitle()}{$item->getTitle()|escape}{else}{$item->getFileName()|escape}{/if}"><i class="remove circle icon"></i></a>
    </div>
   </td>
  </tr>
@@ -135,7 +141,7 @@
  </tbody>
  <tfoot>
   <tr>
-   <th colspan="7">
+   <th colspan="5">
     <div class="ui left floated borderless small menu">
      <a class="archive item action link" data-action-title="Archiving selected items" data-modal-title="Archive selected items" data-modal-text="Please confirm that you would like to archive selected items." data-id="selected" data-guid="selected" data-model="queue" data-content="Archive selected items"><i class="archive icon"></i>Archive selected</a>
      <a class="delete item action link" data-action-title="Deleting selected items" data-modal-title="Delete selected items" data-modal-text="Do you really want to delete selected items from queue?" data-id="selected" data-guid="selected" data-model="queue" data-content="Delete selected items"><i class="remove circle icon"></i>Delete selected</a>
