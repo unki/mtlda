@@ -497,7 +497,7 @@ class ArchiveView extends DefaultView
         if (!isset($this->keywordSuggestions) ||
             empty($this->keywordSuggestions) ||
             !is_array($this->keywordSuggestions) ||
-            $index >= count($this->keywordsSuggestions)
+            $index >= count($this->keywordSuggestions)
         ) {
             $repeat = false;
             return $content;
