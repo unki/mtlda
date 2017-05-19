@@ -108,7 +108,6 @@ class TesseractController extends \Thallium\Controllers\DefaultController
 
         if (!empty($error)) {
             static::raiseError(__METHOD__ .'(), stderr output received! '. $error);
-            return false;
         }
 
         return $retval;
