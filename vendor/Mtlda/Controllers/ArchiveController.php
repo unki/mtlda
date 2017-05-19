@@ -215,12 +215,12 @@ class ArchiveController extends DefaultController
             return false;
         }
 
-        if (!$mbus->sendMessageToClient('archive-reply', 'Embedding seal-icon into document.', '50%')) {
-            static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
-            return false;
-        }
-
         if ($config->isEmbeddingMtldaIcon()) {
+            if (!$mbus->sendMessageToClient('archive-reply', 'Embedding seal-icon into document.', '50%')) {
+                static::raiseError(get_class($mbus) .'::sendMessageToClient() returned false!');
+                return false;
+            }
+
             if (!$this->embedMtldaIcon($document)) {
                 static::raiseError("embedMtldaIcon() returned false!");
                 return false;
