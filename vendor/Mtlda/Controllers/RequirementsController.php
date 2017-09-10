@@ -81,55 +81,6 @@ class RequirementsController extends \Thallium\Controllers\RequirementsControlle
         return true;
     }
 
-    public function checkDatabaseSupport()
-    {
-        global $mtlda, $config;
-
-        $missing = false;
-
-        if (!($dbtype = $config->getDatabaseType())) {
-            static::raiseError("Error - incomplete configuration found, can not check requirements!");
-            return false;
-        }
-
-        switch ($dbtype) {
-            case 'mysql':
-                $db_class_name = "mysqli";
-                $db_pdo_name = "mysql";
-                break;
-            case 'sqlite3':
-                $db_class_name = "Sqlite3";
-                $db_pdo_name = "sqlite";
-                break;
-            default:
-                $db_class_name = null;
-                $db_pdo_name = null;
-                break;
-        }
-
-        if (!$db_class_name) {
-            $mtlda->write("Error - unsupported database configuration, can not check requirements!", LOG_ERR);
-            $missing = true;
-        }
-
-        if (!class_exists($db_class_name)) {
-            $mtlda->write("PHP {$dbtype} extension is missing!", LOG_ERR);
-            $missing = true;
-        }
-
-        // check for PDO database support support
-        if ((array_search($db_pdo_name, \PDO::getAvailableDrivers())) === false) {
-            $mtlda->write("PDO {$db_pdo_name} support not available", LOG_ERR);
-            $missing = true;
-        }
-
-        if ($missing) {
-            return false;
-        }
-
-        return true;
-    }
-
     public function checkExternalLibraries()
     {
         global $mtlda, $config;
