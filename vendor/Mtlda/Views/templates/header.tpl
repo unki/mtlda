@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>{$page_title}</title>
   <!-- jQuery -->
-  <script type="text/javascript" src="{$app_web_path}/resources/jQuery/jquery-3.1.1.min.js"></script>
+  <script type="text/javascript" src="{$app_web_path}/resources/jQuery/jquery-3.2.1.min.js"></script>
   <!-- jQuery UI -->
   <link type="text/css" href="{$app_web_path}/resources/jquery-ui/jquery-ui-themes-1.11.4/themes/smoothness/jquery-ui.css" rel="Stylesheet" />
   <script type="text/javascript" src="{$app_web_path}/resources/jquery-ui/jquery-ui-1.11.4/jquery-ui.js"></script>
