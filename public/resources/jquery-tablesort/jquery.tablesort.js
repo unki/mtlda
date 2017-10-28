@@ -1,7 +1,7 @@
 /*
 	A simple, lightweight jQuery plugin for creating sortable tables.
 	https://github.com/kylefox/jquery-tablesort
-	Version 0.0.7
+	Version 0.0.11
 */
 
 (function($) {
@@ -11,7 +11,7 @@
 		this.$thead = this.$table.find('thead');
 		this.settings = $.extend({}, $.tablesort.defaults, settings);
 		this.$sortCells = this.$thead.length > 0 ? this.$thead.find('th:not(.no-sort)') : this.$table.find('th:not(.no-sort)');
-		this.$sortCells.bind('click.tablesort', function() {
+		this.$sortCells.on('click.tablesort', function() {
 			self.sort($(this));
 		});
 		this.index = null;
@@ -25,9 +25,9 @@
 			var start = new Date(),
 				self = this,
 				table = this.$table,
-				//body = table.find('tbody').length > 0 ? table.find('tbody') : table,
-				rows = this.$thead.length > 0 ? table.find('tbody tr') : table.find('tr').has('td'),
-				cells = table.find('tr td:nth-of-type(' + (th.index() + 1) + ')'),
+				rowsContainer = table.find('tbody').length > 0 ? table.find('tbody') : table,
+				rows = rowsContainer.find('tr').has('td, th'),
+				cells = rows.find(':nth-child(' + (th.index() + 1) + ')').filter('td, th'),
 				sortBy = th.data().sortBy,
 				sortedMap = [];
 
@@ -38,7 +38,12 @@
 			});
 			if (unsortedValues.length === 0) return;
 
-			if (direction !== 'asc' && direction !== 'desc')
+			//click on a different column
+			if (this.index !== th.index()) {
+				this.direction = 'asc';
+				this.index = th.index();
+			}
+			else if (direction !== 'asc' && direction !== 'desc')
 				this.direction = this.direction === 'asc' ? 'desc' : 'asc';
 			else
 				this.direction = direction;
@@ -65,17 +70,11 @@
 				}
 
 				sortedMap.sort(function(a, b) {
-					if (a.value > b.value) {
-						return 1 * direction;
-					} else if (a.value < b.value) {
-						return -1 * direction;
-					} else {
-						return 0;
-					}
+					return self.settings.compare(a.value, b.value) * direction;
 				});
 
 				$.each(sortedMap, function(i, entry) {
-					table.append(entry.row);
+					rowsContainer.append(entry.row);
 				});
 
 				th.addClass(self.settings[self.direction]);
@@ -94,7 +93,7 @@
 		},
 
 		destroy: function() {
-			this.$sortCells.unbind('click.tablesort');
+			this.$sortCells.off('click.tablesort');
 			this.$table.data('tablesort', null);
 			return null;
 		}
@@ -106,7 +105,16 @@
 	$.tablesort.defaults = {
 		debug: $.tablesort.DEBUG,
 		asc: 'sorted ascending',
-		desc: 'sorted descending'
+		desc: 'sorted descending',
+		compare: function(a, b) {
+			if (a > b) {
+				return 1;
+			} else if (a < b) {
+				return -1;
+			} else {
+				return 0;
+			}
+		}
 	};
 
 	$.fn.tablesort = function(settings) {
