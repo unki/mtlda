@@ -20,8 +20,8 @@
   <!-- jQuery -->
   <script type="text/javascript" src="{$app_web_path}/resources/jQuery/jquery-3.2.1.min.js"></script>
   <!-- jQuery UI -->
-  <link type="text/css" href="{$app_web_path}/resources/jquery-ui/jquery-ui-themes-1.12.4/themes/smoothness/jquery-ui.css" rel="Stylesheet" />
-  <script type="text/javascript" src="{$app_web_path}/resources/jquery-ui/jquery-ui-1.12.4/jquery-ui.js"></script>
+  <link type="text/css" href="{$app_web_path}/resources/jquery-ui/jquery-ui-themes-1.12.1/themes/smoothness/jquery-ui.css" rel="Stylesheet" />
+  <script type="text/javascript" src="{$app_web_path}/resources/jquery-ui/jquery-ui-1.12.1/jquery-ui.js"></script>
   <!-- dropzone -->
   <link type="text/css" href="{$app_web_path}/resources/dropzone/dropzone.css" rel="Stylesheet" />
   <script type="text/javascript" src="{$app_web_path}/resources/dropzone/dropzone.js"></script>
